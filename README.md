@@ -90,12 +90,30 @@ Scripts disponíveis:
 | `npm run typecheck`| Checagem de tipos (`tsc`)        |
 | `npm test`         | Testes unitários (Vitest)        |
 
-## Deploy (Vercel)
+## Variáveis de ambiente
 
-1. Conecte o repositório na Vercel.
-2. Defina as variáveis `NEXT_PUBLIC_SUPABASE_URL` e
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` no painel do projeto.
-3. O build usa `npm run build` (padrão Next.js) — sem configuração extra.
+O sistema usa **duas** variáveis (ver `.env.example`):
+
+| Variável | Descrição |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase (Settings → API) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública `anon` do Supabase |
+
+Opcional: `NEXT_PUBLIC_SITE_URL` (domínio da aplicação, para recursos futuros
+de auth por link). **Nunca** use a chave `service_role` no cliente.
+
+## Deploy (Vercel) e produção
+
+Guias completos na pasta [`docs/`](./docs):
+
+- **[Deploy na Vercel](./docs/DEPLOY_VERCEL.md)** — publicar o sistema do zero
+  (Supabase + Vercel), passo a passo.
+- **[Primeiro acesso](./docs/PRIMEIRO_ACESSO.md)** — como começar a usar.
+- **[Backup do Supabase](./docs/BACKUP_SUPABASE.md)** — proteger os dados.
+
+Resumo: conecte o repositório na Vercel, cadastre as duas variáveis de
+ambiente e clique em Deploy — a Vercel detecta o Next.js automaticamente
+(`npm run build`, sem configuração extra). Todo `git push` refaz o deploy.
 
 ## Plano de implementação (etapas)
 
@@ -131,10 +149,16 @@ pendências.
 - **Etapa 11 — Dashboard ✅:** cards clicáveis, "Atenção esta semana",
   próximas postagens, resumo por cliente e 2 gráficos.
 
+- **Etapa 12 — Minhas tarefas ✅:** visão por papel (planner/producer/admin)
+  com ações por tarefa.
+- **Etapa 13 — Histórico e comentários ✅:** registro automático de
+  alterações (imutável) e comentários por conteúdo.
+- **Etapa 14 — Preparação de deploy ✅:** variáveis revisadas, build de
+  produção e guias (Vercel, primeiro acesso, backup) em `docs/`.
+
 ### Pendências (próximas etapas)
 
-- **Minhas tarefas:** visão dos conteúdos por responsável.
-- **Configurações:** perfil e preferências.
-- **Deploy na Vercel** e polimento final de design.
+- **Configurações:** perfil e preferências (tela ainda placeholder).
+- Revisão visual final e polimento de acessibilidade.
 
 > As regras completas de negócio estão em **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)**.
