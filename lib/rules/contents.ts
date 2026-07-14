@@ -106,6 +106,31 @@ export function proximaAcao(status: ContentStatus): string {
   return PROXIMA_ACAO[status];
 }
 
+/**
+ * Status resultante ao "concluir a próxima ação" (avança o pipeline).
+ * Retorna null quando não há avanço aplicável (Publicado/Pausado/Cancelado).
+ */
+export const STATUS_AO_CONCLUIR: Record<ContentStatus, ContentStatus | null> = {
+  Planejamento: "Roteiro pronto",
+  "Roteiro pronto": "Aguardando gravação",
+  "Aguardando gravação": "Gravado",
+  Gravado: "Fila de edição",
+  "Fila de edição": "Em edição",
+  "Em edição": "Revisão interna",
+  "Revisão interna": "Aprovação do cliente",
+  "Aprovação do cliente": "Aprovado",
+  Ajustes: "Revisão interna",
+  Aprovado: "Agendado",
+  Agendado: "Publicado",
+  Publicado: null,
+  Pausado: null,
+  Cancelado: null,
+};
+
+export function statusAoConcluir(status: ContentStatus): ContentStatus | null {
+  return STATUS_AO_CONCLUIR[status];
+}
+
 // -------------------------------------------------------------
 // 2. Responsável atual (depende da etapa do pipeline)
 // -------------------------------------------------------------
