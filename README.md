@@ -117,10 +117,24 @@ pendências.
   filtros (cliente/status/prioridade/formato/mês/semana), busca por título e
   alteração rápida de status/prioridade. Regras derivadas (próxima ação,
   responsável, prazo) centralizadas em `lib/rules/contents.ts`.
-- **Etapa 6 — Gravações e Fila de edição:** visões do pipeline + registros.
-- **Etapa 7 — Postagens:** agendamento e publicação.
-- **Etapa 8 — Dashboard:** indicadores e listas dinâmicas.
-- **Etapa 9 — Minhas tarefas:** CRUD de tarefas e atribuições.
-- **Etapa 10 — Configurações, testes, polimento de design, deploy.**
+- **Etapa 6 — Regras de negócio ✅:** camada central (`lib/rules/contents.ts`)
+  para próxima ação, responsável atual, atraso, prazo principal e motivo da
+  prioridade, com testes unitários (Vitest).
+- **Etapa 7 — Painel operacional do cliente ✅:** cards e seções por status
+  com dados reais, filtros e tabela completa.
+- **Etapa 8 — Gravações ✅:** conteúdos que precisam de gravação agrupados
+  (atrasadas, da semana, próximas, já gravados) com ações rápidas.
+- **Etapa 9 — Fila de edição ✅:** ordenação automática (9 critérios) e
+  reordenação manual por drag-and-drop (`@dnd-kit`, `editing_queue_position`).
+- **Etapa 10 — Postagens ✅:** visões semana/mês, arrastar entre dias
+  (registra histórico) e calendário com contagem por dia.
+- **Etapa 11 — Dashboard ✅:** cards clicáveis, "Atenção esta semana",
+  próximas postagens, resumo por cliente e 2 gráficos.
+
+### Pendências (próximas etapas)
+
+- **Minhas tarefas:** visão dos conteúdos por responsável.
+- **Configurações:** perfil e preferências.
+- **Deploy na Vercel** e polimento final de design.
 
 > As regras completas de negócio estão em **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)**.
