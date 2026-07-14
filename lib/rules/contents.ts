@@ -62,6 +62,26 @@ export function difEmDias(a: Date, b: Date): number {
   );
 }
 
+/** Início da semana (segunda-feira) da data informada. */
+export function inicioDaSemana(d: Date): Date {
+  const dia = inicioDoDia(d);
+  const desdeSegunda = (dia.getDay() + 6) % 7; // 0=segunda ... 6=domingo
+  return new Date(dia.getFullYear(), dia.getMonth(), dia.getDate() - desdeSegunda);
+}
+
+/** Verifica se duas datas caem na mesma semana (segunda a domingo). */
+export function mesmaSemana(a: Date, b: Date): boolean {
+  return inicioDaSemana(a).getTime() === inicioDaSemana(b).getTime();
+}
+
+/** Hoje no formato "YYYY-MM-DD" (data local). */
+export function hojeISO(hoje: Date = new Date()): string {
+  const y = hoje.getFullYear();
+  const m = String(hoje.getMonth() + 1).padStart(2, "0");
+  const d = String(hoje.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 // -------------------------------------------------------------
 // 1. Próxima ação (mapa status -> ação)
 // -------------------------------------------------------------
@@ -274,6 +294,40 @@ export function estaAtrasado(
   }
 
   return false;
+}
+
+// -------------------------------------------------------------
+// Gravações: já gravado? e classificação em grupos
+// -------------------------------------------------------------
+/** Um conteúdo está gravado quando atingiu (ou passou de) a etapa "Gravado". */
+export function estaGravado(status: ContentStatus): boolean {
+  return ORDEM_STATUS[status] >= ORDEM_STATUS["Gravado"];
+}
+
+export type GrupoGravacao = "atrasada" | "semana" | "proxima" | "gravada";
+
+/**
+ * Classifica um conteúdo de gravação em: atrasada, desta semana, próxima
+ * ou já gravada. Usa a data de gravação (ou o prazo de gravação) como
+ * referência temporal.
+ */
+export function classificarGravacao(
+  content: Pick<
+    Content,
+    "status" | "recording_date" | "recording_deadline"
+  >,
+  hoje: Date = new Date(),
+): GrupoGravacao {
+  if (estaGravado(content.status)) return "gravada";
+
+  const ref =
+    parseData(content.recording_date) ?? parseData(content.recording_deadline);
+  if (ref) {
+    if (difEmDias(ref, hoje) < 0) return "atrasada";
+    if (mesmaSemana(ref, hoje)) return "semana";
+    return "proxima";
+  }
+  return "proxima";
 }
 
 // -------------------------------------------------------------

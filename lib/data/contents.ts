@@ -69,6 +69,16 @@ export async function listClientOptions(): Promise<OpcaoCliente[]> {
   return data ?? [];
 }
 
+/** Todos os clientes (id, nome, cor) — inclusive inativos, para exibição. */
+export async function listAllClients(): Promise<OpcaoCliente[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("clients")
+    .select("id, name, color")
+    .order("name", { ascending: true });
+  return data ?? [];
+}
+
 /** Todos os perfis (responsáveis). */
 export async function listProfiles(): Promise<Profile[]> {
   const supabase = createClient();

@@ -12,6 +12,7 @@ import {
   type ContentPriority,
   type ContentStatus,
 } from "@/types";
+import { hojeISO } from "@/lib/rules/contents";
 
 export interface ActionResult {
   ok: boolean;
@@ -172,6 +173,70 @@ export async function definirPrioridadeConteudoAction(
   if (error)
     return { ok: false, error: "Não foi possível alterar a prioridade." };
 
+  revalidatePath("/conteudos");
+  revalidatePath(`/conteudos/${id}`);
+  return { ok: true, id };
+}
+
+// -------------------------------------------------------------
+// Ações de gravação (página de Gravações — Fran)
+// -------------------------------------------------------------
+
+/** Marca o conteúdo como Gravado e registra a data (padrão: hoje). */
+export async function marcarComoGravadoAction(
+  id: string,
+  data?: string,
+): Promise<ActionResult> {
+  const recording_date =
+    data && /^\d{4}-\d{2}-\d{2}$/.test(data) ? data : hojeISO();
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({ status: "Gravado", recording_date })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível marcar como gravado." };
+
+  revalidatePath("/gravacoes");
+  revalidatePath("/conteudos");
+  revalidatePath(`/conteudos/${id}`);
+  return { ok: true, id };
+}
+
+/** Altera a data de gravação. */
+export async function alterarDataGravacaoAction(
+  id: string,
+  data: string,
+): Promise<ActionResult> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return { ok: false, error: "Data inválida." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({ recording_date: data })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível alterar a data." };
+
+  revalidatePath("/gravacoes");
+  revalidatePath(`/conteudos/${id}`);
+  return { ok: true, id };
+}
+
+/** Adiciona o conteúdo à fila de edição (status Fila de edição). */
+export async function adicionarFilaEdicaoAction(
+  id: string,
+): Promise<ActionResult> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({ status: "Fila de edição" })
+    .eq("id", id);
+  if (error) {
+    return { ok: false, error: "Não foi possível adicionar à fila de edição." };
+  }
+
+  revalidatePath("/gravacoes");
+  revalidatePath("/fila-edicao");
   revalidatePath("/conteudos");
   revalidatePath(`/conteudos/${id}`);
   return { ok: true, id };
