@@ -153,6 +153,8 @@ export async function definirStatusConteudoAction(
   if (error) return { ok: false, error: "Não foi possível alterar o status." };
 
   revalidatePath("/conteudos");
+  revalidatePath("/fila-edicao");
+  revalidatePath("/gravacoes");
   revalidatePath(`/conteudos/${id}`);
   return { ok: true, id };
 }
@@ -240,4 +242,26 @@ export async function adicionarFilaEdicaoAction(
   revalidatePath("/conteudos");
   revalidatePath(`/conteudos/${id}`);
   return { ok: true, id };
+}
+
+/**
+ * Persiste a ordem manual da fila de edição. Recebe os ids na nova ordem
+ * e grava editing_queue_position = 1..N. A ordem manual passa a ter
+ * prioridade sobre a ordenação automática.
+ */
+export async function reordenarFilaEdicaoAction(
+  orderedIds: string[],
+): Promise<ActionResult> {
+  const supabase = createClient();
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await supabase
+      .from("contents")
+      .update({ editing_queue_position: i + 1 })
+      .eq("id", orderedIds[i]);
+    if (error) {
+      return { ok: false, error: "Não foi possível salvar a nova ordem." };
+    }
+  }
+  revalidatePath("/fila-edicao");
+  return { ok: true };
 }

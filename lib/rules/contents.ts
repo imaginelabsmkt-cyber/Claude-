@@ -331,6 +331,82 @@ export function classificarGravacao(
 }
 
 // -------------------------------------------------------------
+// Ordenação automática da fila de edição
+// -------------------------------------------------------------
+/**
+ * Gera a chave de ordenação automática (menor = mais prioritário),
+ * seguindo a ordem: atrasado > data fixa > campanha > urgente >
+ * data de postagem mais próxima > prazo de edição mais próximo >
+ * prioridade alta > conteúdo da semana > conteúdo da próxima semana.
+ */
+function chaveFilaEdicao(
+  content: Content,
+  hoje: Date,
+): (number)[] {
+  const bool = (v: boolean) => (v ? 0 : 1);
+  const prevista = parseData(content.planned_date);
+  const prazoEd = parseData(content.editing_deadline);
+  const inicioSemanaAtual = inicioDaSemana(hoje).getTime();
+  const inicioProxSemana = inicioDaSemana(hoje);
+  inicioProxSemana.setDate(inicioProxSemana.getDate() + 7);
+
+  const daSemana =
+    prevista != null && inicioDaSemana(prevista).getTime() === inicioSemanaAtual;
+  const daProximaSemana =
+    prevista != null &&
+    inicioDaSemana(prevista).getTime() === inicioProxSemana.getTime();
+
+  return [
+    bool(estaAtrasado(content, hoje)),
+    bool(content.is_fixed_date),
+    bool(content.is_campaign),
+    bool(content.priority === "Urgente"),
+    prevista ? prevista.getTime() : Number.POSITIVE_INFINITY,
+    prazoEd ? prazoEd.getTime() : Number.POSITIVE_INFINITY,
+    bool(content.priority === "Alta"),
+    bool(daSemana),
+    bool(daProximaSemana),
+  ];
+}
+
+/** Ordena os conteúdos da fila de edição pelos critérios automáticos. */
+export function ordenarFilaEdicao(
+  contents: Content[],
+  hoje: Date = new Date(),
+): Content[] {
+  return [...contents].sort((a, b) => {
+    const ka = chaveFilaEdicao(a, hoje);
+    const kb = chaveFilaEdicao(b, hoje);
+    for (let i = 0; i < ka.length; i++) {
+      if (ka[i] !== kb[i]) return ka[i] - kb[i];
+    }
+    return 0;
+  });
+}
+
+/**
+ * Ordena a fila respeitando a posição manual (editing_queue_position)
+ * quando definida; os demais entram na sequência pela ordem automática.
+ */
+export function ordenarFilaFinal(
+  contents: Content[],
+  hoje: Date = new Date(),
+): Content[] {
+  const manuais = contents
+    .filter((c) => c.editing_queue_position != null)
+    .sort(
+      (a, b) =>
+        (a.editing_queue_position as number) -
+        (b.editing_queue_position as number),
+    );
+  const automaticos = ordenarFilaEdicao(
+    contents.filter((c) => c.editing_queue_position == null),
+    hoje,
+  );
+  return [...manuais, ...automaticos];
+}
+
+// -------------------------------------------------------------
 // 5. Motivo da prioridade
 // -------------------------------------------------------------
 type ContentMotivo = ContentAtraso & Pick<Content, "priority" | "is_campaign">;
