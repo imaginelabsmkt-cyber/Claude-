@@ -265,3 +265,52 @@ export async function reordenarFilaEdicaoAction(
   revalidatePath("/fila-edicao");
   return { ok: true };
 }
+
+// -------------------------------------------------------------
+// Postagens: alterar a data prevista (registra no histórico)
+// -------------------------------------------------------------
+
+/**
+ * Altera a data prevista de postagem (planned_date). Mantém planned_week e
+ * demais dados de produção, e registra a mudança em content_history.
+ */
+export async function alterarDataPostagemAction(
+  id: string,
+  novaData: string | null,
+): Promise<ActionResult> {
+  if (novaData !== null && !/^\d{4}-\d{2}-\d{2}$/.test(novaData)) {
+    return { ok: false, error: "Data inválida." };
+  }
+  const supabase = createClient();
+
+  // Valor anterior (para o histórico)
+  const { data: atual } = await supabase
+    .from("contents")
+    .select("planned_date")
+    .eq("id", id)
+    .maybeSingle();
+  const anterior = atual?.planned_date ?? null;
+
+  const { error } = await supabase
+    .from("contents")
+    .update({ planned_date: novaData })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível alterar a data." };
+
+  // Registra no histórico (não bloqueia em caso de falha do log)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  await supabase.from("content_history").insert({
+    content_id: id,
+    user_id: user?.id ?? null,
+    field_changed: "planned_date",
+    old_value: anterior,
+    new_value: novaData,
+  });
+
+  revalidatePath("/postagens");
+  revalidatePath("/conteudos");
+  revalidatePath(`/conteudos/${id}`);
+  return { ok: true, id };
+}
