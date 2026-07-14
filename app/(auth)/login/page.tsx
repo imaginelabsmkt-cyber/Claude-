@@ -65,9 +65,9 @@ export default function LoginPage() {
         <CardContent className="space-y-6">
           <div className="text-center">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-lg font-bold text-white">
-              A
+              I
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Agência Social</h1>
+            <h1 className="text-xl font-bold text-gray-900">Imagine</h1>
             <p className="mt-1 text-sm text-gray-500">
               Entre para gerenciar a produção de conteúdo
             </p>
