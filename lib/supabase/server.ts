@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { Database } from "@/types";
 
 /**
  * Cliente Supabase para uso em Server Components, Route Handlers e
@@ -8,7 +9,7 @@ import { cookies } from "next/headers";
 export function createClient() {
   const cookieStore = cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

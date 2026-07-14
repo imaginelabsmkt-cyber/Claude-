@@ -48,7 +48,7 @@ export type ContentPriority = "Urgente" | "Alta" | "Média" | "Baixa";
 // -------------------------------------------------------------
 
 /** profiles */
-export interface Profile {
+export type Profile = {
   id: UUID; // = auth.users.id
   name: string;
   email: string;
@@ -59,7 +59,7 @@ export interface Profile {
 }
 
 /** clients */
-export interface Client {
+export type Client = {
   id: UUID;
   name: string;
   active: boolean;
@@ -71,7 +71,7 @@ export interface Client {
 }
 
 /** contents — entidade central */
-export interface Content {
+export type Content = {
   id: UUID;
   client_id: UUID;
 
@@ -127,7 +127,7 @@ export interface Content {
 }
 
 /** content_history */
-export interface ContentHistory {
+export type ContentHistory = {
   id: UUID;
   content_id: UUID;
   user_id: UUID | null;
@@ -138,7 +138,7 @@ export interface ContentHistory {
 }
 
 /** comments */
-export interface Comment {
+export type Comment = {
   id: UUID;
   content_id: UUID;
   user_id: UUID | null;
@@ -190,24 +190,44 @@ export type CommentInsert = Omit<Comment, "id" | "created_at"> & {
 export interface Database {
   public: {
     Tables: {
-      profiles: { Row: Profile; Insert: ProfileInsert; Update: ProfileUpdate };
-      clients: { Row: Client; Insert: ClientInsert; Update: ClientUpdate };
-      contents: { Row: Content; Insert: ContentInsert; Update: ContentUpdate };
+      profiles: {
+        Row: Profile;
+        Insert: ProfileInsert;
+        Update: ProfileUpdate;
+        Relationships: [];
+      };
+      clients: {
+        Row: Client;
+        Insert: ClientInsert;
+        Update: ClientUpdate;
+        Relationships: [];
+      };
+      contents: {
+        Row: Content;
+        Insert: ContentInsert;
+        Update: ContentUpdate;
+        Relationships: [];
+      };
       content_history: {
         Row: ContentHistory;
         Insert: ContentHistoryInsert;
         Update: Partial<ContentHistoryInsert>;
+        Relationships: [];
       };
       comments: {
         Row: Comment;
         Insert: CommentInsert;
         Update: Partial<CommentInsert>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
     Enums: {
       user_role: UserRole;
       content_status: ContentStatus;
       content_priority: ContentPriority;
     };
+    CompositeTypes: Record<string, never>;
   };
 }

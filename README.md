@@ -109,7 +109,9 @@ pendências.
   Ver **[supabase/README.md](./supabase/README.md)**.
 - **Etapa 3 — Autenticação ✅:** Supabase Auth (login/logout), proteção de
   rotas real (middleware), obtenção do usuário e papel (profiles).
-- **Etapa 4 — Clientes:** CRUD completo de clientes.
+- **Etapa 4 — Clientes ✅:** CRUD (sem exclusão definitiva — soft-delete via
+  `active`), busca por nome, filtro ativos/inativos, página individual e
+  formulário reutilizável validado com Zod.
 - **Etapa 5 — Conteúdos:** CRUD + pipeline (mudança de status) + filtros.
 - **Etapa 6 — Gravações e Fila de edição:** visões do pipeline + registros.
 - **Etapa 7 — Postagens:** agendamento e publicação.
