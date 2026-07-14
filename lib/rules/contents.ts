@@ -180,6 +180,45 @@ export function prazoPrincipal(
 }
 
 // -------------------------------------------------------------
+// Agrupamentos por status (usados em painéis e dashboard)
+// -------------------------------------------------------------
+export const GRUPO_EM_APROVACAO: ContentStatus[] = [
+  "Revisão interna",
+  "Aprovação do cliente",
+];
+export const GRUPO_PRONTOS_PUBLICAR: ContentStatus[] = ["Aprovado", "Agendado"];
+
+export interface ResumoProducao {
+  total: number;
+  aguardandoGravacao: number;
+  gravados: number;
+  filaEdicao: number;
+  emEdicao: number;
+  emAprovacao: number;
+  aprovados: number;
+  publicados: number;
+}
+
+/** Conta os conteúdos por etapa de produção (para cards de indicadores). */
+export function resumoProducao(
+  contents: Pick<Content, "status">[],
+): ResumoProducao {
+  const conta = (s: ContentStatus) =>
+    contents.filter((c) => c.status === s).length;
+  return {
+    total: contents.length,
+    aguardandoGravacao: conta("Aguardando gravação"),
+    gravados: conta("Gravado"),
+    filaEdicao: conta("Fila de edição"),
+    emEdicao: conta("Em edição"),
+    emAprovacao: contents.filter((c) => GRUPO_EM_APROVACAO.includes(c.status))
+      .length,
+    aprovados: conta("Aprovado"),
+    publicados: conta("Publicado"),
+  };
+}
+
+// -------------------------------------------------------------
 // 4. Está atrasado?
 // -------------------------------------------------------------
 type ContentAtraso = Pick<
