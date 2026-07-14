@@ -79,6 +79,19 @@ export const PRIORITY_OPTIONS: ContentPriority[] = [
   "Baixa",
 ];
 
+/** Formatos de conteúdo (campo texto no banco; lista fixa para a UI). */
+export const FORMAT_OPTIONS: string[] = [
+  "Reel",
+  "Carrossel",
+  "Story",
+  "Post estático",
+  "Vídeo longo",
+  "Outro",
+];
+
+/** Semanas previstas do mês (1 a 6). */
+export const WEEK_OPTIONS: number[] = [1, 2, 3, 4, 5, 6];
+
 export const ROLE_LABELS: Record<UserRole, string> = {
   planner: "Planejamento",
   producer: "Produção",

@@ -162,7 +162,10 @@ export type ClientInsert = Omit<Client, "id" | "created_at" | "updated_at"> & {
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
 
-export type ContentInsert = Omit<Content, "id" | "created_at" | "updated_at"> & {
+export type ContentInsert = Omit<
+  Content,
+  "id" | "created_at" | "updated_at" | "editing_queue_position"
+> & {
   id?: UUID;
   status?: ContentStatus;
   priority?: ContentPriority;
@@ -170,6 +173,7 @@ export type ContentInsert = Omit<Content, "id" | "created_at" | "updated_at"> & 
   participants?: string[];
   required_materials?: string[];
   revision_count?: number;
+  editing_queue_position?: number | null;
   is_fixed_date?: boolean;
   is_campaign?: boolean;
 };

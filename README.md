@@ -112,7 +112,10 @@ pendências.
 - **Etapa 4 — Clientes ✅:** CRUD (sem exclusão definitiva — soft-delete via
   `active`), busca por nome, filtro ativos/inativos, página individual e
   formulário reutilizável validado com Zod.
-- **Etapa 5 — Conteúdos:** CRUD + pipeline (mudança de status) + filtros.
+- **Etapa 5 — Conteúdos ✅:** tabela geral, criar/editar, página individual,
+  filtros (cliente/status/prioridade/formato/mês/semana), busca por título e
+  alteração rápida de status/prioridade. Regras derivadas (próxima ação,
+  responsável, prazo) centralizadas em `lib/rules/contents.ts`.
 - **Etapa 6 — Gravações e Fila de edição:** visões do pipeline + registros.
 - **Etapa 7 — Postagens:** agendamento e publicação.
 - **Etapa 8 — Dashboard:** indicadores e listas dinâmicas.
