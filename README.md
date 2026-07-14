@@ -45,7 +45,7 @@ distintos:
 │   └── utils.ts                  # cn(), formatarData()
 ├── types/
 │   └── index.ts                  # Tipos de domínio (fonte única)
-├── middleware.ts                 # Proteção de rotas via sessão Supabase
+├── middleware.ts                 # Renova sessão Supabase (proteção de rotas na etapa de auth)
 ├── .env.example                  # Modelo de variáveis de ambiente
 ├── PROJECT_CONTEXT.md            # Regras de negócio e convenções
 └── README.md

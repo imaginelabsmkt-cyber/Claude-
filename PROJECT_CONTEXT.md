@@ -115,10 +115,11 @@ recortes de leitura/ação sobre o mesmo dado.
 - **Supabase:**
   - `lib/supabase/client.ts` — navegador (Client Components).
   - `lib/supabase/server.ts` — Server Components/Actions/Route Handlers.
-  - `lib/supabase/middleware.ts` — renova sessão e protege rotas.
-- **Autenticação:** Supabase Auth (e-mail/senha). O `middleware.ts`
-  redireciona não autenticados para `/login` e autenticados para fora de
-  `/login`.
+  - `lib/supabase/middleware.ts` — renova a sessão. A proteção de rotas
+    (redirecionamentos) é habilitada na etapa de autenticação.
+- **Autenticação:** Supabase Auth (e-mail/senha). Na etapa de auth, o
+  `middleware.ts` passará a redirecionar não autenticados para `/login` e
+  autenticados para fora de `/login`. Na base técnica ainda não há bloqueio.
 - **Variáveis de ambiente:** apenas `NEXT_PUBLIC_*` (ver `.env.example`).
   Nunca commitar `.env.local`.
 
