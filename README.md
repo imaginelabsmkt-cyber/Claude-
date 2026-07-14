@@ -156,9 +156,11 @@ pendências.
 - **Etapa 14 — Preparação de deploy ✅:** variáveis revisadas, build de
   produção e guias (Vercel, primeiro acesso, backup) em `docs/`.
 
-### Pendências (próximas etapas)
+- **Etapa 15 — Revisão visual e acessibilidade ✅:** tabelas viram cards no
+  celular, foco por teclado, `aria-current`, contraste (WCAG AA).
+- **Etapa 16 — Configurações ✅:** edição do próprio perfil e sessão.
 
-- **Configurações:** perfil e preferências (tela ainda placeholder).
-- Revisão visual final e polimento de acessibilidade.
+> **Todas as funcionalidades planejadas estão implementadas.** O próximo
+> passo é o deploy — ver **[docs/DEPLOY_VERCEL.md](./docs/DEPLOY_VERCEL.md)**.
 
 > As regras completas de negócio estão em **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)**.
