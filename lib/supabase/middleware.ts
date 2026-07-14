@@ -1,17 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** Rotas públicas (acessíveis sem autenticação). */
+const ROTAS_PUBLICAS = ["/login"];
+
 /**
- * Renova a sessão do Supabase a cada requisição.
+ * Renova a sessão do Supabase e protege as rotas internas.
  * Chamado pelo middleware.ts na raiz do projeto.
  *
- * NESTA ETAPA (base técnica): apenas mantém a estrutura preparada para o
- * Supabase e renova os cookies de sessão de forma segura. A PROTEÇÃO DE
- * ROTAS (redirecionar não autenticados para /login) será habilitada na
- * etapa de autenticação — por isso ainda não há bloqueio de navegação.
+ * Regras:
+ * - Usuário não autenticado em rota protegida -> redireciona para /login.
+ * - Usuário autenticado acessando /login -> redireciona para /dashboard.
  *
- * Enquanto as variáveis de ambiente não estiverem configuradas, a função
- * degrada com segurança (não quebra o dev server).
+ * Sem variáveis de ambiente configuradas, degrada com segurança (não
+ * bloqueia navegação) para não quebrar preview/build.
  */
 export async function atualizarSessao(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -19,7 +21,7 @@ export async function atualizarSessao(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Sem credenciais configuradas, não há sessão a renovar. Segue o fluxo.
+  // Sem credenciais: não há como autenticar; segue o fluxo sem bloquear.
   if (!supabaseUrl || !supabaseKey) {
     return response;
   }
@@ -47,16 +49,27 @@ export async function atualizarSessao(request: NextRequest) {
     },
   });
 
-  // Renova a sessão (refresh dos tokens). Ainda sem redirecionamento.
-  try {
-    await supabase.auth.getUser();
-  } catch {
-    // Ambiente sem Supabase acessível: ignora e segue o fluxo.
+  // IMPORTANTE: getUser() valida o token e renova a sessão quando necessário.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const rota = request.nextUrl.pathname;
+  const ehPublica = ROTAS_PUBLICAS.includes(rota);
+
+  // Não autenticado tentando acessar rota protegida -> login.
+  if (!user && !ehPublica) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
-  // TODO (Etapa de autenticação): habilitar proteção de rotas —
-  // redirecionar usuário não autenticado para /login e autenticado
-  // para fora de /login.
+  // Autenticado acessando a tela de login -> dashboard.
+  if (user && rota === "/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

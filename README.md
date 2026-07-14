@@ -107,8 +107,8 @@ pendências.
 - **Etapa 2 — Banco de dados ✅:** schema no Supabase (5 tabelas, ENUMs,
   relacionamentos, índices, triggers, RLS), seed e tipos TypeScript.
   Ver **[supabase/README.md](./supabase/README.md)**.
-- **Etapa 3 — Autenticação:** Supabase Auth (login/logout), proteção de
-  rotas real, obtenção do usuário e papel.
+- **Etapa 3 — Autenticação ✅:** Supabase Auth (login/logout), proteção de
+  rotas real (middleware), obtenção do usuário e papel (profiles).
 - **Etapa 4 — Clientes:** CRUD completo de clientes.
 - **Etapa 5 — Conteúdos:** CRUD + pipeline (mudança de status) + filtros.
 - **Etapa 6 — Gravações e Fila de edição:** visões do pipeline + registros.

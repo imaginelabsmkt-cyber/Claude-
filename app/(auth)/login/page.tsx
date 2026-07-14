@@ -1,12 +1,64 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+/** Traduz mensagens comuns de erro do Supabase Auth para pt-BR. */
+function traduzirErro(mensagem: string): string {
+  const m = mensagem.toLowerCase();
+  if (m.includes("invalid login credentials")) {
+    return "E-mail ou senha inválidos.";
+  }
+  if (m.includes("email not confirmed")) {
+    return "E-mail ainda não confirmado. Verifique sua caixa de entrada.";
+  }
+  if (m.includes("network") || m.includes("fetch")) {
+    return "Falha de conexão. Verifique sua internet e tente novamente.";
+  }
+  return "Não foi possível entrar. Tente novamente.";
+}
+
 /**
- * Tela de Login (esqueleto).
- * A integração com Supabase Auth (e-mail/senha) será implementada na
- * etapa de autenticação. Por ora, apenas a estrutura visual.
+ * Tela de Login — autenticação por e-mail e senha (Supabase Auth).
+ * Trata estados de carregamento e erro.
  */
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    setErro(null);
+    setCarregando(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: senha,
+      });
+
+      if (error) {
+        setErro(traduzirErro(error.message));
+        setCarregando(false);
+        return;
+      }
+
+      // Sessão criada (cookies definidos). Atualiza o servidor e navega.
+      router.replace("/dashboard");
+      router.refresh();
+    } catch {
+      setErro(traduzirErro("network"));
+      setCarregando(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-sm">
@@ -21,7 +73,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={aoEnviar}>
             <div>
               <label
                 htmlFor="email"
@@ -33,9 +85,11 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                disabled
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="voce@agencia.com"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
               />
             </div>
 
@@ -50,20 +104,27 @@ export default function LoginPage() {
                 id="senha"
                 type="password"
                 autoComplete="current-password"
-                disabled
+                required
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
               />
             </div>
 
-            <Button type="button" disabled className="w-full">
-              Entrar (em breve)
+            {erro ? (
+              <p
+                role="alert"
+                className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+              >
+                {erro}
+              </p>
+            ) : null}
+
+            <Button type="submit" disabled={carregando} className="w-full">
+              {carregando ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-
-          <p className="text-center text-xs text-gray-400">
-            Autenticação será habilitada na próxima etapa.
-          </p>
         </CardContent>
       </Card>
     </div>
