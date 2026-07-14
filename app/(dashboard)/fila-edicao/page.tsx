@@ -3,8 +3,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 
 /**
  * Fila de edição — recorte do pipeline com os conteúdos aguardando edição.
- * Opera sobre Conteudo (status "edicao"). NÃO é entidade nova: é uma
- * visão especializada do fluxo (evita duplicação com "Conteúdos").
+ * Opera sobre `contents` com status "Fila de edição"/"Em edição".
+ * NÃO é entidade nova: é uma visão do fluxo (evita duplicação).
  */
 export default function FilaEdicaoPage() {
   return (

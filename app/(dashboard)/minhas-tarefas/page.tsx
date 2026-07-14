@@ -3,7 +3,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 
 /**
  * Minhas tarefas — tarefas atribuídas ao usuário autenticado.
- * Opera sobre a entidade Tarefa (filtrada por responsavel_id).
+ * Opera sobre `contents` atribuídos ao usuário atual (planner_id,
+ * recorder_id, editor_id ou publisher_id).
  */
 export default function MinhasTarefasPage() {
   return (

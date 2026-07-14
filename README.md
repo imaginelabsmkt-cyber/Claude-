@@ -44,7 +44,12 @@ distintos:
 │   ├── navigation.ts             # Definição central do menu/rotas
 │   └── utils.ts                  # cn(), formatarData()
 ├── types/
-│   └── index.ts                  # Tipos de domínio (fonte única)
+│   ├── database.ts               # Tipos do banco (fonte única, espelha o schema)
+│   └── index.ts                  # Reexporta database + rótulos/tons de UI
+├── supabase/
+│   ├── migrations/               # Migrations SQL (schema, RLS, triggers)
+│   ├── seed.sql                  # Usuários de exemplo (opcional)
+│   └── README.md                 # Como rodar a migration e cadastrar usuários
 ├── middleware.ts                 # Renova sessão Supabase (proteção de rotas na etapa de auth)
 ├── .env.example                  # Modelo de variáveis de ambiente
 ├── PROJECT_CONTEXT.md            # Regras de negócio e convenções
@@ -97,10 +102,11 @@ O projeto é construído **etapa por etapa**. Cada etapa só avança após
 confirmação de: o que foi feito, arquivos alterados, lint, testes, build e
 pendências.
 
-- **Etapa 1 — Fundação (atual):** arquitetura, estrutura de pastas, páginas
+- **Etapa 1 — Fundação ✅:** arquitetura, estrutura de pastas, páginas
   (esqueleto), componentes reutilizáveis, tipos, README e PROJECT_CONTEXT.
-- **Etapa 2 — Banco de dados:** schema no Supabase (tabelas, relacionamentos,
-  RLS), seeds e geração dos tipos a partir do banco.
+- **Etapa 2 — Banco de dados ✅:** schema no Supabase (5 tabelas, ENUMs,
+  relacionamentos, índices, triggers, RLS), seed e tipos TypeScript.
+  Ver **[supabase/README.md](./supabase/README.md)**.
 - **Etapa 3 — Autenticação:** Supabase Auth (login/logout), proteção de
   rotas real, obtenção do usuário e papel.
 - **Etapa 4 — Clientes:** CRUD completo de clientes.

@@ -3,8 +3,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 
 /**
  * Gravações — recorte do pipeline com os conteúdos em captação.
- * Opera sobre Conteudo (status "gravacao") + registros de Gravacao.
- * NÃO é uma entidade nova: é uma visão especializada do fluxo.
+ * Opera sobre `contents` com status "Aguardando gravação"/"Gravado"
+ * (ou requires_recording = true). NÃO é entidade nova: é uma visão do fluxo.
  */
 export default function GravacoesPage() {
   return (

@@ -1,4 +1,4 @@
-import type { PapelUsuario } from "@/types";
+import type { UserRole } from "@/types";
 
 /**
  * Definição central da navegação da aplicação.
@@ -14,7 +14,7 @@ export interface ItemNavegacao {
   descricao: string;
   /** Nome do ícone (a Sidebar mapeia para o SVG correspondente). */
   icone: string;
-  papeis?: PapelUsuario[];
+  papeis?: UserRole[];
 }
 
 export const NAVEGACAO: ItemNavegacao[] = [
@@ -69,7 +69,7 @@ export const NAVEGACAO: ItemNavegacao[] = [
 ];
 
 /** Filtra os itens de navegação visíveis para um determinado papel. */
-export function navegacaoPara(papel: PapelUsuario | null): ItemNavegacao[] {
+export function navegacaoPara(papel: UserRole | null): ItemNavegacao[] {
   if (!papel) return NAVEGACAO;
   return NAVEGACAO.filter((item) => !item.papeis || item.papeis.includes(papel));
 }

@@ -3,7 +3,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 
 /**
  * Postagens — agendamento e publicação nas redes.
- * Opera sobre registros de Postagem vinculados a um Conteudo.
+ * Opera sobre `contents` com status "Agendado"/"Publicado"
+ * (campos planned_date, actual_post_date, published_url).
  */
 export default function PostagensPage() {
   return (

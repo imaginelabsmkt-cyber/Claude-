@@ -14,82 +14,92 @@ consigam coordenar o trabalho sem depender de planilhas soltas.
 
 ## 2. Usuários e papéis
 
-O sistema tem **dois usuários** no MVP, cada um com um papel:
+O sistema tem **dois usuários** no MVP, cada um com um papel
+(enum `user_role` no banco):
 
-| Usuário  | Papel (`papel`)   | Responsabilidades                                              |
-| -------- | ----------------- | -------------------------------------------------------------- |
-| Vitória  | `planejamento`    | Pautas, roteiros, organização e agendamento das postagens.     |
-| Fran     | `edicao`          | Gravações, edições, ajustes e acompanhamento da publicação.    |
+| Usuário  | Papel (`role`) | Responsabilidades                                              |
+| -------- | -------------- | -------------------------------------------------------------- |
+| Vitória  | `planner`      | Pautas, roteiros, organização e agendamento das postagens.     |
+| Fran     | `producer`     | Gravações, edições, ajustes e acompanhamento da publicação.    |
 
-- Existe também o papel `admin` (reservado para futura gestão de usuários).
+- Existe também o papel `admin` (gestão de usuários/config).
 - Papéis controlam **visibilidade de UI** e, futuramente, permissões (RLS).
 - Ambos os usuários enxergam todas as páginas no MVP; a restrição por papel
   é opcional e configurável via `lib/navigation.ts`.
 
 ## 3. Conceito central: o Conteúdo e seu pipeline
 
-O **Conteúdo** é a entidade central. Todo o resto orbita em torno dele.
-Um conteúdo percorre um **pipeline linear de status**:
+O **Conteúdo** (`contents`) é a entidade central. Todo o resto orbita em
+torno dele. Um conteúdo percorre um **pipeline de status** (enum
+`content_status`, valores em pt-BR):
 
 ```
-ideia → roteiro → aprovado → gravacao → edicao → revisao → agendado → publicado
+Planejamento → Roteiro pronto → Aguardando gravação → Gravado →
+Fila de edição → Em edição → Revisão interna → Aprovação do cliente →
+Ajustes → Aprovado → Agendado → Publicado
 ```
 
-| Status      | Significado                                    | Responsável típico |
-| ----------- | ---------------------------------------------- | ------------------ |
-| `ideia`     | Pauta em rascunho                              | Vitória            |
-| `roteiro`   | Roteiro sendo escrito                          | Vitória            |
-| `aprovado`  | Roteiro pronto, liberado para gravar           | Vitória            |
-| `gravacao`  | Aguardando/realizando gravação                 | Fran               |
-| `edicao`    | Na fila de edição                              | Fran               |
-| `revisao`   | Editado, aguardando aprovação                  | Vitória            |
-| `agendado`  | Aprovado e agendado para publicar              | Fran               |
-| `publicado` | Publicado nas redes                            | Fran               |
+Status transversais: **`Pausado`** e **`Cancelado`** (podem ocorrer a
+qualquer momento).
+
+Prioridade (enum `content_priority`): `Urgente`, `Alta`, `Média`, `Baixa`.
 
 **Regra anti-duplicação (importante):**
-As páginas **Gravações** e **Fila de edição** NÃO são entidades novas —
-são **visões filtradas** do pipeline de Conteúdo (status `gravacao` e
-`edicao`, respectivamente). Isso evita funcionalidade duplicada. Registros
-auxiliares (`Gravacao`, `Postagem`) apenas guardam metadados específicos da
-etapa, sempre vinculados a um `conteudo_id`.
+As páginas **Gravações**, **Fila de edição** e **Postagens** NÃO são
+entidades novas — são **visões filtradas** do pipeline de `contents`:
+
+- **Gravações** → `status in ('Aguardando gravação', 'Gravado')`
+  (ou `requires_recording = true`); usa os campos `recording_*`.
+- **Fila de edição** → `status in ('Fila de edição', 'Em edição')`;
+  usa `editing_queue_position`.
+- **Postagens** → `status in ('Agendado', 'Publicado')`; usa
+  `planned_date`, `actual_post_date`, `published_url`.
+
+Isso evita funcionalidade duplicada: o dado vive só em `contents`.
 
 ## 4. Entidades (modelos de dados)
 
-Definidas em `types/index.ts`. Resumo:
+Schema em `supabase/migrations/`; tipos em `types/database.ts` (fonte única).
+São **5 tabelas**:
 
-- **Perfil** — usuário (`id` = `auth.users.id`), `papel`.
-- **Cliente** — cliente atendido pela agência.
-- **Conteudo** — entidade central (pauta/roteiro + pipeline). Referencia
-  `cliente_id`, `responsavel_planejamento_id`, `responsavel_producao_id`.
-- **Gravacao** — metadados da captação; `conteudo_id` (1:N).
-- **Postagem** — metadados do agendamento/publicação; `conteudo_id` (1:N).
-- **Tarefa** — tarefa avulsa atribuída a um usuário; pode referenciar
-  `conteudo_id` (opcional). Alimenta "Minhas tarefas".
+- **profiles** — usuário (`id` = `auth.users.id`), `role`.
+- **clients** — cliente atendido pela agência.
+- **contents** — entidade central (pauta/roteiro + pipeline). Referencia
+  `client_id` e os responsáveis `planner_id`, `recorder_id`, `editor_id`,
+  `publisher_id`. Concentra gravação (`recording_*`), prazos (`*_deadline`),
+  arquivos (`*_url`) e controle (`revision_count`, `editing_queue_position`,
+  `is_fixed_date`, `is_campaign`).
+- **content_history** — auditoria de alterações de campos de `contents`.
+- **comments** — comentários de colaboração em um conteúdo.
+
+> Gravação, agendamento e "tarefas" **não** têm tabela própria: gravação
+> vive em `contents`; as "tarefas de cada pessoa" derivam dos campos de
+> responsável (`planner_id`/`recorder_id`/`editor_id`/`publisher_id`).
 
 Relacionamentos:
 
 ```
-Cliente 1 ── N Conteudo
-Conteudo 1 ── N Gravacao
-Conteudo 1 ── N Postagem
-Conteudo 1 ── N Tarefa (opcional)
-Perfil   1 ── N Conteudo (como responsável)
-Perfil   1 ── N Tarefa   (como responsável)
+auth.users 1 ── 1 profiles
+clients    1 ── N contents          (on delete restrict)
+profiles   1 ── N contents          (responsáveis — on delete set null)
+contents   1 ── N content_history   (on delete cascade)
+contents   1 ── N comments          (on delete cascade)
+profiles   1 ── N content_history / comments (on delete set null)
 ```
 
 ## 5. Páginas e responsabilidade única
 
-| Rota              | Página          | Opera sobre                          |
-| ----------------- | --------------- | ------------------------------------ |
-| `/login`          | Login           | Sessão (Supabase Auth)               |
-| `/dashboard`      | Dashboard       | Indicadores agregados (somente leitura) |
-| `/conteudos`      | Conteúdos       | `Conteudo` (CRUD + pipeline)         |
-| `/clientes`       | Clientes        | `Cliente` (CRUD)                     |
-| `/gravacoes`      | Gravações       | `Conteudo` (status `gravacao`) + `Gravacao` |
-| `/fila-edicao`    | Fila de edição  | `Conteudo` (status `edicao`)         |
-| `/postagens`      | Postagens       | `Postagem`                           |
-| `/minhas-tarefas` | Minhas tarefas  | `Tarefa` (filtrado por usuário)      |
-| `/configuracoes`  | Configurações   | `Perfil` + preferências              |
+| Rota              | Página          | Opera sobre                                      |
+| ----------------- | --------------- | ------------------------------------------------ |
+| `/login`          | Login           | Sessão (Supabase Auth)                           |
+| `/dashboard`      | Dashboard       | Indicadores agregados (somente leitura)          |
+| `/conteudos`      | Conteúdos       | `contents` (CRUD + pipeline)                     |
+| `/clientes`       | Clientes        | `clients` (CRUD)                                 |
+| `/gravacoes`      | Gravações       | `contents` (status de gravação)                  |
+| `/fila-edicao`    | Fila de edição  | `contents` (status de edição)                    |
+| `/postagens`      | Postagens       | `contents` (status Agendado/Publicado)           |
+| `/minhas-tarefas` | Minhas tarefas  | `contents` (filtrado pelos campos de responsável)|
+| `/configuracoes`  | Configurações   | `profiles` + preferências                        |
 
 Cada página tem **uma responsabilidade**. Nenhuma duplica a função de outra:
 o CRUD de conteúdo vive só em `/conteudos`; as demais páginas de pipeline são
@@ -100,12 +110,15 @@ recortes de leitura/ação sobre o mesmo dado.
 - **Rotas/arquivos:** `kebab-case`.
 - **Componentes:** `PascalCase`.
 - **Funções/variáveis:** `camelCase`, em português.
-- **Campos de domínio/banco:** `snake_case`, em português (Postgres-friendly).
+- **Tabelas/colunas do banco:** `snake_case`, em **inglês** (padrão Supabase,
+  ex.: `client_id`, `created_at`). Os **valores** dos enums de status/
+  prioridade ficam em pt-BR (aparecem direto na UI).
 - **Datas:** trafegam como string ISO 8601; exibidas via `formatarData()`.
 - **IDs:** UUID.
 - **Textos de UI:** português do Brasil, sempre.
 - **Classes Tailwind:** compor com `cn()` (clsx + tailwind-merge).
-- **Rótulos de enums:** centralizados em `types/index.ts` (`ROTULOS_*`).
+- **Tipos do banco:** fonte única em `types/database.ts`; rótulos/tons de UI
+  (`STATUS_TONE`, `PRIORITY_TONE`, `ROLE_LABELS`, `*_OPTIONS`) em `types/index.ts`.
 - **Navegação/rotas:** centralizadas em `lib/navigation.ts` (não repetir).
 
 ## 7. Arquitetura técnica
@@ -123,12 +136,14 @@ recortes de leitura/ação sobre o mesmo dado.
 - **Variáveis de ambiente:** apenas `NEXT_PUBLIC_*` (ver `.env.example`).
   Nunca commitar `.env.local`.
 
-## 8. Segurança (a aplicar nas etapas de banco/auth)
+## 8. Segurança (RLS)
 
-- Habilitar **RLS** em todas as tabelas do Supabase.
-- Políticas: usuário autenticado da agência pode ler/escrever os dados da
-  agência; refinamentos por papel conforme necessidade.
-- Nenhuma chave secreta (service_role) no cliente.
+- **RLS habilitado em todas as tabelas** (feito na migration inicial).
+- Política do MVP: **todo usuário autenticado** pode ler/escrever todos os
+  registros (`for all to authenticated`). Não autenticado não tem acesso.
+- Refinamentos por papel (`planner`/`producer`/`admin`) virão depois.
+- Nenhuma chave secreta (`service_role`) no cliente.
+- Detalhes de execução da migration e cadastro de usuários: `supabase/README.md`.
 
 ## 9. Design e responsividade
 
