@@ -7,8 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/contents/quick-status";
 import { QuickPriority } from "@/components/contents/quick-priority";
-import { getContent, listProfiles, indexarPerfis } from "@/lib/data/contents";
+import {
+  getContent,
+  listProfiles,
+  indexarPerfis,
+  listHistorico,
+  listComentarios,
+} from "@/lib/data/contents";
 import { obterCliente } from "@/lib/data/clients";
+import { getAuthContext } from "@/lib/auth";
+import { HistoryTimeline } from "@/components/conteudos/history-timeline";
+import { CommentsSection } from "@/components/conteudos/comments-section";
 import {
   proximaAcao,
   responsavelAtual,
@@ -52,11 +61,19 @@ export default async function ConteudoPage({ params }: PageProps) {
   const conteudo = await getContent(params.id);
   if (!conteudo) notFound();
 
-  const [cliente, perfis] = await Promise.all([
+  const [cliente, perfis, historico, comentarios, ctx] = await Promise.all([
     obterCliente(conteudo.client_id),
     listProfiles(),
+    listHistorico(conteudo.id),
+    listComentarios(conteudo.id),
+    getAuthContext(),
   ]);
   const { porId, planner, producer } = indexarPerfis(perfis);
+  const nomePorId = new Map(perfis.map((p) => [p.id, p.name]));
+  const comentariosView = comentarios.map((c) => ({
+    ...c,
+    autor: c.user_id ? (nomePorId.get(c.user_id) ?? "Usuário") : "Usuário",
+  }));
   const nome = (id: string | null) => (id ? (porId.get(id)?.name ?? "—") : "—");
   const responsavel = responsavelAtual(conteudo, {
     planner,
@@ -225,6 +242,35 @@ export default async function ConteudoPage({ params }: PageProps) {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Histórico e comentários */}
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div>
+          <h2 className="mb-3 text-sm font-semibold text-gray-900">
+            Histórico de alterações
+          </h2>
+          <Card>
+            <CardContent>
+              <HistoryTimeline itens={historico} nomePorId={nomePorId} />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          <h2 className="mb-3 text-sm font-semibold text-gray-900">
+            Comentários
+          </h2>
+          <Card>
+            <CardContent>
+              <CommentsSection
+                contentId={conteudo.id}
+                comentarios={comentariosView}
+                usuarioAtualId={ctx.user?.id ?? null}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </>
   );

@@ -13,6 +13,8 @@ import {
   type ContentStatus,
 } from "@/types";
 import { hojeISO } from "@/lib/rules/contents";
+import { registrarHistorico, diffConteudo } from "@/lib/history";
+import { formatarData } from "@/lib/utils";
 
 export interface ActionResult {
   ok: boolean;
@@ -123,13 +125,25 @@ export async function atualizarConteudoAction(
   }
 
   const supabase = createClient();
-  const { error } = await supabase
+
+  // Estado anterior + perfis (para o histórico)
+  const { data: antigo } = await supabase
     .from("contents")
-    .update(normalizar(parsed.data))
-    .eq("id", id);
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  const { data: perfis } = await supabase.from("profiles").select("id, name");
+  const nomePorId = new Map((perfis ?? []).map((p) => [p.id, p.name]));
+
+  const novo = normalizar(parsed.data);
+  const { error } = await supabase.from("contents").update(novo).eq("id", id);
 
   if (error) {
     return { ok: false, error: "Não foi possível atualizar o conteúdo." };
+  }
+
+  if (antigo) {
+    await registrarHistorico(id, diffConteudo(antigo, novo, nomePorId));
   }
 
   revalidatePath("/conteudos");
@@ -146,11 +160,20 @@ export async function definirStatusConteudoAction(
     return { ok: false, error: "Status inválido." };
   }
   const supabase = createClient();
+  const { data: antigo } = await supabase
+    .from("contents")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase
     .from("contents")
     .update({ status })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar o status." };
+
+  await registrarHistorico(id, [
+    { field: "Status", old: antigo?.status ?? null, new: status },
+  ]);
 
   revalidatePath("/conteudos");
   revalidatePath("/fila-edicao");
@@ -168,6 +191,11 @@ export async function definirPrioridadeConteudoAction(
     return { ok: false, error: "Prioridade inválida." };
   }
   const supabase = createClient();
+  const { data: antigo } = await supabase
+    .from("contents")
+    .select("priority")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase
     .from("contents")
     .update({ priority })
@@ -175,7 +203,12 @@ export async function definirPrioridadeConteudoAction(
   if (error)
     return { ok: false, error: "Não foi possível alterar a prioridade." };
 
+  await registrarHistorico(id, [
+    { field: "Prioridade", old: antigo?.priority ?? null, new: priority },
+  ]);
+
   revalidatePath("/conteudos");
+  revalidatePath("/fila-edicao");
   revalidatePath(`/conteudos/${id}`);
   return { ok: true, id };
 }
@@ -192,11 +225,20 @@ export async function marcarComoGravadoAction(
   const recording_date =
     data && /^\d{4}-\d{2}-\d{2}$/.test(data) ? data : hojeISO();
   const supabase = createClient();
+  const { data: antigo } = await supabase
+    .from("contents")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase
     .from("contents")
     .update({ status: "Gravado", recording_date })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível marcar como gravado." };
+
+  await registrarHistorico(id, [
+    { field: "Status", old: antigo?.status ?? null, new: "Gravado" },
+  ]);
 
   revalidatePath("/gravacoes");
   revalidatePath("/conteudos");
@@ -229,6 +271,11 @@ export async function adicionarFilaEdicaoAction(
   id: string,
 ): Promise<ActionResult> {
   const supabase = createClient();
+  const { data: antigo } = await supabase
+    .from("contents")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase
     .from("contents")
     .update({ status: "Fila de edição" })
@@ -236,6 +283,10 @@ export async function adicionarFilaEdicaoAction(
   if (error) {
     return { ok: false, error: "Não foi possível adicionar à fila de edição." };
   }
+
+  await registrarHistorico(id, [
+    { field: "Status", old: antigo?.status ?? null, new: "Fila de edição" },
+  ]);
 
   revalidatePath("/gravacoes");
   revalidatePath("/fila-edicao");
@@ -253,6 +304,16 @@ export async function reordenarFilaEdicaoAction(
   orderedIds: string[],
 ): Promise<ActionResult> {
   const supabase = createClient();
+
+  // Posições anteriores (para o histórico)
+  const { data: atuais } = await supabase
+    .from("contents")
+    .select("id, editing_queue_position")
+    .in("id", orderedIds);
+  const antigaPos = new Map(
+    (atuais ?? []).map((c) => [c.id, c.editing_queue_position]),
+  );
+
   for (let i = 0; i < orderedIds.length; i++) {
     const { error } = await supabase
       .from("contents")
@@ -262,6 +323,21 @@ export async function reordenarFilaEdicaoAction(
       return { ok: false, error: "Não foi possível salvar a nova ordem." };
     }
   }
+
+  // Registra somente as posições que mudaram
+  for (let i = 0; i < orderedIds.length; i++) {
+    const anterior = antigaPos.get(orderedIds[i]);
+    if (anterior !== i + 1) {
+      await registrarHistorico(orderedIds[i], [
+        {
+          field: "Posição na fila",
+          old: anterior != null ? String(anterior) : "—",
+          new: String(i + 1),
+        },
+      ]);
+    }
+  }
+
   revalidatePath("/fila-edicao");
   return { ok: true };
 }
@@ -297,17 +373,13 @@ export async function alterarDataPostagemAction(
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
 
-  // Registra no histórico (não bloqueia em caso de falha do log)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await supabase.from("content_history").insert({
-    content_id: id,
-    user_id: user?.id ?? null,
-    field_changed: "planned_date",
-    old_value: anterior,
-    new_value: novaData,
-  });
+  await registrarHistorico(id, [
+    {
+      field: "Data prevista",
+      old: anterior ? formatarData(anterior) : "—",
+      new: novaData ? formatarData(novaData) : "—",
+    },
+  ]);
 
   revalidatePath("/postagens");
   revalidatePath("/conteudos");

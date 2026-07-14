@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Content, Profile } from "@/types";
+import type { Content, ContentHistory, Comment, Profile } from "@/types";
 
 export interface FiltrosConteudo {
   q?: string;
@@ -101,6 +101,30 @@ export async function listReferenceMonths(): Promise<string[]> {
     if (linha.reference_month) meses.add(linha.reference_month);
   }
   return Array.from(meses).sort().reverse();
+}
+
+/** Histórico de alterações de um conteúdo (mais recentes primeiro). */
+export async function listHistorico(
+  contentId: string,
+): Promise<ContentHistory[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("content_history")
+    .select("*")
+    .eq("content_id", contentId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+/** Comentários de um conteúdo (mais antigos primeiro). */
+export async function listComentarios(contentId: string): Promise<Comment[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("comments")
+    .select("*")
+    .eq("content_id", contentId)
+    .order("created_at", { ascending: true });
+  return data ?? [];
 }
 
 /** Índice auxiliar: mapa id->Profile e atalhos por papel. */

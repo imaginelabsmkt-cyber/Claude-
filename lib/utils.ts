@@ -21,3 +21,18 @@ export function formatarData(data: string | null): string {
     year: "numeric",
   }).format(new Date(data));
 }
+
+/**
+ * Formata data e hora no padrão brasileiro (dd/mm/aaaa às HH:mm).
+ * Retorna "—" quando a data é nula.
+ */
+export function formatarDataHora(data: string | null): string {
+  if (!data) return "—";
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(data));
+}
