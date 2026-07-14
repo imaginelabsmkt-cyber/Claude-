@@ -7,11 +7,60 @@ import type { Content, ContentStatus } from "@/types";
  * Fonte ÚNICA das regras derivadas de um conteúdo. Componentes NÃO devem
  * reimplementar estas regras — sempre importar daqui.
  *
- * Primeira versão (Etapa de Conteúdos): próxima ação, responsável atual e
- * prazo principal. A Etapa de Regras expande com "motivo da prioridade",
- * detalhamento de atraso e testes unitários.
+ * Calcula: próxima ação, responsável atual, prazo principal, se está
+ * atrasado e o motivo da prioridade. Coberto por testes em
+ * `contents.test.ts`.
  * =============================================================
  */
+
+// -------------------------------------------------------------
+// Ordem do pipeline (para comparar etapas)
+// -------------------------------------------------------------
+/**
+ * Índice de cada status no fluxo linear de produção. Pausado e Cancelado
+ * ficam fora do fluxo (-1): são estados transversais.
+ */
+export const ORDEM_STATUS: Record<ContentStatus, number> = {
+  Planejamento: 0,
+  "Roteiro pronto": 1,
+  "Aguardando gravação": 2,
+  Gravado: 3,
+  "Fila de edição": 4,
+  "Em edição": 5,
+  "Revisão interna": 6,
+  "Aprovação do cliente": 7,
+  Ajustes: 8,
+  Aprovado: 9,
+  Agendado: 10,
+  Publicado: 11,
+  Pausado: -1,
+  Cancelado: -1,
+};
+
+/** Janela (em dias) para considerar uma data fixa "próxima". */
+export const JANELA_DATA_FIXA_DIAS = 3;
+
+// -------------------------------------------------------------
+// Utilitários de data (comparação por dia, sem hora)
+// -------------------------------------------------------------
+function inicioDoDia(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/** Converte "YYYY-MM-DD" em Date local (ou null). */
+export function parseData(s: string | null): Date | null {
+  if (!s) return null;
+  const [ano, mes, dia] = s.split("-").map(Number);
+  if (!ano || !mes || !dia) return null;
+  return new Date(ano, mes - 1, dia);
+}
+
+/** Diferença em dias inteiros (a - b), comparando apenas a data. */
+export function difEmDias(a: Date, b: Date): number {
+  return Math.round(
+    (inicioDoDia(a).getTime() - inicioDoDia(b).getTime()) / 86_400_000,
+  );
+}
 
 // -------------------------------------------------------------
 // 1. Próxima ação (mapa status -> ação)
@@ -128,4 +177,90 @@ export function prazoPrincipal(
     default:
       return content.planned_date;
   }
+}
+
+// -------------------------------------------------------------
+// 4. Está atrasado?
+// -------------------------------------------------------------
+type ContentAtraso = Pick<
+  Content,
+  | "status"
+  | "planned_date"
+  | "recording_deadline"
+  | "editing_deadline"
+  | "is_fixed_date"
+>;
+
+/**
+ * Um conteúdo está atrasado quando QUALQUER condição é verdadeira:
+ * 1. a data prevista passou e ele não está publicado;
+ * 2. o prazo de gravação passou e ele ainda não está gravado;
+ * 3. o prazo de edição passou e ele ainda não foi aprovado;
+ * 4. possui data fixa próxima (dentro da janela) e ainda não está pronto.
+ *
+ * Pausado e Cancelado nunca são considerados atrasados.
+ * `hoje` é injetável para testes.
+ */
+export function estaAtrasado(
+  content: ContentAtraso,
+  hoje: Date = new Date(),
+): boolean {
+  const { status } = content;
+  if (status === "Publicado" || status === "Pausado" || status === "Cancelado") {
+    return false;
+  }
+
+  const idx = ORDEM_STATUS[status];
+  const naoGravado = idx < ORDEM_STATUS["Gravado"];
+  const naoAprovado = idx < ORDEM_STATUS["Aprovado"];
+
+  const prevista = parseData(content.planned_date);
+  const prazoGravacao = parseData(content.recording_deadline);
+  const prazoEdicao = parseData(content.editing_deadline);
+
+  // 1. data prevista passou e não publicado
+  if (prevista && difEmDias(prevista, hoje) < 0) return true;
+  // 2. prazo de gravação passou e não gravado
+  if (prazoGravacao && difEmDias(prazoGravacao, hoje) < 0 && naoGravado) {
+    return true;
+  }
+  // 3. prazo de edição passou e não aprovado
+  if (prazoEdicao && difEmDias(prazoEdicao, hoje) < 0 && naoAprovado) {
+    return true;
+  }
+  // 4. data fixa próxima e não pronto
+  if (content.is_fixed_date && prevista) {
+    const dias = difEmDias(prevista, hoje);
+    if (dias >= 0 && dias <= JANELA_DATA_FIXA_DIAS && naoAprovado) return true;
+  }
+
+  return false;
+}
+
+// -------------------------------------------------------------
+// 5. Motivo da prioridade
+// -------------------------------------------------------------
+type ContentMotivo = ContentAtraso & Pick<Content, "priority" | "is_campaign">;
+
+/**
+ * Retorna o principal fator que justifica a prioridade do conteúdo,
+ * na ordem: atrasado > data fixa > campanha > urgente > prioridade alta >
+ * postagem próxima > rotina. Usado em badges e na fila de edição.
+ */
+export function motivoPrioridade(
+  content: ContentMotivo,
+  hoje: Date = new Date(),
+): string {
+  if (estaAtrasado(content, hoje)) return "Atrasado";
+  if (content.is_fixed_date) return "Data fixa";
+  if (content.is_campaign) return "Campanha";
+  if (content.priority === "Urgente") return "Urgente";
+  if (content.priority === "Alta") return "Prioridade alta";
+
+  const prevista = parseData(content.planned_date);
+  if (prevista) {
+    const dias = difEmDias(prevista, hoje);
+    if (dias >= 0 && dias <= JANELA_DATA_FIXA_DIAS) return "Postagem próxima";
+  }
+  return "Rotina";
 }

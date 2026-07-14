@@ -9,7 +9,10 @@ import {
   proximaAcao,
   responsavelAtual,
   prazoPrincipal,
+  estaAtrasado,
+  motivoPrioridade,
 } from "@/lib/rules/contents";
+import { Badge } from "@/components/ui/badge";
 import { indexarPerfis } from "@/lib/data/contents";
 import type { Content, Profile } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
@@ -72,6 +75,8 @@ export function ContentsTable({
                 producer,
                 publisherName,
               });
+              const atrasado = estaAtrasado(c);
+              const motivo = motivoPrioridade(c);
               return (
                 <tr key={c.id} className="align-top hover:bg-gray-50">
                   <td className="px-3 py-3">
@@ -103,14 +108,26 @@ export function ContentsTable({
                     <QuickStatus id={c.id} status={c.status} />
                   </td>
                   <td className="px-3 py-3">
-                    <QuickPriority id={c.id} priority={c.priority} />
+                    <div className="flex flex-col gap-1">
+                      <QuickPriority id={c.id} priority={c.priority} />
+                      <span className="text-[11px] text-gray-400">{motivo}</span>
+                    </div>
                   </td>
                   <td className="px-3 py-3 text-gray-600">
                     {proximaAcao(c.status)}
                   </td>
                   <td className="px-3 py-3 text-gray-600">{responsavel}</td>
-                  <td className="px-3 py-3 text-gray-600">
-                    {formatarData(prazoPrincipal(c))}
+                  <td className="px-3 py-3">
+                    <div className="flex flex-col gap-1">
+                      <span
+                        className={
+                          atrasado ? "font-medium text-red-600" : "text-gray-600"
+                        }
+                      >
+                        {formatarData(prazoPrincipal(c))}
+                      </span>
+                      {atrasado ? <Badge tom="vermelho">Atrasado</Badge> : null}
+                    </div>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex gap-2 whitespace-nowrap">

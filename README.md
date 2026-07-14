@@ -88,6 +88,7 @@ Scripts disponíveis:
 | `npm run start`    | Sobe o build de produção         |
 | `npm run lint`     | ESLint (next lint)               |
 | `npm run typecheck`| Checagem de tipos (`tsc`)        |
+| `npm test`         | Testes unitários (Vitest)        |
 
 ## Deploy (Vercel)
 

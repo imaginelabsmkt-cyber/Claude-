@@ -13,6 +13,8 @@ import {
   proximaAcao,
   responsavelAtual,
   prazoPrincipal,
+  estaAtrasado,
+  motivoPrioridade,
 } from "@/lib/rules/contents";
 import { formatarData } from "@/lib/utils";
 
@@ -97,6 +99,16 @@ export default async function ConteudoPage({ params }: PageProps) {
           <Item rotulo="Responsável atual">{responsavel}</Item>
           <Item rotulo="Prazo principal">
             {formatarData(prazoPrincipal(conteudo))}
+          </Item>
+          <Item rotulo="Situação">
+            {estaAtrasado(conteudo) ? (
+              <Badge tom="vermelho">Atrasado</Badge>
+            ) : (
+              <Badge tom="verde">Em dia</Badge>
+            )}
+          </Item>
+          <Item rotulo="Motivo da prioridade">
+            {motivoPrioridade(conteudo)}
           </Item>
         </CardContent>
       </Card>
