@@ -61,11 +61,12 @@ export function Sidebar({
                 key={item.href}
                 href={item.href}
                 onClick={aoFechar}
+                aria-current={ativo ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   ativo
                     ? "bg-brand-50 text-brand-700"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
                 )}
               >
                 <NavIcon nome={item.icone} className="h-5 w-5 shrink-0" />

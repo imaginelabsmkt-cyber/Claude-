@@ -15,7 +15,7 @@ interface BarChartProps {
 export function BarChart({ dados }: BarChartProps) {
   const max = Math.max(1, ...dados.map((d) => d.value));
   if (dados.length === 0) {
-    return <p className="text-sm text-gray-400">Sem dados.</p>;
+    return <p className="text-sm text-gray-500">Sem dados.</p>;
   }
   return (
     <ul className="space-y-2">

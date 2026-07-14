@@ -67,7 +67,7 @@ export function MonthCalendar({
                 href={hrefDia(d.iso)}
                 className={cn(
                   "flex min-h-[64px] flex-col rounded-lg border p-1.5 text-left transition-colors",
-                  d.noMes ? "bg-white" : "bg-gray-50 text-gray-400",
+                  d.noMes ? "bg-white" : "bg-gray-50 text-gray-500",
                   d.iso === diaSelecionado
                     ? "border-brand-500 ring-1 ring-brand-500"
                     : "border-gray-200 hover:border-brand-300",

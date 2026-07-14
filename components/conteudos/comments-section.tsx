@@ -62,7 +62,7 @@ export function CommentsSection({
   return (
     <div className="space-y-4">
       {comentarios.length === 0 ? (
-        <p className="text-sm text-gray-400">Nenhum comentário ainda.</p>
+        <p className="text-sm text-gray-500">Nenhum comentário ainda.</p>
       ) : (
         <ul className="space-y-3">
           {comentarios.map((c) => (
@@ -71,7 +71,7 @@ export function CommentsSection({
                 <span className="text-sm font-medium text-gray-900">
                   {c.autor}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-500">
                   {formatarDataHora(c.created_at)}
                 </span>
               </div>

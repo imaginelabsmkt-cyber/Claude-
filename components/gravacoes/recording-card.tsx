@@ -25,7 +25,7 @@ interface RecordingCardProps {
 function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div>
-      <span className="text-[11px] uppercase tracking-wide text-gray-400">
+      <span className="text-[11px] uppercase tracking-wide text-gray-500">
         {rotulo}
       </span>
       <p className="text-gray-700">{valor}</p>
@@ -101,7 +101,7 @@ export function RecordingCard({
       {editandoData ? (
         <div className="mt-3 flex items-end gap-2">
           <div>
-            <label className="text-[11px] uppercase tracking-wide text-gray-400">
+            <label className="text-[11px] uppercase tracking-wide text-gray-500">
               Nova data de gravação
             </label>
             <Input

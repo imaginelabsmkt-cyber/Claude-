@@ -13,6 +13,7 @@ import {
   motivoPrioridade,
 } from "@/lib/rules/contents";
 import { Badge } from "@/components/ui/badge";
+import { ContentCard } from "@/components/contents/content-card";
 import { indexarPerfis } from "@/lib/data/contents";
 import type { Content, Profile } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
@@ -46,7 +47,21 @@ export function ContentsTable({
   const { porId, planner, producer } = indexarPerfis(perfis);
 
   return (
-    <Card className="overflow-hidden">
+    <>
+      {/* Celular: cards (evita rolagem horizontal excessiva) */}
+      <div className="space-y-3 lg:hidden">
+        {contents.map((c) => (
+          <ContentCard
+            key={c.id}
+            content={c}
+            clienteNome={clientesById.get(c.client_id)?.name ?? "—"}
+            cor={clientesById.get(c.client_id)?.color}
+          />
+        ))}
+      </div>
+
+      {/* Desktop: tabela completa */}
+      <Card className="hidden overflow-hidden lg:block">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1100px] text-left text-sm">
           <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
@@ -110,7 +125,7 @@ export function ContentsTable({
                   <td className="px-3 py-3">
                     <div className="flex flex-col gap-1">
                       <QuickPriority id={c.id} priority={c.priority} />
-                      <span className="text-[11px] text-gray-400">{motivo}</span>
+                      <span className="text-[11px] text-gray-500">{motivo}</span>
                     </div>
                   </td>
                   <td className="px-3 py-3 text-gray-600">
@@ -151,6 +166,7 @@ export function ContentsTable({
           </tbody>
         </table>
       </div>
-    </Card>
+      </Card>
+    </>
   );
 }

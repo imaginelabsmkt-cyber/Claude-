@@ -262,7 +262,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
           </span>
         </h3>
         {itens.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs text-gray-400">
+          <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs text-gray-500">
             Nenhum conteúdo aqui.
           </p>
         ) : (
@@ -278,7 +278,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
               />
             ))}
             {itens.length > 8 ? (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-500">
                 +{itens.length - 8} outros…
               </p>
             ) : null}

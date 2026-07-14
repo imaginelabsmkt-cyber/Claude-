@@ -149,7 +149,7 @@ export default async function DashboardPage() {
                   </span>
                 </div>
                 {grupo.itens.length === 0 ? (
-                  <p className="mt-2 text-xs text-gray-400">Tudo certo por aqui.</p>
+                  <p className="mt-2 text-xs text-gray-500">Tudo certo por aqui.</p>
                 ) : (
                   <ul className="mt-2 space-y-1">
                     {grupo.itens.slice(0, 5).map((c) => (
@@ -163,7 +163,7 @@ export default async function DashboardPage() {
                       </li>
                     ))}
                     {grupo.itens.length > 5 ? (
-                      <li className="text-xs text-gray-400">
+                      <li className="text-xs text-gray-500">
                         +{grupo.itens.length - 5} outros…
                       </li>
                     ) : null}
@@ -230,7 +230,7 @@ export default async function DashboardPage() {
               <tbody className="divide-y divide-gray-100">
                 {resumoClientes.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
+                    <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
                       Sem conteúdos cadastrados.
                     </td>
                   </tr>

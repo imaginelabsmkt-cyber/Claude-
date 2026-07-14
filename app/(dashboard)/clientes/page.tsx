@@ -53,7 +53,41 @@ export default async function ClientesPage({ searchParams }: PageProps) {
           }
         />
       ) : (
-        <Card className="overflow-hidden">
+        <>
+        {/* Celular: cards */}
+        <div className="space-y-3 sm:hidden">
+          {clientes.map((c) => (
+            <Link
+              key={c.id}
+              href={`/clientes/${c.id}`}
+              className="block rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 font-medium text-gray-900">
+                  <span
+                    className="inline-block h-3 w-3 shrink-0 rounded-full border border-gray-200"
+                    style={{ backgroundColor: c.color ?? "#e5e7eb" }}
+                    aria-hidden="true"
+                  />
+                  {c.name}
+                </span>
+                {c.active ? (
+                  <Badge tom="verde">Ativo</Badge>
+                ) : (
+                  <Badge tom="cinza">Inativo</Badge>
+                )}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                <span>Freq.: {c.posting_frequency ?? "—"}</span>
+                <span>Conteúdos: {c.contentsCount}</span>
+                <span>Atualizado: {formatarData(c.updated_at)}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Desktop/tablet: tabela */}
+        <Card className="hidden overflow-hidden sm:block">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
@@ -101,6 +135,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
             </table>
           </div>
         </Card>
+        </>
       )}
     </>
   );

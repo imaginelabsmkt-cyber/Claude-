@@ -14,3 +14,20 @@ html {
 body {
   @apply bg-gray-50 text-gray-900 antialiased;
 }
+
+/* Acessibilidade: foco visível e consistente na navegação por teclado. */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove o outline padrão apenas quando não é navegação por teclado. */
+:focus:not(:focus-visible) {
+  outline: none;
+}

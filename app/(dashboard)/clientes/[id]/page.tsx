@@ -59,7 +59,7 @@ function Secao({
         </span>
       </h3>
       {itens.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs text-gray-400">
+        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs text-gray-500">
           Nenhum conteúdo aqui.
         </p>
       ) : (

@@ -43,7 +43,7 @@ function Item({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 }
 
 function LinkOuTraco({ url }: { url: string | null }) {
-  if (!url) return <span className="text-gray-400">—</span>;
+  if (!url) return <span className="text-gray-500">—</span>;
   return (
     <a
       href={url}

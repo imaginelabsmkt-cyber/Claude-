@@ -13,7 +13,7 @@ interface HistoryTimelineProps {
 export function HistoryTimeline({ itens, nomePorId }: HistoryTimelineProps) {
   if (itens.length === 0) {
     return (
-      <p className="text-sm text-gray-400">Nenhuma alteração registrada ainda.</p>
+      <p className="text-sm text-gray-500">Nenhuma alteração registrada ainda.</p>
     );
   }
 
@@ -28,7 +28,7 @@ export function HistoryTimeline({ itens, nomePorId }: HistoryTimelineProps) {
               de “{h.old_value ?? "—"}” para “{h.new_value ?? "—"}”
             </span>
           </p>
-          <p className="mt-0.5 text-xs text-gray-400">
+          <p className="mt-0.5 text-xs text-gray-500">
             {h.user_id ? (nomePorId.get(h.user_id) ?? "Usuário") : "Sistema"} ·{" "}
             {formatarDataHora(h.created_at)}
           </p>

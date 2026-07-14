@@ -76,7 +76,7 @@ function acoesPara(status: ContentStatus): { label: string; to: ContentStatus }[
 function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div>
-      <span className="text-[11px] uppercase tracking-wide text-gray-400">
+      <span className="text-[11px] uppercase tracking-wide text-gray-500">
         {rotulo}
       </span>
       <p className="text-gray-700">{valor}</p>
@@ -121,7 +121,7 @@ function ItemFila({
         {/* Alça de arraste */}
         <button
           type="button"
-          className="mt-1 cursor-grab touch-none rounded p-1 text-gray-400 hover:bg-gray-100 active:cursor-grabbing"
+          className="mt-1 cursor-grab touch-none rounded p-1 text-gray-500 hover:bg-gray-100 active:cursor-grabbing"
           aria-label="Arrastar para reordenar"
           {...attributes}
           {...listeners}
