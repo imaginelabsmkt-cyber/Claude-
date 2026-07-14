@@ -10,21 +10,28 @@ import {
   listReferenceMonths,
   type FiltrosConteudo,
 } from "@/lib/data/contents";
+import { estaAtrasado } from "@/lib/rules/contents";
 
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: FiltrosConteudo;
+  searchParams: FiltrosConteudo & { atrasado?: string };
 }
 
 /** Página geral de conteúdos: filtros, busca e tabela. */
 export default async function ConteudosPage({ searchParams }: PageProps) {
-  const [contents, clientes, perfis, meses] = await Promise.all([
+  const [contentsRaw, clientes, perfis, meses] = await Promise.all([
     listContents(searchParams),
     listClientOptions(),
     listProfiles(),
     listReferenceMonths(),
   ]);
+
+  // Filtro derivado "somente atrasados" (regra calculada, não no banco).
+  const contents =
+    searchParams.atrasado === "1"
+      ? contentsRaw.filter((c) => estaAtrasado(c))
+      : contentsRaw;
 
   return (
     <>
