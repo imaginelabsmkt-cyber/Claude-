@@ -16,11 +16,16 @@ export const clienteFormSchema = z.object({
     .regex(/^#([0-9a-fA-F]{6})$/, "Use uma cor no formato #RRGGBB")
     .or(z.literal(""))
     .optional(),
-  posting_frequency: z
+  niche: z
     .string()
     .trim()
     .max(80, "Use no máximo 80 caracteres")
     .or(z.literal(""))
+    .optional(),
+  monthly_goal: z
+    .string()
+    .trim()
+    .regex(/^\d*$/, "Use apenas números")
     .optional(),
   notes: z
     .string()
@@ -37,7 +42,8 @@ export type ClienteFormValues = z.infer<typeof clienteFormSchema>;
 export const CLIENTE_FORM_PADRAO: ClienteFormValues = {
   name: "",
   color: "",
-  posting_frequency: "",
+  niche: "",
+  monthly_goal: "",
   notes: "",
   active: true,
 };

@@ -30,12 +30,31 @@ interface PageProps {
   };
 }
 
-function Kpi({ rotulo, valor }: { rotulo: string; valor: number }) {
+function Kpi({
+  rotulo,
+  valor,
+  meta,
+}: {
+  rotulo: string;
+  valor: number;
+  meta?: number | null;
+}) {
   return (
     <Card>
       <CardContent className="p-4">
         <p className="text-xs text-gray-500">{rotulo}</p>
-        <p className="mt-1 text-2xl font-bold text-gray-900">{valor}</p>
+        <p className="mt-1 text-2xl font-bold text-gray-900">
+          {valor}
+          {meta != null ? (
+            <span className="text-base font-medium text-gray-400">
+              {" "}
+              / {meta}
+            </span>
+          ) : null}
+        </p>
+        {meta != null ? (
+          <p className="mt-0.5 text-xs text-gray-500">meta do mês</p>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -135,9 +154,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
       <PageHeader
         titulo={cliente.name}
         descricao={
-          cliente.posting_frequency
-            ? `Frequência: ${cliente.posting_frequency}`
-            : "Painel operacional"
+          cliente.niche ? `Nicho: ${cliente.niche}` : "Painel operacional"
         }
         acao={
           <div className="flex items-center gap-2">
@@ -166,7 +183,11 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
 
       {/* Cards de indicadores */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Kpi rotulo="Total planejado no mês" valor={planejados} />
+        <Kpi
+          rotulo="Planejados no mês"
+          valor={planejados}
+          meta={cliente.monthly_goal}
+        />
         <Kpi rotulo="Aguardando gravação" valor={resumo.aguardandoGravacao} />
         <Kpi rotulo="Gravados" valor={resumo.gravados} />
         <Kpi rotulo="Fila de edição" valor={resumo.filaEdicao} />

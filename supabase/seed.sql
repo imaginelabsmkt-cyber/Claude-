@@ -68,6 +68,6 @@ on conflict (id) do update
 -- (Opcional) Cliente de exemplo para facilitar testes de tela.
 -- Descomente se desejar.
 -- -------------------------------------------------------------
--- insert into public.clients (name, active, color, posting_frequency, notes)
--- values ('Cliente Exemplo', true, '#4f46e5', '3x por semana', 'Registro de teste')
+-- insert into public.clients (name, active, color, niche, monthly_goal, notes)
+-- values ('Cliente Exemplo', true, '#4f46e5', 'Dentista', 12, 'Registro de teste')
 -- on conflict do nothing;

@@ -78,7 +78,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
                 )}
               </div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                <span>Freq.: {c.posting_frequency ?? "—"}</span>
+                <span>Nicho: {c.niche ?? "—"}</span>
                 <span>Conteúdos: {c.contentsCount}</span>
                 <span>Atualizado: {formatarData(c.updated_at)}</span>
               </div>
@@ -94,7 +94,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
                 <tr>
                   <th className="px-4 py-3 font-medium">Nome</th>
                   <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Frequência</th>
+                  <th className="px-4 py-3 font-medium">Nicho</th>
                   <th className="px-4 py-3 font-medium">Conteúdos</th>
                   <th className="px-4 py-3 font-medium">Atualizado em</th>
                 </tr>
@@ -123,7 +123,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {c.posting_frequency ?? "—"}
+                      {c.niche ?? "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">{c.contentsCount}</td>
                     <td className="px-4 py-3 text-gray-600">

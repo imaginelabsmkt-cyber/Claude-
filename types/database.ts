@@ -64,7 +64,9 @@ export type Client = {
   name: string;
   active: boolean;
   color: string | null;
-  posting_frequency: string | null;
+  niche: string | null;
+  /** Meta de conteúdos por mês (opcional; combo contratado). */
+  monthly_goal: number | null;
   notes: string | null;
   created_at: ISODateString;
   updated_at: ISODateString;
@@ -159,6 +161,8 @@ export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at" | "updated
 export type ClientInsert = Omit<Client, "id" | "created_at" | "updated_at"> & {
   id?: UUID;
   active?: boolean;
+  niche?: string | null;
+  monthly_goal?: number | null;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
 

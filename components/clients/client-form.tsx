@@ -38,7 +38,9 @@ export function ClientForm({ cliente }: ClientFormProps) {
       ? {
           name: cliente.name,
           color: cliente.color ?? "",
-          posting_frequency: cliente.posting_frequency ?? "",
+          niche: cliente.niche ?? "",
+          monthly_goal:
+            cliente.monthly_goal != null ? String(cliente.monthly_goal) : "",
           notes: cliente.notes ?? "",
           active: cliente.active,
         }
@@ -145,18 +147,37 @@ export function ClientForm({ cliente }: ClientFormProps) {
         </div>
 
         <div>
-          <Label htmlFor="posting_frequency">Frequência de postagem</Label>
+          <Label htmlFor="niche">Nicho</Label>
           <Input
-            id="posting_frequency"
-            value={values.posting_frequency ?? ""}
-            onChange={(e) => atualizar("posting_frequency", e.target.value)}
-            placeholder="Ex.: 3x por semana"
-            aria-invalid={Boolean(erros.posting_frequency)}
+            id="niche"
+            value={values.niche ?? ""}
+            onChange={(e) => atualizar("niche", e.target.value)}
+            placeholder="Ex.: Dentista, Advogado, Loja de cookies"
+            aria-invalid={Boolean(erros.niche)}
           />
-          {erros.posting_frequency ? (
-            <p className="mt-1 text-xs text-red-600">{erros.posting_frequency}</p>
+          {erros.niche ? (
+            <p className="mt-1 text-xs text-red-600">{erros.niche}</p>
           ) : null}
         </div>
+      </div>
+
+      <div className="sm:w-64">
+        <Label htmlFor="monthly_goal">Meta de conteúdos por mês</Label>
+        <Input
+          id="monthly_goal"
+          type="number"
+          min={0}
+          value={values.monthly_goal ?? ""}
+          onChange={(e) => atualizar("monthly_goal", e.target.value)}
+          placeholder="Ex.: 12 (opcional)"
+          aria-invalid={Boolean(erros.monthly_goal)}
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Combo contratado no mês. Deixe em branco se não houver número fixo.
+        </p>
+        {erros.monthly_goal ? (
+          <p className="mt-1 text-xs text-red-600">{erros.monthly_goal}</p>
+        ) : null}
       </div>
 
       <div>

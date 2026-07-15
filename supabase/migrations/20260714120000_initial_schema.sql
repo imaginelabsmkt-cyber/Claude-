@@ -86,14 +86,15 @@ comment on table public.profiles is 'Perfis de usuário; id espelha auth.users.'
 
 -- 3.2 clients — clientes atendidos pela agência
 create table if not exists public.clients (
-  id                uuid primary key default gen_random_uuid(),
-  name              text not null,
-  active            boolean not null default true,
-  color             text, -- cor de identificação (hex), ex.: #4f46e5
-  posting_frequency text, -- ex.: "3x por semana"
-  notes             text,
-  created_at        timestamptz not null default now(),
-  updated_at        timestamptz not null default now()
+  id            uuid primary key default gen_random_uuid(),
+  name          text not null,
+  active        boolean not null default true,
+  color         text,    -- cor de identificação (hex), ex.: #4f46e5
+  niche         text,    -- nicho do cliente, ex.: "Dentista"
+  monthly_goal  integer, -- meta de conteúdos por mês (opcional)
+  notes         text,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
 comment on table public.clients is 'Clientes da agência.';

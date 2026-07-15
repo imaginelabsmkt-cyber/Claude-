@@ -21,10 +21,12 @@ function normalizar(values: ClienteFormValues) {
     const t = v?.trim();
     return t ? t : null;
   };
+  const meta = values.monthly_goal?.trim();
   return {
     name: values.name.trim(),
     color: limpar(values.color),
-    posting_frequency: limpar(values.posting_frequency),
+    niche: limpar(values.niche),
+    monthly_goal: meta ? Number(meta) : null,
     notes: limpar(values.notes),
     active: values.active,
   };
