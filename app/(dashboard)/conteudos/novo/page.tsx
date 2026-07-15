@@ -17,7 +17,10 @@ export default async function NovoConteudoPage() {
 
   return (
     <>
-      <PageHeader titulo="Novo conteúdo" descricao="Cadastre um novo conteúdo" />
+      <PageHeader
+        titulo="Novo conteúdo"
+        descricao="Cadastro rápido — os detalhes de gravação e edição você preenche na etapa certa."
+      />
       <Link
         href="/conteudos"
         className="mb-4 inline-block text-sm text-brand-700 hover:underline"
@@ -38,7 +41,7 @@ export default async function NovoConteudoPage() {
       ) : (
         <Card>
           <CardContent>
-            <ContentForm clientes={clientes} perfis={perfis} />
+            <ContentForm clientes={clientes} perfis={perfis} compacto />
           </CardContent>
         </Card>
       )}

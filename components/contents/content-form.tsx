@@ -31,6 +31,8 @@ interface ContentFormProps {
   conteudo?: Content;
   clientes: OpcaoCliente[];
   perfis: Profile[];
+  /** Modo enxuto: mostra só o essencial (usado no cadastro rápido). */
+  compacto?: boolean;
 }
 
 /** Converte um conteúdo do banco nos valores (strings) do formulário. */
@@ -83,7 +85,12 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   );
 }
 
-export function ContentForm({ conteudo, clientes, perfis }: ContentFormProps) {
+export function ContentForm({
+  conteudo,
+  clientes,
+  perfis,
+  compacto = false,
+}: ContentFormProps) {
   const router = useRouter();
   const edicao = Boolean(conteudo);
 
@@ -280,26 +287,28 @@ export function ContentForm({ conteudo, clientes, perfis }: ContentFormProps) {
           />
           {erro("description")}
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="content_pillar">Pilar de conteúdo</Label>
-            <Input
-              id="content_pillar"
-              value={values.content_pillar}
-              onChange={(e) => set("content_pillar", e.target.value)}
-            />
-            {erro("content_pillar")}
+        {!compacto ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="content_pillar">Pilar de conteúdo</Label>
+              <Input
+                id="content_pillar"
+                value={values.content_pillar}
+                onChange={(e) => set("content_pillar", e.target.value)}
+              />
+              {erro("content_pillar")}
+            </div>
+            <div>
+              <Label htmlFor="objective">Objetivo</Label>
+              <Input
+                id="objective"
+                value={values.objective}
+                onChange={(e) => set("objective", e.target.value)}
+              />
+              {erro("objective")}
+            </div>
           </div>
-          <div>
-            <Label htmlFor="objective">Objetivo</Label>
-            <Input
-              id="objective"
-              value={values.objective}
-              onChange={(e) => set("objective", e.target.value)}
-            />
-            {erro("objective")}
-          </div>
-        </div>
+        ) : null}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="planned_date">Data prevista</Label>
@@ -311,19 +320,48 @@ export function ContentForm({ conteudo, clientes, perfis }: ContentFormProps) {
             />
             {erro("planned_date")}
           </div>
-          <div>
-            <Label htmlFor="actual_post_date">Data real</Label>
-            <Input
-              id="actual_post_date"
-              type="date"
-              value={values.actual_post_date}
-              onChange={(e) => set("actual_post_date", e.target.value)}
-            />
-            {erro("actual_post_date")}
-          </div>
+          {!compacto ? (
+            <div>
+              <Label htmlFor="actual_post_date">Data real</Label>
+              <Input
+                id="actual_post_date"
+                type="date"
+                value={values.actual_post_date}
+                onChange={(e) => set("actual_post_date", e.target.value)}
+              />
+              {erro("actual_post_date")}
+            </div>
+          ) : null}
         </div>
+
+        {compacto ? (
+          <>
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={values.requires_recording}
+                onChange={(e) => set("requires_recording", e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+              />
+              Precisa de gravação
+            </label>
+            <div>
+              <Label htmlFor="script_url">Link do roteiro / planejamento</Label>
+              <Input
+                id="script_url"
+                type="url"
+                value={values.script_url}
+                onChange={(e) => set("script_url", e.target.value)}
+                placeholder="Cole o link do documento da Vitória (opcional)"
+              />
+              {erro("script_url")}
+            </div>
+          </>
+        ) : null}
       </Secao>
 
+      {!compacto ? (
+        <>
       {/* Gravação */}
       <Secao titulo="Gravação">
         <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -529,6 +567,8 @@ export function ContentForm({ conteudo, clientes, perfis }: ContentFormProps) {
           </label>
         </div>
       </Secao>
+        </>
+      ) : null}
 
       <div className="flex items-center gap-3 border-t border-gray-100 pt-5">
         <Button type="submit" disabled={salvando}>
