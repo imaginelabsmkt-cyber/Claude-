@@ -38,6 +38,9 @@
 - **Painel de roteiro/legenda/stories**: legenda sempre visível com botão
   **Copiar**; roteiro em tabela (curto e expansível); direcionamento de
   stories separado em tabela própria.
+- **Preenchimento por etapa**: na página do conteúdo, painéis Gravação /
+  Edição / Postagem, cada um com só os campos daquela etapa, salvando na
+  hora. A etapa atual (pelo status) já vem aberta e destacada.
 
 ## ⚠️ Comando pendente no banco (rodar no Supabase se ainda não rodou)
 
@@ -49,15 +52,7 @@ alter table public.contents add column if not exists caption text;
 
 ## ⏳ Demandas pendentes (prioridade)
 
-1. **Conteúdos — preenchimento por ETAPA (Parte 2)**
-   - Na página do conteúdo, preencher os dados **na hora certa**:
-     - Etapa gravação → data da gravação, local, participantes, roupa,
-       materiais (edição focada só dessa seção).
-     - Etapa edição → prazos e links de edição.
-     - Etapa postagem → link publicado, data real.
-   - Nada de pedir tudo de uma vez. (A Parte 1 — cadastro enxuto — já foi feita.)
-
-2. **Conteúdos — revisão de design**
+1. **Conteúdos — revisão de design**
    - As listas "falta gravar / já gravado / fila de edição" estão pouco
      interessantes; deixar mais visual/interativo (ideia: formato de planilha).
 

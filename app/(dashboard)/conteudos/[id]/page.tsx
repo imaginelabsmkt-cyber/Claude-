@@ -20,6 +20,7 @@ import { HistoryTimeline } from "@/components/conteudos/history-timeline";
 import { CommentsSection } from "@/components/conteudos/comments-section";
 import { DeleteContentButton } from "@/components/contents/delete-content-button";
 import { ContentScriptPanel } from "@/components/contents/content-script-panel";
+import { ProductionStages } from "@/components/contents/production-stages";
 import {
   proximaAcao,
   responsavelAtual,
@@ -41,20 +42,6 @@ function Item({ rotulo, children }: { rotulo: string; children: ReactNode }) {
       <p className="text-xs uppercase tracking-wide text-gray-500">{rotulo}</p>
       <div className="mt-1 text-sm text-gray-800">{children}</div>
     </div>
-  );
-}
-
-function LinkOuTraco({ url }: { url: string | null }) {
-  if (!url) return <span className="text-gray-500">—</span>;
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-brand-700 hover:underline"
-    >
-      Abrir link
-    </a>
   );
 }
 
@@ -171,87 +158,40 @@ export default async function ConteudoPage({ params }: PageProps) {
         </Card>
       </div>
 
-      {/* Gravação */}
-      <div className="mt-6">
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">Gravação</h2>
-        <Card>
-          <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <Item rotulo="Precisa de gravação">
-              {conteudo.requires_recording ? "Sim" : "Não"}
-            </Item>
-            <Item rotulo="Data de gravação">
-              {formatarData(conteudo.recording_date)}
-            </Item>
-            <Item rotulo="Local">{conteudo.recording_location ?? "—"}</Item>
-            <Item rotulo="Participantes">
-              {conteudo.participants.length
-                ? conteudo.participants.join(", ")
-                : "—"}
-            </Item>
-            <Item rotulo="Roupa">{conteudo.outfit ?? "—"}</Item>
-            <Item rotulo="Materiais">
-              {conteudo.required_materials.length
-                ? conteudo.required_materials.join(", ")
-                : "—"}
-            </Item>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Responsáveis e prazos */}
+      {/* Responsáveis */}
       <div className="mt-6">
         <h2 className="mb-2 text-sm font-semibold text-gray-900">
-          Responsáveis e prazos
+          Responsáveis
         </h2>
         <Card>
-          <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-4">
+          <CardContent className="grid grid-cols-2 gap-5 sm:grid-cols-5">
             <Item rotulo="Planejamento">{nome(conteudo.planner_id)}</Item>
             <Item rotulo="Gravação">{nome(conteudo.recorder_id)}</Item>
             <Item rotulo="Edição">{nome(conteudo.editor_id)}</Item>
             <Item rotulo="Postagem">{nome(conteudo.publisher_id)}</Item>
-            <Item rotulo="Prazo do roteiro">
-              {formatarData(conteudo.script_deadline)}
-            </Item>
-            <Item rotulo="Prazo da gravação">
-              {formatarData(conteudo.recording_deadline)}
-            </Item>
-            <Item rotulo="Prazo da edição">
-              {formatarData(conteudo.editing_deadline)}
-            </Item>
             <Item rotulo="Ajustes">{conteudo.revision_count}</Item>
           </CardContent>
         </Card>
       </div>
 
-      {/* Links e observações */}
-      <div className="mt-6">
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">
-          Links e observações
-        </h2>
-        <Card>
-          <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-4">
-            <Item rotulo="Roteiro">
-              <LinkOuTraco url={conteudo.script_url} />
-            </Item>
-            <Item rotulo="Arquivos brutos">
-              <LinkOuTraco url={conteudo.raw_files_url} />
-            </Item>
-            <Item rotulo="Edição">
-              <LinkOuTraco url={conteudo.edited_file_url} />
-            </Item>
-            <Item rotulo="Postagem">
-              <LinkOuTraco url={conteudo.published_url} />
-            </Item>
-            <div className="sm:col-span-4">
-              <Item rotulo="Observações">
-                <span className="whitespace-pre-wrap">
-                  {conteudo.notes ?? "—"}
-                </span>
-              </Item>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Produção por etapa (editável) */}
+      <ProductionStages content={conteudo} />
+
+      {/* Observações */}
+      {conteudo.notes ? (
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-gray-900">
+            Observações
+          </h2>
+          <Card>
+            <CardContent>
+              <p className="whitespace-pre-wrap text-sm text-gray-700">
+                {conteudo.notes}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
 
       {/* Roteiro, legenda e stories */}
       <ContentScriptPanel

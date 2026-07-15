@@ -390,6 +390,137 @@ export async function alterarDataPostagemAction(
 }
 
 // -------------------------------------------------------------
+// Preenchimento por etapa (produção)
+// -------------------------------------------------------------
+
+/** Campos preenchidos ao longo da produção (gravação / edição / postagem). */
+export interface ContentStagePatch {
+  requires_recording?: boolean;
+  recording_date?: string | null;
+  recording_location?: string | null;
+  participants?: string[];
+  outfit?: string | null;
+  required_materials?: string[];
+  script_deadline?: string | null;
+  recording_deadline?: string | null;
+  editing_deadline?: string | null;
+  script_url?: string | null;
+  raw_files_url?: string | null;
+  edited_file_url?: string | null;
+  published_url?: string | null;
+  actual_post_date?: string | null;
+}
+
+const ROTULO_ETAPA: Record<keyof ContentStagePatch, string> = {
+  requires_recording: "Precisa de gravação",
+  recording_date: "Data de gravação",
+  recording_location: "Local",
+  participants: "Participantes",
+  outfit: "Roupa",
+  required_materials: "Materiais",
+  script_deadline: "Prazo do roteiro",
+  recording_deadline: "Prazo da gravação",
+  editing_deadline: "Prazo da edição",
+  script_url: "Link do roteiro",
+  raw_files_url: "Arquivos brutos",
+  edited_file_url: "Arquivo editado",
+  published_url: "Link publicado",
+  actual_post_date: "Data real",
+};
+
+const CAMPOS_DATA: (keyof ContentStagePatch)[] = [
+  "recording_date",
+  "script_deadline",
+  "recording_deadline",
+  "editing_deadline",
+  "actual_post_date",
+];
+const CAMPOS_TEXTO: (keyof ContentStagePatch)[] = [
+  "recording_location",
+  "outfit",
+  "script_url",
+  "raw_files_url",
+  "edited_file_url",
+  "published_url",
+];
+
+/**
+ * Atualiza campos de produção de um conteúdo (gravação/edição/postagem).
+ * Usado nos painéis por etapa, para preencher só o necessário de cada vez.
+ */
+export async function atualizarProducaoConteudoAction(
+  id: string,
+  patch: ContentStagePatch,
+): Promise<ActionResult> {
+  const chaves = Object.keys(patch) as (keyof ContentStagePatch)[];
+  if (chaves.length === 0) return { ok: false, error: "Nada para salvar." };
+  if (chaves.some((k) => !(k in ROTULO_ETAPA))) {
+    return { ok: false, error: "Campo não editável." };
+  }
+
+  const dados: Record<string, unknown> = {};
+
+  for (const campo of CAMPOS_DATA) {
+    if (campo in patch) {
+      const v = patch[campo] as string | null | undefined;
+      if (v != null && v !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        return { ok: false, error: "Data inválida." };
+      }
+      dados[campo] = v ? v : null;
+    }
+  }
+  for (const campo of CAMPOS_TEXTO) {
+    if (campo in patch) {
+      dados[campo] = toNull(patch[campo] as string | null | undefined);
+    }
+  }
+  if ("requires_recording" in patch) {
+    dados.requires_recording = Boolean(patch.requires_recording);
+  }
+  if ("participants" in patch) {
+    dados.participants = (patch.participants ?? [])
+      .map((p) => p.trim())
+      .filter(Boolean);
+  }
+  if ("required_materials" in patch) {
+    dados.required_materials = (patch.required_materials ?? [])
+      .map((p) => p.trim())
+      .filter(Boolean);
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update(dados as ContentStagePatch)
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível salvar." };
+
+  const registros = (Object.keys(dados) as (keyof ContentStagePatch)[]).map(
+    (k) => {
+      const valor = dados[k];
+      const texto = Array.isArray(valor)
+        ? valor.join(", ") || "—"
+        : valor == null || valor === ""
+          ? "—"
+          : typeof valor === "boolean"
+            ? valor
+              ? "Sim"
+              : "Não"
+            : String(valor);
+      return { field: ROTULO_ETAPA[k], old: "", new: texto };
+    },
+  );
+  if (registros.length > 0) await registrarHistorico(id, registros);
+
+  revalidatePath("/conteudos");
+  revalidatePath(`/conteudos/${id}`);
+  revalidatePath("/gravacoes");
+  revalidatePath("/fila-edicao");
+  revalidatePath("/postagens");
+  return { ok: true, id };
+}
+
+// -------------------------------------------------------------
 // Edição inline (planilha)
 // -------------------------------------------------------------
 
