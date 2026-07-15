@@ -492,27 +492,35 @@ export async function atualizarProducaoConteudoAction(
   }
 
   const supabase = createClient();
+
+  // valor anterior de cada campo alterado (para o histórico legível)
+  const chavesDados = Object.keys(dados) as (keyof ContentStagePatch)[];
+  const { data: antes } = await supabase
+    .from("contents")
+    .select(chavesDados.join(", "))
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("contents")
     .update(dados as ContentStagePatch)
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar." };
 
-  const registros = (Object.keys(dados) as (keyof ContentStagePatch)[]).map(
-    (k) => {
-      const valor = dados[k];
-      const texto = Array.isArray(valor)
-        ? valor.join(", ") || "—"
-        : valor == null || valor === ""
-          ? "—"
-          : typeof valor === "boolean"
-            ? valor
-              ? "Sim"
-              : "Não"
-            : String(valor);
-      return { field: ROTULO_ETAPA[k], old: "", new: texto };
-    },
-  );
+  const textoDe = (valor: unknown): string => {
+    if (Array.isArray(valor)) return valor.join(", ") || "—";
+    if (valor == null || valor === "") return "—";
+    if (typeof valor === "boolean") return valor ? "Sim" : "Não";
+    return String(valor);
+  };
+  const registros = chavesDados
+    .map((k) => {
+      const anterior = antes
+        ? textoDe((antes as unknown as Record<string, unknown>)[k])
+        : "—";
+      return { field: ROTULO_ETAPA[k], old: anterior, new: textoDe(dados[k]) };
+    })
+    .filter((r) => r.old !== r.new);
   if (registros.length > 0) await registrarHistorico(id, registros);
 
   revalidatePath("/conteudos");

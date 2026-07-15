@@ -15,11 +15,18 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function formatarData(data: string | null): string {
   if (!data) return "—";
+  // Datas "YYYY-MM-DD" devem ser lidas como LOCAIS (senão new Date() assume
+  // meia-noite UTC e, em fusos negativos, exibe o dia anterior — além de
+  // causar mismatch de hidratação em componentes client).
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
+  const d = m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(data);
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  }).format(new Date(data));
+  }).format(d);
 }
 
 /**

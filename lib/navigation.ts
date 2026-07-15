@@ -69,7 +69,7 @@ export const NAVEGACAO: ItemNavegacao[] = [
   {
     href: "/configuracoes",
     label: "Configurações",
-    descricao: "Perfil e preferências",
+    descricao: "Perfil e sessão",
     icone: "configuracoes",
   },
 ];

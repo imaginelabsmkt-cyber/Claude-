@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { QuickStatus } from "@/components/contents/quick-status";
 import { QuickPriority } from "@/components/contents/quick-priority";
 import { ContentActions } from "@/components/contents/content-actions";
+import { corPrioridade } from "@/lib/ui/prioridade";
 import { formatarData } from "@/lib/utils";
 import { estaAtrasado, prazoPrincipal } from "@/lib/rules/contents";
 import type { Content } from "@/types";
@@ -22,7 +23,10 @@ interface ContentCardProps {
 export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
   const atrasado = estaAtrasado(content);
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+    <div
+      className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
+      style={{ borderLeftColor: corPrioridade(content.priority) }}
+    >
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/conteudos/${content.id}`}

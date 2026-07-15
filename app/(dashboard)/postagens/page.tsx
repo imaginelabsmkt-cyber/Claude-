@@ -14,7 +14,6 @@ import {
   hojeISO,
   parseData,
   difEmDias,
-  mesmaSemana,
   estaGravado,
 } from "@/lib/rules/contents";
 import { cn } from "@/lib/utils";

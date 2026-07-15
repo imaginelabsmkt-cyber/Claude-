@@ -123,9 +123,12 @@ export function ContentWeekBoard({
 }: ContentWeekBoardProps) {
   const router = useRouter();
   const [lista, setLista] = useState<ItemCalendario[]>(itens);
-  const [, iniciar] = useTransition();
+  const [pendente, iniciar] = useTransition();
 
-  useEffect(() => setLista(itens), [itens]);
+  // Não reverte um arraste otimista enquanto outro save está em voo.
+  useEffect(() => {
+    if (!pendente) setLista(itens);
+  }, [itens, pendente]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),

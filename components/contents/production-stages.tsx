@@ -89,7 +89,7 @@ function CampoData({
 }: {
   label: string;
   valor: string | null;
-  disabled: boolean;
+  disabled?: boolean;
   onSalvar: (v: string | null) => void;
 }) {
   return (
@@ -115,7 +115,7 @@ function CampoTexto({
 }: {
   label: string;
   valor: string | null;
-  disabled: boolean;
+  disabled?: boolean;
   tipo?: "text" | "url";
   placeholder?: string;
   onSalvar: (v: string | null) => void;
@@ -148,7 +148,7 @@ function CampoLista({
 }: {
   label: string;
   valor: string[];
-  disabled: boolean;
+  disabled?: boolean;
   placeholder?: string;
   onSalvar: (v: string[]) => void;
 }) {
@@ -231,7 +231,7 @@ function Painel({
  * status) já vem aberta e destacada, para preencher o que importa agora.
  */
 export function ProductionStages({ content }: { content: Content }) {
-  const { salvar, salvando } = useSalvar();
+  const { salvar } = useSalvar();
   const etapa = etapaDoStatus(content.status);
   const set = (patch: ContentStagePatch) => salvar(content.id, patch);
 
@@ -262,7 +262,6 @@ export function ProductionStages({ content }: { content: Content }) {
         <CampoTexto
           label=""
           valor={content.reference_url}
-          disabled={salvando}
           tipo="url"
           placeholder="Cole aqui o link da referência"
           onSalvar={(v) => set({ reference_url: v })}
@@ -280,40 +279,34 @@ export function ProductionStages({ content }: { content: Content }) {
           <CampoData
             label="Data de gravação"
             valor={content.recording_date}
-            disabled={salvando}
             onSalvar={(v) => set({ recording_date: v })}
           />
           <CampoData
             label="Prazo da gravação"
             valor={content.recording_deadline}
-            disabled={salvando}
             onSalvar={(v) => set({ recording_deadline: v })}
           />
           <CampoTexto
             label="Local"
             valor={content.recording_location}
-            disabled={salvando}
             placeholder="Onde vai gravar"
             onSalvar={(v) => set({ recording_location: v })}
           />
           <CampoTexto
             label="Roupa"
             valor={content.outfit}
-            disabled={salvando}
             placeholder="O que vestir"
             onSalvar={(v) => set({ outfit: v })}
           />
           <CampoLista
             label="Participantes"
             valor={content.participants}
-            disabled={salvando}
             placeholder="Ex.: Beatriz, equipe"
             onSalvar={(v) => set({ participants: v })}
           />
           <CampoLista
             label="Materiais"
             valor={content.required_materials}
-            disabled={salvando}
             placeholder="Ex.: tripé, microfone"
             onSalvar={(v) => set({ required_materials: v })}
           />
@@ -331,13 +324,11 @@ export function ProductionStages({ content }: { content: Content }) {
           <CampoData
             label="Prazo da edição"
             valor={content.editing_deadline}
-            disabled={salvando}
             onSalvar={(v) => set({ editing_deadline: v })}
           />
           <CampoTexto
             label="Link do roteiro"
             valor={content.script_url}
-            disabled={salvando}
             tipo="url"
             placeholder="https://"
             onSalvar={(v) => set({ script_url: v })}
@@ -345,7 +336,6 @@ export function ProductionStages({ content }: { content: Content }) {
           <CampoTexto
             label="Arquivos brutos"
             valor={content.raw_files_url}
-            disabled={salvando}
             tipo="url"
             placeholder="https://"
             onSalvar={(v) => set({ raw_files_url: v })}
@@ -353,7 +343,6 @@ export function ProductionStages({ content }: { content: Content }) {
           <CampoTexto
             label="Arquivo editado"
             valor={content.edited_file_url}
-            disabled={salvando}
             tipo="url"
             placeholder="https://"
             onSalvar={(v) => set({ edited_file_url: v })}
@@ -372,7 +361,6 @@ export function ProductionStages({ content }: { content: Content }) {
           <CampoTexto
             label="Link publicado"
             valor={content.published_url}
-            disabled={salvando}
             tipo="url"
             placeholder="https://"
             onSalvar={(v) => set({ published_url: v })}
@@ -380,7 +368,6 @@ export function ProductionStages({ content }: { content: Content }) {
           <CampoData
             label="Data real da postagem"
             valor={content.actual_post_date}
-            disabled={salvando}
             onSalvar={(v) => set({ actual_post_date: v })}
           />
         </div>

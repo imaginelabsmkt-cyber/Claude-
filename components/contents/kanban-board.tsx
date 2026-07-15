@@ -15,10 +15,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { definirStatusConteudoAction } from "@/lib/actions/contents";
 import { estiloFormato } from "@/lib/ui/formato";
+import { COR_PRIORIDADE } from "@/lib/ui/prioridade";
 import { prazoPrincipal, estaAtrasado } from "@/lib/rules/contents";
 import { formatarData } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import type { Content, ContentStatus, ContentPriority } from "@/types";
+import type { Content, ContentStatus } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
 
 interface Fase {
@@ -61,14 +62,6 @@ const FASES: Fase[] = [
   },
 ];
 const STATUS_ENCERRADOS: ContentStatus[] = ["Pausado", "Cancelado"];
-
-/** Cor lateral do card pela prioridade. */
-const COR_PRIORIDADE: Record<ContentPriority, string> = {
-  Urgente: "#ef4444",
-  Alta: "#f97316",
-  Média: "#f59e0b",
-  Baixa: "#cbd5e1",
-};
 
 interface KanbanBoardProps {
   contents: Content[];
@@ -193,14 +186,18 @@ function Coluna({
 export function KanbanBoard({ contents, clientes }: KanbanBoardProps) {
   const router = useRouter();
   const [itens, setItens] = useState<Content[]>(contents);
-  const [, iniciar] = useTransition();
+  const [pendente, iniciar] = useTransition();
   const [verEncerrados, setVerEncerrados] = useState(false);
   const clientesById = useMemo(
     () => new Map(clientes.map((c) => [c.id, c])),
     [clientes],
   );
 
-  useEffect(() => setItens(contents), [contents]);
+  // Só sincroniza com o servidor quando não há save em voo, para não reverter
+  // um arraste otimista enquanto outro está sendo persistido.
+  useEffect(() => {
+    if (!pendente) setItens(contents);
+  }, [contents, pendente]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
