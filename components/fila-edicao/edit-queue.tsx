@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PriorityBadge, StatusContentBadge } from "@/components/shared/status-badge";
 import { formatarData } from "@/lib/utils";
+import { corPrioridade } from "@/lib/ui/prioridade";
 import { motivoPrioridade } from "@/lib/rules/contents";
 import {
   definirStatusConteudoAction,
@@ -102,6 +103,7 @@ function ItemFila({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.6 : 1,
+    borderLeftColor: corPrioridade(content.priority),
   };
 
   function mudarStatus(to: ContentStatus) {
@@ -115,7 +117,7 @@ function ItemFila({
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+      className="rounded-lg border border-l-4 border-gray-200 bg-white p-4 shadow-sm"
     >
       <div className="flex items-start gap-3">
         {/* Alça de arraste */}

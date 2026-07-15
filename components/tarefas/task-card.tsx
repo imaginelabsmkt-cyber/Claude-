@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/contents/quick-status";
 import { PriorityBadge } from "@/components/shared/status-badge";
+import { corPrioridade } from "@/lib/ui/prioridade";
 import { formatarData } from "@/lib/utils";
 import {
   proximaAcao,
@@ -36,7 +37,10 @@ export function TaskCard({ content, clienteNome, cor }: TaskCardProps) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+    <div
+      className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
+      style={{ borderLeftColor: corPrioridade(content.priority) }}
+    >
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
         <span
           className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"

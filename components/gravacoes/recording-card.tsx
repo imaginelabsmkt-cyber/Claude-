@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PriorityBadge } from "@/components/shared/status-badge";
+import { corPrioridade } from "@/lib/ui/prioridade";
 import { formatarData } from "@/lib/utils";
 import {
   marcarComoGravadoAction,
@@ -62,7 +63,10 @@ export function RecordingCard({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <div
+      className="rounded-lg border border-l-4 border-gray-200 bg-white p-4 shadow-sm"
+      style={{ borderLeftColor: corPrioridade(content.priority) }}
+    >
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-2 text-xs text-gray-500">
