@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,11 +7,16 @@ import { Button } from "@/components/ui/button";
 import { ActiveToggle } from "@/components/clients/active-toggle";
 import { ContentCard } from "@/components/contents/content-card";
 import { ContentsTable } from "@/components/contents/contents-table";
-import { PanelFilters } from "@/components/contents/panel-filters";
+import {
+  ContentMonthCalendar,
+  type DiaConteudos,
+} from "@/components/contents/content-month-calendar";
 import { obterCliente } from "@/lib/data/clients";
 import { listContents, listProfiles } from "@/lib/data/contents";
 import {
   resumoProducao,
+  inicioDaSemana,
+  hojeISO,
   GRUPO_EM_APROVACAO,
   GRUPO_PRONTOS_PUBLICAR,
 } from "@/lib/rules/contents";
@@ -22,12 +26,11 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: { id: string };
-  searchParams: {
-    reference_month?: string;
-    status?: string;
-    format?: string;
-    planned_week?: string;
-  };
+  searchParams: { mes?: string };
+}
+
+function addDays(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
 function Kpi({
@@ -46,10 +49,7 @@ function Kpi({
         <p className="mt-1 text-2xl font-bold text-gray-900">
           {valor}
           {meta != null ? (
-            <span className="text-base font-medium text-gray-400">
-              {" "}
-              / {meta}
-            </span>
+            <span className="text-base font-medium text-gray-400"> / {meta}</span>
           ) : null}
         </p>
         {meta != null ? (
@@ -102,41 +102,50 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     listProfiles(),
   ]);
 
-  // Meses disponíveis (do próprio cliente)
-  const meses = Array.from(
-    new Set(
-      todos
-        .map((c) => c.reference_month)
-        .filter((m): m is string => Boolean(m)),
-    ),
-  )
-    .sort()
-    .reverse();
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+  const mes = /^\d{4}-\d{2}$/.test(searchParams.mes ?? "")
+    ? searchParams.mes!
+    : mesAtual;
+  const [ano, mesN] = mes.split("-").map(Number);
 
-  const mesSel = searchParams.reference_month || meses[0] || "";
-  const doMes = mesSel
-    ? todos.filter((c) => c.reference_month === mesSel)
-    : todos;
-
+  // Cards e seções referentes ao mês (por mês de referência)
+  const doMes = todos.filter((c) => c.reference_month === mes);
   const resumo = resumoProducao(doMes);
   const planejados = doMes.filter((c) => c.status !== "Cancelado").length;
-
   const porStatus = (lista: ContentStatus[]) =>
     doMes.filter((c) => lista.includes(c.status));
 
-  // Tabela completa: aplica os filtros ativos sobre todos os conteúdos.
-  const filtrada = todos.filter((c) => {
-    if (searchParams.reference_month && c.reference_month !== searchParams.reference_month)
-      return false;
-    if (searchParams.status && c.status !== searchParams.status) return false;
-    if (searchParams.format && c.format !== searchParams.format) return false;
-    if (
-      searchParams.planned_week &&
-      String(c.planned_week ?? "") !== searchParams.planned_week
-    )
-      return false;
-    return true;
-  });
+  // Calendário: conteúdos pela DATA prevista dentro do mês exibido
+  const primeiro = new Date(ano, mesN - 1, 1);
+  const inicioGrade = inicioDaSemana(primeiro);
+  const semanas: DiaConteudos[][] = [];
+  for (let s = 0; s < 6; s++) {
+    const semana: DiaConteudos[] = [];
+    for (let d = 0; d < 7; d++) {
+      const data = addDays(inicioGrade, s * 7 + d);
+      const iso = hojeISO(data);
+      semana.push({
+        iso,
+        dia: data.getDate(),
+        noMes: data.getMonth() === mesN - 1,
+        hoje: iso === hojeISO(hoje),
+        itens: todos
+          .filter((c) => c.planned_date === iso)
+          .map((c) => ({ id: c.id, title: c.title, format: c.format })),
+      });
+    }
+    semanas.push(semana);
+  }
+
+  const tituloMes = new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+  }).format(primeiro);
+  const mesDelta = (delta: number) => {
+    const dt = new Date(ano, mesN - 1 + delta, 1);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+  };
 
   const clienteOpt = [
     { id: cliente.id, name: cliente.name, color: cliente.color },
@@ -171,18 +180,17 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         }
       />
 
-      {/* Filtros */}
-      <div className="mb-5">
-        <PanelFilters meses={meses} />
-        {mesSel ? (
-          <p className="mt-2 text-xs text-gray-500">
-            Indicadores e seções referentes ao mês <strong>{mesSel}</strong>.
-          </p>
-        ) : null}
-      </div>
+      {/* Calendário do mês */}
+      <ContentMonthCalendar
+        titulo={tituloMes}
+        semanas={semanas}
+        cor={cliente.color}
+        hrefAnterior={`/clientes/${cliente.id}?mes=${mesDelta(-1)}`}
+        hrefProximo={`/clientes/${cliente.id}?mes=${mesDelta(1)}`}
+      />
 
       {/* Cards de indicadores */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Kpi
           rotulo="Planejados no mês"
           valor={planejados}
@@ -199,36 +207,12 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
 
       {/* Seções operacionais */}
       <div className="mt-8 space-y-8">
-        <Secao
-          titulo="Falta gravar"
-          cor={cliente.color}
-          itens={porStatus(["Aguardando gravação"])}
-        />
-        <Secao
-          titulo="Já gravados"
-          cor={cliente.color}
-          itens={porStatus(["Gravado"])}
-        />
-        <Secao
-          titulo="Fila de edição"
-          cor={cliente.color}
-          itens={porStatus(["Fila de edição", "Em edição", "Ajustes"])}
-        />
-        <Secao
-          titulo="Em aprovação"
-          cor={cliente.color}
-          itens={porStatus(GRUPO_EM_APROVACAO)}
-        />
-        <Secao
-          titulo="Prontos para publicar"
-          cor={cliente.color}
-          itens={porStatus(GRUPO_PRONTOS_PUBLICAR)}
-        />
-        <Secao
-          titulo="Publicados no mês"
-          cor={cliente.color}
-          itens={porStatus(["Publicado"])}
-        />
+        <Secao titulo="Falta gravar" cor={cliente.color} itens={porStatus(["Aguardando gravação"])} />
+        <Secao titulo="Já gravados" cor={cliente.color} itens={porStatus(["Gravado"])} />
+        <Secao titulo="Fila de edição" cor={cliente.color} itens={porStatus(["Fila de edição", "Em edição", "Ajustes"])} />
+        <Secao titulo="Em aprovação" cor={cliente.color} itens={porStatus(GRUPO_EM_APROVACAO)} />
+        <Secao titulo="Prontos para publicar" cor={cliente.color} itens={porStatus(GRUPO_PRONTOS_PUBLICAR)} />
+        <Secao titulo="Publicados no mês" cor={cliente.color} itens={porStatus(["Publicado"])} />
       </div>
 
       {/* Tabela completa */}
@@ -237,11 +221,11 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
           Todos os conteúdos do cliente
         </h2>
         <ContentsTable
-          contents={filtrada}
+          contents={todos}
           clientes={clienteOpt}
           perfis={perfis}
           vazioTitulo="Nenhum conteúdo"
-          vazioDescricao="Este cliente ainda não tem conteúdos com os filtros atuais."
+          vazioDescricao="Este cliente ainda não tem conteúdos cadastrados."
         />
       </div>
     </>
