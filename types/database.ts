@@ -168,7 +168,18 @@ export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_a
 
 export type ContentInsert = Omit<
   Content,
-  "id" | "created_at" | "updated_at" | "editing_queue_position"
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "editing_queue_position"
+  | "status"
+  | "priority"
+  | "requires_recording"
+  | "participants"
+  | "required_materials"
+  | "revision_count"
+  | "is_fixed_date"
+  | "is_campaign"
 > & {
   id?: UUID;
   status?: ContentStatus;

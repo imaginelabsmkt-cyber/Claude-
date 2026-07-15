@@ -1,0 +1,156 @@
+/**
+ * =============================================================
+ * LEITOR DE PLANEJAMENTO (documento da Vitória -> conteúdos)
+ * =============================================================
+ * Interpreta o texto do planejamento (formato verticalizado) e devolve
+ * uma lista de conteúdos detectados. É uma função pura (testável), sem
+ * dependências de banco.
+ *
+ * Marcadores reconhecidos (aceita variações de acento/maiúsculas):
+ *  - "SEMANA 1"                         -> semana
+ *  - "CONTEÚDO N: <FORMATO> <TÍTULO>"   -> início de um conteúdo
+ *  - "DATA (DA POSTAGEM): 05/07"        -> data prevista
+ *  - "LOCAL:", "VESTIMENTA:", "PARTICIPANTES:", "REFERÊNCIA:"/"LINK:", "OBS:"
+ * =============================================================
+ */
+
+export interface ItemPlanejamento {
+  titulo: string;
+  formato: string; // Reel, Carrossel, Story, Post estático, Vídeo longo
+  semana: number | null;
+  /** Data prevista em ISO "YYYY-MM-DD" (ou null se não detectada). */
+  dataPrevista: string | null;
+  precisaGravacao: boolean;
+  local: string | null;
+  vestimenta: string | null;
+  participantes: string[];
+  link: string | null;
+  observacoes: string | null;
+}
+
+const FORMATOS_SEM_GRAVACAO = new Set(["Carrossel", "Post estático"]);
+
+/** Detecta o formato a partir de uma palavra/linha. */
+function detectarFormato(texto: string): string | null {
+  const t = texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+  if (/\bCARROSS?EL\b|\bCAROUSEL\b/.test(t)) return "Carrossel";
+  if (/\bSTORIES?\b/.test(t)) return "Story";
+  if (/\bVIDEO\b|\bVLOG\b/.test(t)) return "Vídeo longo";
+  if (/\bREELS?\b|\bTREND\b|\bREEL\b/.test(t)) return "Reel";
+  if (/\bARTE\b|\bPOST\b|\bFEED\b|\bEST[AÁ]TICO\b/.test(t)) return "Post estático";
+  return null;
+}
+
+/** Remove a palavra do formato do início do título. */
+function limparTitulo(resto: string): string {
+  let s = resto.trim();
+  // remove prefixos de formato conhecidos no começo
+  s = s.replace(
+    /^(reels?|trend|carross?el|carousel|stories?|story|v[ií]deo|vlog|arte|post(\s+est[aá]tico)?|feed)\b[\s:–-]*/i,
+    "",
+  );
+  s = s.trim().replace(/\s+/g, " ");
+  if (!s) return "Conteúdo sem título";
+  // Se estiver todo em maiúsculas, converte para "sentença" (mais legível)
+  const semAcento = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (semAcento === semAcento.toUpperCase()) {
+    s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  }
+  return s;
+}
+
+/** Extrai o valor depois do primeiro ":" ou "-". */
+function valorDepois(linha: string): string {
+  const idx = linha.search(/[:\-–]/);
+  return idx >= 0 ? linha.slice(idx + 1).trim() : "";
+}
+
+/** Converte "05/07" (+ ano) em ISO "YYYY-MM-DD". */
+function parseData(valor: string, ano: number): string | null {
+  const m = valor.match(/(\d{1,2})\s*\/\s*(\d{1,2})/);
+  if (!m) return null;
+  const dia = m[1].padStart(2, "0");
+  const mes = m[2].padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+/**
+ * Interpreta o texto do planejamento. `ano` é usado para montar as datas
+ * (o documento traz só dia/mês).
+ */
+export function parsePlanejamento(
+  texto: string,
+  ano: number,
+): ItemPlanejamento[] {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  const itens: ItemPlanejamento[] = [];
+  let semanaAtual: number | null = null;
+  let atual: ItemPlanejamento | null = null;
+
+  const fechar = () => {
+    if (atual) itens.push(atual);
+    atual = null;
+  };
+
+  for (const linha of linhas) {
+    const semSep = linha.replace(/#+/g, "").trim();
+    if (!semSep) continue;
+
+    const mSemana = semSep.match(/^SEMANA\s+(\d+)/i);
+    if (mSemana) {
+      semanaAtual = Number(mSemana[1]);
+      continue;
+    }
+
+    const mConteudo = semSep.match(/^CONTE[ÚU]DO\s*\d*\s*[:\-–]\s*(.*)$/i);
+    if (mConteudo) {
+      fechar();
+      const resto = mConteudo[1] ?? "";
+      const formato = detectarFormato(resto) ?? "Reel";
+      atual = {
+        titulo: limparTitulo(resto),
+        formato,
+        semana: semanaAtual,
+        dataPrevista: null,
+        precisaGravacao: !FORMATOS_SEM_GRAVACAO.has(formato),
+        local: null,
+        vestimenta: null,
+        participantes: [],
+        link: null,
+        observacoes: null,
+      };
+      continue;
+    }
+
+    if (!atual) continue;
+
+    if (/^DATA(\s+DA\s+POSTAGEM)?\s*[:\-–]/i.test(semSep)) {
+      atual.dataPrevista = parseData(valorDepois(semSep), ano);
+    } else if (/^LOCAL\s*[:\-–]/i.test(semSep)) {
+      atual.local = valorDepois(semSep) || null;
+    } else if (/^VESTIMENTA\s*[:\-–]/i.test(semSep)) {
+      atual.vestimenta = valorDepois(semSep) || null;
+    } else if (/^PARTICIPANTES\s*[:\-–]/i.test(semSep)) {
+      atual.participantes = valorDepois(semSep)
+        .split(/[,+]/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+    } else if (/^(REFER[ÊE]NCIA|LINK)\s*[:\-–]/i.test(semSep)) {
+      const v = valorDepois(semSep);
+      const url = v.match(/https?:\/\/\S+/);
+      atual.link = url ? url[0] : v || null;
+    } else if (/^OBS\s*[:\-–]/i.test(semSep)) {
+      atual.observacoes = valorDepois(semSep) || null;
+    }
+  }
+
+  fechar();
+  return itens;
+}
