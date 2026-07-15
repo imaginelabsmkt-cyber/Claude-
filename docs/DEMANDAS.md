@@ -26,6 +26,14 @@
   detecta cada conteúdo (título, formato, semana, data, local, vestimenta,
   participantes, link), captura **roteiro** e **legenda**, mostra prévia
   editável e cria todos. Página do conteúdo exibe Roteiro e Legenda.
+- **Excluir conteúdo** e **apagar planejamento do mês** (com confirmação).
+- **Calendário do cliente visual**: chips coloridos por formato (ícone +
+  legenda), legível para print, e **arrastar-e-soltar** para mudar a data.
+- **Roteiro formatado**: falas, cenas e títulos exibidos com estilo de roteiro
+  (não mais um bloco de texto cru).
+- **Planilha editável de conteúdos**: edição inline de título, formato, semana,
+  data, status, prioridade e responsável (por etapa), sem abrir o conteúdo.
+  Usada na lista geral e na página do cliente.
 
 ## ⚠️ Comando pendente no banco (rodar no Supabase se ainda não rodou)
 
@@ -37,15 +45,7 @@ alter table public.contents add column if not exists caption text;
 
 ## ⏳ Demandas pendentes (prioridade)
 
-1. **Conteúdos — "planilha" editável e interativa**
-   - A tabela de conteúdos do cliente deve permitir **editar cada campo na
-     hora**, sem abrir o conteúdo: responsável, prazo, próxima ação, status,
-     prioridade.
-   - Reduzir a rolagem horizontal no notebook (ações/responsáveis visíveis).
-   - Permitir **arrastar** para reorganizar.
-   - Objetivo: "tudo editável" para valer a pena o uso.
-
-2. **Conteúdos — preenchimento por ETAPA (Parte 2)**
+1. **Conteúdos — preenchimento por ETAPA (Parte 2)**
    - Na página do conteúdo, preencher os dados **na hora certa**:
      - Etapa gravação → data da gravação, local, participantes, roupa,
        materiais (edição focada só dessa seção).
@@ -53,13 +53,9 @@ alter table public.contents add column if not exists caption text;
      - Etapa postagem → link publicado, data real.
    - Nada de pedir tudo de uma vez. (A Parte 1 — cadastro enxuto — já foi feita.)
 
-3. **Conteúdos — revisão de design**
+2. **Conteúdos — revisão de design**
    - As listas "falta gravar / já gravado / fila de edição" estão pouco
      interessantes; deixar mais visual/interativo (ideia: formato de planilha).
-
-4. **Filtros do painel do cliente**
-   - Manter só o **mês** (que controla o calendário). Status/formato/semana
-     ficam apenas na lista geral de Conteúdos. (Em andamento/feito.)
 
 ## 🔮 Ideias futuras (depois)
 

@@ -390,6 +390,111 @@ export async function alterarDataPostagemAction(
 }
 
 // -------------------------------------------------------------
+// Edição inline (planilha)
+// -------------------------------------------------------------
+
+/** Campos editáveis direto na planilha e como aparecem no histórico. */
+export interface ContentEditPatch {
+  title?: string;
+  format?: string | null;
+  planned_week?: number | null;
+  planned_date?: string | null;
+  planner_id?: string | null;
+  recorder_id?: string | null;
+  editor_id?: string | null;
+  publisher_id?: string | null;
+}
+
+const ROTULO_CAMPO: Record<keyof ContentEditPatch, string> = {
+  title: "Título",
+  format: "Formato",
+  planned_week: "Semana prevista",
+  planned_date: "Data prevista",
+  planner_id: "Responsável (planejamento)",
+  recorder_id: "Responsável (gravação)",
+  editor_id: "Responsável (edição)",
+  publisher_id: "Responsável (postagem)",
+};
+
+/**
+ * Atualiza um único campo de um conteúdo a partir da planilha editável.
+ * Aceita apenas os campos da whitelist, valida e registra no histórico.
+ */
+export async function atualizarCampoConteudoAction(
+  id: string,
+  patch: ContentEditPatch,
+): Promise<ActionResult> {
+  const chaves = Object.keys(patch) as (keyof ContentEditPatch)[];
+  if (chaves.length === 0) return { ok: false, error: "Nada para salvar." };
+  if (chaves.some((k) => !(k in ROTULO_CAMPO))) {
+    return { ok: false, error: "Campo não editável." };
+  }
+
+  const dados: ContentEditPatch = {};
+
+  if ("title" in patch) {
+    const t = (patch.title ?? "").trim();
+    if (!t) return { ok: false, error: "O título não pode ficar vazio." };
+    dados.title = t;
+  }
+  if ("format" in patch) dados.format = toNull(patch.format);
+  if ("planned_week" in patch) {
+    dados.planned_week =
+      patch.planned_week == null ? null : Number(patch.planned_week);
+  }
+  if ("planned_date" in patch) {
+    const d = patch.planned_date;
+    if (d != null && !/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      return { ok: false, error: "Data inválida." };
+    }
+    dados.planned_date = d ?? null;
+  }
+  for (const campo of [
+    "planner_id",
+    "recorder_id",
+    "editor_id",
+    "publisher_id",
+  ] as const) {
+    if (campo in patch) dados[campo] = toNull(patch[campo]);
+  }
+
+  const supabase = createClient();
+
+  // valor anterior (para o histórico legível)
+  const { data: antes } = await supabase
+    .from("contents")
+    .select("title, format, planned_week, planned_date")
+    .eq("id", id)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("contents")
+    .update(dados)
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível salvar." };
+
+  // registra no histórico apenas os campos "simples" (datas/título/etc.)
+  const registros = (Object.keys(dados) as (keyof ContentEditPatch)[])
+    .filter((k) => k === "title" || k === "format" || k === "planned_week" || k === "planned_date")
+    .map((k) => {
+      const anterior = antes
+        ? (antes as Record<string, unknown>)[k] ?? null
+        : null;
+      return {
+        field: ROTULO_CAMPO[k],
+        old: anterior == null ? "—" : String(anterior),
+        new: dados[k] == null ? "—" : String(dados[k]),
+      };
+    })
+    .filter((r) => r.old !== r.new);
+  if (registros.length > 0) await registrarHistorico(id, registros);
+
+  revalidatePath("/conteudos");
+  revalidatePath(`/conteudos/${id}`);
+  return { ok: true, id };
+}
+
+// -------------------------------------------------------------
 // Exclusão de conteúdos
 // -------------------------------------------------------------
 

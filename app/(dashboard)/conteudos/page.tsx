@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { ContentsToolbar } from "@/components/contents/contents-toolbar";
-import { ContentsTable } from "@/components/contents/contents-table";
+import { EditableContentsTable } from "@/components/contents/editable-contents-table";
 import {
   listContents,
   listClientOptions,
@@ -52,7 +52,7 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
 
       <ContentsToolbar clientes={clientes} meses={meses} />
 
-      <ContentsTable
+      <EditableContentsTable
         contents={contents}
         clientes={clientes}
         perfis={perfis}

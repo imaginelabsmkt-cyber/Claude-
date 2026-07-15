@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActiveToggle } from "@/components/clients/active-toggle";
 import { ContentCard } from "@/components/contents/content-card";
-import { ContentsTable } from "@/components/contents/contents-table";
+import { EditableContentsTable } from "@/components/contents/editable-contents-table";
 import {
   ContentMonthCalendar,
   type CelulaDia,
@@ -233,15 +233,21 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         <Secao titulo="Publicados no mês" cor={cliente.color} itens={porStatus(["Publicado"])} />
       </div>
 
-      {/* Tabela completa */}
+      {/* Planilha editável */}
       <div className="mt-10">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">
-          Todos os conteúdos do cliente
-        </h2>
-        <ContentsTable
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-gray-900">
+            Todos os conteúdos do cliente
+          </h2>
+          <span className="text-[11px] text-gray-400">
+            Edite qualquer campo direto na linha — salva sozinho.
+          </span>
+        </div>
+        <EditableContentsTable
           contents={todos}
           clientes={clienteOpt}
           perfis={perfis}
+          mostrarCliente={false}
           vazioTitulo="Nenhum conteúdo"
           vazioDescricao="Este cliente ainda não tem conteúdos cadastrados."
         />
