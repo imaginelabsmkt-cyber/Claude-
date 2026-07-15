@@ -9,7 +9,8 @@ import { ContentCard } from "@/components/contents/content-card";
 import { ContentsTable } from "@/components/contents/contents-table";
 import {
   ContentMonthCalendar,
-  type DiaConteudos,
+  type CelulaDia,
+  type ItemCalendario,
 } from "@/components/contents/content-month-calendar";
 import { DeletePlanningButton } from "@/components/contents/delete-planning-button";
 import { obterCliente } from "@/lib/data/clients";
@@ -120,9 +121,9 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   // Calendário: conteúdos pela DATA prevista dentro do mês exibido
   const primeiro = new Date(ano, mesN - 1, 1);
   const inicioGrade = inicioDaSemana(primeiro);
-  const semanas: DiaConteudos[][] = [];
+  const dias: CelulaDia[][] = [];
   for (let s = 0; s < 6; s++) {
-    const semana: DiaConteudos[] = [];
+    const semana: CelulaDia[] = [];
     for (let d = 0; d < 7; d++) {
       const data = addDays(inicioGrade, s * 7 + d);
       const iso = hojeISO(data);
@@ -131,13 +132,19 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         dia: data.getDate(),
         noMes: data.getMonth() === mesN - 1,
         hoje: iso === hojeISO(hoje),
-        itens: todos
-          .filter((c) => c.planned_date === iso)
-          .map((c) => ({ id: c.id, title: c.title, format: c.format })),
       });
     }
-    semanas.push(semana);
+    dias.push(semana);
   }
+
+  const itensCalendario: ItemCalendario[] = todos
+    .filter((c) => c.planned_date)
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      format: c.format,
+      iso: c.planned_date!,
+    }));
 
   const tituloMes = new Intl.DateTimeFormat("pt-BR", {
     month: "long",
@@ -184,8 +191,8 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
       {/* Calendário do mês */}
       <ContentMonthCalendar
         titulo={tituloMes}
-        semanas={semanas}
-        cor={cliente.color}
+        dias={dias}
+        itens={itensCalendario}
         hrefAnterior={`/clientes/${cliente.id}?mes=${mesDelta(-1)}`}
         hrefProximo={`/clientes/${cliente.id}?mes=${mesDelta(1)}`}
       />
