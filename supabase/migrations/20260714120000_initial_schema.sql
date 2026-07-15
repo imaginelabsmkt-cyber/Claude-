@@ -138,6 +138,10 @@ create table if not exists public.contents (
   recording_deadline     date,
   editing_deadline       date,
 
+  -- Conteúdo rico (vindo do planejamento)
+  script                 text,          -- roteiro completo
+  caption                text,          -- legenda do post
+
   -- Arquivos / links
   script_url             text,
   raw_files_url          text,

@@ -44,6 +44,11 @@ describe("parsePlanejamento", () => {
     expect(itens[0].local).toBe("CLÍNICA/ CAFETERIA");
   });
 
+  it("captura o roteiro e a legenda do conteúdo", () => {
+    expect(itens[0].roteiro).toContain("Aqui vem o roteiro");
+    expect(itens[0].legenda).toBe("qualquer coisa");
+  });
+
   it("reconhece TREND como Reel e captura o link de referência", () => {
     expect(itens[1].formato).toBe("Reel");
     expect(itens[1].titulo).toBe("Vamos fazer o que ?");

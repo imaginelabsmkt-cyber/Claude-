@@ -70,6 +70,8 @@ function normalizar(v: ParsedContent) {
     edited_file_url: toNull(v.edited_file_url),
     published_url: toNull(v.published_url),
     notes: toNull(v.notes),
+    script: toNull(v.script),
+    caption: toNull(v.caption),
     revision_count: v.revision_count,
     is_fixed_date: v.is_fixed_date,
     is_campaign: v.is_campaign,

@@ -26,6 +26,10 @@ export interface ItemPlanejamento {
   participantes: string[];
   link: string | null;
   observacoes: string | null;
+  /** Corpo do conteúdo (cenas/falas/stories) — o roteiro completo. */
+  roteiro: string | null;
+  /** Legenda do post. */
+  legenda: string | null;
 }
 
 const FORMATOS_SEM_GRAVACAO = new Set(["Carrossel", "Post estático"]);
@@ -93,15 +97,27 @@ export function parsePlanejamento(
   const itens: ItemPlanejamento[] = [];
   let semanaAtual: number | null = null;
   let atual: ItemPlanejamento | null = null;
+  let corpo: string[] = [];
+  let legenda: string[] = [];
+  let emLegenda = false;
 
   const fechar = () => {
-    if (atual) itens.push(atual);
+    if (atual) {
+      atual.roteiro = corpo.join("\n").trim() || null;
+      atual.legenda = legenda.join("\n").trim() || null;
+      itens.push(atual);
+    }
     atual = null;
+    corpo = [];
+    legenda = [];
+    emLegenda = false;
   };
 
   for (const linha of linhas) {
     const semSep = linha.replace(/#+/g, "").trim();
     if (!semSep) continue;
+    // ignora linhas separadoras (só símbolos, ex.: "____", "----")
+    if (/^[\W_]+$/.test(semSep)) continue;
 
     const mSemana = semSep.match(/^SEMANA\s+(\d+)/i);
     if (mSemana) {
@@ -125,30 +141,62 @@ export function parsePlanejamento(
         participantes: [],
         link: null,
         observacoes: null,
+        roteiro: null,
+        legenda: null,
       };
       continue;
     }
 
     if (!atual) continue;
 
+    // Campos rotulados (não entram no roteiro)
     if (/^DATA(\s+DA\s+POSTAGEM)?\s*[:\-–]/i.test(semSep)) {
       atual.dataPrevista = parseData(valorDepois(semSep), ano);
-    } else if (/^LOCAL\s*[:\-–]/i.test(semSep)) {
+      continue;
+    }
+    if (/^LOCAL\s*[:\-–]/i.test(semSep)) {
       atual.local = valorDepois(semSep) || null;
-    } else if (/^VESTIMENTA\s*[:\-–]/i.test(semSep)) {
+      continue;
+    }
+    if (/^VESTIMENTA\s*[:\-–]/i.test(semSep)) {
       atual.vestimenta = valorDepois(semSep) || null;
-    } else if (/^PARTICIPANTES\s*[:\-–]/i.test(semSep)) {
+      continue;
+    }
+    if (/^PARTICIPANTES\s*[:\-–]/i.test(semSep)) {
       atual.participantes = valorDepois(semSep)
         .split(/[,+]/)
         .map((p) => p.trim())
         .filter(Boolean);
-    } else if (/^(REFER[ÊE]NCIA|LINK)\s*[:\-–]/i.test(semSep)) {
+      continue;
+    }
+    if (/^(REFER[ÊE]NCIA|LINK)\s*[:\-–]/i.test(semSep)) {
       const v = valorDepois(semSep);
       const url = v.match(/https?:\/\/\S+/);
       atual.link = url ? url[0] : v || null;
-    } else if (/^OBS\s*[:\-–]/i.test(semSep)) {
-      atual.observacoes = valorDepois(semSep) || null;
+      continue;
     }
+    if (/^OBS\s*[:\-–]/i.test(semSep)) {
+      atual.observacoes = valorDepois(semSep) || null;
+      continue;
+    }
+
+    // Legenda: começa em "LEGENDA:" e vai até "DIRECIONAMENTO DE STORIES"
+    if (/^LEGENDA\s*[:\-–]/i.test(semSep)) {
+      emLegenda = true;
+      const v = valorDepois(semSep);
+      if (v) legenda.push(v);
+      corpo.push(semSep);
+      continue;
+    }
+    if (/DIRECIONAMENTO\s+DE\s+STORIES/i.test(semSep)) {
+      emLegenda = false;
+      corpo.push(semSep);
+      continue;
+    }
+
+    // Demais linhas: corpo (roteiro). Se estiver na legenda, acumula também.
+    corpo.push(semSep);
+    if (emLegenda) legenda.push(semSep);
   }
 
   fechar();

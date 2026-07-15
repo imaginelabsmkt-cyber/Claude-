@@ -48,6 +48,8 @@ function makeContent(over: Partial<Content> = {}): Content {
     edited_file_url: null,
     published_url: null,
     notes: null,
+    script: null,
+    caption: null,
     revision_count: 0,
     editing_queue_position: null,
     is_fixed_date: false,

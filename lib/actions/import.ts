@@ -89,6 +89,8 @@ export async function importarConteudosAction(input: {
     recording_location: it.local,
     outfit: it.vestimenta,
     participants: it.participantes,
+    script: it.roteiro,
+    caption: it.legenda,
     description: null,
     content_pillar: null,
     objective: null,

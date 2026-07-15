@@ -62,6 +62,8 @@ export const contentFormSchema = z.object({
   outfit: textoOpcional(160),
   required_materials: textoOpcional(),
   notes: textoOpcional(),
+  script: z.string().trim().max(20000).optional(),
+  caption: z.string().trim().max(5000).optional(),
 
   // Opcionais — datas
   planned_date: dataOpcional,
@@ -125,6 +127,8 @@ export interface ContentFormValues {
   requires_recording: boolean;
   is_fixed_date: boolean;
   is_campaign: boolean;
+  script: string;
+  caption: string;
 }
 
 /** Valores iniciais para um novo conteúdo. */
@@ -162,4 +166,6 @@ export const CONTENT_FORM_PADRAO: ContentFormValues = {
   requires_recording: false,
   is_fixed_date: false,
   is_campaign: false,
+  script: "",
+  caption: "",
 };

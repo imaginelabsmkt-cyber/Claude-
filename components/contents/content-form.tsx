@@ -72,6 +72,8 @@ function conteudoParaForm(c: Content): ContentFormValues {
     requires_recording: c.requires_recording,
     is_fixed_date: c.is_fixed_date,
     is_campaign: c.is_campaign,
+    script: s(c.script),
+    caption: s(c.caption),
   };
 }
 
@@ -565,6 +567,30 @@ export function ContentForm({
             />
             Campanha
           </label>
+        </div>
+      </Secao>
+
+      {/* Roteiro e legenda */}
+      <Secao titulo="Roteiro e legenda">
+        <div>
+          <Label htmlFor="script">Roteiro</Label>
+          <Textarea
+            id="script"
+            rows={8}
+            value={values.script}
+            onChange={(e) => set("script", e.target.value)}
+            placeholder="Cenas, falas, direcionamento de stories..."
+          />
+        </div>
+        <div>
+          <Label htmlFor="caption">Legenda</Label>
+          <Textarea
+            id="caption"
+            rows={4}
+            value={values.caption}
+            onChange={(e) => set("caption", e.target.value)}
+            placeholder="Legenda do post"
+          />
         </div>
       </Secao>
         </>

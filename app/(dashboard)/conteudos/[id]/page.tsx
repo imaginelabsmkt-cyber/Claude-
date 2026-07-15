@@ -244,6 +244,40 @@ export default async function ConteudoPage({ params }: PageProps) {
         </Card>
       </div>
 
+      {/* Roteiro e legenda */}
+      {conteudo.script || conteudo.caption ? (
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {conteudo.script ? (
+            <div>
+              <h2 className="mb-2 text-sm font-semibold text-gray-900">
+                Roteiro
+              </h2>
+              <Card>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+                    {conteudo.script}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          ) : null}
+          {conteudo.caption ? (
+            <div>
+              <h2 className="mb-2 text-sm font-semibold text-gray-900">
+                Legenda
+              </h2>
+              <Card>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+                    {conteudo.caption}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Histórico e comentários */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>

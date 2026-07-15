@@ -111,6 +111,10 @@ export type Content = {
   recording_deadline: DateString | null;
   editing_deadline: DateString | null;
 
+  // Conteúdo rico (vindo do planejamento)
+  script: string | null; // roteiro completo (cenas/falas/stories)
+  caption: string | null; // legenda do post
+
   // Arquivos / links
   script_url: string | null;
   raw_files_url: string | null;
@@ -180,6 +184,8 @@ export type ContentInsert = Omit<
   | "revision_count"
   | "is_fixed_date"
   | "is_campaign"
+  | "script"
+  | "caption"
 > & {
   id?: UUID;
   status?: ContentStatus;
@@ -191,6 +197,8 @@ export type ContentInsert = Omit<
   editing_queue_position?: number | null;
   is_fixed_date?: boolean;
   is_campaign?: boolean;
+  script?: string | null;
+  caption?: string | null;
 };
 export type ContentUpdate = Partial<Omit<Content, "id" | "created_at" | "updated_at">>;
 
