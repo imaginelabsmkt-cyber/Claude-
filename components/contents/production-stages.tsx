@@ -274,7 +274,7 @@ export function ProductionStages({ content }: { content: Content }) {
         titulo="Gravação"
         emoji="🎥"
         atual={etapa === "gravacao"}
-        abertoInicial={etapa === "gravacao"}
+        abertoInicial
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <CampoData
@@ -325,7 +325,7 @@ export function ProductionStages({ content }: { content: Content }) {
         titulo="Edição"
         emoji="✂️"
         atual={etapa === "edicao"}
-        abertoInicial={etapa === "edicao"}
+        abertoInicial
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <CampoData
@@ -366,7 +366,7 @@ export function ProductionStages({ content }: { content: Content }) {
         titulo="Postagem"
         emoji="🚀"
         atual={etapa === "postagem"}
-        abertoInicial={etapa === "postagem"}
+        abertoInicial
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <CampoTexto

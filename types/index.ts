@@ -48,6 +48,7 @@ export type BadgeTone =
   | "azul"
   | "verde"
   | "amarelo"
+  | "laranja"
   | "vermelho"
   | "roxo";
 
@@ -120,7 +121,7 @@ export const STATUS_TONE: Record<ContentStatus, BadgeTone> = {
 
 export const PRIORITY_TONE: Record<ContentPriority, BadgeTone> = {
   Urgente: "vermelho",
-  Alta: "amarelo",
-  Média: "azul",
+  Alta: "laranja",
+  Média: "amarelo",
   Baixa: "cinza",
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { QuickStatus } from "@/components/contents/quick-status";
@@ -24,6 +24,8 @@ interface EditableContentsTableProps {
   mostrarCliente?: boolean;
   vazioTitulo?: string;
   vazioDescricao?: string;
+  /** Ação exibida no estado vazio (ex.: botão "+ Novo conteúdo"). */
+  acaoVazio?: ReactNode;
 }
 
 /** Campo de responsável conforme a etapa (status) do conteúdo. */
@@ -277,9 +279,16 @@ export function EditableContentsTable({
   mostrarCliente = true,
   vazioTitulo = "Nenhum conteúdo",
   vazioDescricao = "Cadastre ou importe um planejamento para começar.",
+  acaoVazio,
 }: EditableContentsTableProps) {
   if (contents.length === 0) {
-    return <EmptyState titulo={vazioTitulo} descricao={vazioDescricao} />;
+    return (
+      <EmptyState
+        titulo={vazioTitulo}
+        descricao={vazioDescricao}
+        acao={acaoVazio}
+      />
+    );
   }
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 

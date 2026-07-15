@@ -56,6 +56,11 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
         contents={contents}
         clientes={clientes}
         perfis={perfis}
+        acaoVazio={
+          <Link href="/conteudos/novo">
+            <Button>+ Novo conteúdo</Button>
+          </Link>
+        }
       />
     </>
   );
