@@ -19,6 +19,7 @@ import { getAuthContext } from "@/lib/auth";
 import { HistoryTimeline } from "@/components/conteudos/history-timeline";
 import { CommentsSection } from "@/components/conteudos/comments-section";
 import { DeleteContentButton } from "@/components/contents/delete-content-button";
+import { RoteiroView } from "@/components/contents/roteiro-view";
 import {
   proximaAcao,
   responsavelAtual,
@@ -262,9 +263,7 @@ export default async function ConteudoPage({ params }: PageProps) {
               </h2>
               <Card>
                 <CardContent>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                    {conteudo.script}
-                  </p>
+                  <RoteiroView texto={conteudo.script} />
                 </CardContent>
               </Card>
             </div>
