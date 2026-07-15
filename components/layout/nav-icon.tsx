@@ -8,6 +8,7 @@ import type { SVGProps } from "react";
 const CAMINHOS: Record<string, string> = {
   dashboard: "M4 5h6v6H4zM14 5h6v4h-6zM14 13h6v6h-6zM4 15h6v4H4z",
   conteudos: "M8 6h11M8 12h11M8 18h11M3 6h.01M3 12h.01M3 18h.01",
+  quadro: "M4 4h5v16H4zM10 4h5v10h-5zM16 4h4v13h-4z",
   clientes:
     "M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M23 20v-2a4 4 0 0 0-3-3.87M16 4.13a4 4 0 0 1 0 7.75",
   gravacoes: "M23 7l-7 5 7 5V7zM1 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H1z",

@@ -31,6 +31,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     icone: "conteudos",
   },
   {
+    href: "/quadro",
+    label: "Quadro",
+    descricao: "Kanban da produção por fase",
+    icone: "quadro",
+  },
+  {
     href: "/clientes",
     label: "Clientes",
     descricao: "Cadastro e gestão de clientes",
