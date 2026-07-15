@@ -18,6 +18,7 @@ import { obterCliente } from "@/lib/data/clients";
 import { getAuthContext } from "@/lib/auth";
 import { HistoryTimeline } from "@/components/conteudos/history-timeline";
 import { CommentsSection } from "@/components/conteudos/comments-section";
+import { DeleteContentButton } from "@/components/contents/delete-content-button";
 import {
   proximaAcao,
   responsavelAtual,
@@ -96,9 +97,16 @@ export default async function ConteudoPage({ params }: PageProps) {
         titulo={conteudo.title}
         descricao={cliente?.name ?? undefined}
         acao={
-          <Link href={`/conteudos/${conteudo.id}/editar`}>
-            <Button variante="secundaria">Editar</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href={`/conteudos/${conteudo.id}/editar`}>
+              <Button variante="secundaria">Editar</Button>
+            </Link>
+            <DeleteContentButton
+              id={conteudo.id}
+              clientId={conteudo.client_id}
+              redirecionarPara={`/clientes/${conteudo.client_id}`}
+            />
+          </div>
         }
       />
 

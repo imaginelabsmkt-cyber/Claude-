@@ -11,6 +11,7 @@ import {
   ContentMonthCalendar,
   type DiaConteudos,
 } from "@/components/contents/content-month-calendar";
+import { DeletePlanningButton } from "@/components/contents/delete-planning-button";
 import { obterCliente } from "@/lib/data/clients";
 import { listContents, listProfiles } from "@/lib/data/contents";
 import {
@@ -188,6 +189,16 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         hrefAnterior={`/clientes/${cliente.id}?mes=${mesDelta(-1)}`}
         hrefProximo={`/clientes/${cliente.id}?mes=${mesDelta(1)}`}
       />
+
+      {/* Ações do mês */}
+      <div className="mt-3 flex justify-end">
+        <DeletePlanningButton
+          clientId={cliente.id}
+          mes={mes}
+          quantidade={doMes.length}
+          rotuloMes={tituloMes}
+        />
+      </div>
 
       {/* Cards de indicadores */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

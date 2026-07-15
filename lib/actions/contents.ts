@@ -388,3 +388,47 @@ export async function alterarDataPostagemAction(
   revalidatePath(`/conteudos/${id}`);
   return { ok: true, id };
 }
+
+// -------------------------------------------------------------
+// Exclusão de conteúdos
+// -------------------------------------------------------------
+
+/** Exclui um conteúdo (histórico e comentários vão junto por cascade). */
+export async function excluirConteudoAction(
+  id: string,
+  clientId?: string,
+): Promise<ActionResult> {
+  const supabase = createClient();
+  const { error } = await supabase.from("contents").delete().eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível excluir o conteúdo." };
+
+  revalidatePath("/conteudos");
+  if (clientId) revalidatePath(`/clientes/${clientId}`);
+  return { ok: true, id };
+}
+
+/**
+ * Apaga todo o planejamento de um cliente num mês de referência
+ * (exclui todos os conteúdos com aquele reference_month).
+ */
+export async function excluirPlanejamentoMesAction(
+  clientId: string,
+  referenceMonth: string,
+): Promise<ActionResult> {
+  if (!clientId || !/^\d{4}-\d{2}$/.test(referenceMonth)) {
+    return { ok: false, error: "Dados inválidos." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .delete()
+    .eq("client_id", clientId)
+    .eq("reference_month", referenceMonth);
+  if (error) {
+    return { ok: false, error: "Não foi possível apagar o planejamento." };
+  }
+
+  revalidatePath("/conteudos");
+  revalidatePath(`/clientes/${clientId}`);
+  return { ok: true };
+}
