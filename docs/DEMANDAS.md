@@ -41,6 +41,10 @@
 - **Preenchimento por etapa**: na página do conteúdo, painéis Gravação /
   Edição / Postagem, cada um com só os campos daquela etapa, salvando na
   hora. A etapa atual (pelo status) já vem aberta e destacada.
+- **Página do cliente enxuta**: calendário no topo, resumo compacto do mês
+  (meta/a gravar/em edição/aprovação/publicados) e a planilha editável como
+  ferramenta principal. Removidos os 6 blocos de cards por status que
+  repetiam a planilha.
 
 ## ⚠️ Comando pendente no banco (rodar no Supabase se ainda não rodou)
 
@@ -52,9 +56,7 @@ alter table public.contents add column if not exists caption text;
 
 ## ⏳ Demandas pendentes (prioridade)
 
-1. **Conteúdos — revisão de design**
-   - As listas "falta gravar / já gravado / fila de edição" estão pouco
-     interessantes; deixar mais visual/interativo (ideia: formato de planilha).
+1. **Calendário compartilhável para WhatsApp** (ver ideias futuras).
 
 ## 🔮 Ideias futuras (depois)
 

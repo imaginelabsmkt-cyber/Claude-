@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActiveToggle } from "@/components/clients/active-toggle";
-import { ContentCard } from "@/components/contents/content-card";
 import { EditableContentsTable } from "@/components/contents/editable-contents-table";
 import {
   ContentMonthCalendar,
@@ -15,14 +13,9 @@ import {
 import { DeletePlanningButton } from "@/components/contents/delete-planning-button";
 import { obterCliente } from "@/lib/data/clients";
 import { listContents, listProfiles } from "@/lib/data/contents";
-import {
-  resumoProducao,
-  inicioDaSemana,
-  hojeISO,
-  GRUPO_EM_APROVACAO,
-  GRUPO_PRONTOS_PUBLICAR,
-} from "@/lib/rules/contents";
-import type { Content, ContentStatus } from "@/types";
+import { resumoProducao, inicioDaSemana, hojeISO } from "@/lib/rules/contents";
+import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -35,62 +28,28 @@ function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-function Kpi({
+/** Indicador compacto do mês. */
+function Stat({
   rotulo,
   valor,
-  meta,
+  destaque,
 }: {
   rotulo: string;
-  valor: number;
-  meta?: number | null;
+  valor: ReactNode;
+  destaque?: boolean;
 }) {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <p className="text-xs text-gray-500">{rotulo}</p>
-        <p className="mt-1 text-2xl font-bold text-gray-900">
-          {valor}
-          {meta != null ? (
-            <span className="text-base font-medium text-gray-400"> / {meta}</span>
-          ) : null}
-        </p>
-        {meta != null ? (
-          <p className="mt-0.5 text-xs text-gray-500">meta do mês</p>
-        ) : null}
-      </CardContent>
-    </Card>
-  );
-}
-
-function Secao({
-  titulo,
-  itens,
-  cor,
-}: {
-  titulo: string;
-  itens: Content[];
-  cor?: string | null;
-}) {
-  return (
-    <section>
-      <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-        {titulo}
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-          {itens.length}
-        </span>
-      </h3>
-      {itens.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs text-gray-500">
-          Nenhum conteúdo aqui.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {itens.map((c) => (
-            <ContentCard key={c.id} content={c} cor={cor} />
-          ))}
-        </div>
+    <div
+      className={cn(
+        "flex items-baseline gap-2 rounded-lg border px-3 py-1.5",
+        destaque ? "border-brand-200 bg-brand-50" : "border-gray-200 bg-white",
       )}
-    </section>
+    >
+      <span className="text-[11px] uppercase tracking-wide text-gray-500">
+        {rotulo}
+      </span>
+      <span className="text-sm font-bold text-gray-900">{valor}</span>
+    </div>
   );
 }
 
@@ -111,12 +70,10 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     : mesAtual;
   const [ano, mesN] = mes.split("-").map(Number);
 
-  // Cards e seções referentes ao mês (por mês de referência)
+  // Resumo compacto referente ao mês exibido (por mês de referência)
   const doMes = todos.filter((c) => c.reference_month === mes);
   const resumo = resumoProducao(doMes);
   const planejados = doMes.filter((c) => c.status !== "Cancelado").length;
-  const porStatus = (lista: ContentStatus[]) =>
-    doMes.filter((c) => lista.includes(c.status));
 
   // Calendário: conteúdos pela DATA prevista dentro do mês exibido
   const primeiro = new Date(ano, mesN - 1, 1);
@@ -197,8 +154,23 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         hrefProximo={`/clientes/${cliente.id}?mes=${mesDelta(1)}`}
       />
 
-      {/* Ações do mês */}
-      <div className="mt-3 flex justify-end">
+      {/* Resumo compacto do mês + ação de apagar planejamento */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Stat
+            rotulo="Meta"
+            destaque
+            valor={
+              cliente.monthly_goal != null
+                ? `${planejados}/${cliente.monthly_goal}`
+                : planejados
+            }
+          />
+          <Stat rotulo="A gravar" valor={resumo.aguardandoGravacao} />
+          <Stat rotulo="Em edição" valor={resumo.filaEdicao + resumo.emEdicao} />
+          <Stat rotulo="Aprovação" valor={resumo.emAprovacao} />
+          <Stat rotulo="Publicados" valor={resumo.publicados} />
+        </div>
         <DeletePlanningButton
           clientId={cliente.id}
           mes={mes}
@@ -207,40 +179,15 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         />
       </div>
 
-      {/* Cards de indicadores */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Kpi
-          rotulo="Planejados no mês"
-          valor={planejados}
-          meta={cliente.monthly_goal}
-        />
-        <Kpi rotulo="Aguardando gravação" valor={resumo.aguardandoGravacao} />
-        <Kpi rotulo="Gravados" valor={resumo.gravados} />
-        <Kpi rotulo="Fila de edição" valor={resumo.filaEdicao} />
-        <Kpi rotulo="Em edição" valor={resumo.emEdicao} />
-        <Kpi rotulo="Em aprovação" valor={resumo.emAprovacao} />
-        <Kpi rotulo="Aprovados" valor={resumo.aprovados} />
-        <Kpi rotulo="Publicados" valor={resumo.publicados} />
-      </div>
-
-      {/* Seções operacionais */}
-      <div className="mt-8 space-y-8">
-        <Secao titulo="Falta gravar" cor={cliente.color} itens={porStatus(["Aguardando gravação"])} />
-        <Secao titulo="Já gravados" cor={cliente.color} itens={porStatus(["Gravado"])} />
-        <Secao titulo="Fila de edição" cor={cliente.color} itens={porStatus(["Fila de edição", "Em edição", "Ajustes"])} />
-        <Secao titulo="Em aprovação" cor={cliente.color} itens={porStatus(GRUPO_EM_APROVACAO)} />
-        <Secao titulo="Prontos para publicar" cor={cliente.color} itens={porStatus(GRUPO_PRONTOS_PUBLICAR)} />
-        <Secao titulo="Publicados no mês" cor={cliente.color} itens={porStatus(["Publicado"])} />
-      </div>
-
-      {/* Planilha editável */}
-      <div className="mt-10">
-        <div className="mb-3 flex items-center justify-between gap-2">
+      {/* Planilha editável — ferramenta principal */}
+      <div className="mt-8">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-gray-900">
-            Todos os conteúdos do cliente
+            Conteúdos do cliente
           </h2>
           <span className="text-[11px] text-gray-400">
-            Edite qualquer campo direto na linha — salva sozinho.
+            Edite qualquer campo direto na linha — salva sozinho. Clique no
+            título para abrir.
           </span>
         </div>
         <EditableContentsTable
