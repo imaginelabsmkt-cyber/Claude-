@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { ActiveToggle } from "@/components/clients/active-toggle";
 import { EditableContentsTable } from "@/components/contents/editable-contents-table";
 import {
-  ContentMonthCalendar,
-  type CelulaDia,
+  ContentWeekBoard,
+  type DiaSemana,
   type ItemCalendario,
-} from "@/components/contents/content-month-calendar";
+} from "@/components/contents/content-week-board";
 import { DeletePlanningButton } from "@/components/contents/delete-planning-button";
 import { obterCliente } from "@/lib/data/clients";
 import { listContents, listProfiles } from "@/lib/data/contents";
@@ -21,8 +21,10 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: { id: string };
-  searchParams: { mes?: string };
+  searchParams: { semana?: string };
 }
+
+const NOMES_DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
@@ -64,35 +66,31 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   ]);
 
   const hoje = new Date();
-  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
-  const mes = /^\d{4}-\d{2}$/.test(searchParams.mes ?? "")
-    ? searchParams.mes!
-    : mesAtual;
-  const [ano, mesN] = mes.split("-").map(Number);
 
-  // Resumo compacto referente ao mês exibido (por mês de referência)
+  // Semana exibida (?semana=YYYY-MM-DD, qualquer dia da semana). Padrão: hoje.
+  const base = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.semana ?? "")
+    ? new Date(`${searchParams.semana}T12:00:00`)
+    : hoje;
+  const inicioSemana = inicioDaSemana(base);
+  const meioSemana = addDays(inicioSemana, 3); // referência do mês
+
+  // Mês (para a meta contratual e para apagar planejamento)
+  const mes = `${meioSemana.getFullYear()}-${String(meioSemana.getMonth() + 1).padStart(2, "0")}`;
   const doMes = todos.filter((c) => c.reference_month === mes);
   const resumo = resumoProducao(doMes);
   const planejados = doMes.filter((c) => c.status !== "Cancelado").length;
 
-  // Calendário: conteúdos pela DATA prevista dentro do mês exibido
-  const primeiro = new Date(ano, mesN - 1, 1);
-  const inicioGrade = inicioDaSemana(primeiro);
-  const dias: CelulaDia[][] = [];
-  for (let s = 0; s < 6; s++) {
-    const semana: CelulaDia[] = [];
-    for (let d = 0; d < 7; d++) {
-      const data = addDays(inicioGrade, s * 7 + d);
-      const iso = hojeISO(data);
-      semana.push({
-        iso,
-        dia: data.getDate(),
-        noMes: data.getMonth() === mesN - 1,
-        hoje: iso === hojeISO(hoje),
-      });
-    }
-    dias.push(semana);
-  }
+  // Dias da semana exibida
+  const dias: DiaSemana[] = NOMES_DIAS.map((nome, i) => {
+    const data = addDays(inicioSemana, i);
+    const iso = hojeISO(data);
+    return {
+      iso,
+      diaSemana: nome,
+      numero: data.getDate(),
+      hoje: iso === hojeISO(hoje),
+    };
+  });
 
   const itensCalendario: ItemCalendario[] = todos
     .filter((c) => c.planned_date)
@@ -103,14 +101,19 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
       iso: c.planned_date!,
     }));
 
+  const fim = addDays(inicioSemana, 6);
+  const fmtDia = (d: Date) =>
+    new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short" }).format(
+      d,
+    );
+  const tituloSemana = `${fmtDia(inicioSemana)} – ${fmtDia(fim)}`;
   const tituloMes = new Intl.DateTimeFormat("pt-BR", {
     month: "long",
     year: "numeric",
-  }).format(primeiro);
-  const mesDelta = (delta: number) => {
-    const dt = new Date(ano, mesN - 1 + delta, 1);
-    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
-  };
+  }).format(meioSemana);
+
+  const semanaHref = (delta: number) =>
+    `/clientes/${cliente.id}?semana=${hojeISO(addDays(inicioSemana, delta * 7))}`;
 
   const clienteOpt = [
     { id: cliente.id, name: cliente.name, color: cliente.color },
@@ -145,20 +148,21 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         }
       />
 
-      {/* Calendário do mês */}
-      <ContentMonthCalendar
-        titulo={tituloMes}
+      {/* Acompanhamento semanal */}
+      <ContentWeekBoard
+        titulo={tituloSemana}
         dias={dias}
         itens={itensCalendario}
-        hrefAnterior={`/clientes/${cliente.id}?mes=${mesDelta(-1)}`}
-        hrefProximo={`/clientes/${cliente.id}?mes=${mesDelta(1)}`}
+        hrefAnterior={semanaHref(-1)}
+        hrefProximo={semanaHref(1)}
+        hrefHoje={`/clientes/${cliente.id}`}
       />
 
       {/* Resumo compacto do mês + ação de apagar planejamento */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Stat
-            rotulo="Meta"
+            rotulo={`Meta ${tituloMes}`}
             destaque
             valor={
               cliente.monthly_goal != null

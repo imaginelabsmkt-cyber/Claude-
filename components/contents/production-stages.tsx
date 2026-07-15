@@ -49,11 +49,35 @@ const CLASSE_INPUT =
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium text-gray-500">
-        {label}
-      </span>
+      {label ? (
+        <span className="mb-1 block text-xs font-medium text-gray-500">
+          {label}
+        </span>
+      ) : null}
       {children}
     </label>
+  );
+}
+
+/** Botão de copiar o link de referência, com feedback. */
+function CopiarReferencia({ url }: { url: string }) {
+  const [copiado, setCopiado] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          setCopiado(true);
+          setTimeout(() => setCopiado(false), 1600);
+        } catch {
+          setCopiado(false);
+        }
+      }}
+      className="rounded-md border border-amber-300 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+    >
+      {copiado ? "✓ Copiado" : "📋 Copiar"}
+    </button>
   );
 }
 
@@ -214,6 +238,36 @@ export function ProductionStages({ content }: { content: Content }) {
   return (
     <div className="mt-6 space-y-3">
       <h2 className="text-sm font-semibold text-gray-900">Produção por etapa</h2>
+
+      {/* REFERÊNCIA — em destaque, usada na gravação e na edição */}
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-amber-900">
+            <span aria-hidden="true">🔗</span> Referência (Instagram / TikTok)
+          </span>
+          {content.reference_url ? (
+            <div className="flex items-center gap-2">
+              <a
+                href={content.reference_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md border border-amber-300 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+              >
+                ↗ Abrir
+              </a>
+              <CopiarReferencia url={content.reference_url} />
+            </div>
+          ) : null}
+        </div>
+        <CampoTexto
+          label=""
+          valor={content.reference_url}
+          disabled={salvando}
+          tipo="url"
+          placeholder="Cole aqui o link da referência"
+          onSalvar={(v) => set({ reference_url: v })}
+        />
+      </div>
 
       {/* GRAVAÇÃO */}
       <Painel

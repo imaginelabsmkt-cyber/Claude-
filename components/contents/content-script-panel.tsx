@@ -93,43 +93,87 @@ function BotaoCopiar({ texto, rotulo }: { texto: string; rotulo: string }) {
 
 const LIMITE_PREVIA = 4;
 
-/** Tabela do roteiro (cenas/falas), com versão curta que expande. */
+/** Linha da tabela de roteiro: par OFF/LETTERING (fala) + CENAS (cena). */
+type LinhaRoteiro =
+  | { divisor: string }
+  | { quem: string | null; off: string; cena: string };
+
+/**
+ * Monta a tabela de 2 colunas (OFF / LETTERING | CENAS), igual ao
+ * planejamento: cada fala pareada com a cena que a acompanha.
+ */
+function montarLinhas(blocos: Bloco[]): LinhaRoteiro[] {
+  const linhas: LinhaRoteiro[] = [];
+  let atual: { quem: string | null; off: string; cena: string } | null = null;
+  const flush = () => {
+    if (atual && (atual.off || atual.cena)) linhas.push(atual);
+    atual = null;
+  };
+  for (const b of blocos) {
+    if (b.tipo === "titulo") {
+      // "OFF / LETTERING" e "CENAS" são os cabeçalhos das colunas — ignora.
+      if (/OFF|LETTERING|CENA/i.test(b.texto)) continue;
+      flush();
+      linhas.push({ divisor: b.texto });
+      continue;
+    }
+    if (b.tipo === "fala") {
+      if (atual && atual.off) flush();
+      atual = atual ?? { quem: null, off: "", cena: "" };
+      atual.quem = b.quem;
+      atual.off = b.texto;
+    } else {
+      atual = atual ?? { quem: null, off: "", cena: "" };
+      atual.cena = b.texto;
+      flush(); // fala + cena completam uma linha
+    }
+  }
+  flush();
+  return linhas;
+}
+
+/** Tabela do roteiro em 2 colunas, com versão curta que expande. */
 function TabelaRoteiro({ blocos }: { blocos: Bloco[] }) {
   const [aberto, setAberto] = useState(false);
-  const visiveis = aberto ? blocos : blocos.slice(0, LIMITE_PREVIA);
-  const restantes = blocos.length - LIMITE_PREVIA;
+  const linhas = montarLinhas(blocos);
+  const visiveis = aberto ? linhas : linhas.slice(0, LIMITE_PREVIA);
+  const restantes = linhas.length - LIMITE_PREVIA;
 
   return (
     <div>
       <div className="overflow-hidden rounded-lg border border-gray-200">
-        <table className="w-full border-collapse text-left text-sm">
+        <table className="w-full table-fixed border-collapse text-left text-sm">
+          <thead>
+            <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
+              <th className="w-1/2 border-r border-brand-100 px-3 py-2">
+                OFF / Lettering
+              </th>
+              <th className="w-1/2 px-3 py-2">Cenas</th>
+            </tr>
+          </thead>
           <tbody>
-            {visiveis.map((b, i) =>
-              b.tipo === "titulo" ? (
-                <tr key={i} className="bg-brand-50/60">
+            {visiveis.map((l, i) =>
+              "divisor" in l ? (
+                <tr key={i} className="bg-gray-50">
                   <td
                     colSpan={2}
-                    className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand-700"
+                    className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500"
                   >
-                    {b.texto}
-                  </td>
-                </tr>
-              ) : b.tipo === "fala" ? (
-                <tr key={i} className="border-t border-gray-100 align-top">
-                  <td className="w-32 whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-brand-700">
-                    🎙️ {b.quem}
-                  </td>
-                  <td className="px-3 py-2 leading-relaxed text-gray-900">
-                    {b.texto || "—"}
+                    {l.divisor}
                   </td>
                 </tr>
               ) : (
                 <tr key={i} className="border-t border-gray-100 align-top">
-                  <td className="w-32 whitespace-nowrap px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                    🎬 Cena
+                  <td className="break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
+                    {l.quem ? (
+                      <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wide text-brand-600">
+                        {l.quem}
+                      </span>
+                    ) : null}
+                    {l.off || "—"}
                   </td>
-                  <td className="px-3 py-2 italic leading-relaxed text-gray-500">
-                    {b.texto}
+                  <td className="break-words px-3 py-2 italic leading-relaxed text-gray-500">
+                    {l.cena || "—"}
                   </td>
                 </tr>
               ),

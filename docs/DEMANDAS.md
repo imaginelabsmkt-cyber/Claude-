@@ -41,10 +41,21 @@
 - **Preenchimento por etapa**: na página do conteúdo, painéis Gravação /
   Edição / Postagem, cada um com só os campos daquela etapa, salvando na
   hora. A etapa atual (pelo status) já vem aberta e destacada.
-- **Página do cliente enxuta**: calendário no topo, resumo compacto do mês
-  (meta/a gravar/em edição/aprovação/publicados) e a planilha editável como
-  ferramenta principal. Removidos os 6 blocos de cards por status que
-  repetiam a planilha.
+- **Página do cliente enxuta**: acompanhamento **semanal** no topo, resumo
+  compacto do mês e a planilha editável como ferramenta principal.
+- **Calendário semanal** (uma semana por vez, colunas largas e legíveis,
+  arrastar entre dias) — substituiu o mensal.
+- **Roteiro em tabela de 2 colunas** (OFF/LETTERING | CENAS), igual ao
+  planejamento da Vitória. Stories em tabela própria; legenda com copiar.
+- **Título normalizado** na importação (Title Case pt-BR, conectivos em
+  minúsculo).
+- **Referência (Instagram/TikTok)** do planejamento: campo próprio
+  (`reference_url`), importado e mostrado em destaque no conteúdo com
+  abrir/copiar (usado na edição).
+
+## 🧭 Pedido em aberto: faxina de design/intuitividade
+O cliente quer uma revisão geral de UX (mais intuitivo/criativo, remover
+repetições). Fazer página por página como passo dedicado.
 
 ## ⚠️ Comando pendente no banco (rodar no Supabase se ainda não rodou)
 
@@ -52,6 +63,8 @@
 -- roteiro e legenda dos conteúdos
 alter table public.contents add column if not exists script text;
 alter table public.contents add column if not exists caption text;
+-- link de referência (Instagram/TikTok)
+alter table public.contents add column if not exists reference_url text;
 ```
 
 ## ⏳ Demandas pendentes (prioridade)

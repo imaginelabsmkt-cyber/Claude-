@@ -43,6 +43,7 @@ function makeContent(over: Partial<Content> = {}): Content {
     script_deadline: null,
     recording_deadline: null,
     editing_deadline: null,
+    reference_url: null,
     script_url: null,
     raw_files_url: null,
     edited_file_url: null,

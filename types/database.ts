@@ -116,6 +116,7 @@ export type Content = {
   caption: string | null; // legenda do post
 
   // Arquivos / links
+  reference_url: string | null; // referência (Instagram/TikTok) que inspira o conteúdo
   script_url: string | null;
   raw_files_url: string | null;
   edited_file_url: string | null;
@@ -186,9 +187,11 @@ export type ContentInsert = Omit<
   | "is_campaign"
   | "script"
   | "caption"
+  | "reference_url"
 > & {
   id?: UUID;
   status?: ContentStatus;
+  reference_url?: string | null;
   priority?: ContentPriority;
   requires_recording?: boolean;
   participants?: string[];

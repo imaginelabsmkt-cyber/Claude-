@@ -36,7 +36,7 @@ describe("parsePlanejamento", () => {
   });
 
   it("extrai título, formato e semana do primeiro (Reel)", () => {
-    expect(itens[0].titulo).toBe("Protocolo com amigas");
+    expect(itens[0].titulo).toBe("Protocolo com Amigas");
     expect(itens[0].formato).toBe("Reel");
     expect(itens[0].semana).toBe(1);
     expect(itens[0].dataPrevista).toBe("2026-07-05");
@@ -51,7 +51,7 @@ describe("parsePlanejamento", () => {
 
   it("reconhece TREND como Reel e captura o link de referência", () => {
     expect(itens[1].formato).toBe("Reel");
-    expect(itens[1].titulo).toBe("Vamos fazer o que ?");
+    expect(itens[1].titulo).toBe("Vamos Fazer o que ?");
     expect(itens[1].dataPrevista).toBe("2026-07-08");
     expect(itens[1].link).toContain("tiktok.com");
     expect(itens[1].observacoes).toBe("PRECISAMOS DE DUAS MODELOS");
@@ -59,7 +59,7 @@ describe("parsePlanejamento", () => {
 
   it("reconhece Carrossel (sem gravação) e a semana 2", () => {
     expect(itens[2].formato).toBe("Carrossel");
-    expect(itens[2].titulo).toBe("O poder da estética");
+    expect(itens[2].titulo).toBe("O Poder da Estética");
     expect(itens[2].semana).toBe(2);
     expect(itens[2].precisaGravacao).toBe(false);
     expect(itens[2].dataPrevista).toBe("2026-07-14");

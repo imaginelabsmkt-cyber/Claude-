@@ -48,7 +48,25 @@ function detectarFormato(texto: string): string | null {
   return null;
 }
 
-/** Remove a palavra do formato do início do título. */
+/** Conectivos que ficam em minúsculo no meio do título (Title Case pt-BR). */
+const MINUSCULAS = new Set([
+  "de", "da", "do", "das", "dos", "e", "a", "o", "as", "os", "um", "uma",
+  "para", "pra", "por", "com", "em", "no", "na", "nos", "nas", "ao", "aos",
+  "à", "às", "que", "the", "of",
+]);
+
+/** Deixa o título "bonito": Primeira Letra De Cada Palavra Maiúscula. */
+export function tituloBonito(texto: string): string {
+  const palavras = texto.toLowerCase().split(/\s+/).filter(Boolean);
+  return palavras
+    .map((p, i) => {
+      if (i > 0 && MINUSCULAS.has(p)) return p;
+      return p.charAt(0).toUpperCase() + p.slice(1);
+    })
+    .join(" ");
+}
+
+/** Remove a palavra do formato do início do título e normaliza. */
 function limparTitulo(resto: string): string {
   let s = resto.trim();
   // remove prefixos de formato conhecidos no começo
@@ -58,12 +76,7 @@ function limparTitulo(resto: string): string {
   );
   s = s.trim().replace(/\s+/g, " ");
   if (!s) return "Conteúdo sem título";
-  // Se estiver todo em maiúsculas, converte para "sentença" (mais legível)
-  const semAcento = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  if (semAcento === semAcento.toUpperCase()) {
-    s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-  }
-  return s;
+  return tituloBonito(s);
 }
 
 /** Extrai o valor depois do primeiro ":" ou "-". */

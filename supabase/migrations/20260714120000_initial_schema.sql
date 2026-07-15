@@ -143,6 +143,7 @@ create table if not exists public.contents (
   caption                text,          -- legenda do post
 
   -- Arquivos / links
+  reference_url          text,
   script_url             text,
   raw_files_url          text,
   edited_file_url        text,

@@ -404,6 +404,7 @@ export interface ContentStagePatch {
   script_deadline?: string | null;
   recording_deadline?: string | null;
   editing_deadline?: string | null;
+  reference_url?: string | null;
   script_url?: string | null;
   raw_files_url?: string | null;
   edited_file_url?: string | null;
@@ -421,6 +422,7 @@ const ROTULO_ETAPA: Record<keyof ContentStagePatch, string> = {
   script_deadline: "Prazo do roteiro",
   recording_deadline: "Prazo da gravação",
   editing_deadline: "Prazo da edição",
+  reference_url: "Referência",
   script_url: "Link do roteiro",
   raw_files_url: "Arquivos brutos",
   edited_file_url: "Arquivo editado",
@@ -438,6 +440,7 @@ const CAMPOS_DATA: (keyof ContentStagePatch)[] = [
 const CAMPOS_TEXTO: (keyof ContentStagePatch)[] = [
   "recording_location",
   "outfit",
+  "reference_url",
   "script_url",
   "raw_files_url",
   "edited_file_url",
