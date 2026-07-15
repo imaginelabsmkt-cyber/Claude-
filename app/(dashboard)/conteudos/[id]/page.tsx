@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/contents/quick-status";
 import { QuickPriority } from "@/components/contents/quick-priority";
 import {
@@ -18,7 +17,7 @@ import { obterCliente } from "@/lib/data/clients";
 import { getAuthContext } from "@/lib/auth";
 import { HistoryTimeline } from "@/components/conteudos/history-timeline";
 import { CommentsSection } from "@/components/conteudos/comments-section";
-import { DeleteContentButton } from "@/components/contents/delete-content-button";
+import { ContentActions } from "@/components/contents/content-actions";
 import { ContentScriptPanel } from "@/components/contents/content-script-panel";
 import { ProductionStages } from "@/components/contents/production-stages";
 import {
@@ -85,16 +84,11 @@ export default async function ConteudoPage({ params }: PageProps) {
         titulo={conteudo.title}
         descricao={cliente?.name ?? undefined}
         acao={
-          <div className="flex items-center gap-2">
-            <Link href={`/conteudos/${conteudo.id}/editar`}>
-              <Button variante="secundaria">Editar</Button>
-            </Link>
-            <DeleteContentButton
-              id={conteudo.id}
-              clientId={conteudo.client_id}
-              redirecionarPara={`/clientes/${conteudo.client_id}`}
-            />
-          </div>
+          <ContentActions
+            id={conteudo.id}
+            status={conteudo.status}
+            redirecionarAoExcluir={`/clientes/${conteudo.client_id}`}
+          />
         }
       />
 

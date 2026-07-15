@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { QuickStatus } from "@/components/contents/quick-status";
 import { QuickPriority } from "@/components/contents/quick-priority";
+import { ContentActions } from "@/components/contents/content-actions";
 import { formatarData } from "@/lib/utils";
 import { estaAtrasado, prazoPrincipal } from "@/lib/rules/contents";
 import type { Content } from "@/types";
@@ -52,19 +53,8 @@ export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <QuickStatus id={content.id} status={content.status} />
         <QuickPriority id={content.id} priority={content.priority} />
-        <div className="ml-auto flex gap-2">
-          <Link
-            href={`/conteudos/${content.id}`}
-            className="text-xs font-medium text-brand-700 hover:underline"
-          >
-            Abrir
-          </Link>
-          <Link
-            href={`/conteudos/${content.id}/editar`}
-            className="text-xs font-medium text-gray-500 hover:underline"
-          >
-            Editar
-          </Link>
+        <div className="ml-auto">
+          <ContentActions id={content.id} status={content.status} compacto />
         </div>
       </div>
     </div>

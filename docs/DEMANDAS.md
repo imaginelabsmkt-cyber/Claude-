@@ -53,9 +53,21 @@
   (`reference_url`), importado e mostrado em destaque no conteúdo com
   abrir/copiar (usado na edição).
 
-## 🧭 Pedido em aberto: faxina de design/intuitividade
-O cliente quer uma revisão geral de UX (mais intuitivo/criativo, remover
-repetições). Fazer página por página como passo dedicado.
+## 🧭 Faxina de design/intuitividade (em andamento)
+Feito:
+- **Prioridade colorida** (Urgente vermelho, Alta laranja, Média amarelo,
+  Baixa cinza).
+- **Etapas de produção** abrem as três por padrão (atual destacada).
+- **Empty states com ação** (+ Novo conteúdo / Importar).
+- **Quadro Kanban** por fase (arrastar muda o status).
+- **Botão de ação contextual + menu ⋮** (avança o pipeline; editar/excluir
+  no menu) nos cards e na ficha do conteúdo.
+- **Dashboard só leitura + atalhos** (Próximas postagens virou lista
+  compacta; removida a tabela operacional pesada).
+- Removido código morto (ContentsTable, DeleteContentButton).
+
+Pendente da faxina: revisar telas Gravações / Fila / Postagens com o mesmo
+padrão de card + ação contextual (usar quando o cliente pedir).
 
 ## ⚠️ Comando pendente no banco (rodar no Supabase se ainda não rodou)
 

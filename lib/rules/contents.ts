@@ -131,6 +131,31 @@ export function statusAoConcluir(status: ContentStatus): ContentStatus | null {
   return STATUS_AO_CONCLUIR[status];
 }
 
+/**
+ * Rótulo do botão principal (ação contextual) para avançar o pipeline.
+ * null quando não há avanço (Publicado/Pausado/Cancelado).
+ */
+export const ROTULO_AVANCAR: Record<ContentStatus, string | null> = {
+  Planejamento: "Marcar roteiro pronto",
+  "Roteiro pronto": "Enviar p/ gravação",
+  "Aguardando gravação": "Marcar como gravado",
+  Gravado: "Enviar p/ edição",
+  "Fila de edição": "Iniciar edição",
+  "Em edição": "Enviar p/ revisão",
+  "Revisão interna": "Enviar ao cliente",
+  "Aprovação do cliente": "Marcar aprovado",
+  Ajustes: "Enviar p/ revisão",
+  Aprovado: "Agendar",
+  Agendado: "Marcar publicado",
+  Publicado: null,
+  Pausado: null,
+  Cancelado: null,
+};
+
+export function rotuloAvancar(status: ContentStatus): string | null {
+  return ROTULO_AVANCAR[status];
+}
+
 // -------------------------------------------------------------
 // 2. Responsável atual (depende da etapa do pipeline)
 // -------------------------------------------------------------

@@ -3,8 +3,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { BarChart } from "@/components/dashboard/bar-chart";
-import { ContentsTable } from "@/components/contents/contents-table";
-import { listContents, listAllClients, listProfiles } from "@/lib/data/contents";
+import { StatusContentBadge } from "@/components/shared/status-badge";
+import { EmptyState } from "@/components/shared/empty-state";
+import { formatarData } from "@/lib/utils";
+import { listContents, listAllClients } from "@/lib/data/contents";
 import {
   estaAtrasado,
   estaGravado,
@@ -25,11 +27,11 @@ export default async function DashboardPage() {
   const hojeStr = hojeISO(hoje);
   const mesAtual = hojeStr.slice(0, 7);
 
-  const [contents, clientes, perfis] = await Promise.all([
+  const [contents, clientes] = await Promise.all([
     listContents({}),
     listAllClients(),
-    listProfiles(),
   ]);
+  const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
   const naoFinal = (c: Content) =>
     c.status !== "Publicado" && c.status !== "Cancelado";
@@ -195,18 +197,56 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Próximas postagens */}
+      {/* Próximas postagens (só leitura — clique para abrir) */}
       <div className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">
-          Próximas postagens
-        </h2>
-        <ContentsTable
-          contents={proximas}
-          clientes={clientes}
-          perfis={perfis}
-          vazioTitulo="Nenhuma postagem futura"
-          vazioDescricao="Conteúdos com data prevista aparecerão aqui."
-        />
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-900">
+            Próximas postagens
+          </h2>
+          <Link
+            href="/conteudos"
+            className="text-xs font-medium text-brand-700 hover:underline"
+          >
+            Ver todos →
+          </Link>
+        </div>
+        {proximas.length === 0 ? (
+          <EmptyState
+            titulo="Nenhuma postagem futura"
+            descricao="Conteúdos com data prevista aparecerão aqui."
+          />
+        ) : (
+          <Card className="overflow-hidden">
+            <div className="divide-y divide-gray-100">
+              {proximas.map((c) => {
+                const cl = clientesById.get(c.client_id);
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/conteudos/${c.id}`}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50"
+                  >
+                    <span className="w-20 shrink-0 text-xs font-medium text-gray-500">
+                      {formatarData(c.planned_date)}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+                      {c.title}
+                    </span>
+                    <span className="hidden items-center gap-1.5 text-xs text-gray-500 sm:flex">
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
+                        style={{ backgroundColor: cl?.color ?? "#e5e7eb" }}
+                        aria-hidden="true"
+                      />
+                      {cl?.name ?? "—"}
+                    </span>
+                    <StatusContentBadge status={c.status} />
+                  </Link>
+                );
+              })}
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Resumo por cliente */}
