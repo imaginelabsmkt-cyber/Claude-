@@ -59,11 +59,16 @@ function useSalvar() {
   return { salvar, salvando };
 }
 
-/** Célula de texto (título): clica, edita, salva ao sair/Enter. */
-function CelulaTexto({
+/**
+ * Célula do título: o texto é um link que ABRE o conteúdo; um lápis ao lado
+ * troca para edição inline (salva ao sair/Enter).
+ */
+function CelulaTitulo({
+  href,
   valor,
   onSalvar,
 }: {
+  href: string;
   valor: string;
   onSalvar: (novo: string) => void;
 }) {
@@ -71,37 +76,46 @@ function CelulaTexto({
   const [texto, setTexto] = useState(valor);
   useEffect(() => setTexto(valor), [valor]);
 
-  if (!editando) {
+  if (editando) {
     return (
-      <button
-        type="button"
-        onClick={() => setEditando(true)}
-        className="w-full rounded px-1 py-0.5 text-left font-medium text-gray-900 hover:bg-brand-50"
-        title="Clique para editar"
-      >
-        {valor}
-      </button>
+      <input
+        autoFocus
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        onBlur={() => {
+          setEditando(false);
+          if (texto.trim() && texto !== valor) onSalvar(texto.trim());
+          else setTexto(valor);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+          if (e.key === "Escape") {
+            setTexto(valor);
+            setEditando(false);
+          }
+        }}
+        className="w-full rounded border border-brand-400 px-1 py-0.5 text-sm outline-none focus:ring-1 focus:ring-brand-500"
+      />
     );
   }
   return (
-    <input
-      autoFocus
-      value={texto}
-      onChange={(e) => setTexto(e.target.value)}
-      onBlur={() => {
-        setEditando(false);
-        if (texto.trim() && texto !== valor) onSalvar(texto.trim());
-        else setTexto(valor);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-        if (e.key === "Escape") {
-          setTexto(valor);
-          setEditando(false);
-        }
-      }}
-      className="w-full rounded border border-brand-400 px-1 py-0.5 text-sm outline-none focus:ring-1 focus:ring-brand-500"
-    />
+    <span className="group flex items-center gap-1.5">
+      <Link
+        href={href}
+        className="font-medium text-gray-900 hover:text-brand-700 hover:underline"
+      >
+        {valor}
+      </Link>
+      <button
+        type="button"
+        onClick={() => setEditando(true)}
+        aria-label="Editar título"
+        title="Editar título"
+        className="shrink-0 rounded p-0.5 text-gray-300 hover:bg-gray-100 hover:text-brand-600 group-hover:text-gray-400"
+      >
+        ✎
+      </button>
+    </span>
   );
 }
 
@@ -140,9 +154,10 @@ function Linha({
         </td>
       ) : null}
 
-      {/* Título */}
+      {/* Título (link para abrir + lápis para editar) */}
       <td className="min-w-[200px] px-2 py-1.5">
-        <CelulaTexto
+        <CelulaTitulo
+          href={`/conteudos/${content.id}`}
           valor={content.title}
           onSalvar={(novo) => salvar(content.id, { title: novo })}
         />

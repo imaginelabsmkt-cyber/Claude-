@@ -19,7 +19,7 @@ import { getAuthContext } from "@/lib/auth";
 import { HistoryTimeline } from "@/components/conteudos/history-timeline";
 import { CommentsSection } from "@/components/conteudos/comments-section";
 import { DeleteContentButton } from "@/components/contents/delete-content-button";
-import { RoteiroView } from "@/components/contents/roteiro-view";
+import { ContentScriptPanel } from "@/components/contents/content-script-panel";
 import {
   proximaAcao,
   responsavelAtual,
@@ -253,37 +253,11 @@ export default async function ConteudoPage({ params }: PageProps) {
         </Card>
       </div>
 
-      {/* Roteiro e legenda */}
-      {conteudo.script || conteudo.caption ? (
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {conteudo.script ? (
-            <div>
-              <h2 className="mb-2 text-sm font-semibold text-gray-900">
-                Roteiro
-              </h2>
-              <Card>
-                <CardContent>
-                  <RoteiroView texto={conteudo.script} />
-                </CardContent>
-              </Card>
-            </div>
-          ) : null}
-          {conteudo.caption ? (
-            <div>
-              <h2 className="mb-2 text-sm font-semibold text-gray-900">
-                Legenda
-              </h2>
-              <Card>
-                <CardContent>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                    {conteudo.caption}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+      {/* Roteiro, legenda e stories */}
+      <ContentScriptPanel
+        script={conteudo.script}
+        caption={conteudo.caption}
+      />
 
       {/* Histórico e comentários */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">

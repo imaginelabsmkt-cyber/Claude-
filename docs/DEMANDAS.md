@@ -33,7 +33,11 @@
   (não mais um bloco de texto cru).
 - **Planilha editável de conteúdos**: edição inline de título, formato, semana,
   data, status, prioridade e responsável (por etapa), sem abrir o conteúdo.
-  Usada na lista geral e na página do cliente.
+  Usada na lista geral e na página do cliente. O título é link (abre o
+  conteúdo) com lápis para editar inline.
+- **Painel de roteiro/legenda/stories**: legenda sempre visível com botão
+  **Copiar**; roteiro em tabela (curto e expansível); direcionamento de
+  stories separado em tabela própria.
 
 ## ⚠️ Comando pendente no banco (rodar no Supabase se ainda não rodou)
 
