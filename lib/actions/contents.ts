@@ -167,10 +167,20 @@ export async function definirStatusConteudoAction(
     .select("status")
     .eq("id", id)
     .maybeSingle();
-  const { error } = await supabase
-    .from("contents")
-    .update({ status })
-    .eq("id", id);
+
+  // Ao sair do conjunto da fila de edição, zera a posição manual — senão a
+  // posição fica "presa" e pode duplicar/embaralhar a ordem se o item voltar.
+  const NA_FILA: ContentStatus[] = [
+    "Gravado",
+    "Fila de edição",
+    "Em edição",
+    "Ajustes",
+  ];
+  const dados: { status: ContentStatus; editing_queue_position?: number | null } =
+    { status };
+  if (!NA_FILA.includes(status)) dados.editing_queue_position = null;
+
+  const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar o status." };
 
   await registrarHistorico(id, [
@@ -586,28 +596,33 @@ export async function atualizarCampoConteudoAction(
   }
   if ("planned_date" in patch) {
     const d = patch.planned_date;
-    if (d != null && !/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    // string vazia = limpar a data
+    if (d != null && d !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(d)) {
       return { ok: false, error: "Data inválida." };
     }
-    dados.planned_date = d ?? null;
+    dados.planned_date = d ? d : null;
   }
-  for (const campo of [
+  const CAMPOS_RESP = [
     "planner_id",
     "recorder_id",
     "editor_id",
     "publisher_id",
-  ] as const) {
+  ] as const;
+  for (const campo of CAMPOS_RESP) {
     if (campo in patch) dados[campo] = toNull(patch[campo]);
   }
 
   const supabase = createClient();
 
-  // valor anterior (para o histórico legível)
+  // valor anterior (para o histórico legível), incluindo responsáveis
   const { data: antes } = await supabase
     .from("contents")
-    .select("title, format, planned_week, planned_date")
+    .select(
+      "title, format, planned_week, planned_date, planner_id, recorder_id, editor_id, publisher_id",
+    )
     .eq("id", id)
     .maybeSingle();
+  const anterior = (antes ?? {}) as Record<string, unknown>;
 
   const { error } = await supabase
     .from("contents")
@@ -615,18 +630,40 @@ export async function atualizarCampoConteudoAction(
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar." };
 
-  // registra no histórico apenas os campos "simples" (datas/título/etc.)
-  const registros = (Object.keys(dados) as (keyof ContentEditPatch)[])
-    .filter((k) => k === "title" || k === "format" || k === "planned_week" || k === "planned_date")
+  // nomes dos responsáveis (id -> nome) para deixar o histórico legível
+  const idsResp = new Set<string>();
+  for (const campo of CAMPOS_RESP) {
+    const ant = anterior[campo];
+    if (typeof ant === "string") idsResp.add(ant);
+    const novo = dados[campo];
+    if (typeof novo === "string") idsResp.add(novo);
+  }
+  const nomePorId = new Map<string, string>();
+  if (idsResp.size > 0) {
+    const { data: perfis } = await supabase
+      .from("profiles")
+      .select("id, name")
+      .in("id", [...idsResp]);
+    for (const p of perfis ?? []) nomePorId.set(p.id, p.name);
+  }
+  const nomeDe = (v: unknown) =>
+    typeof v === "string" ? (nomePorId.get(v) ?? "—") : "—";
+
+  const chavesAlteradas = Object.keys(dados) as (keyof ContentEditPatch)[];
+  const registros = chavesAlteradas
     .map((k) => {
-      const anterior = antes
-        ? (antes as Record<string, unknown>)[k] ?? null
-        : null;
-      return {
-        field: ROTULO_CAMPO[k],
-        old: anterior == null ? "—" : String(anterior),
-        new: dados[k] == null ? "—" : String(dados[k]),
-      };
+      const ehResp = (CAMPOS_RESP as readonly string[]).includes(k);
+      const old = ehResp
+        ? nomeDe(anterior[k])
+        : anterior[k] == null
+          ? "—"
+          : String(anterior[k]);
+      const nova = ehResp
+        ? nomeDe(dados[k])
+        : dados[k] == null
+          ? "—"
+          : String(dados[k]);
+      return { field: ROTULO_CAMPO[k], old, new: nova };
     })
     .filter((r) => r.old !== r.new);
   if (registros.length > 0) await registrarHistorico(id, registros);

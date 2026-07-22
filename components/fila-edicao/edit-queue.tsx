@@ -31,12 +31,8 @@ import {
   reordenarFilaEdicaoAction,
 } from "@/lib/actions/contents";
 import type { Content, ContentStatus } from "@/types";
+import type { OpcaoCliente } from "@/lib/data/contents";
 
-interface OpcaoCliente {
-  id: string;
-  name: string;
-  color: string | null;
-}
 
 interface EditQueueProps {
   itens: Content[];
@@ -209,11 +205,14 @@ function ItemFila({
 /** Fila de edição com reordenação manual (drag and drop). */
 export function EditQueue({ itens, clientes }: EditQueueProps) {
   const [ordem, setOrdem] = useState<Content[]>(itens);
-  const [, iniciar] = useTransition();
+  const [pendente, iniciar] = useTransition();
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
-  // Mantém a ordem sincronizada quando os dados do servidor mudam.
-  useEffect(() => setOrdem(itens), [itens]);
+  // Sincroniza com o servidor, mas não durante um salvamento em voo (senão
+  // reverte a reordenação otimista antes de ela ser persistida).
+  useEffect(() => {
+    if (!pendente) setOrdem(itens);
+  }, [itens, pendente]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

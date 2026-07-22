@@ -30,6 +30,11 @@ export async function analisarPlanejamentoAction(
   if (!arquivo.name.toLowerCase().endsWith(".docx")) {
     return { ok: false, error: "Envie um arquivo no formato .docx (Word)." };
   }
+  // Limite de tamanho: evita travar o servidor com arquivos enormes / zip bomb.
+  const LIMITE_BYTES = 8 * 1024 * 1024; // 8 MB
+  if (arquivo.size > LIMITE_BYTES) {
+    return { ok: false, error: "Arquivo muito grande (máx. 8 MB)." };
+  }
   if (!/^\d{4}-\d{2}$/.test(referenceMonth)) {
     return { ok: false, error: "Selecione o mês de referência." };
   }
@@ -73,10 +78,16 @@ export async function importarConteudosAction(input: {
   if (!Array.isArray(itens) || itens.length === 0) {
     return { ok: false, error: "Nada para importar." };
   }
+  if (itens.length > 200) {
+    return { ok: false, error: "Muitos itens de uma vez (máx. 200)." };
+  }
+
+  const recortar = (v: string | null, max: number) =>
+    v == null ? null : v.slice(0, max);
 
   const linhas = itens.map((it) => ({
     client_id: clientId,
-    title: it.titulo,
+    title: (it.titulo ?? "Conteúdo sem título").slice(0, 200),
     format: it.formato,
     status: "Roteiro pronto" as const,
     priority: "Média" as const,
@@ -86,11 +97,11 @@ export async function importarConteudosAction(input: {
     actual_post_date: null,
     requires_recording: it.precisaGravacao,
     recording_date: null,
-    recording_location: it.local,
-    outfit: it.vestimenta,
-    participants: it.participantes,
-    script: it.roteiro,
-    caption: it.legenda,
+    recording_location: recortar(it.local, 300),
+    outfit: recortar(it.vestimenta, 300),
+    participants: (it.participantes ?? []).slice(0, 20),
+    script: recortar(it.roteiro, 20000),
+    caption: recortar(it.legenda, 8000),
     description: null,
     content_pillar: null,
     objective: null,
@@ -101,12 +112,12 @@ export async function importarConteudosAction(input: {
     script_deadline: null,
     recording_deadline: null,
     editing_deadline: null,
-    reference_url: it.link,
+    reference_url: recortar(it.link, 500),
     script_url: null,
     raw_files_url: null,
     edited_file_url: null,
     published_url: null,
-    notes: it.observacoes,
+    notes: recortar(it.observacoes, 2000),
   }));
 
   const supabase = createClient();

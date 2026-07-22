@@ -27,7 +27,7 @@ export async function registrarHistorico(
     data: { user },
   } = await supabase.auth.getUser();
 
-  await supabase.from("content_history").insert(
+  const { error } = await supabase.from("content_history").insert(
     relevantes.map((m) => ({
       content_id: contentId,
       user_id: user?.id ?? null,
@@ -36,6 +36,11 @@ export async function registrarHistorico(
       new_value: m.new,
     })),
   );
+  // O histórico é auditoria: se a inserção falhar, ao menos registra no log
+  // do servidor em vez de perder a alteração silenciosamente.
+  if (error) {
+    console.error("Falha ao registrar histórico:", error.message);
+  }
 }
 
 const fmtData = (v: string | null) => (v ? formatarData(v) : "—");

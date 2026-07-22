@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { escaparLike } from "@/lib/utils";
 import type { Client } from "@/types";
 
 export type FiltroStatusCliente = "todos" | "ativos" | "inativos";
@@ -27,7 +28,7 @@ export async function listarClientes(
   });
 
   if (params.q && params.q.trim()) {
-    query = query.ilike("name", `%${params.q.trim()}%`);
+    query = query.ilike("name", `%${escaparLike(params.q.trim())}%`);
   }
   if (params.status === "ativos") query = query.eq("active", true);
   if (params.status === "inativos") query = query.eq("active", false);

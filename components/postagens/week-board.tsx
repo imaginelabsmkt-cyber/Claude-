@@ -17,17 +17,13 @@ import { StatusContentBadge, PriorityBadge } from "@/components/shared/status-ba
 import { alterarDataPostagemAction } from "@/lib/actions/contents";
 import { cn } from "@/lib/utils";
 import type { Content } from "@/types";
+import type { OpcaoCliente } from "@/lib/data/contents";
 
 interface Dia {
   iso: string;
   rotulo: string;
   diaSemana: string;
   hoje: boolean;
-}
-interface OpcaoCliente {
-  id: string;
-  name: string;
-  color: string | null;
 }
 interface WeekBoardProps {
   dias: Dia[];
@@ -126,10 +122,12 @@ function ColunaDia({
 export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
   const router = useRouter();
   const [itens, setItens] = useState<Content[]>(contents);
-  const [, iniciar] = useTransition();
+  const [pendente, iniciar] = useTransition();
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
-  useEffect(() => setItens(contents), [contents]);
+  useEffect(() => {
+    if (!pendente) setItens(contents);
+  }, [contents, pendente]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

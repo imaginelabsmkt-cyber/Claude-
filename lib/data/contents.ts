@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { escaparLike } from "@/lib/utils";
 import type { Content, ContentHistory, Comment, Profile } from "@/types";
 
 export interface FiltrosConteudo {
@@ -32,7 +33,8 @@ export async function listContents(
     .order("planned_date", { ascending: true, nullsFirst: false })
     .order("title", { ascending: true });
 
-  if (filtros.q?.trim()) query = query.ilike("title", `%${filtros.q.trim()}%`);
+  if (filtros.q?.trim())
+    query = query.ilike("title", `%${escaparLike(filtros.q.trim())}%`);
   if (filtros.client_id) query = query.eq("client_id", filtros.client_id);
   if (filtros.status) query = query.eq("status", filtros.status);
   if (filtros.priority) query = query.eq("priority", filtros.priority);

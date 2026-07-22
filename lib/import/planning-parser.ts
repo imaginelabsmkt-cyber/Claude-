@@ -85,13 +85,14 @@ function valorDepois(linha: string): string {
   return idx >= 0 ? linha.slice(idx + 1).trim() : "";
 }
 
-/** Converte "05/07" (+ ano) em ISO "YYYY-MM-DD". */
+/** Converte "05/07" (+ ano) em ISO "YYYY-MM-DD". Rejeita dia/mês inválidos. */
 function parseData(valor: string, ano: number): string | null {
   const m = valor.match(/(\d{1,2})\s*\/\s*(\d{1,2})/);
   if (!m) return null;
-  const dia = m[1].padStart(2, "0");
-  const mes = m[2].padStart(2, "0");
-  return `${ano}-${mes}-${dia}`;
+  const d = Number(m[1]);
+  const mes = Number(m[2]);
+  if (d < 1 || d > 31 || mes < 1 || mes > 12) return null;
+  return `${ano}-${String(mes).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 /**
@@ -142,7 +143,11 @@ export function parsePlanejamento(
     if (mConteudo) {
       fechar();
       const resto = mConteudo[1] ?? "";
-      const formato = detectarFormato(resto) ?? "Reel";
+      // Detecta o formato só pela PRIMEIRA palavra (o formato vem no início:
+      // "CONTEÚDO 1: Reel ...") — evita que uma palavra no meio do título
+      // (ex.: "Reel sobre vídeo") seja confundida com o formato.
+      const primeira = resto.trim().split(/\s+/)[0] ?? "";
+      const formato = detectarFormato(primeira) ?? "Reel";
       atual = {
         titulo: limparTitulo(resto),
         formato,

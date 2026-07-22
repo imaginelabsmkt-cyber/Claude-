@@ -31,15 +31,6 @@ export interface ContentWithRelations extends Content {
   publisher: Profile | null;
 }
 
-/** Resumo numérico exibido no Dashboard. */
-export interface DashboardSummary {
-  total_contents: number;
-  awaiting_recording: number;
-  in_editing: number;
-  scheduled: number;
-  published_month: number;
-}
-
 // -------------------------------------------------------------
 // Tom visual dos badges (deve casar com os tons de components/ui/badge)
 // -------------------------------------------------------------

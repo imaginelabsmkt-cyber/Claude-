@@ -64,4 +64,21 @@ describe("parsePlanejamento", () => {
     expect(itens[2].precisaGravacao).toBe(false);
     expect(itens[2].dataPrevista).toBe("2026-07-14");
   });
+
+  it("detecta o formato só pela primeira palavra (não se confunde com o título)", () => {
+    const r = parsePlanejamento(
+      "CONTEÚDO 1: REELS sobre vídeo de bastidores no carrossel de fotos",
+      2026,
+    );
+    expect(r[0].formato).toBe("Reel");
+    expect(r[0].precisaGravacao).toBe(true);
+  });
+
+  it("rejeita datas inválidas em vez de gerar ISO quebrado", () => {
+    const r = parsePlanejamento(
+      "CONTEÚDO 1: REELS teste\nDATA DA POSTAGEM: 45/13",
+      2026,
+    );
+    expect(r[0].dataPrevista).toBeNull();
+  });
 });

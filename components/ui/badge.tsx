@@ -1,20 +1,12 @@
 import { cn } from "@/lib/utils";
 import type { HTMLAttributes } from "react";
-
-type TomBadge =
-  | "cinza"
-  | "azul"
-  | "verde"
-  | "amarelo"
-  | "laranja"
-  | "vermelho"
-  | "roxo";
+import type { BadgeTone } from "@/types";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  tom?: TomBadge;
+  tom?: BadgeTone;
 }
 
-const estilos: Record<TomBadge, string> = {
+const estilos: Record<BadgeTone, string> = {
   cinza: "bg-gray-100 text-gray-700",
   azul: "bg-blue-100 text-blue-700",
   verde: "bg-green-100 text-green-700",

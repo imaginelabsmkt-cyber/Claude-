@@ -30,6 +30,14 @@ export function formatarData(data: string | null): string {
 }
 
 /**
+ * Escapa os curingas de LIKE (%, _ e \) para que a busca trate o termo
+ * como texto literal (ex.: buscar "50%" não vira wildcard).
+ */
+export function escaparLike(termo: string): string {
+  return termo.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+/**
  * Formata data e hora no padrão brasileiro (dd/mm/aaaa às HH:mm).
  * Retorna "—" quando a data é nula.
  */
