@@ -41,3 +41,15 @@ export async function getAuthContext(): Promise<AuthContext> {
 export function displayName(ctx: AuthContext): string {
   return ctx.profile?.name ?? ctx.user?.email ?? "Usuário";
 }
+
+/**
+ * Garante que há um usuário autenticado (defesa em profundidade nas server
+ * actions, além do RLS). Retorna o id ou null se não houver sessão.
+ */
+export async function usuarioAtualId(): Promise<string | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}

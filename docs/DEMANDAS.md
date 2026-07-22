@@ -79,6 +79,10 @@ alter table public.contents add column if not exists caption text;
 alter table public.contents add column if not exists reference_url text;
 ```
 
+Além disso, rodar a migration de segurança (endurece RLS de profiles/
+content_history/comments e o signup): `supabase/migrations/20260716120000_hardening_rls.sql`.
+Depois dela, mudar papel de usuário só via SQL/service (o app não altera papéis).
+
 ## ⏳ Demandas pendentes (prioridade)
 
 1. **Calendário compartilhável para WhatsApp** (ver ideias futuras).

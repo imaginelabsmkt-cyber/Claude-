@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { usuarioAtualId } from "@/lib/auth";
 import { extrairTextoDocx } from "@/lib/import/docx";
 import {
   parsePlanejamento,
@@ -75,6 +76,9 @@ export async function importarConteudosAction(input: {
 }): Promise<ImportarResult> {
   const { clientId, referenceMonth, itens } = input;
   if (!clientId) return { ok: false, error: "Selecione o cliente." };
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
   if (!Array.isArray(itens) || itens.length === 0) {
     return { ok: false, error: "Nada para importar." };
   }

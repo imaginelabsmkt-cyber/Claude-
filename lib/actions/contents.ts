@@ -14,6 +14,7 @@ import {
 } from "@/types";
 import { hojeISO } from "@/lib/rules/contents";
 import { registrarHistorico, diffConteudo } from "@/lib/history";
+import { usuarioAtualId } from "@/lib/auth";
 import { formatarData } from "@/lib/utils";
 
 export interface ActionResult {
@@ -682,6 +683,9 @@ export async function excluirConteudoAction(
   id: string,
   clientId?: string,
 ): Promise<ActionResult> {
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
   const supabase = createClient();
   const { error } = await supabase.from("contents").delete().eq("id", id);
   if (error) return { ok: false, error: "Não foi possível excluir o conteúdo." };
@@ -701,6 +705,9 @@ export async function excluirPlanejamentoMesAction(
 ): Promise<ActionResult> {
   if (!clientId || !/^\d{4}-\d{2}$/.test(referenceMonth)) {
     return { ok: false, error: "Dados inválidos." };
+  }
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
   }
   const supabase = createClient();
   const { error } = await supabase
