@@ -55,7 +55,7 @@ export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <QuickStatus id={content.id} status={content.status} />
+        <QuickStatus id={content.id} status={content.status} format={content.format} />
         <QuickPriority id={content.id} priority={content.priority} />
         <div className="ml-auto">
           <ContentActions id={content.id} status={content.status} compacto />

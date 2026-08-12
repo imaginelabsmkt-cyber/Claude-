@@ -189,7 +189,11 @@ function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
 
       {/* Status */}
       <td className="px-2 py-1.5">
-        <QuickStatus id={content.id} status={content.status} />
+        <QuickStatus
+          id={content.id}
+          status={content.status}
+          format={content.format}
+        />
       </td>
 
       {/* Prioridade */}

@@ -97,7 +97,11 @@ export default async function ConteudoPage({ params }: PageProps) {
       <Card>
         <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           <Item rotulo="Status">
-            <QuickStatus id={conteudo.id} status={conteudo.status} />
+            <QuickStatus
+              id={conteudo.id}
+              status={conteudo.status}
+              format={conteudo.format}
+            />
           </Item>
           <Item rotulo="Prioridade">
             <QuickPriority id={conteudo.id} priority={conteudo.priority} />
