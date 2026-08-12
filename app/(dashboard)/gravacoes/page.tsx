@@ -11,7 +11,11 @@ import {
   listReferenceMonths,
   type FiltrosConteudo,
 } from "@/lib/data/contents";
-import { classificarGravacao, type GrupoGravacao } from "@/lib/rules/contents";
+import {
+  classificarGravacao,
+  ORDEM_STATUS,
+  type GrupoGravacao,
+} from "@/lib/rules/contents";
 import type { Content } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -40,9 +44,13 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
 
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
-  // Apenas conteúdos que precisam de gravação (e não cancelados).
+  // Conteúdos que precisam de gravação, até a etapa "Gravado". Depois de entrar
+  // na edição/postagem, saem daqui (aparecem na Fila de edição/Postagens).
   const itens = todos.filter(
-    (c) => c.requires_recording && c.status !== "Cancelado",
+    (c) =>
+      c.requires_recording &&
+      ORDEM_STATUS[c.status] <= ORDEM_STATUS["Gravado"] &&
+      ORDEM_STATUS[c.status] >= 0,
   );
 
   // Candidatos a agendar em lote: ainda sem data de gravação, não finalizados.

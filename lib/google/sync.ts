@@ -340,10 +340,17 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
 
     const { data: c } = await sb
       .from("contents")
-      .select("title, planned_date, status")
+      .select("title, planned_date, status, client_id")
       .eq("id", contentId)
       .maybeSingle();
     if (!c) return;
+
+    const { data: cliPost } = await sb
+      .from("clients")
+      .select("name")
+      .eq("id", c.client_id)
+      .maybeSingle();
+    const nomeCli = cliPost?.name ?? null;
 
     const existente = await idSync(sb, contentId, userId, "post");
     const calId = encodeURIComponent(
@@ -363,7 +370,8 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
     }
 
     const corpo: Record<string, unknown> = {
-      summary: `Postar: ${c.title}`,
+      summary: `Postar${nomeCli ? ` · ${nomeCli}` : ""}: ${c.title}`,
+      description: nomeCli ? `Cliente: ${nomeCli}` : null,
       start: { date: c.planned_date },
       end: { date: diaSeguinte(c.planned_date) },
     };

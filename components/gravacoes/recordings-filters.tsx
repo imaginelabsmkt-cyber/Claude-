@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Select } from "@/components/ui/select";
-import { STATUS_OPTIONS, WEEK_OPTIONS } from "@/types";
+import { STATUS_OPTIONS } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
 
 interface RecordingsFiltersProps {
@@ -26,7 +26,7 @@ export function RecordingsFilters({ clientes, meses }: RecordingsFiltersProps) {
   const v = (k: string) => searchParams.get(k) ?? "";
 
   return (
-    <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
       <Select
         aria-label="Cliente"
         value={v("client_id")}
@@ -36,19 +36,6 @@ export function RecordingsFilters({ clientes, meses }: RecordingsFiltersProps) {
         {clientes.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
-          </option>
-        ))}
-      </Select>
-
-      <Select
-        aria-label="Semana"
-        value={v("planned_week")}
-        onChange={(e) => aplicar("planned_week", e.target.value)}
-      >
-        <option value="">Semana: todas</option>
-        {WEEK_OPTIONS.map((w) => (
-          <option key={w} value={String(w)}>
-            Semana {w}
           </option>
         ))}
       </Select>
