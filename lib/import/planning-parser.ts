@@ -187,15 +187,28 @@ export function parsePlanejamento(
         .filter(Boolean);
       continue;
     }
-    if (/^(REFER[ÊE]NCIA|LINK)\s*[:\-–]/i.test(semSep)) {
-      const v = valorDepois(semSep);
-      const url = v.match(/https?:\/\/\S+/);
-      atual.link = url ? url[0] : v || null;
+    // Referência: aceita rótulos com texto extra antes do separador, ex.:
+    // "REFERÊNCIA (INSTAGRAM / TIKTOK):" — pega a URL da linha se houver.
+    if (/^(REFER[ÊE]NCIA|LINK|REF)\b/i.test(semSep) && /[:\-–]/.test(semSep)) {
+      const url = semSep.match(/https?:\/\/\S+/);
+      atual.link = url ? url[0] : valorDepois(semSep) || null;
       continue;
     }
     if (/^OBS\s*[:\-–]/i.test(semSep)) {
       atual.observacoes = valorDepois(semSep) || null;
       continue;
+    }
+
+    // Link de referência SEM rótulo (Instagram/TikTok/YouTube colado sozinho):
+    // captura como referência se ainda não houver uma.
+    if (!atual.link) {
+      const ref = semSep.match(/https?:\/\/\S*(?:instagram|tiktok|youtu)\S*/i);
+      if (ref) {
+        atual.link = ref[0];
+        // Linha que é só o link (sem outro conteúdo) não entra no roteiro.
+        const resto = semSep.replace(ref[0], "").replace(/[\s:–\-]/g, "");
+        if (resto.length === 0) continue;
+      }
     }
 
     // Legenda: começa em "LEGENDA:" e vai até "DIRECIONAMENTO DE STORIES"

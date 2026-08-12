@@ -81,4 +81,22 @@ describe("parsePlanejamento", () => {
     );
     expect(r[0].dataPrevista).toBeNull();
   });
+
+  it("aceita rótulo de referência com parêntese (Instagram / TikTok)", () => {
+    const r = parsePlanejamento(
+      "CONTEÚDO 1: REELS teste\nReferência (Instagram / TikTok): https://www.instagram.com/reel/abc123/",
+      2026,
+    );
+    expect(r[0].link).toBe("https://www.instagram.com/reel/abc123/");
+  });
+
+  it("captura link de referência solto (sem rótulo) e não polui o roteiro", () => {
+    const r = parsePlanejamento(
+      "CONTEÚDO 1: REELS teste\nhttps://vm.tiktok.com/ZMabc/\nCena de abertura",
+      2026,
+    );
+    expect(r[0].link).toContain("tiktok.com");
+    expect(r[0].roteiro ?? "").not.toContain("tiktok.com");
+    expect(r[0].roteiro ?? "").toContain("Cena de abertura");
+  });
 });
