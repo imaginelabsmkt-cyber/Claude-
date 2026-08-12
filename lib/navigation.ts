@@ -61,6 +61,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     icone: "edicao",
   },
   {
+    href: "/artes",
+    label: "Artes",
+    descricao: "Entrega de artes e carrosséis por cliente",
+    icone: "artes",
+  },
+  {
     href: "/postagens",
     label: "Postagens",
     descricao: "Agendamento e publicação",
