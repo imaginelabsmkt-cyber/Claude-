@@ -206,6 +206,57 @@ function TabelaRoteiro({
   const visiveis = aberto ? linhas : linhas.slice(0, LIMITE_PREVIA);
   const restantes = linhas.length - LIMITE_PREVIA;
 
+  // Quando não há nada na coluna da esquerda (ex.: layout de arte só com
+  // conteúdo), mostra uma coluna só para não desperdiçar espaço.
+  const temEsquerda = linhas.some(
+    (l) => !("divisor" in l) && ((l.off ?? "").trim() !== "" || !!l.quem),
+  );
+
+  const botaoExpandir =
+    restantes > 0 ? (
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
+      >
+        {aberto ? "Recolher ▲" : `Ver completo (+${restantes}) ▼`}
+      </button>
+    ) : null;
+
+  if (!temEsquerda) {
+    return (
+      <div>
+        <div className="overflow-hidden rounded-lg border border-gray-200">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead>
+              <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
+                <th className="px-3 py-2">{colDireita}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visiveis.map((l, i) =>
+                "divisor" in l ? (
+                  <tr key={i} className="bg-gray-50">
+                    <td className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                      {l.divisor}
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={i} className="border-t border-gray-100">
+                    <td className="break-words px-3 py-2 leading-relaxed text-gray-800">
+                      {l.cena || "—"}
+                    </td>
+                  </tr>
+                ),
+              )}
+            </tbody>
+          </table>
+        </div>
+        {botaoExpandir}
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -248,15 +299,7 @@ function TabelaRoteiro({
           </tbody>
         </table>
       </div>
-      {restantes > 0 ? (
-        <button
-          type="button"
-          onClick={() => setAberto((v) => !v)}
-          className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
-        >
-          {aberto ? "Recolher ▲" : `Ver completo (+${restantes}) ▼`}
-        </button>
-      ) : null}
+      {botaoExpandir}
     </div>
   );
 }

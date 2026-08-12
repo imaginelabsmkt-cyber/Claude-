@@ -1,13 +1,103 @@
 "use client";
 
-import { Fragment, useEffect, useState, useTransition } from "react";
+import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { salvarPlanningAction, type PlanningPatch } from "@/lib/actions/plannings";
 import { toast } from "@/lib/ui/toast";
-import { PLANNING_STATUS_OPTIONS, PLANNING_ENTREGUE } from "@/types";
+import {
+  PLANNING_STATUS_OPTIONS,
+  PLANNING_ENTREGUE,
+  PLANNING_SITUACAO_OPTIONS,
+  PLANNING_SITUACAO_TONE,
+} from "@/types";
 import type { Planning } from "@/types";
 import { cn } from "@/lib/utils";
+
+/** Botão de ditar por voz (transcrição no navegador, pt-BR). */
+function BotaoAudio({
+  onTexto,
+  disabled,
+}: {
+  onTexto: (t: string) => void;
+  disabled?: boolean;
+}) {
+  const [gravando, setGravando] = useState(false);
+  const [suportado, setSuportado] = useState(true);
+  const recRef = useRef<any>(null);
+  const onTextoRef = useRef(onTexto);
+  useEffect(() => {
+    onTextoRef.current = onTexto;
+  });
+
+  useEffect(() => {
+    const w = window as any;
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SR) {
+      setSuportado(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "pt-BR";
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.onresult = (e: any) => {
+      let texto = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) texto += e.results[i][0].transcript;
+      }
+      if (texto.trim()) onTextoRef.current(texto.trim());
+    };
+    rec.onend = () => setGravando(false);
+    rec.onerror = () => setGravando(false);
+    recRef.current = rec;
+    return () => {
+      try {
+        rec.stop();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, []);
+
+  if (!suportado) return null;
+
+  const alternar = () => {
+    const rec = recRef.current;
+    if (!rec) return;
+    if (gravando) {
+      try {
+        rec.stop();
+      } catch {
+        /* ignore */
+      }
+      setGravando(false);
+    } else {
+      try {
+        rec.start();
+        setGravando(true);
+      } catch {
+        setGravando(false);
+      }
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={alternar}
+      disabled={disabled}
+      className={cn(
+        "rounded-md border px-2.5 py-1 text-xs font-semibold",
+        gravando
+          ? "border-red-300 bg-red-50 text-red-700"
+          : "border-gray-300 text-gray-700 hover:bg-gray-50",
+      )}
+    >
+      {gravando ? "⏹ Parar ditado" : "🎙️ Ditar"}
+    </button>
+  );
+}
 
 export interface LinhaPlanejamento {
   clientId: string;
@@ -67,6 +157,13 @@ function Linha({
   useEffect(() => setNotas(p?.notes ?? ""), [p?.notes]);
 
   const set = (patch: PlanningPatch) => salvar(linha.clientId, mes, patch);
+
+  // Ditado por voz: acrescenta o texto transcrito e já salva.
+  const adicionarDitado = (t: string) => {
+    const novo = notas.trim() ? `${notas.trim()} ${t}` : t;
+    setNotas(novo);
+    set({ notes: novo });
+  };
 
   return (
     <>
@@ -132,13 +229,23 @@ function Linha({
           />
         </td>
         <td className="px-3 py-2">
-          {atrasado ? (
-            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">
-              Atrasado
-            </span>
-          ) : (
-            <span className="text-[11px] text-gray-400">Em dia</span>
-          )}
+          <select
+            aria-label="Situação"
+            value={p?.situation ?? "Pendente"}
+            disabled={salvando}
+            onChange={(e) => set({ situation: e.target.value })}
+            className={cn(
+              "rounded-full px-2.5 py-1 text-xs font-semibold outline-none",
+              PLANNING_SITUACAO_TONE[p?.situation ?? "Pendente"] ??
+                "bg-gray-100 text-gray-600",
+            )}
+          >
+            {PLANNING_SITUACAO_OPTIONS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </td>
         <td className="px-3 py-2 text-right">
           <button
@@ -153,9 +260,12 @@ function Linha({
       {notasAbertas ? (
         <tr className="bg-gray-50/60">
           <td colSpan={6} className="px-3 py-3">
-            <label className="mb-1 block text-[11px] font-semibold uppercase text-gray-500">
-              Anotações da reunião ({linha.clienteNome})
-            </label>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <label className="block text-[11px] font-semibold uppercase text-gray-500">
+                Anotações da reunião ({linha.clienteNome})
+              </label>
+              <BotaoAudio disabled={salvando} onTexto={adicionarDitado} />
+            </div>
             <textarea
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
@@ -167,7 +277,7 @@ function Linha({
               className="w-full rounded-lg border border-gray-300 p-2.5 text-sm text-gray-800 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
             />
             <span className="mt-1 block text-[11px] text-gray-400">
-              Salva sozinho ao sair do campo.
+              Salva sozinho ao sair do campo. O ditado por voz também salva.
             </span>
           </td>
         </tr>

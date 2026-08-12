@@ -14,6 +14,7 @@ export interface PlanningPatch {
   meeting_time?: string | null;
   delivery_deadline?: string | null;
   notes?: string | null;
+  situation?: string | null;
 }
 
 const ehData = (v: string | null | undefined) =>
@@ -52,6 +53,7 @@ export async function salvarPlanningAction(
   if ("delivery_deadline" in patch)
     dados.delivery_deadline = patch.delivery_deadline || null;
   if ("notes" in patch) dados.notes = patch.notes ?? null;
+  if ("situation" in patch) dados.situation = patch.situation || null;
 
   const supabase = createClient();
   const { error } = await supabase

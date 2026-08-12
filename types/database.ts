@@ -164,6 +164,7 @@ export type Planning = {
   meeting_time: string | null;
   delivery_deadline: DateString | null;
   notes: string | null;
+  situation: string | null;
   created_at: ISODateString;
   updated_at: ISODateString;
 }
@@ -176,6 +177,7 @@ export type PlanningInsert = {
   meeting_time?: string | null;
   delivery_deadline?: DateString | null;
   notes?: string | null;
+  situation?: string | null;
   created_at?: ISODateString;
   updated_at?: ISODateString;
 };
