@@ -10,6 +10,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
+import { calendarioId } from "@/lib/google/calendars";
 import { registrarHistorico } from "@/lib/history";
 import type { ContentStatus } from "@/types";
 
@@ -142,11 +143,16 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
       .eq("user_id", userId)
       .eq("kind", "event");
 
+    // Gravações vivem no calendário "Imagine Produção".
+    const calProd = encodeURIComponent(
+      await calendarioId(sb, userId, token, "producao"),
+    );
+
     // Busca todos os eventos em paralelo (não em série).
     await Promise.all(
       (eventos ?? []).map(async (ev) => {
         const r = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${ev.external_id}`,
+          `https://www.googleapis.com/calendar/v3/calendars/${calProd}/events/${ev.external_id}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         // Evento apagado à mão no Google: limpa o mapeamento.
