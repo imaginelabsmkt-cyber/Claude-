@@ -69,6 +69,33 @@ function interpretar(linhas: string[]): Bloco[] {
   return blocos;
 }
 
+/** Cabeçalho de documento que às vezes vaza para a legenda (ex.: "PLANEJAMENTO OSTEO&FIT JULHO"). */
+function ehLixoDeDocumento(linha: string): boolean {
+  const semAcento = linha.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const soMaiusculas =
+    /[A-Z]/.test(semAcento) && semAcento === semAcento.toUpperCase();
+  if (
+    soMaiusculas &&
+    /^(PLANEJAMENTO|SEMANA|CONTE[UÚ]DO|DIRECIONAMENTO)\b/i.test(linha)
+  ) {
+    return true;
+  }
+  return /^LEGENDA\s*[:\-–]?\s*$/i.test(linha);
+}
+
+/**
+ * Deixa a legenda pronta para copiar e colar na postagem: remove cabeçalhos
+ * do documento que vazaram e separa os parágrafos com uma linha em branco
+ * (fica mais legível e "arejada" no Instagram).
+ */
+function formatarLegenda(texto: string): string {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0 && !ehLixoDeDocumento(l));
+  return linhas.join("\n\n");
+}
+
 /** Botão de copiar com feedback. */
 function BotaoCopiar({ texto, rotulo }: { texto: string; rotulo: string }) {
   const [copiado, setCopiado] = useState(false);
@@ -244,8 +271,9 @@ export function ContentScriptPanel({ script, caption }: ContentScriptPanelProps)
   );
   const blocos = useMemo(() => interpretar(secoes.roteiro), [secoes.roteiro]);
 
-  const legendaTexto =
-    (caption && caption.trim()) || secoes.legenda.join("\n").trim();
+  const legendaTexto = formatarLegenda(
+    (caption && caption.trim()) || secoes.legenda.join("\n").trim(),
+  );
 
   const temAlgo =
     blocos.length > 0 || legendaTexto.length > 0 || secoes.stories.length > 0;
