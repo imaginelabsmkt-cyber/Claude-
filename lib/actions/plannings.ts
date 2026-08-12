@@ -99,3 +99,41 @@ export async function salvarPlanningAction(
   revalidatePath("/planejamentos");
   return { ok: true };
 }
+
+/**
+ * Reenvia ao Google TODOS os planejamentos do mês (reunião => evento na agenda
+ * "Imagine Reuniões"; prazo => tarefa). Limpa os vínculos antigos para recriar
+ * no calendário certo — útil quando as reuniões não apareceram na agenda nova.
+ */
+export async function reenviarPlanejamentosGoogleAction(
+  referenceMonth: string,
+): Promise<ActionResult & { quantidade?: number }> {
+  if (!/^\d{4}-\d{2}$/.test(referenceMonth)) {
+    return { ok: false, error: "Mês inválido." };
+  }
+  const userId = await usuarioAtualId();
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const supabase = createClient();
+  const { data: ps } = await supabase
+    .from("plannings")
+    .select("id, meeting_date, delivery_deadline")
+    .eq("reference_month", referenceMonth);
+  const comAgenda = (ps ?? []).filter(
+    (p) => p.meeting_date || p.delivery_deadline,
+  );
+
+  for (const p of comAgenda) {
+    // Limpa mapeamentos antigos (ex.: eventos que ficaram na agenda principal)
+    // para forçar recriar no calendário certo.
+    await supabase
+      .from("planning_google_sync")
+      .delete()
+      .eq("planning_id", p.id)
+      .eq("user_id", userId);
+    await sincronizarPlanejamentoGoogle(p.id);
+  }
+
+  revalidatePath("/planejamentos");
+  return { ok: true, quantidade: comAgenda.length };
+}

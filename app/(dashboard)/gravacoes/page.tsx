@@ -4,6 +4,7 @@ import { RecordingCard } from "@/components/gravacoes/recording-card";
 import { RecordingsFilters } from "@/components/gravacoes/recordings-filters";
 import { AgendarLoteButton } from "@/components/gravacoes/agendar-lote-button";
 import { GravadosList } from "@/components/gravacoes/gravados-list";
+import { AAgendarList } from "@/components/gravacoes/a-agendar-list";
 import {
   listContents,
   listAllClients,
@@ -13,8 +14,8 @@ import {
 } from "@/lib/data/contents";
 import {
   classificarGravacao,
+  estaGravado,
   ORDEM_STATUS,
-  type GrupoGravacao,
 } from "@/lib/rules/contents";
 import type { Content } from "@/types";
 
@@ -23,13 +24,6 @@ export const dynamic = "force-dynamic";
 interface PageProps {
   searchParams: FiltrosConteudo & { atrasado?: string };
 }
-
-// Não existe "gravação atrasada": o que não está desta semana entra em próximas.
-const GRUPOS: { chave: GrupoGravacao; titulo: string }[] = [
-  { chave: "semana", titulo: "Gravações desta semana" },
-  { chave: "proxima", titulo: "Próximas gravações" },
-  { chave: "gravada", titulo: "Já gravados" },
-];
 
 /** Página de Gravações — foco na Fran. */
 export default async function GravacoesPage({ searchParams }: PageProps) {
@@ -61,19 +55,41 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
       c.status !== "Cancelado",
   );
 
-  // Classificação em grupos ("atrasada" cai em "próxima": não há atraso aqui).
-  const grupos: Record<GrupoGravacao, Content[]> = {
-    atrasada: [],
-    semana: [],
-    proxima: [],
-    gravada: [],
-  };
+  // Agrupa: só quem tem DATA vira card. Sem data => lista compacta "A agendar".
+  const semana: Content[] = [];
+  const proxima: Content[] = [];
+  const aAgendar: Content[] = [];
+  const gravada: Content[] = [];
   for (const c of itens) {
-    const g = classificarGravacao(c);
-    grupos[g === "atrasada" ? "proxima" : g].push(c);
+    if (estaGravado(c.status)) gravada.push(c);
+    else if (!c.recording_date) aAgendar.push(c);
+    else if (classificarGravacao(c) === "semana") semana.push(c);
+    else proxima.push(c);
   }
 
-  const totalVisivel = itens.length;
+  const nomeCli = (c: Content) => clientesById.get(c.client_id)?.name ?? "—";
+  const corCli = (c: Content) => clientesById.get(c.client_id)?.color;
+
+  const Cards = ({ titulo, lista }: { titulo: string; lista: Content[] }) => (
+    <section>
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
+        {titulo}
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+          {lista.length}
+        </span>
+      </h2>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {lista.map((c) => (
+          <RecordingCard
+            key={c.id}
+            content={c}
+            clienteNome={nomeCli(c)}
+            cor={corCli(c)}
+          />
+        ))}
+      </div>
+    </section>
+  );
 
   return (
     <>
@@ -87,54 +103,40 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
 
       <RecordingsFilters clientes={clientes} meses={meses} />
 
-      {totalVisivel === 0 ? (
+      {itens.length === 0 ? (
         <EmptyState
           titulo="Nenhuma gravação encontrada"
           descricao="Ajuste os filtros ou marque conteúdos como 'precisa de gravação'."
         />
       ) : (
         <div className="space-y-8">
-          {GRUPOS.map((g) => {
-            const lista = grupos[g.chave];
-            if (lista.length === 0) return null;
-
-            // "Já gravados" fica como lista compacta e recolhível.
-            if (g.chave === "gravada") {
-              return (
-                <GravadosList
-                  key={g.chave}
-                  rows={lista.map((c) => ({
-                    id: c.id,
-                    title: c.title,
-                    clienteNome: clientesById.get(c.client_id)?.name ?? "—",
-                    cor: clientesById.get(c.client_id)?.color,
-                    recording_date: c.recording_date,
-                  }))}
-                />
-              );
-            }
-
-            return (
-              <section key={g.chave}>
-                <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                  {g.titulo}
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                    {lista.length}
-                  </span>
-                </h2>
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  {lista.map((c) => (
-                    <RecordingCard
-                      key={c.id}
-                      content={c}
-                      clienteNome={clientesById.get(c.client_id)?.name ?? "—"}
-                      cor={clientesById.get(c.client_id)?.color}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+          {semana.length > 0 ? (
+            <Cards titulo="Gravações desta semana" lista={semana} />
+          ) : null}
+          {proxima.length > 0 ? (
+            <Cards titulo="Próximas gravações" lista={proxima} />
+          ) : null}
+          {aAgendar.length > 0 ? (
+            <AAgendarList
+              rows={aAgendar.map((c) => ({
+                id: c.id,
+                title: c.title,
+                clienteNome: nomeCli(c),
+                cor: corCli(c),
+              }))}
+            />
+          ) : null}
+          {gravada.length > 0 ? (
+            <GravadosList
+              rows={gravada.map((c) => ({
+                id: c.id,
+                title: c.title,
+                clienteNome: nomeCli(c),
+                cor: corCli(c),
+                recording_date: c.recording_date,
+              }))}
+            />
+          ) : null}
         </div>
       )}
     </>

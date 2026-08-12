@@ -170,7 +170,21 @@ export async function sincronizarPlanejamentoGoogle(
         const json = (await resp.json()) as { id?: string };
         if (json.id) await salvarSync(sb, planningId, userId, "event", json.id);
       } else if (resp.status === 404 && evExistente) {
+        // Mapeamento apontava para outro calendário (ex.: agenda antiga):
+        // limpa e recria no calendário certo ("Imagine Reuniões").
         await apagarSync(sb, planningId, userId, "event");
+        const novo = await fetch(`${base}${q}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(corpo),
+        });
+        if (novo.ok) {
+          const j = (await novo.json()) as { id?: string };
+          if (j.id) await salvarSync(sb, planningId, userId, "event", j.id);
+        }
       }
     }
 
@@ -203,6 +217,18 @@ export async function sincronizarPlanejamentoGoogle(
         if (json.id) await salvarSync(sb, planningId, userId, "task", json.id);
       } else if (resp.status === 404 && tkExistente) {
         await apagarSync(sb, planningId, userId, "task");
+        const novo = await fetch(base, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(corpo),
+        });
+        if (novo.ok) {
+          const j = (await novo.json()) as { id?: string };
+          if (j.id) await salvarSync(sb, planningId, userId, "task", j.id);
+        }
       }
     }
   } catch (e) {
