@@ -243,8 +243,8 @@ export function prazoPrincipal(
     case "Em edição":
     case "Revisão interna":
     case "Ajustes":
-      // Entrega é sempre 48h antes da postagem (automático).
-      return prazoEntrega(content) ?? content.editing_deadline ?? content.planned_date;
+      // Entrega: 48h antes da postagem (automático) ou o ajuste manual.
+      return prazoEntregaEfetivo(content) ?? content.planned_date;
     default:
       return content.planned_date;
   }
@@ -257,8 +257,8 @@ export function prazoPrincipal(
 export const HORAS_ENTREGA_ANTES = 48;
 
 /**
- * Prazo de entrega do conteúdo (arte ou vídeo): sempre 48h (2 dias) antes da
- * data prevista de postagem. É automático — não depende de campo manual.
+ * Prazo de entrega AUTOMÁTICO do conteúdo (arte ou vídeo): 48h (2 dias) antes
+ * da data prevista de postagem. É o valor sugerido/padrão.
  * Retorna "YYYY-MM-DD" ou null quando não há data prevista de postagem.
  */
 export function prazoEntrega(
@@ -273,6 +273,17 @@ export function prazoEntrega(
     prevista.getDate() - dias,
   );
   return hojeISO(entrega);
+}
+
+/**
+ * Prazo de entrega EFETIVO: usa o ajuste manual (editing_deadline) quando
+ * existir; senão o automático (48h antes). Assim o preenchimento é automático
+ * mas continua alterável.
+ */
+export function prazoEntregaEfetivo(
+  content: Pick<Content, "planned_date" | "editing_deadline">,
+): string | null {
+  return content.editing_deadline ?? prazoEntrega(content);
 }
 
 // -------------------------------------------------------------
@@ -379,7 +390,7 @@ export function estaAtrasado(
  * entregar agora". Publicado/Pausado/Cancelado nunca entram.
  */
 export function entregaEmAlerta(
-  content: Pick<Content, "status" | "planned_date">,
+  content: Pick<Content, "status" | "planned_date" | "editing_deadline">,
   hoje: Date = new Date(),
 ): boolean {
   const { status } = content;
@@ -394,7 +405,7 @@ export function entregaEmAlerta(
   // Já passou da postagem => isso é "atrasado", não alerta de entrega.
   if (difEmDias(prevista, hoje) < 0) return false;
 
-  const entrega = parseData(prazoEntrega(content));
+  const entrega = parseData(prazoEntregaEfetivo(content));
   if (!entrega) return false;
   return difEmDias(entrega, hoje) <= 0;
 }
@@ -448,7 +459,7 @@ function chaveFilaEdicao(
 ): (number)[] {
   const bool = (v: boolean) => (v ? 0 : 1);
   const prevista = parseData(content.planned_date);
-  const prazoEd = parseData(prazoEntrega(content) ?? content.editing_deadline);
+  const prazoEd = parseData(prazoEntregaEfetivo(content));
   const inicioSemanaAtual = inicioDaSemana(hoje).getTime();
   const inicioProxSemana = inicioDaSemana(hoje);
   inicioProxSemana.setDate(inicioProxSemana.getDate() + 7);

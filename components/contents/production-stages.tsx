@@ -9,7 +9,7 @@ import {
 import { toast } from "@/lib/ui/toast";
 import type { Content, ContentStatus } from "@/types";
 import { prazoEntrega } from "@/lib/rules/contents";
-import { cn, formatarData } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 type Etapa = "gravacao" | "edicao" | "postagem";
 
@@ -237,7 +237,7 @@ function Painel({
  * status) já vem aberta e destacada, para preencher o que importa agora.
  */
 export function ProductionStages({ content }: { content: Content }) {
-  const { salvar } = useSalvar();
+  const { salvar, salvando } = useSalvar();
   const etapa = etapaDoStatus(content.status);
   const set = (patch: ContentStagePatch) => salvar(content.id, patch);
 
@@ -334,13 +334,15 @@ export function ProductionStages({ content }: { content: Content }) {
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Campo label="Prazo de entrega">
-            <div className={cn(CLASSE_INPUT, "flex items-center bg-gray-50")}>
-              {prazoEntrega(content)
-                ? formatarData(prazoEntrega(content))
-                : "Defina a data de postagem"}
-            </div>
+            <input
+              type="date"
+              defaultValue={content.editing_deadline ?? prazoEntrega(content) ?? ""}
+              disabled={salvando}
+              onChange={(e) => set({ editing_deadline: e.target.value || null })}
+              className={CLASSE_INPUT}
+            />
             <span className="mt-0.5 block text-[11px] text-gray-400">
-              Automático: 48h antes da postagem.
+              Automático: 48h antes da postagem. Você pode alterar.
             </span>
           </Campo>
           <CampoTexto

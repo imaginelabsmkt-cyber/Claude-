@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
-import { prazoEntrega } from "@/lib/rules/contents";
+import { prazoEntregaEfetivo } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
 
 const TZ = "America/Sao_Paulo";
@@ -256,9 +256,8 @@ export async function sincronizarEdicao(
     const resp2 = await rotuloResponsavel(sb, arte ? "planner" : "producer");
     const verbo = arte ? "Arte" : "Editar";
 
-    // Entrega automática: 48h antes da postagem (cai para prazos antigos/gravação).
-    const due =
-      prazoEntrega(c) ?? c.editing_deadline ?? c.planned_date ?? c.recording_date;
+    // Entrega: 48h antes da postagem (automático) ou o ajuste manual.
+    const due = prazoEntregaEfetivo(c) ?? c.planned_date ?? c.recording_date;
     const corpo: Record<string, unknown> = {
       title: `${verbo}${resp2}: ${c.title}`,
     };
