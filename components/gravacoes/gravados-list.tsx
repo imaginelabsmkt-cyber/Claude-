@@ -63,6 +63,9 @@ export function GravadosList({ rows }: { rows: GravadoRow[] }) {
                 style={{ backgroundColor: r.cor ?? "#e5e7eb" }}
                 aria-hidden="true"
               />
+              <span className="max-w-[8rem] shrink-0 truncate text-xs font-medium text-gray-500">
+                {r.clienteNome}
+              </span>
               <Link
                 href={`/conteudos/${r.id}`}
                 className="flex-1 truncate text-gray-800 hover:text-brand-700"

@@ -31,6 +31,28 @@ export interface ActionResult {
   id?: string;
 }
 
+/**
+ * Revalida TODAS as páginas que exibem conteúdos, para que o mesmo conteúdo
+ * apareça igual em todas as abas (dashboard, quadro, artes, gravações, fila,
+ * postagens, minhas tarefas, etc.). Evita uma aba mostrar estado antigo.
+ */
+function revalidarConteudos(id?: string, clientId?: string) {
+  for (const p of [
+    "/dashboard",
+    "/conteudos",
+    "/quadro",
+    "/artes",
+    "/postagens",
+    "/gravacoes",
+    "/fila-edicao",
+    "/minhas-tarefas",
+  ]) {
+    revalidatePath(p);
+  }
+  if (id) revalidatePath(`/conteudos/${id}`);
+  if (clientId) revalidatePath(`/clientes/${clientId}`);
+}
+
 const toNull = (v?: string | null) => {
   const t = typeof v === "string" ? v.trim() : v;
   return t ? t : null;
@@ -117,7 +139,7 @@ export async function criarConteudoAction(
     return { ok: false, error: "Não foi possível salvar o conteúdo." };
   }
 
-  revalidatePath("/conteudos");
+  revalidarConteudos();
   return { ok: true, id: data.id };
 }
 
@@ -161,8 +183,7 @@ export async function atualizarConteudoAction(
   await sincronizarPostagem(id);
   if (novo.status) await sincronizarEdicao(id, novo.status as ContentStatus);
 
-  revalidatePath("/conteudos");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -206,11 +227,7 @@ export async function definirStatusConteudoAction(
   // Vídeo editado (chegou em "Revisão interna") => cria a demanda de capa.
   if (status === "Revisão interna") await criarCapaDoVideo(supabase, id);
 
-  revalidatePath("/conteudos");
-  revalidatePath("/artes");
-  revalidatePath("/fila-edicao");
-  revalidatePath("/gravacoes");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -239,9 +256,7 @@ export async function definirPrioridadeConteudoAction(
     { field: "Prioridade", old: antigo?.priority ?? null, new: priority },
   ]);
 
-  revalidatePath("/conteudos");
-  revalidatePath("/fila-edicao");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -274,9 +289,7 @@ export async function marcarComoGravadoAction(
 
   await sincronizarGravacao(id);
 
-  revalidatePath("/gravacoes");
-  revalidatePath("/conteudos");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -303,8 +316,7 @@ export async function alterarDataGravacaoAction(
 
   await sincronizarGravacao(id);
 
-  revalidatePath("/gravacoes");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -348,8 +360,7 @@ export async function agendarGravacoesEmLoteAction(
   // Um evento por vídeo no Google (cada um mantém seu card/tarefa).
   for (const id of ids) await sincronizarGravacao(id);
 
-  revalidatePath("/gravacoes");
-  revalidatePath("/conteudos");
+  revalidarConteudos();
   return { ok: true, quantidade: ids.length };
 }
 
@@ -377,10 +388,7 @@ export async function adicionarFilaEdicaoAction(
 
   await sincronizarEdicao(id, "Fila de edição");
 
-  revalidatePath("/gravacoes");
-  revalidatePath("/fila-edicao");
-  revalidatePath("/conteudos");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -427,7 +435,7 @@ export async function reordenarFilaEdicaoAction(
     }
   }
 
-  revalidatePath("/fila-edicao");
+  revalidarConteudos();
   return { ok: true };
 }
 
@@ -472,9 +480,7 @@ export async function alterarDataPostagemAction(
 
   await sincronizarPostagem(id); // data de postagem => calendário "Imagine Postagens"
 
-  revalidatePath("/postagens");
-  revalidatePath("/conteudos");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -493,7 +499,7 @@ export async function atualizarRoteiroAction(
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar o roteiro." };
 
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -512,7 +518,7 @@ export async function atualizarLegendaAction(
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar a legenda." };
 
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -577,9 +583,7 @@ export async function criarArteRapidaAction(input: {
     return { ok: false, error: "Não foi possível criar a arte." };
   }
 
-  revalidatePath("/artes");
-  revalidatePath("/conteudos");
-  revalidatePath(`/clientes/${clientId}`);
+  revalidarConteudos(undefined, clientId);
   return { ok: true, id: data.id };
 }
 
@@ -730,11 +734,7 @@ export async function atualizarProducaoConteudoAction(
     await sincronizarGravacao(id);
   }
 
-  revalidatePath("/conteudos");
-  revalidatePath(`/conteudos/${id}`);
-  revalidatePath("/gravacoes");
-  revalidatePath("/fila-edicao");
-  revalidatePath("/postagens");
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -879,8 +879,7 @@ export async function atualizarCampoConteudoAction(
     if (st?.status) await sincronizarEdicao(id, st.status as ContentStatus);
   }
 
-  revalidatePath("/conteudos");
-  revalidatePath(`/conteudos/${id}`);
+  revalidarConteudos(id);
   return { ok: true, id };
 }
 
@@ -902,8 +901,7 @@ export async function excluirConteudoAction(
   const { error } = await supabase.from("contents").delete().eq("id", id);
   if (error) return { ok: false, error: "Não foi possível excluir o conteúdo." };
 
-  revalidatePath("/conteudos");
-  if (clientId) revalidatePath(`/clientes/${clientId}`);
+  revalidarConteudos(undefined, clientId);
   return { ok: true, id };
 }
 
@@ -931,8 +929,7 @@ export async function excluirPlanejamentoMesAction(
     return { ok: false, error: "Não foi possível apagar o planejamento." };
   }
 
-  revalidatePath("/conteudos");
-  revalidatePath(`/clientes/${clientId}`);
+  revalidarConteudos(undefined, clientId);
   return { ok: true };
 }
 
@@ -956,7 +953,6 @@ export async function excluirTodosDoClienteAction(
     return { ok: false, error: "Não foi possível apagar os conteúdos." };
   }
 
-  revalidatePath("/conteudos");
-  revalidatePath(`/clientes/${clientId}`);
+  revalidarConteudos(undefined, clientId);
   return { ok: true };
 }
