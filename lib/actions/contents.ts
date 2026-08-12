@@ -708,6 +708,16 @@ export async function atualizarProducaoConteudoAction(
   if ("requires_recording" in patch) {
     dados.requires_recording = Boolean(patch.requires_recording);
   }
+  // Definiu uma data de gravação nesta ficha? Então o conteúdo passa a
+  // "precisar de gravação" automaticamente — assim ele aparece TANTO na aba
+  // Gravações QUANTO na agenda do Google (a menos que você diga o contrário).
+  if (
+    "recording_date" in patch &&
+    patch.recording_date &&
+    !("requires_recording" in patch)
+  ) {
+    dados.requires_recording = true;
+  }
   if ("participants" in patch) {
     dados.participants = (patch.participants ?? [])
       .map((p) => p.trim())

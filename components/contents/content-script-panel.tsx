@@ -152,65 +152,27 @@ function BotaoSec({
 
 const LIMITE_PREVIA = 4;
 
-/** Linha da tabela de roteiro: par OFF/LETTERING (fala) + CENAS (cena). */
-type LinhaRoteiro =
-  | { divisor: string }
-  | { quem: string | null; off: string; cena: string };
-
 /**
- * Monta a tabela de 2 colunas (OFF / LETTERING | CENAS), igual ao
- * planejamento: cada fala pareada com a cena que a acompanha.
+ * Tabela de leitura do roteiro/layout: uma coluna com o rótulo (FALA,
+ * LETTERING, ou o elemento da arte) e outra com o conteúdo. Mesma estrutura
+ * do modo de edição, para o roteiro sempre aparecer em TABELA (não em lista).
+ * Tem versão curta que expande.
  */
-function montarLinhas(blocos: Bloco[]): LinhaRoteiro[] {
-  const linhas: LinhaRoteiro[] = [];
-  let atual: { quem: string | null; off: string; cena: string } | null = null;
-  const flush = () => {
-    if (atual && (atual.off || atual.cena)) linhas.push(atual);
-    atual = null;
-  };
-  for (const b of blocos) {
-    if (b.tipo === "titulo") {
-      // "OFF / LETTERING" e "CENAS" são os cabeçalhos das colunas — ignora.
-      if (/OFF|LETTERING|CENA/i.test(b.texto)) continue;
-      flush();
-      linhas.push({ divisor: b.texto });
-      continue;
-    }
-    if (b.tipo === "fala") {
-      if (atual && atual.off) flush();
-      atual = atual ?? { quem: null, off: "", cena: "" };
-      atual.quem = b.quem;
-      atual.off = b.texto;
-    } else {
-      atual = atual ?? { quem: null, off: "", cena: "" };
-      atual.cena = b.texto;
-      flush(); // fala + cena completam uma linha
-    }
-  }
-  flush();
-  return linhas;
-}
-
-/** Tabela do roteiro/layout em 2 colunas, com versão curta que expande. */
 function TabelaRoteiro({
-  blocos,
+  linhas,
   colEsquerda,
   colDireita,
 }: {
-  blocos: Bloco[];
+  linhas: LinhaEdicao[];
   colEsquerda: string;
   colDireita: string;
 }) {
   const [aberto, setAberto] = useState(false);
-  const linhas = montarLinhas(blocos);
   const visiveis = aberto ? linhas : linhas.slice(0, LIMITE_PREVIA);
   const restantes = linhas.length - LIMITE_PREVIA;
 
-  // Quando não há nada na coluna da esquerda (ex.: layout de arte só com
-  // conteúdo), mostra uma coluna só para não desperdiçar espaço.
-  const temEsquerda = linhas.some(
-    (l) => !("divisor" in l) && ((l.off ?? "").trim() !== "" || !!l.quem),
-  );
+  // Sem nenhum rótulo (ex.: layout de arte só com conteúdo) => uma coluna só.
+  const temEsquerda = linhas.some((l) => l.rotulo.trim() !== "");
 
   const botaoExpandir =
     restantes > 0 ? (
@@ -234,21 +196,13 @@ function TabelaRoteiro({
               </tr>
             </thead>
             <tbody>
-              {visiveis.map((l, i) =>
-                "divisor" in l ? (
-                  <tr key={i} className="bg-gray-50">
-                    <td className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                      {l.divisor}
-                    </td>
-                  </tr>
-                ) : (
-                  <tr key={i} className="border-t border-gray-100">
-                    <td className="break-words px-3 py-2 leading-relaxed text-gray-800">
-                      {l.cena || "—"}
-                    </td>
-                  </tr>
-                ),
-              )}
+              {visiveis.map((l, i) => (
+                <tr key={i} className="border-t border-gray-100">
+                  <td className="break-words px-3 py-2 leading-relaxed text-gray-800">
+                    {l.conteudo || "—"}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -263,39 +217,23 @@ function TabelaRoteiro({
         <table className="w-full table-fixed border-collapse text-left text-sm">
           <thead>
             <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
-              <th className="w-1/2 border-r border-brand-100 px-3 py-2">
+              <th className="w-40 border-r border-brand-100 px-3 py-2">
                 {colEsquerda}
               </th>
-              <th className="w-1/2 px-3 py-2">{colDireita}</th>
+              <th className="px-3 py-2">{colDireita}</th>
             </tr>
           </thead>
           <tbody>
-            {visiveis.map((l, i) =>
-              "divisor" in l ? (
-                <tr key={i} className="bg-gray-50">
-                  <td
-                    colSpan={2}
-                    className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500"
-                  >
-                    {l.divisor}
-                  </td>
-                </tr>
-              ) : (
-                <tr key={i} className="border-t border-gray-100 align-top">
-                  <td className="break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
-                    {l.quem ? (
-                      <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wide text-brand-600">
-                        {l.quem}
-                      </span>
-                    ) : null}
-                    {l.off || "—"}
-                  </td>
-                  <td className="break-words px-3 py-2 italic leading-relaxed text-gray-500">
-                    {l.cena || "—"}
-                  </td>
-                </tr>
-              ),
-            )}
+            {visiveis.map((l, i) => (
+              <tr key={i} className="border-t border-gray-100 align-top">
+                <td className="break-words border-r border-gray-100 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-brand-600">
+                  {l.rotulo || ""}
+                </td>
+                <td className="break-words px-3 py-2 leading-relaxed text-gray-800">
+                  {l.conteudo || "—"}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -550,7 +488,7 @@ function RoteiroEditavel({
         />
       ) : (
         <TabelaRoteiro
-          blocos={blocos}
+          linhas={parseParaEdicao(roteiroLinhas)}
           colEsquerda={colEsquerda}
           colDireita={colDireita}
         />
