@@ -10,7 +10,8 @@ import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 
-const TZ = "America/Sao_Paulo";
+const TZ = "America/Boa_Vista";
+const OFFSET_LOCAL = "-04:00"; // Boa Vista / Roraima (UTC-4)
 type SB = ReturnType<typeof createClient>;
 
 async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
@@ -146,10 +147,13 @@ export async function sincronizarPlanejamentoGoogle(
       if (p.meeting_time) {
         const fim = fimEvento(p.meeting_date, p.meeting_time);
         corpo.start = {
-          dateTime: `${p.meeting_date}T${p.meeting_time}:00`,
+          dateTime: `${p.meeting_date}T${p.meeting_time}:00${OFFSET_LOCAL}`,
           timeZone: TZ,
         };
-        corpo.end = { dateTime: `${fim.date}T${fim.time}:00`, timeZone: TZ };
+        corpo.end = {
+          dateTime: `${fim.date}T${fim.time}:00${OFFSET_LOCAL}`,
+          timeZone: TZ,
+        };
       } else {
         corpo.start = { date: p.meeting_date };
         corpo.end = { date: diaSeguinte(p.meeting_date) };

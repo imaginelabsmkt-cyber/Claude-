@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 type SB = ReturnType<typeof createClient>;
 export type CalendarioKind = "reunioes" | "producao" | "postagens";
 
-const TZ = "America/Sao_Paulo";
+const TZ = "America/Boa_Vista";
 
 const NOME: Record<CalendarioKind, string> = {
   reunioes: "Imagine Reuniões",

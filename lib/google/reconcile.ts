@@ -15,7 +15,7 @@ import { criarCapaDoVideo } from "@/lib/content/covers";
 import { registrarHistorico } from "@/lib/history";
 import type { ContentStatus } from "@/types";
 
-const TZ = "America/Sao_Paulo";
+const TZ = "America/Boa_Vista";
 
 /** Extrai data (YYYY-MM-DD) e hora (HH:MM) no fuso de SP a partir do evento. */
 function dataHoraLocal(start: {

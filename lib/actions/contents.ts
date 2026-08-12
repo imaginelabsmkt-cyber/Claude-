@@ -17,6 +17,7 @@ import { registrarHistorico, diffConteudo } from "@/lib/history";
 import { usuarioAtualId } from "@/lib/auth";
 import {
   sincronizarGravacao,
+  sincronizarGravacaoEmLote,
   sincronizarEdicao,
   sincronizarPostagem,
   removerGoogleDoConteudo,
@@ -264,19 +265,22 @@ export async function definirPrioridadeConteudoAction(
 // Ações de gravação (página de Gravações — Fran)
 // -------------------------------------------------------------
 
-/** Marca o conteúdo como Gravado e registra a data (padrão: hoje). */
+/** Marca o conteúdo como Gravado. Mantém a data já agendada (só usa hoje se não houver). */
 export async function marcarComoGravadoAction(
   id: string,
   data?: string,
 ): Promise<ActionResult> {
-  const recording_date =
-    data && /^\d{4}-\d{2}-\d{2}$/.test(data) ? data : hojeISO();
   const supabase = createClient();
   const { data: antigo } = await supabase
     .from("contents")
-    .select("status")
+    .select("status, recording_date")
     .eq("id", id)
     .maybeSingle();
+  // Não sobrescreve a data agendada (evita mexer no evento do lote no Google).
+  const recording_date =
+    data && /^\d{4}-\d{2}-\d{2}$/.test(data)
+      ? data
+      : (antigo?.recording_date ?? hojeISO());
   const { error } = await supabase
     .from("contents")
     .update({ status: "Gravado", recording_date })
@@ -322,8 +326,8 @@ export async function alterarDataGravacaoAction(
 
 /**
  * Agenda VÁRIAS gravações de uma vez (mesmo cliente, mesma data/hora).
- * Marca cada conteúdo como "precisa de gravação" e cria o evento próprio no
- * Google para cada um (um evento por vídeo).
+ * Marca cada conteúdo como "precisa de gravação" e cria UM único evento no
+ * Google para todos (1h por vídeo), mantendo o card/tarefa de cada um.
  */
 export async function agendarGravacoesEmLoteAction(
   ids: string[],
@@ -357,8 +361,8 @@ export async function agendarGravacoesEmLoteAction(
     .in("id", ids);
   if (error) return { ok: false, error: "Não foi possível agendar." };
 
-  // Um evento por vídeo no Google (cada um mantém seu card/tarefa).
-  for (const id of ids) await sincronizarGravacao(id);
+  // Um evento SÓ no Google para todos os vídeos do lote (1h por vídeo).
+  await sincronizarGravacaoEmLote(ids);
 
   revalidarConteudos();
   return { ok: true, quantidade: ids.length };

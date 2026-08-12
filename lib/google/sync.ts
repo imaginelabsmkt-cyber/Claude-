@@ -15,7 +15,7 @@ import { calendarioId } from "@/lib/google/calendars";
 import { prazoEntregaEfetivo } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
 
-const TZ = "America/Sao_Paulo";
+const TZ = "America/Boa_Vista";
 const STATUS_EDICAO: ContentStatus[] = [
   "Fila de edição",
   "Em edição",
@@ -95,7 +95,7 @@ async function apagarSync(
 }
 
 // -------------------------------------------------------------
-// Helpers de data/hora (servidor roda em America/Sao_Paulo)
+// Helpers de data/hora (servidor roda em America/Boa_Vista)
 // -------------------------------------------------------------
 function diaSeguinte(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -103,20 +103,52 @@ function diaSeguinte(iso: string): string {
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
 }
 
-/** Fim do evento = início + 1h, rolando para o dia seguinte se passar de 23:59. */
-function fimEvento(
+/**
+ * Offset fixo de Boa Vista / Roraima (UTC-4, sem horário de verão). Usamos o
+ * offset explícito no dateTime para o instante ficar inequívoco (evita o
+ * horário "escorregar" dependendo de como o Google resolve o nome do fuso).
+ */
+const OFFSET_LOCAL = "-04:00";
+
+/** Soma `minutos` a date+hhmm, rolando de dia se passar de 23:59. */
+function somarMinutos(
   date: string,
   hhmm: string,
+  minutos: number,
 ): { date: string; time: string } {
   const [h, m] = hhmm.split(":").map(Number);
-  const total = (h ?? 0) * 60 + (m ?? 0) + 60;
-  const nh = Math.floor(total / 60) % 24;
+  let total = (h ?? 0) * 60 + (m ?? 0) + minutos;
+  let dia = date;
+  while (total >= 24 * 60) {
+    total -= 24 * 60;
+    dia = diaSeguinte(dia);
+  }
+  const nh = Math.floor(total / 60);
   const nm = total % 60;
-  const rolou = total >= 24 * 60;
   return {
-    date: rolou ? diaSeguinte(date) : date,
+    date: dia,
     time: `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`,
   };
+}
+
+/** Fim do evento = início + 1h (rola de dia se passar de 23:59). */
+function fimEvento(date: string, hhmm: string): { date: string; time: string } {
+  return somarMinutos(date, hhmm, 60);
+}
+
+/** Quantos conteúdos apontam para o MESMO evento (evento de lote é compartilhado). */
+async function contarEventosSync(
+  sb: SB,
+  userId: string,
+  externalId: string,
+): Promise<number> {
+  const { count } = await sb
+    .from("google_sync")
+    .select("content_id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("kind", "event")
+    .eq("external_id", externalId);
+  return count ?? 0;
 }
 
 // -------------------------------------------------------------
@@ -152,17 +184,31 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       await calendarioId(sb, userId, token, "producao"),
     );
 
+    // Evento de LOTE (compartilhado por vários conteúdos): mudanças individuais
+    // não devem mexer no evento único — só desvinculam este conteúdo.
+    const compartilhado = existente
+      ? (await contarEventosSync(sb, userId, existente)) > 1
+      : false;
+
     // Sem data de gravação => remove o evento, se houver.
     if (!c.recording_date) {
       if (existente) {
-        await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente}`,
-          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
-        );
-        await apagarSync(sb, contentId, userId, "event");
+        if (compartilhado) {
+          // Evento de lote: só tira este conteúdo, mantém o evento dos outros.
+          await apagarSync(sb, contentId, userId, "event");
+        } else {
+          await fetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente}`,
+            { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+          );
+          await apagarSync(sb, contentId, userId, "event");
+        }
       }
       return;
     }
+
+    // Evento de lote existente: não relabela com um vídeo só. Deixa como está.
+    if (compartilhado) return;
 
     const participantes = (c.participants ?? []).join(", ");
     // Gravação/produção (e produção de fotos das artes) é da Fran (producer).
@@ -186,10 +232,13 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     if (c.recording_time) {
       const fim = fimEvento(c.recording_date, c.recording_time);
       corpo.start = {
-        dateTime: `${c.recording_date}T${c.recording_time}:00`,
+        dateTime: `${c.recording_date}T${c.recording_time}:00${OFFSET_LOCAL}`,
         timeZone: TZ,
       };
-      corpo.end = { dateTime: `${fim.date}T${fim.time}:00`, timeZone: TZ };
+      corpo.end = {
+        dateTime: `${fim.date}T${fim.time}:00${OFFSET_LOCAL}`,
+        timeZone: TZ,
+      };
     } else {
       corpo.start = { date: c.recording_date };
       corpo.end = { date: diaSeguinte(c.recording_date) };
@@ -233,6 +282,118 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     }
   } catch (e) {
     console.error("sincronizarGravacao:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// EVENTO (gravação em LOTE) — um evento só para vários vídeos
+// -------------------------------------------------------------
+/**
+ * Cria UM evento para vários vídeos do mesmo cliente (gravados juntos).
+ * Duração = 1h por vídeo. O mesmo evento é vinculado a todos os conteúdos.
+ */
+export async function sincronizarGravacaoEmLote(
+  contentIds: string[],
+): Promise<void> {
+  try {
+    if (contentIds.length === 0) return;
+    const userId = await usuarioAtualId();
+    if (!userId) return;
+    const sb = createClient();
+    const token = await tokenDoUsuario(sb, userId);
+    if (!token) return;
+
+    const { data: cs } = await sb
+      .from("contents")
+      .select("id, title, recording_date, recording_time, recording_location, client_id")
+      .in("id", contentIds);
+    if (!cs || cs.length === 0) return;
+
+    const base0 = cs[0];
+    const data = base0.recording_date;
+    if (!data) return;
+    const hora = base0.recording_time;
+
+    const { data: cli } = await sb
+      .from("clients")
+      .select("name")
+      .eq("id", base0.client_id)
+      .maybeSingle();
+    const nomeCli = cli?.name ?? null;
+    const resp1 = await rotuloResponsavel(sb, "producer");
+    const emailResp = await emailPorPapel(sb, "producer");
+
+    const lista = cs.map((c, i) => `${i + 1}. ${c.title}`).join("\n");
+    const descLinhas = [
+      nomeCli ? `Cliente: ${nomeCli}` : null,
+      `Vídeos (${cs.length}):`,
+      lista,
+    ].filter(Boolean);
+
+    const corpo: Record<string, unknown> = {
+      summary: `Gravação${resp1}${nomeCli ? ` · ${nomeCli}` : ""}: ${cs.length} vídeo${cs.length > 1 ? "s" : ""}`,
+      description: descLinhas.join("\n"),
+      location: base0.recording_location ?? null,
+      attendees: emailResp ? [{ email: emailResp }] : [],
+    };
+    if (hora) {
+      const fim = somarMinutos(data, hora, cs.length * 60); // 1h por vídeo
+      corpo.start = {
+        dateTime: `${data}T${hora}:00${OFFSET_LOCAL}`,
+        timeZone: TZ,
+      };
+      corpo.end = {
+        dateTime: `${fim.date}T${fim.time}:00${OFFSET_LOCAL}`,
+        timeZone: TZ,
+      };
+    } else {
+      corpo.start = { date: data };
+      corpo.end = { date: diaSeguinte(data) };
+    }
+
+    const calId = encodeURIComponent(
+      await calendarioId(sb, userId, token, "producao"),
+    );
+    const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
+    const q = "?sendUpdates=none";
+
+    // Reaproveita o evento já vinculado ao primeiro conteúdo (reagendamento).
+    const existente = await idSync(sb, base0.id, userId, "event");
+    const resp = await fetch(existente ? `${base}/${existente}${q}` : `${base}${q}`, {
+      method: existente ? "PATCH" : "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(corpo),
+    });
+
+    let eventId: string | null = existente;
+    if (resp.ok && !existente) {
+      const j = (await resp.json()) as { id?: string };
+      eventId = j.id ?? null;
+    } else if (!resp.ok) {
+      // Evento sumiu do Google: recria.
+      const novo = await fetch(`${base}${q}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(corpo),
+      });
+      if (novo.ok) {
+        const j = (await novo.json()) as { id?: string };
+        eventId = j.id ?? null;
+      }
+    }
+
+    // Vincula o MESMO evento a todos os conteúdos do lote.
+    if (eventId) {
+      for (const c of cs) await salvarSync(sb, c.id, userId, "event", eventId);
+    }
+  } catch (e) {
+    console.error("sincronizarGravacaoEmLote:", e);
   }
 }
 

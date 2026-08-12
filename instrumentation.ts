@@ -8,6 +8,6 @@
  */
 export function register() {
   if (!process.env.TZ) {
-    process.env.TZ = "America/Sao_Paulo";
+    process.env.TZ = "America/Boa_Vista";
   }
 }
