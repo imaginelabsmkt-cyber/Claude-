@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
+import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
 import { PLANNING_STATUS_OPTIONS } from "@/types";
 import type { PlanningInsert } from "@/types";
 import type { ActionResult } from "@/lib/actions/contents";
@@ -57,6 +58,18 @@ export async function salvarPlanningAction(
     .from("plannings")
     .upsert(dados, { onConflict: "client_id,reference_month" });
   if (error) return { ok: false, error: "Não foi possível salvar." };
+
+  // Se mexeu na reunião ou no prazo de entrega, sincroniza com o Google
+  // (reunião = evento, prazo = tarefa).
+  if ("meeting_date" in patch || "meeting_time" in patch || "delivery_deadline" in patch) {
+    const { data: p } = await supabase
+      .from("plannings")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("reference_month", referenceMonth)
+      .maybeSingle();
+    if (p?.id) await sincronizarPlanejamentoGoogle(p.id);
+  }
 
   revalidatePath("/planejamentos");
   return { ok: true };

@@ -180,6 +180,20 @@ export type PlanningInsert = {
   updated_at?: ISODateString;
 };
 
+/** planning_google_sync — mapeia planejamento -> evento/tarefa no Google */
+export type PlanningGoogleSync = {
+  id: UUID;
+  planning_id: UUID;
+  user_id: UUID;
+  kind: string;
+  external_id: string;
+  updated_at: ISODateString;
+}
+export type PlanningGoogleSyncInsert = Omit<
+  PlanningGoogleSync,
+  "id" | "updated_at"
+> & { id?: UUID; updated_at?: ISODateString };
+
 /** google_accounts — conexão do usuário com o Google */
 export type GoogleAccount = {
   user_id: UUID;
@@ -323,6 +337,12 @@ export interface Database {
         Row: GoogleSync;
         Insert: GoogleSyncInsert;
         Update: Partial<GoogleSyncInsert>;
+        Relationships: [];
+      };
+      planning_google_sync: {
+        Row: PlanningGoogleSync;
+        Insert: PlanningGoogleSyncInsert;
+        Update: Partial<PlanningGoogleSyncInsert>;
         Relationships: [];
       };
     };
