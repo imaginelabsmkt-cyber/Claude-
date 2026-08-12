@@ -102,7 +102,6 @@ export function RecordingCard({
           }
         />
         <Campo rotulo="Prazo de gravação" valor={formatarData(content.recording_deadline)} />
-        <Campo rotulo="Semana prevista" valor={content.planned_week ? `Semana ${content.planned_week}` : "—"} />
         <Campo rotulo="Data prevista de postagem" valor={formatarData(content.planned_date)} />
         <Campo rotulo="Local" valor={content.recording_location ?? "—"} />
         <Campo rotulo="Roupa" valor={content.outfit ?? "—"} />
