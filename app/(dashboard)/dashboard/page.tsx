@@ -7,6 +7,7 @@ import { StatusContentBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { formatarData } from "@/lib/utils";
 import { listContents, listAllClients } from "@/lib/data/contents";
+import { listPlannings } from "@/lib/data/plannings";
 import {
   estaAtrasado,
   estaGravado,
@@ -16,7 +17,7 @@ import {
   GRUPO_EM_APROVACAO,
   GRUPO_PRONTOS_PUBLICAR,
 } from "@/lib/rules/contents";
-import { STATUS_OPTIONS, type Content } from "@/types";
+import { STATUS_OPTIONS, PLANNING_ENTREGUE, type Content } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +28,20 @@ export default async function DashboardPage() {
   const hojeStr = hojeISO(hoje);
   const mesAtual = hojeStr.slice(0, 7);
 
-  const [contents, clientes] = await Promise.all([
+  const [contents, clientes, plannings] = await Promise.all([
     listContents({}),
     listAllClients(),
+    listPlannings(mesAtual),
   ]);
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
+
+  // Planejamentos a fazer: reunião já aconteceu e ainda não foi entregue.
+  const planejAFazer = plannings.filter(
+    (p) =>
+      p.meeting_date != null &&
+      p.meeting_date <= hojeStr &&
+      !PLANNING_ENTREGUE.includes(p.status),
+  ).length;
 
   const naoFinal = (c: Content) =>
     c.status !== "Publicado" && c.status !== "Cancelado";
@@ -57,6 +67,7 @@ export default async function DashboardPage() {
   ).length;
 
   const cards = [
+    { rotulo: "Planejamentos a fazer", valor: planejAFazer, href: "/planejamentos", destaque: planejAFazer > 0 },
     { rotulo: "Postagens desta semana", valor: postSemana, href: "/postagens?view=semana" },
     { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1", destaque: true },
     { rotulo: "Aguardando gravação", valor: conta("Aguardando gravação"), href: linkStatus("Aguardando gravação") },
