@@ -26,7 +26,7 @@ export function RecordingsFilters({ clientes, meses }: RecordingsFiltersProps) {
   const v = (k: string) => searchParams.get(k) ?? "";
 
   return (
-    <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
       <Select
         aria-label="Cliente"
         value={v("client_id")}
@@ -77,15 +77,6 @@ export function RecordingsFilters({ clientes, meses }: RecordingsFiltersProps) {
             {s}
           </option>
         ))}
-      </Select>
-
-      <Select
-        aria-label="Atrasado"
-        value={v("atrasado")}
-        onChange={(e) => aplicar("atrasado", e.target.value)}
-      >
-        <option value="">Atraso: todos</option>
-        <option value="1">Somente atrasados</option>
       </Select>
     </div>
   );

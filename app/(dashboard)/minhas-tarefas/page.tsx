@@ -92,14 +92,8 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
       itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "semana"),
     },
     {
-      titulo: "Gravações atrasadas",
-      itens: paraGravar.filter(
-        (c) => classificarGravacao(c, hoje) === "atrasada",
-      ),
-    },
-    {
       titulo: "Próximas gravações",
-      itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "proxima"),
+      itens: paraGravar.filter((c) => classificarGravacao(c, hoje) !== "semana"),
     },
     {
       titulo: "Conteúdos gravados",

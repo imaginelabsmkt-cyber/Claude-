@@ -17,8 +17,8 @@ interface PageProps {
   searchParams: FiltrosConteudo & { atrasado?: string };
 }
 
+// Não existe "gravação atrasada": o que não está desta semana entra em próximas.
 const GRUPOS: { chave: GrupoGravacao; titulo: string }[] = [
-  { chave: "atrasada", titulo: "Gravações atrasadas" },
   { chave: "semana", titulo: "Gravações desta semana" },
   { chave: "proxima", titulo: "Próximas gravações" },
   { chave: "gravada", titulo: "Já gravados" },
@@ -39,21 +39,19 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
     (c) => c.requires_recording && c.status !== "Cancelado",
   );
 
-  // Classificação em grupos
+  // Classificação em grupos ("atrasada" cai em "próxima": não há atraso aqui).
   const grupos: Record<GrupoGravacao, Content[]> = {
     atrasada: [],
     semana: [],
     proxima: [],
     gravada: [],
   };
-  for (const c of itens) grupos[classificarGravacao(c)].push(c);
+  for (const c of itens) {
+    const g = classificarGravacao(c);
+    grupos[g === "atrasada" ? "proxima" : g].push(c);
+  }
 
-  // Filtro "somente atrasados"
-  const soAtrasados = searchParams.atrasado === "1";
-
-  const totalVisivel = soAtrasados
-    ? grupos.atrasada.length
-    : itens.length;
+  const totalVisivel = itens.length;
 
   return (
     <>
@@ -71,7 +69,7 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
         />
       ) : (
         <div className="space-y-8">
-          {GRUPOS.filter((g) => !soAtrasados || g.chave === "atrasada").map(
+          {GRUPOS.map(
             (g) => {
               const lista = grupos[g.chave];
               return (
@@ -94,7 +92,6 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
                           content={c}
                           clienteNome={clientesById.get(c.client_id)?.name ?? "—"}
                           cor={clientesById.get(c.client_id)?.color}
-                          atrasada={g.chave === "atrasada"}
                         />
                       ))}
                     </div>

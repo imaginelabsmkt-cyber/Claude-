@@ -99,7 +99,8 @@ export async function importarConteudosAction(input: {
     planned_week: it.semana,
     planned_date: it.dataPrevista,
     actual_post_date: null,
-    requires_recording: it.precisaGravacao,
+    // Gravação é marcada individualmente pela Fran (não vem automática do import).
+    requires_recording: false,
     recording_date: null,
     recording_location: recortar(it.local, 300),
     outfit: recortar(it.vestimenta, 300),

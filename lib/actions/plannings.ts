@@ -28,7 +28,7 @@ function somarDias(iso: string, dias: number): string {
 }
 
 /** Prazo de entrega automático do planejamento: 7 dias após a reunião. */
-export const DIAS_ENTREGA_PLANEJAMENTO = 7;
+const DIAS_ENTREGA_PLANEJAMENTO = 7;
 
 /**
  * Cria ou atualiza o planejamento de um cliente num mês (por cliente+mês).
