@@ -100,12 +100,13 @@ function ItemFila({
   }
 
   const prazo = prazoPrincipal(content);
+  const primaria = acoesPara(content.status)[0];
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
+      className="rounded-lg border border-l-4 border-gray-200 bg-white p-2.5 shadow-sm"
     >
       <div className="flex items-center gap-2.5">
         {/* Alça de arraste */}
@@ -157,32 +158,17 @@ function ItemFila({
         <div className="flex shrink-0 items-center gap-1.5">
           <StatusContentBadge status={content.status} />
           <PriorityBadge priority={content.priority} />
+          {primaria ? (
+            <Button
+              tamanho="sm"
+              variante="secundaria"
+              disabled={processando}
+              onClick={() => mudarStatus(primaria.to)}
+            >
+              {primaria.label}
+            </Button>
+          ) : null}
         </div>
-      </div>
-
-      {/* Ações + links (compacto) */}
-      <div className="mt-2 flex flex-wrap items-center gap-2 pl-[3.25rem]">
-        {acoesPara(content.status).map((a) => (
-          <Button
-            key={a.to + a.label}
-            tamanho="sm"
-            variante="secundaria"
-            disabled={processando}
-            onClick={() => mudarStatus(a.to)}
-          >
-            {a.label}
-          </Button>
-        ))}
-        {content.script_url ? (
-          <a href={content.script_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand-700 hover:underline">
-            Roteiro
-          </a>
-        ) : null}
-        {content.raw_files_url ? (
-          <a href={content.raw_files_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand-700 hover:underline">
-            Brutos
-          </a>
-        ) : null}
       </div>
     </div>
   );
