@@ -252,9 +252,8 @@ export async function sincronizarEdicao(
       return;
     }
 
-    // Está em edição e já tem tarefa => nada a fazer.
-    if (existente) return;
-
+    // Está em edição: cria a tarefa OU atualiza título/prazo se já existir
+    // (garante que o título acompanhe o conteúdo, sem ficar preso ao antigo).
     const { data: c } = await sb
       .from("contents")
       .select("title, format, editing_deadline, planned_date, recording_date")
@@ -275,23 +274,41 @@ export async function sincronizarEdicao(
     };
     if (due) corpo.due = `${due}T00:00:00.000Z`;
 
-    const resp = await fetch(
-      "https://www.googleapis.com/tasks/v1/lists/@default/tasks",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(corpo),
+    const base = "https://www.googleapis.com/tasks/v1/lists/@default/tasks";
+    const url = existente ? `${base}/${existente}` : base;
+    const resp = await fetch(url, {
+      method: existente ? "PATCH" : "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify(corpo),
+    });
     if (!resp.ok) {
+      // Tarefa apagada à mão no Google: limpa o mapeamento e recria agora.
+      if (existente && resp.status === 404) {
+        await apagarSync(sb, contentId, userId, "task");
+        const novo = await fetch(base, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(corpo),
+        });
+        if (novo.ok) {
+          const j = (await novo.json()) as { id?: string };
+          if (j.id) await salvarSync(sb, contentId, userId, "task", j.id);
+        }
+        return;
+      }
       console.error("Google Tarefas falhou:", resp.status);
       return;
     }
-    const json = (await resp.json()) as { id?: string };
-    if (json.id) await salvarSync(sb, contentId, userId, "task", json.id);
+    if (!existente) {
+      const json = (await resp.json()) as { id?: string };
+      if (json.id) await salvarSync(sb, contentId, userId, "task", json.id);
+    }
   } catch (e) {
     console.error("sincronizarEdicao:", e);
   }

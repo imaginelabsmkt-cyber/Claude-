@@ -155,6 +155,11 @@ export async function atualizarConteudoAction(
     await registrarHistorico(id, diffConteudo(antigo, novo, nomePorId));
   }
 
+  // Reflete no Google (título/prazo/data podem ter mudado no formulário).
+  await sincronizarGravacao(id);
+  await sincronizarPostagem(id);
+  if (novo.status) await sincronizarEdicao(id, novo.status as ContentStatus);
+
   revalidatePath("/conteudos");
   revalidatePath(`/conteudos/${id}`);
   return { ok: true, id };
@@ -804,8 +809,19 @@ export async function atualizarCampoConteudoAction(
     .filter((r) => r.old !== r.new);
   if (registros.length > 0) await registrarHistorico(id, registros);
 
-  // Mudou a data de postagem => atualiza o calendário "Imagine Postagens".
-  if ("planned_date" in patch) await sincronizarPostagem(id);
+  // Título mudou => reflete no Google (evento, tarefa e postagem), para não
+  // ficar preso ao título antigo. Data de postagem mudou => atualiza postagem.
+  const mudouTitulo = "title" in patch;
+  if (mudouTitulo) await sincronizarGravacao(id);
+  if (mudouTitulo || "planned_date" in patch) await sincronizarPostagem(id);
+  if (mudouTitulo) {
+    const { data: st } = await supabase
+      .from("contents")
+      .select("status")
+      .eq("id", id)
+      .maybeSingle();
+    if (st?.status) await sincronizarEdicao(id, st.status as ContentStatus);
+  }
 
   revalidatePath("/conteudos");
   revalidatePath(`/conteudos/${id}`);
