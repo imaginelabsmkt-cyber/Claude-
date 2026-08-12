@@ -408,6 +408,7 @@ export async function alterarDataPostagemAction(
 export interface ContentStagePatch {
   requires_recording?: boolean;
   recording_date?: string | null;
+  recording_time?: string | null;
   recording_location?: string | null;
   participants?: string[];
   outfit?: string | null;
@@ -426,6 +427,7 @@ export interface ContentStagePatch {
 const ROTULO_ETAPA: Record<keyof ContentStagePatch, string> = {
   requires_recording: "Precisa de gravação",
   recording_date: "Data de gravação",
+  recording_time: "Horário de gravação",
   recording_location: "Local",
   participants: "Participantes",
   outfit: "Roupa",
@@ -449,6 +451,7 @@ const CAMPOS_DATA: (keyof ContentStagePatch)[] = [
   "actual_post_date",
 ];
 const CAMPOS_TEXTO: (keyof ContentStagePatch)[] = [
+  "recording_time",
   "recording_location",
   "outfit",
   "reference_url",
@@ -717,6 +720,31 @@ export async function excluirPlanejamentoMesAction(
     .eq("reference_month", referenceMonth);
   if (error) {
     return { ok: false, error: "Não foi possível apagar o planejamento." };
+  }
+
+  revalidatePath("/conteudos");
+  revalidatePath(`/clientes/${clientId}`);
+  return { ok: true };
+}
+
+/**
+ * Apaga TODOS os conteúdos de um cliente (todos os meses). Usado para limpar
+ * o planejamento inteiro de um cliente de uma vez.
+ */
+export async function excluirTodosDoClienteAction(
+  clientId: string,
+): Promise<ActionResult> {
+  if (!clientId) return { ok: false, error: "Cliente inválido." };
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .delete()
+    .eq("client_id", clientId);
+  if (error) {
+    return { ok: false, error: "Não foi possível apagar os conteúdos." };
   }
 
   revalidatePath("/conteudos");

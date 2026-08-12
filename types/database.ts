@@ -95,6 +95,7 @@ export type Content = {
   // Gravação
   requires_recording: boolean;
   recording_date: DateString | null;
+  recording_time: string | null; // "HH:MM" (opcional)
   recording_location: string | null;
   participants: string[];
   outfit: string | null;
@@ -188,10 +189,12 @@ export type ContentInsert = Omit<
   | "script"
   | "caption"
   | "reference_url"
+  | "recording_time"
 > & {
   id?: UUID;
   status?: ContentStatus;
   reference_url?: string | null;
+  recording_time?: string | null;
   priority?: ContentPriority;
   requires_recording?: boolean;
   participants?: string[];

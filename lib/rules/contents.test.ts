@@ -32,6 +32,7 @@ function makeContent(over: Partial<Content> = {}): Content {
     actual_post_date: null,
     requires_recording: false,
     recording_date: null,
+    recording_time: null,
     recording_location: null,
     participants: [],
     outfit: null,

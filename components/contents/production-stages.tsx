@@ -88,17 +88,19 @@ function CampoData({
   label,
   valor,
   disabled,
+  tipo = "date",
   onSalvar,
 }: {
   label: string;
   valor: string | null;
   disabled?: boolean;
+  tipo?: "date" | "time";
   onSalvar: (v: string | null) => void;
 }) {
   return (
     <Campo label={label}>
       <input
-        type="date"
+        type={tipo}
         defaultValue={valor ?? ""}
         disabled={disabled}
         onChange={(e) => onSalvar(e.target.value || null)}
@@ -283,6 +285,12 @@ export function ProductionStages({ content }: { content: Content }) {
             label="Data de gravação"
             valor={content.recording_date}
             onSalvar={(v) => set({ recording_date: v })}
+          />
+          <CampoData
+            label="Horário de gravação"
+            valor={content.recording_time}
+            tipo="time"
+            onSalvar={(v) => set({ recording_time: v })}
           />
           <CampoData
             label="Prazo da gravação"

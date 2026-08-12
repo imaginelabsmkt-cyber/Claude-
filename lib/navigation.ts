@@ -41,21 +41,18 @@ export const NAVEGACAO: ItemNavegacao[] = [
     label: "Clientes",
     descricao: "Cadastro e gestão de clientes",
     icone: "clientes",
-    papeis: ["planner", "admin"],
   },
   {
     href: "/gravacoes",
     label: "Gravações",
     descricao: "Conteúdos em captação",
     icone: "gravacoes",
-    papeis: ["producer", "admin"],
   },
   {
     href: "/fila-edicao",
     label: "Fila de edição",
     descricao: "Conteúdos aguardando edição",
     icone: "edicao",
-    papeis: ["producer", "admin"],
   },
   {
     href: "/postagens",
@@ -84,11 +81,10 @@ export function navegacaoPara(papel: UserRole | null): ItemNavegacao[] {
 }
 
 /**
- * Tela inicial conforme o papel: a produtora começa nas tarefas dela, a
- * planejadora nos conteúdos, e o admin na visão geral.
+ * Tela inicial. O sistema é o mesmo para todos os usuários, então todos
+ * começam no Dashboard. (Parâmetro mantido por compatibilidade.)
  */
-export function rotaInicial(papel: UserRole | null): string {
-  if (papel === "producer") return "/minhas-tarefas";
-  if (papel === "planner") return "/conteudos";
+export function rotaInicial(_papel?: UserRole | null): string {
+  void _papel;
   return "/dashboard";
 }

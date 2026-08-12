@@ -122,6 +122,7 @@ create table if not exists public.contents (
   -- Gravação
   requires_recording     boolean not null default false,
   recording_date         date,
+  recording_time         text,
   recording_location     text,
   participants           text[] not null default '{}',
   outfit                 text,          -- figurino/vestuário
