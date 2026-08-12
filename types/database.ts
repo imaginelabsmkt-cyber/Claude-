@@ -202,10 +202,19 @@ export type GoogleAccount = {
   email: string | null;
   refresh_token: string;
   scope: string | null;
+  cal_reunioes: string | null;
+  cal_producao: string | null;
+  cal_postagens: string | null;
   connected_at: ISODateString;
   updated_at: ISODateString;
 }
-export type GoogleAccountInsert = Omit<GoogleAccount, "connected_at" | "updated_at"> & {
+export type GoogleAccountInsert = Omit<
+  GoogleAccount,
+  "connected_at" | "updated_at" | "cal_reunioes" | "cal_producao" | "cal_postagens"
+> & {
+  cal_reunioes?: string | null;
+  cal_producao?: string | null;
+  cal_postagens?: string | null;
   connected_at?: ISODateString;
   updated_at?: ISODateString;
 };

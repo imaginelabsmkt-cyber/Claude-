@@ -10,9 +10,15 @@
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
-/** Escopos: criar/editar eventos da Agenda, tarefas, e ler o e-mail. */
+/**
+ * Escopos: gerenciar a Agenda (inclusive criar calendários próprios como
+ * "Imagine Reuniões" / "Imagine Postagens"), tarefas, e ler o e-mail.
+ * Obs.: o escopo "calendar" (completo) é necessário para criar calendários;
+ * "calendar.events" sozinho não permite. Ao ampliar, a conta precisa
+ * reconectar o Google uma vez.
+ */
 export const GOOGLE_SCOPES = [
-  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/tasks",
   "https://www.googleapis.com/auth/userinfo.email",
 ].join(" ");

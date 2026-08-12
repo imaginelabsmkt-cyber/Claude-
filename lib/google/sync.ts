@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
+import { calendarioId } from "@/lib/google/calendars";
 import { prazoEntregaEfetivo } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
 
@@ -22,6 +23,8 @@ const STATUS_EDICAO: ContentStatus[] = [
 ];
 
 type SB = ReturnType<typeof createClient>;
+/** Tipo de item sincronizado: evento de gravação, tarefa de edição ou evento de postagem. */
+type SyncKind = "event" | "task" | "post";
 
 /** Access token do usuário (a partir do refresh token guardado). Null se não conectado. */
 async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
@@ -46,7 +49,7 @@ async function idSync(
   sb: SB,
   contentId: string,
   userId: string,
-  kind: "event" | "task",
+  kind: SyncKind,
 ): Promise<string | null> {
   const { data } = await sb
     .from("google_sync")
@@ -62,7 +65,7 @@ async function salvarSync(
   sb: SB,
   contentId: string,
   userId: string,
-  kind: "event" | "task",
+  kind: SyncKind,
   externalId: string,
 ) {
   await sb.from("google_sync").upsert(
@@ -81,7 +84,7 @@ async function apagarSync(
   sb: SB,
   contentId: string,
   userId: string,
-  kind: "event" | "task",
+  kind: SyncKind,
 ) {
   await sb
     .from("google_sync")
@@ -137,12 +140,16 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     if (!c) return;
 
     const existente = await idSync(sb, contentId, userId, "event");
+    // Gravações e fotos vão para o calendário "Imagine Produção".
+    const calId = encodeURIComponent(
+      await calendarioId(sb, userId, token, "producao"),
+    );
 
     // Sem data de gravação => remove o evento, se houver.
     if (!c.recording_date) {
       if (existente) {
         await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${existente}`,
+          `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente}`,
           { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
         );
         await apagarSync(sb, contentId, userId, "event");
@@ -172,7 +179,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       corpo.end = { date: diaSeguinte(c.recording_date) };
     }
 
-    const base = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+    const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
     const url = existente ? `${base}/${existente}` : base;
     const resp = await fetch(url, {
       method: existente ? "PATCH" : "POST",
@@ -287,6 +294,85 @@ export async function sincronizarEdicao(
 }
 
 // -------------------------------------------------------------
+// EVENTO (postagem) — calendário "Imagine Postagens"
+// -------------------------------------------------------------
+export async function sincronizarPostagem(contentId: string): Promise<void> {
+  try {
+    const userId = await usuarioAtualId();
+    if (!userId) return;
+    const sb = createClient();
+    const token = await tokenDoUsuario(sb, userId);
+    if (!token) return;
+
+    const { data: c } = await sb
+      .from("contents")
+      .select("title, planned_date, status")
+      .eq("id", contentId)
+      .maybeSingle();
+    if (!c) return;
+
+    const existente = await idSync(sb, contentId, userId, "post");
+    const calId = encodeURIComponent(
+      await calendarioId(sb, userId, token, "postagens"),
+    );
+
+    // Sem data prevista ou cancelado => remove o evento de postagem.
+    if (!c.planned_date || c.status === "Cancelado") {
+      if (existente) {
+        await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente}`,
+          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+        );
+        await apagarSync(sb, contentId, userId, "post");
+      }
+      return;
+    }
+
+    const corpo: Record<string, unknown> = {
+      summary: `Postar: ${c.title}`,
+      start: { date: c.planned_date },
+      end: { date: diaSeguinte(c.planned_date) },
+    };
+    const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
+    const url = existente ? `${base}/${existente}` : base;
+    const resp = await fetch(url, {
+      method: existente ? "PATCH" : "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(corpo),
+    });
+    if (!resp.ok) {
+      if (existente && resp.status === 404) {
+        await apagarSync(sb, contentId, userId, "post");
+        const novo = await fetch(base, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(corpo),
+        });
+        if (novo.ok) {
+          const json = (await novo.json()) as { id?: string };
+          if (json.id) await salvarSync(sb, contentId, userId, "post", json.id);
+        }
+        return;
+      }
+      console.error("Google Agenda (postagem) falhou:", resp.status);
+      return;
+    }
+    if (!existente) {
+      const json = (await resp.json()) as { id?: string };
+      if (json.id) await salvarSync(sb, contentId, userId, "post", json.id);
+    }
+  } catch (e) {
+    console.error("sincronizarPostagem:", e);
+  }
+}
+
+// -------------------------------------------------------------
 // Remoção (ao excluir o conteúdo)
 // -------------------------------------------------------------
 export async function removerGoogleDoConteudo(contentId: string): Promise<void> {
@@ -299,8 +385,21 @@ export async function removerGoogleDoConteudo(contentId: string): Promise<void> 
 
     const evento = await idSync(sb, contentId, userId, "event");
     if (evento) {
+      const calProd = encodeURIComponent(
+        await calendarioId(sb, userId, token, "producao"),
+      );
       await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${evento}`,
+        `https://www.googleapis.com/calendar/v3/calendars/${calProd}/events/${evento}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+      );
+    }
+    const postagem = await idSync(sb, contentId, userId, "post");
+    if (postagem) {
+      const calPost = encodeURIComponent(
+        await calendarioId(sb, userId, token, "postagens"),
+      );
+      await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${calPost}/events/${postagem}`,
         { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
       );
     }

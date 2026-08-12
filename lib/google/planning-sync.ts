@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { rotuloResponsavel } from "@/lib/google/responsavel";
+import { calendarioId } from "@/lib/google/calendars";
 
 const TZ = "America/Sao_Paulo";
 type SB = ReturnType<typeof createClient>;
@@ -123,12 +124,15 @@ export async function sincronizarPlanejamentoGoogle(
     // Planejamento é responsabilidade da Vitória (planner).
     const rot = await rotuloResponsavel(sb, "planner");
 
-    // ---- Reunião => evento ----
+    // ---- Reunião => evento (calendário "Imagine Reuniões") ----
     const evExistente = await idSync(sb, planningId, userId, "event");
+    const calId = encodeURIComponent(
+      await calendarioId(sb, userId, token, "reunioes"),
+    );
     if (!p.meeting_date) {
       if (evExistente) {
         await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${evExistente}`,
+          `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${evExistente}`,
           { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
         );
         await apagarSync(sb, planningId, userId, "event");
@@ -148,8 +152,7 @@ export async function sincronizarPlanejamentoGoogle(
         corpo.start = { date: p.meeting_date };
         corpo.end = { date: diaSeguinte(p.meeting_date) };
       }
-      const base =
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+      const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
       const resp = await fetch(evExistente ? `${base}/${evExistente}` : base, {
         method: evExistente ? "PATCH" : "POST",
         headers: {

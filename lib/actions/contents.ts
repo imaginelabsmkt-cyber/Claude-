@@ -18,6 +18,7 @@ import { usuarioAtualId } from "@/lib/auth";
 import {
   sincronizarGravacao,
   sincronizarEdicao,
+  sincronizarPostagem,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
 import { formatarData } from "@/lib/utils";
@@ -194,6 +195,7 @@ export async function definirStatusConteudoAction(
   ]);
 
   await sincronizarEdicao(id, status);
+  await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
 
   revalidatePath("/conteudos");
   revalidatePath("/fila-edicao");
@@ -406,6 +408,8 @@ export async function alterarDataPostagemAction(
       new: novaData ? formatarData(novaData) : "—",
     },
   ]);
+
+  await sincronizarPostagem(id); // data de postagem => calendário "Imagine Postagens"
 
   revalidatePath("/postagens");
   revalidatePath("/conteudos");
@@ -799,6 +803,9 @@ export async function atualizarCampoConteudoAction(
     })
     .filter((r) => r.old !== r.new);
   if (registros.length > 0) await registrarHistorico(id, registros);
+
+  // Mudou a data de postagem => atualiza o calendário "Imagine Postagens".
+  if ("planned_date" in patch) await sincronizarPostagem(id);
 
   revalidatePath("/conteudos");
   revalidatePath(`/conteudos/${id}`);
