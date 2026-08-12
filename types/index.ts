@@ -84,6 +84,18 @@ export const FORMAT_OPTIONS: string[] = [
 /** Semanas previstas do mês (1 a 5). */
 export const WEEK_OPTIONS: number[] = [1, 2, 3, 4, 5];
 
+/** Etapas do processo de criação do planejamento (por cliente/mês). */
+export const PLANNING_STATUS_OPTIONS: string[] = [
+  "Marcar reunião",
+  "Reunião marcada",
+  "Em criação",
+  "Enviado ao cliente",
+  "Aprovado",
+];
+
+/** Status em que o planejamento já foi entregue (não conta como atrasado). */
+export const PLANNING_ENTREGUE: string[] = ["Enviado ao cliente", "Aprovado"];
+
 export const ROLE_LABELS: Record<UserRole, string> = {
   planner: "Planejamento",
   producer: "Produção",

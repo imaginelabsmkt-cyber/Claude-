@@ -37,6 +37,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     icone: "quadro",
   },
   {
+    href: "/planejamentos",
+    label: "Planejamentos",
+    descricao: "Criação do planejamento mensal por cliente",
+    icone: "planejamentos",
+  },
+  {
     href: "/clientes",
     label: "Clientes",
     descricao: "Cadastro e gestão de clientes",

@@ -154,6 +154,32 @@ export type Comment = {
   created_at: ISODateString;
 }
 
+/** plannings — gestão da criação do planejamento mensal por cliente */
+export type Planning = {
+  id: UUID;
+  client_id: UUID;
+  reference_month: string;
+  status: string;
+  meeting_date: DateString | null;
+  meeting_time: string | null;
+  delivery_deadline: DateString | null;
+  notes: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+export type PlanningInsert = {
+  id?: UUID;
+  client_id: UUID;
+  reference_month: string;
+  status?: string;
+  meeting_date?: DateString | null;
+  meeting_time?: string | null;
+  delivery_deadline?: DateString | null;
+  notes?: string | null;
+  created_at?: ISODateString;
+  updated_at?: ISODateString;
+};
+
 /** google_accounts — conexão do usuário com o Google */
 export type GoogleAccount = {
   user_id: UUID;
@@ -279,6 +305,12 @@ export interface Database {
         Row: Comment;
         Insert: CommentInsert;
         Update: Partial<CommentInsert>;
+        Relationships: [];
+      };
+      plannings: {
+        Row: Planning;
+        Insert: PlanningInsert;
+        Update: Partial<PlanningInsert>;
         Relationships: [];
       };
       google_accounts: {
