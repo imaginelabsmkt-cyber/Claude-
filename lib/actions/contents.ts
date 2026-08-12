@@ -303,6 +303,51 @@ export async function alterarDataGravacaoAction(
   return { ok: true, id };
 }
 
+/**
+ * Agenda VÁRIAS gravações de uma vez (mesmo cliente, mesma data/hora).
+ * Marca cada conteúdo como "precisa de gravação" e cria o evento próprio no
+ * Google para cada um (um evento por vídeo).
+ */
+export async function agendarGravacoesEmLoteAction(
+  ids: string[],
+  data: string,
+  hora?: string | null,
+): Promise<ActionResult & { quantidade?: number }> {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { ok: false, error: "Selecione ao menos um vídeo." };
+  }
+  if (ids.length > 50) {
+    return { ok: false, error: "Muitos vídeos de uma vez (máx. 50)." };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return { ok: false, error: "Data inválida." };
+  }
+  if (hora && !/^\d{2}:\d{2}$/.test(hora)) {
+    return { ok: false, error: "Hora inválida." };
+  }
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({
+      requires_recording: true,
+      recording_date: data,
+      recording_time: hora || null,
+    })
+    .in("id", ids);
+  if (error) return { ok: false, error: "Não foi possível agendar." };
+
+  // Um evento por vídeo no Google (cada um mantém seu card/tarefa).
+  for (const id of ids) await sincronizarGravacao(id);
+
+  revalidatePath("/gravacoes");
+  revalidatePath("/conteudos");
+  return { ok: true, quantidade: ids.length };
+}
+
 /** Adiciona o conteúdo à fila de edição (status Fila de edição). */
 export async function adicionarFilaEdicaoAction(
   id: string,

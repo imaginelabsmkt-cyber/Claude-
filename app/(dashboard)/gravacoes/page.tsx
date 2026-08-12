@@ -2,9 +2,11 @@ import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { RecordingCard } from "@/components/gravacoes/recording-card";
 import { RecordingsFilters } from "@/components/gravacoes/recordings-filters";
+import { AgendarLoteButton } from "@/components/gravacoes/agendar-lote-button";
 import {
   listContents,
   listAllClients,
+  listClientOptions,
   listReferenceMonths,
   type FiltrosConteudo,
 } from "@/lib/data/contents";
@@ -26,17 +28,28 @@ const GRUPOS: { chave: GrupoGravacao; titulo: string }[] = [
 
 /** Página de Gravações — foco na Fran. */
 export default async function GravacoesPage({ searchParams }: PageProps) {
-  const [todos, clientes, meses] = await Promise.all([
-    listContents(searchParams),
-    listAllClients(),
-    listReferenceMonths(),
-  ]);
+  const [todos, todosSemFiltro, clientes, clientOptions, meses] =
+    await Promise.all([
+      listContents(searchParams),
+      listContents({}),
+      listAllClients(),
+      listClientOptions(),
+      listReferenceMonths(),
+    ]);
 
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
   // Apenas conteúdos que precisam de gravação (e não cancelados).
-  let itens = todos.filter(
+  const itens = todos.filter(
     (c) => c.requires_recording && c.status !== "Cancelado",
+  );
+
+  // Candidatos a agendar em lote: ainda sem data de gravação, não finalizados.
+  const candidatos = todosSemFiltro.filter(
+    (c) =>
+      !c.recording_date &&
+      c.status !== "Publicado" &&
+      c.status !== "Cancelado",
   );
 
   // Classificação em grupos ("atrasada" cai em "próxima": não há atraso aqui).
@@ -58,6 +71,9 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
       <PageHeader
         titulo="Gravações"
         descricao="Conteúdos que precisam de gravação, por situação"
+        acao={
+          <AgendarLoteButton clientes={clientOptions} candidatos={candidatos} />
+        }
       />
 
       <RecordingsFilters clientes={clientes} meses={meses} />
