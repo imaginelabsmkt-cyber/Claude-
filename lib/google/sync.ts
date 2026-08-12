@@ -140,6 +140,13 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     if (!c) return;
 
     const existente = await idSync(sb, contentId, userId, "event");
+    // Nome do cliente (para aparecer no evento: com quem vai gravar).
+    const { data: cli } = await sb
+      .from("clients")
+      .select("name")
+      .eq("id", c.client_id)
+      .maybeSingle();
+    const nomeCliente = cli?.name ?? null;
     // Gravações e fotos vão para o calendário "Imagine Produção".
     const calId = encodeURIComponent(
       await calendarioId(sb, userId, token, "producao"),
@@ -162,10 +169,16 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     const resp1 = await rotuloResponsavel(sb, "producer");
     const emailResp = await emailPorPapel(sb, "producer");
     const verboProd = ehArte(c.format) ? "Fotos" : "Gravação";
+    // Cliente no título (com quem vai gravar) + na descrição.
+    const cliRotulo = nomeCliente ? ` · ${nomeCliente}` : "";
+    const descLinhas = [
+      nomeCliente ? `Cliente: ${nomeCliente}` : null,
+      participantes ? `Participantes: ${participantes}` : null,
+    ].filter(Boolean);
     // null (não undefined) para LIMPAR campos antigos no PATCH.
     const corpo: Record<string, unknown> = {
-      summary: `${verboProd}${resp1}: ${c.title}`,
-      description: participantes ? `Participantes: ${participantes}` : null,
+      summary: `${verboProd}${resp1}${cliRotulo}: ${c.title}`,
+      description: descLinhas.length ? descLinhas.join("\n") : null,
       location: c.recording_location ?? null,
       // Responsável entra como participante do evento (agenda única).
       attendees: emailResp ? [{ email: emailResp }] : [],

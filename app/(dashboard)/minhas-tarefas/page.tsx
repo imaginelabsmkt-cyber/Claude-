@@ -1,16 +1,21 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TaskCard } from "@/components/tarefas/task-card";
 import { getAuthContext } from "@/lib/auth";
 import { listContents, listAllClients } from "@/lib/data/contents";
+import { listPlannings } from "@/lib/data/plannings";
 import {
   classificarGravacao,
   estaGravado,
   ehArte,
+  hojeISO,
   papelResponsavel,
   type PapelDemanda,
 } from "@/lib/rules/contents";
-import type { Content } from "@/types";
+import { PLANNING_ENTREGUE } from "@/types";
+import type { Content, Planning } from "@/types";
+import { formatarData } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -124,17 +129,33 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
 }
 
 export default async function MinhasTarefasPage() {
-  const [ctx, contents, clientes] = await Promise.all([
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+  const hojeStr = hojeISO(hoje);
+
+  const [ctx, contents, clientes, plannings] = await Promise.all([
     getAuthContext(),
     listContents({}),
     listAllClients(),
+    listPlannings(mesAtual),
   ]);
 
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
-  const hoje = new Date();
 
   const role = (ctx.profile?.role ?? "admin") as PapelDemanda | "admin";
   const nome = ctx.profile?.name ?? "você";
+
+  // Planejamentos a FAZER (planner): reunião já aconteceu e ainda não entregou.
+  const planejamentosAFazer: Planning[] =
+    role === "producer"
+      ? []
+      : plannings.filter(
+          (p) =>
+            p.meeting_date != null &&
+            p.meeting_date <= hojeStr &&
+            !PLANNING_ENTREGUE.includes(p.status),
+        );
+  const mostrarPlanej = planejamentosAFazer.length > 0;
 
   const blocos: { rotulo: string; grupos: Grupo[] }[] =
     role === "planner"
@@ -160,13 +181,57 @@ export default async function MinhasTarefasPage() {
     <>
       <PageHeader titulo="Minhas tarefas" descricao={descricao} />
 
-      {totalItens === 0 ? (
+      {totalItens === 0 && !mostrarPlanej ? (
         <EmptyState
           titulo="Nada pendente por aqui"
           descricao="Quando houver conteúdos nas suas etapas, eles aparecerão aqui."
         />
       ) : (
         <div className="space-y-10">
+          {mostrarPlanej ? (
+            <section>
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                Planejamentos a fazer
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                  {planejamentosAFazer.length}
+                </span>
+              </h3>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {planejamentosAFazer.map((p) => {
+                  const cli = clientesById.get(p.client_id);
+                  return (
+                    <Link
+                      key={p.id}
+                      href="/planejamentos"
+                      className="block rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm hover:border-brand-300"
+                      style={{ borderLeftColor: cli?.color ?? "#a855f7" }}
+                    >
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
+                          style={{ backgroundColor: cli?.color ?? "#e5e7eb" }}
+                          aria-hidden="true"
+                        />
+                        {cli?.name ?? "Cliente"}
+                      </div>
+                      <p className="mt-0.5 text-sm font-semibold text-gray-900">
+                        Fazer planejamento
+                      </p>
+                      <p className="mt-1 text-[11px] text-gray-500">
+                        Reunião: {formatarData(p.meeting_date)}
+                        {p.delivery_deadline
+                          ? ` · Entregar até ${formatarData(p.delivery_deadline)}`
+                          : ""}
+                      </p>
+                      <span className="mt-1 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700">
+                        {p.status}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
           {blocos.map((bloco, bi) => (
             <div key={bi} className="space-y-8">
               {bloco.rotulo ? (
