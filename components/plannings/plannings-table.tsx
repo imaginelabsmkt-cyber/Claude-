@@ -176,6 +176,12 @@ function Linha({
               aria-hidden="true"
             />
             {linha.clienteNome}
+            {salvando ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-normal text-brand-600">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" />
+                Salvando…
+              </span>
+            ) : null}
           </span>
         </td>
         <td className="px-3 py-2">

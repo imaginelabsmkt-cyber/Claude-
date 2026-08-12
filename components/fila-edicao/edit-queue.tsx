@@ -20,13 +20,12 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PriorityBadge, StatusContentBadge } from "@/components/shared/status-badge";
 import { formatarData } from "@/lib/utils";
 import { toast } from "@/lib/ui/toast";
 import { corPrioridade } from "@/lib/ui/prioridade";
-import { motivoPrioridade } from "@/lib/rules/contents";
+import { prazoPrincipal } from "@/lib/rules/contents";
 import {
   definirStatusConteudoAction,
   reordenarFilaEdicaoAction,
@@ -71,17 +70,6 @@ function acoesPara(status: ContentStatus): { label: string; to: ContentStatus }[
   }
 }
 
-function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div>
-      <span className="text-[11px] uppercase tracking-wide text-gray-500">
-        {rotulo}
-      </span>
-      <p className="text-gray-700">{valor}</p>
-    </div>
-  );
-}
-
 function ItemFila({
   content,
   posicao,
@@ -111,94 +99,90 @@ function ItemFila({
     });
   }
 
+  const prazo = prazoPrincipal(content);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border border-l-4 border-gray-200 bg-white p-4 shadow-sm"
+      className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Alça de arraste */}
         <button
           type="button"
-          className="mt-1 cursor-grab touch-none rounded p-1 text-gray-500 hover:bg-gray-100 active:cursor-grabbing"
+          className="shrink-0 cursor-grab touch-none rounded p-1 text-gray-400 hover:bg-gray-100 active:cursor-grabbing"
           aria-label="Arrastar para reordenar"
           {...attributes}
           {...listeners}
         >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
             <circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" />
             <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
             <circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" />
           </svg>
         </button>
 
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-semibold text-brand-700">
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">
           {posicao}
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span
-                  className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
-                  style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
-                  aria-hidden="true"
-                />
-                {cliente?.name ?? "—"}
-              </div>
-              <Link
-                href={`/conteudos/${content.id}`}
-                className="mt-0.5 block font-medium text-gray-900 hover:text-brand-700"
-              >
-                {content.title}
-              </Link>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <StatusContentBadge status={content.status} />
-              <PriorityBadge priority={content.priority} />
-              <Badge tom="cinza">{motivoPrioridade(content)}</Badge>
-            </div>
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-            <Campo rotulo="Data prevista" valor={formatarData(content.planned_date)} />
-            <Campo rotulo="Prazo de edição" valor={formatarData(content.editing_deadline)} />
-            <Campo rotulo="Qtd. de ajustes" valor={String(content.revision_count)} />
-            <Campo rotulo="Observações" valor={content.notes ?? "—"} />
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {content.script_url ? (
-              <a href={content.script_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand-700 hover:underline">
-                Roteiro
-              </a>
+          <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+            <span
+              className="inline-block h-2 w-2 shrink-0 rounded-full border border-gray-200"
+              style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
+              aria-hidden="true"
+            />
+            <span className="truncate">{cliente?.name ?? "—"}</span>
+            {prazo ? (
+              <span className="shrink-0 text-gray-400">
+                · entrega {formatarData(prazo)}
+              </span>
             ) : null}
-            {content.raw_files_url ? (
-              <a href={content.raw_files_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand-700 hover:underline">
-                Arquivos brutos
-              </a>
+            {content.revision_count > 0 ? (
+              <span className="shrink-0 text-amber-600">
+                · {content.revision_count} ajuste{content.revision_count > 1 ? "s" : ""}
+              </span>
             ) : null}
-            <Link href={`/conteudos/${content.id}/editar`} className="text-xs font-medium text-gray-500 hover:underline">
-              Editar
-            </Link>
           </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {acoesPara(content.status).map((a) => (
-              <Button
-                key={a.to + a.label}
-                tamanho="sm"
-                variante="secundaria"
-                disabled={processando}
-                onClick={() => mudarStatus(a.to)}
-              >
-                {a.label}
-              </Button>
-            ))}
-          </div>
+          <Link
+            href={`/conteudos/${content.id}`}
+            className="block truncate font-medium text-gray-900 hover:text-brand-700"
+          >
+            {content.title}
+          </Link>
         </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          <StatusContentBadge status={content.status} />
+          <PriorityBadge priority={content.priority} />
+        </div>
+      </div>
+
+      {/* Ações + links (compacto) */}
+      <div className="mt-2 flex flex-wrap items-center gap-2 pl-[3.25rem]">
+        {acoesPara(content.status).map((a) => (
+          <Button
+            key={a.to + a.label}
+            tamanho="sm"
+            variante="secundaria"
+            disabled={processando}
+            onClick={() => mudarStatus(a.to)}
+          >
+            {a.label}
+          </Button>
+        ))}
+        {content.script_url ? (
+          <a href={content.script_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand-700 hover:underline">
+            Roteiro
+          </a>
+        ) : null}
+        {content.raw_files_url ? (
+          <a href={content.raw_files_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand-700 hover:underline">
+            Brutos
+          </a>
+        ) : null}
       </div>
     </div>
   );
