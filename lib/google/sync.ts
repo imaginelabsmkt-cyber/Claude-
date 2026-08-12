@@ -416,10 +416,23 @@ export async function sincronizarEdicao(
     if (!token) return;
 
     const existente = await idSync(sb, contentId, userId, "task");
-    const emEdicao = STATUS_EDICAO.includes(novoStatus);
 
-    // Saiu da edição => remove a tarefa (mantém o Google limpo).
-    if (!emEdicao) {
+    const { data: c } = await sb
+      .from("contents")
+      .select(
+        "title, format, editing_deadline, editing_date, planned_date, recording_date",
+      )
+      .eq("id", contentId)
+      .maybeSingle();
+
+    // Tem tarefa de edição quando está em edição (Fila/Em edição/Ajustes) OU
+    // quando já foi gravado E a Fran escolheu o dia de editar (editing_date).
+    const emEdicao =
+      STATUS_EDICAO.includes(novoStatus) ||
+      (novoStatus === "Gravado" && !!c?.editing_date);
+
+    // Não é (mais) tarefa de edição => remove a tarefa (mantém o Google limpo).
+    if (!emEdicao || !c) {
       if (existente) {
         await fetch(
           `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${existente}`,
@@ -430,23 +443,20 @@ export async function sincronizarEdicao(
       return;
     }
 
-    // Está em edição: cria a tarefa OU atualiza título/prazo se já existir
-    // (garante que o título acompanhe o conteúdo, sem ficar preso ao antigo).
-    const { data: c } = await sb
-      .from("contents")
-      .select("title, format, editing_deadline, planned_date, recording_date")
-      .eq("id", contentId)
-      .maybeSingle();
-    if (!c) return;
-
     // Arte/design (Carrossel, Post estático) => Vitória (planner).
     // Edição de vídeo (demais formatos) => Fran (producer).
     const arte = ehArte(c.format);
     const resp2 = await rotuloResponsavel(sb, arte ? "planner" : "producer");
     const verbo = arte ? "Arte" : "Editar";
 
-    // Entrega: 48h antes da postagem (automático) ou o ajuste manual.
-    const due = prazoEntregaEfetivo(c) ?? c.planned_date ?? c.recording_date;
+    // Dia da tarefa: se a Fran escolheu QUANDO vai editar (editing_date), a
+    // tarefa cai nesse dia no Google (ela ajusta a hora lá). Senão, cai no
+    // prazo de entrega (48h antes / ajuste manual).
+    const due =
+      c.editing_date ??
+      prazoEntregaEfetivo(c) ??
+      c.planned_date ??
+      c.recording_date;
     const corpo: Record<string, unknown> = {
       title: `${verbo}${resp2}: ${c.title}`,
     };

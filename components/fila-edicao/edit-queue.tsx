@@ -8,9 +8,9 @@ import {
   PriorityBadge,
   StatusContentBadge,
 } from "@/components/shared/status-badge";
-import { formatarData } from "@/lib/utils";
 import { toast } from "@/lib/ui/toast";
 import { corPrioridade } from "@/lib/ui/prioridade";
+import { estiloFormato } from "@/lib/ui/formato";
 import { prazoPrincipal } from "@/lib/rules/contents";
 import {
   definirStatusConteudoAction,
@@ -22,7 +22,47 @@ import type { OpcaoCliente } from "@/lib/data/contents";
 interface EditQueueProps {
   itens: Content[];
   clientes: OpcaoCliente[];
+  /** Data de hoje (ISO) — para a contagem de prazo, vinda do servidor. */
+  hoje: string;
 }
+
+/** Diferença em dias (inteiros) entre uma data ISO e hoje. */
+function diffDias(alvo: string, hoje: string): number {
+  const [ay, am, ad] = alvo.split("-").map(Number);
+  const [hy, hm, hd] = hoje.split("-").map(Number);
+  return Math.round(
+    (Date.UTC(ay, am - 1, ad) - Date.UTC(hy, hm - 1, hd)) / 86400000,
+  );
+}
+
+/** Rótulo curto de prazo ("hoje", "amanhã", "em 3 dias", "atrasado 2d"). */
+function rotuloPrazo(
+  prazo: string | null,
+  hoje: string,
+): { txt: string; cor: string } | null {
+  if (!prazo) return null;
+  const d = diffDias(prazo, hoje);
+  if (d < 0) return { txt: `atrasado ${Math.abs(d)}d`, cor: "text-red-600" };
+  if (d === 0) return { txt: "hoje", cor: "text-red-600" };
+  if (d === 1) return { txt: "amanhã", cor: "text-amber-600" };
+  if (d <= 7) return { txt: `em ${d} dias`, cor: "text-amber-600" };
+  return { txt: `em ${d} dias`, cor: "text-gray-400" };
+}
+
+/** Em qual grupo de urgência o item cai. */
+function grupoUrgencia(prazo: string | null, hoje: string): 0 | 1 | 2 {
+  if (!prazo) return 2;
+  const d = diffDias(prazo, hoje);
+  if (d <= 0) return 0; // atrasado / hoje
+  if (d <= 7) return 1; // esta semana
+  return 2; // próximas
+}
+
+const GRUPOS = [
+  { titulo: "Atrasado / Hoje", cor: "text-red-600" },
+  { titulo: "Esta semana", cor: "text-amber-600" },
+  { titulo: "Próximas", cor: "text-gray-500" },
+] as const;
 
 /** Ações contextuais por status (rótulo -> novo status). */
 function acoesPara(status: ContentStatus): { label: string; to: ContentStatus }[] {
@@ -54,13 +94,17 @@ const CLASSE_MINI =
 function ItemFila({
   content,
   cliente,
+  hoje,
 }: {
   content: Content;
   cliente?: OpcaoCliente;
+  hoje: string;
 }) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
   const prazo = prazoPrincipal(content);
+  const prazoLabel = rotuloPrazo(prazo, hoje);
+  const est = estiloFormato(content.format);
   const primaria = acoesPara(content.status)[0];
 
   function mudarStatus(to: ContentStatus) {
@@ -71,11 +115,11 @@ function ItemFila({
     });
   }
 
-  function agendarEdicao(data: string | null, hora: string | null) {
+  function agendarEdicao(data: string | null) {
     iniciar(async () => {
-      const r = await agendarSessaoEdicaoAction(content.id, data, hora);
+      const r = await agendarSessaoEdicaoAction(content.id, data);
       if (!r.ok) toast.erro(r.error ?? "Não foi possível agendar a edição.");
-      else toast.sucesso(data ? "Edição agendada" : "Edição desmarcada");
+      else toast.sucesso(data ? "Edição no Google" : "Edição desmarcada");
       router.refresh();
     });
   }
@@ -87,16 +131,23 @@ function ItemFila({
     >
       <div className="flex items-center gap-2.5">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-gray-500">
+            <span
+              className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-bold uppercase"
+              style={{ backgroundColor: est.fundo, color: est.texto }}
+            >
+              <span aria-hidden="true">{est.icone}</span>
+              {est.curto}
+            </span>
             <span
               className="inline-block h-2 w-2 shrink-0 rounded-full border border-gray-200"
               style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
               aria-hidden="true"
             />
             <span className="truncate">{cliente?.name ?? "—"}</span>
-            {prazo ? (
-              <span className="shrink-0 text-gray-400">
-                · entrega {formatarData(prazo)}
+            {prazoLabel ? (
+              <span className={`shrink-0 font-semibold ${prazoLabel.cor}`}>
+                · ⏰ {prazoLabel.txt}
               </span>
             ) : null}
             {content.revision_count > 0 ? (
@@ -132,52 +183,65 @@ function ItemFila({
 
       {/* Agendar quando vai editar (vira bloco no Google Agenda) */}
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
-        <span className="font-medium">🗓️ Editar em:</span>
+        <span className="font-medium">🗓️ Editar no dia:</span>
         <input
           type="date"
           value={content.editing_date ?? ""}
           disabled={processando}
-          onChange={(e) => agendarEdicao(e.target.value || null, content.editing_time)}
-          className={CLASSE_MINI}
-        />
-        <input
-          type="time"
-          value={content.editing_time ?? ""}
-          disabled={processando || !content.editing_date}
-          onChange={(e) => agendarEdicao(content.editing_date, e.target.value || null)}
+          onChange={(e) => agendarEdicao(e.target.value || null)}
           className={CLASSE_MINI}
         />
         {content.editing_date ? (
           <button
             type="button"
             disabled={processando}
-            onClick={() => agendarEdicao(null, null)}
+            onClick={() => agendarEdicao(null)}
             className="text-gray-400 hover:text-red-600"
           >
             limpar
           </button>
         ) : null}
+        <span className="text-gray-400">(vira tarefa no Google; a hora você põe lá)</span>
       </div>
     </div>
   );
 }
 
 /**
- * Fila de edição: lista corrida, já ordenada por urgência. Cada card tem um
- * controle "Editar em" para agendar quando editar (vira bloco no Google
- * Agenda), sem mudar a lista.
+ * Fila de edição agrupada por URGÊNCIA (Atrasado/Hoje, Esta semana, Próximas),
+ * para bater o olho no que precisa sair primeiro. Cada card mostra formato,
+ * cliente e a contagem de prazo, e tem o controle "Editar em" (Google Agenda).
  */
-export function EditQueue({ itens, clientes }: EditQueueProps) {
+export function EditQueue({ itens, clientes, hoje }: EditQueueProps) {
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
+
+  const baldes: Content[][] = [[], [], []];
+  for (const c of itens) baldes[grupoUrgencia(prazoPrincipal(c), hoje)].push(c);
+
   return (
-    <div className="space-y-2">
-      {itens.map((c) => (
-        <ItemFila
-          key={c.id}
-          content={c}
-          cliente={clientesById.get(c.client_id)}
-        />
-      ))}
+    <div className="space-y-6">
+      {GRUPOS.map((g, i) =>
+        baldes[i].length === 0 ? null : (
+          <section key={g.titulo}>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+              <span className={g.cor}>{g.titulo}</span>
+              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {baldes[i].length}
+              </span>
+            </h2>
+            <div className="space-y-2">
+              {baldes[i].map((c) => (
+                <ItemFila
+                  key={c.id}
+                  content={c}
+                  cliente={clientesById.get(c.client_id)}
+                  hoje={hoje}
+                />
+              ))}
+            </div>
+          </section>
+        ),
+      )}
     </div>
   );
 }

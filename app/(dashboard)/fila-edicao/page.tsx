@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { EditQueue } from "@/components/fila-edicao/edit-queue";
 import { listContents, listAllClients } from "@/lib/data/contents";
-import { ordenarFilaFinal } from "@/lib/rules/contents";
+import { ordenarFilaFinal, hojeISO } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ export default async function FilaEdicaoPage() {
           descricao="Conteúdos gravados e em edição aparecerão aqui."
         />
       ) : (
-        <EditQueue itens={itens} clientes={clientes} />
+        <EditQueue itens={itens} clientes={clientes} hoje={hojeISO()} />
       )}
     </>
   );

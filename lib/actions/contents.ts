@@ -20,7 +20,6 @@ import {
   sincronizarGravacaoEmLote,
   sincronizarEdicao,
   sincronizarPostagem,
-  sincronizarSessaoEdicao,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
 import { criarCapaDoVideo } from "@/lib/content/covers";
@@ -330,32 +329,33 @@ export async function alterarDataGravacaoAction(
 }
 
 /**
- * Agenda (ou desmarca) a SESSÃO DE EDIÇÃO de um vídeo: quando a Fran vai
- * editar. Vira um bloco na agenda "Imagine Produção". Passe data vazia para
- * desmarcar.
+ * Define (ou limpa) o DIA em que a Fran vai editar o vídeo. A TAREFA de edição
+ * no Google passa a cair nesse dia (ela ajusta a hora lá no Google). Passe data
+ * vazia para voltar ao prazo de entrega. Não cria evento com hora fixa.
  */
 export async function agendarSessaoEdicaoAction(
   id: string,
   data: string | null,
-  hora?: string | null,
 ): Promise<ActionResult> {
   if (data && !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
     return { ok: false, error: "Data inválida." };
   }
-  if (hora && !/^\d{2}:\d{2}$/.test(hora)) {
-    return { ok: false, error: "Hora inválida." };
-  }
   const supabase = createClient();
+  const { data: atual } = await supabase
+    .from("contents")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase
     .from("contents")
-    .update({
-      editing_date: data || null,
-      editing_time: data ? hora || null : null,
-    })
+    .update({ editing_date: data || null })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível agendar a edição." };
 
-  await sincronizarSessaoEdicao(id);
+  // Atualiza a TAREFA de edição no Google para cair no dia escolhido.
+  if (atual?.status) {
+    await sincronizarEdicao(id, atual.status as ContentStatus);
+  }
 
   revalidarConteudos(id);
   return { ok: true, id };
