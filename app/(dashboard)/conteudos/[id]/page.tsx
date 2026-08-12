@@ -189,6 +189,7 @@ export default async function ConteudoPage({ params }: PageProps) {
 
       {/* Roteiro, legenda e stories */}
       <ContentScriptPanel
+        id={conteudo.id}
         script={conteudo.script}
         caption={conteudo.caption}
       />

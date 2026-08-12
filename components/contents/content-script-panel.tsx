@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { atualizarRoteiroAction } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 
 interface ContentScriptPanelProps {
+  id: string;
   script: string | null;
   caption: string | null;
 }
@@ -258,13 +262,196 @@ function TabelaStories({ linhas }: { linhas: string[] }) {
   );
 }
 
+/** Leitura grande do roteiro (para usar na gravação, tela cheia). */
+function LeituraGrande({ blocos }: { blocos: Bloco[] }) {
+  return (
+    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
+      {blocos.map((b, i) =>
+        b.tipo === "titulo" ? (
+          <p
+            key={i}
+            className="border-b border-gray-200 pb-1 text-sm font-bold uppercase tracking-wider text-brand-700"
+          >
+            {b.texto}
+          </p>
+        ) : b.tipo === "fala" ? (
+          <div key={i}>
+            {b.quem ? (
+              <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-brand-600">
+                🎙️ {b.quem}
+              </span>
+            ) : null}
+            <p className="text-2xl leading-relaxed text-gray-900">{b.texto}</p>
+          </div>
+        ) : (
+          <p
+            key={i}
+            className="border-l-2 border-gray-200 pl-3 text-lg italic leading-relaxed text-gray-500"
+          >
+            🎬 {b.texto}
+          </p>
+        ),
+      )}
+    </div>
+  );
+}
+
+/**
+ * Bloco do roteiro com botões de EDITAR e TELA CHEIA (útil na gravação).
+ * A edição altera o texto do roteiro preservando legenda/stories.
+ */
+function RoteiroEditavel({
+  id,
+  roteiroLinhas,
+  blocos,
+  legenda,
+  stories,
+}: {
+  id: string;
+  roteiroLinhas: string[];
+  blocos: Bloco[];
+  legenda: string[];
+  stories: string[];
+}) {
+  const router = useRouter();
+  const [editando, setEditando] = useState(false);
+  const [telaCheia, setTelaCheia] = useState(false);
+  const [rascunho, setRascunho] = useState(roteiroLinhas.join("\n"));
+  const [salvando, iniciar] = useTransition();
+
+  useEffect(() => setRascunho(roteiroLinhas.join("\n")), [roteiroLinhas]);
+
+  // Remonta o texto completo preservando LEGENDA e STORIES.
+  const remontar = (roteiro: string): string => {
+    const partes = [roteiro.trim()];
+    if (legenda.length) partes.push(`LEGENDA: ${legenda.join("\n")}`);
+    if (stories.length)
+      partes.push(`DIRECIONAMENTO DE STORIES\n${stories.join("\n")}`);
+    return partes.filter(Boolean).join("\n");
+  };
+
+  const salvar = () =>
+    iniciar(async () => {
+      const r = await atualizarRoteiroAction(id, remontar(rascunho));
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível salvar o roteiro.");
+        return;
+      }
+      toast.sucesso("Roteiro salvo");
+      setEditando(false);
+      router.refresh();
+    });
+
+  const iniciarEdicao = () => {
+    setRascunho(roteiroLinhas.join("\n"));
+    setEditando(true);
+  };
+
+  const Botoes = ({ compacto = false }: { compacto?: boolean }) =>
+    editando ? (
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={salvar}
+          disabled={salvando}
+          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+        >
+          Salvar
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditando(false)}
+          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+      </div>
+    ) : (
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={iniciarEdicao}
+          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          ✎ Editar
+        </button>
+        {compacto ? null : (
+          <button
+            type="button"
+            onClick={() => setTelaCheia(true)}
+            className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            ⛶ Tela cheia
+          </button>
+        )}
+      </div>
+    );
+
+  const areaEdicao = (
+    <textarea
+      value={rascunho}
+      onChange={(e) => setRascunho(e.target.value)}
+      className="min-h-[320px] w-full rounded-lg border border-brand-400 p-3 font-mono text-sm leading-relaxed text-gray-800 outline-none focus:ring-1 focus:ring-brand-500"
+      placeholder="Uma linha por fala/cena. Ex.: FALA FISIOTERAPEUTA: ..."
+    />
+  );
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-gray-900">Roteiro</h2>
+        <Botoes />
+      </div>
+
+      {editando ? areaEdicao : <TabelaRoteiro blocos={blocos} />}
+
+      {/* Overlay de tela cheia (gravação) */}
+      {telaCheia ? (
+        <div className="fixed inset-0 z-50 flex flex-col bg-white">
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+            <h2 className="text-base font-bold text-gray-900">
+              Roteiro {editando ? "(editando)" : ""}
+            </h2>
+            <div className="flex items-center gap-2">
+              <Botoes compacto />
+              <button
+                type="button"
+                onClick={() => {
+                  setEditando(false);
+                  setTelaCheia(false);
+                }}
+                className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
+              >
+                ✕ Fechar
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {editando ? (
+              <div className="mx-auto max-w-3xl p-4">
+                <textarea
+                  value={rascunho}
+                  onChange={(e) => setRascunho(e.target.value)}
+                  className="min-h-[70vh] w-full rounded-lg border border-brand-400 p-4 font-mono text-lg leading-relaxed text-gray-900 outline-none focus:ring-1 focus:ring-brand-500"
+                />
+              </div>
+            ) : (
+              <LeituraGrande blocos={blocos} />
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Painel de roteiro + legenda + stories de um conteúdo.
  * - Legenda sempre visível e pronta para copiar.
- * - Roteiro em tabela, com versão curta que expande para leitura completa.
+ * - Roteiro em tabela, editável e com modo tela cheia (para a gravação).
  * - Direcionamento de stories separado em tabela própria.
  */
-export function ContentScriptPanel({ script, caption }: ContentScriptPanelProps) {
+export function ContentScriptPanel({ id, script, caption }: ContentScriptPanelProps) {
   const secoes = useMemo(
     () => (script ? separarSecoes(script) : { roteiro: [], legenda: [], stories: [] }),
     [script],
@@ -296,12 +483,15 @@ export function ContentScriptPanel({ script, caption }: ContentScriptPanelProps)
         </div>
       ) : null}
 
-      {/* Roteiro — tabela, curto e expansível */}
+      {/* Roteiro — tabela, editável e com tela cheia (gravação) */}
       {blocos.length > 0 ? (
-        <div>
-          <h2 className="mb-2 text-sm font-semibold text-gray-900">Roteiro</h2>
-          <TabelaRoteiro blocos={blocos} />
-        </div>
+        <RoteiroEditavel
+          id={id}
+          roteiroLinhas={secoes.roteiro}
+          blocos={blocos}
+          legenda={secoes.legenda}
+          stories={secoes.stories}
+        />
       ) : null}
 
       {/* Stories — direcionamento separado */}

@@ -413,6 +413,25 @@ export async function alterarDataPostagemAction(
   return { ok: true, id };
 }
 
+/** Salva o texto do roteiro (edição rápida, inclusive na gravação). */
+export async function atualizarRoteiroAction(
+  id: string,
+  script: string | null,
+): Promise<ActionResult> {
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({ script: script && script.trim() ? script : null })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível salvar o roteiro." };
+
+  revalidatePath(`/conteudos/${id}`);
+  return { ok: true, id };
+}
+
 // -------------------------------------------------------------
 // Preenchimento por etapa (produção)
 // -------------------------------------------------------------
