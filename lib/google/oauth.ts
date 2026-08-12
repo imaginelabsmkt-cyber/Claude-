@@ -10,12 +10,11 @@
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
-/** Escopos: criar/editar eventos da Agenda e tarefas do Google Tarefas. */
+/** Escopos: criar/editar eventos da Agenda, tarefas, e ler o e-mail. */
 export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/tasks",
   "https://www.googleapis.com/auth/userinfo.email",
-  "openid",
 ].join(" ");
 
 export function googleConfigurado(): boolean {
@@ -71,6 +70,14 @@ export async function trocarCodePorTokens(
   return (await resp.json()) as TokensGoogle;
 }
 
+/** Erro específico de refresh token revogado/expirado (força reconexão). */
+export class GoogleRevogadoError extends Error {
+  constructor() {
+    super("invalid_grant");
+    this.name = "GoogleRevogadoError";
+  }
+}
+
 /** Usa o refresh_token para obter um access_token novo. */
 export async function renovarAccessToken(
   refreshToken: string,
@@ -86,6 +93,10 @@ export async function renovarAccessToken(
     }),
   });
   if (!resp.ok) {
+    const txt = await resp.text().catch(() => "");
+    if (resp.status === 400 && txt.includes("invalid_grant")) {
+      throw new GoogleRevogadoError();
+    }
     throw new Error(`Falha ao renovar o acesso ao Google (${resp.status}).`);
   }
   const json = (await resp.json()) as { access_token: string };

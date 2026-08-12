@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PriorityBadge, StatusContentBadge } from "@/components/shared/status-badge";
 import { formatarData } from "@/lib/utils";
+import { toast } from "@/lib/ui/toast";
 import { corPrioridade } from "@/lib/ui/prioridade";
 import { motivoPrioridade } from "@/lib/rules/contents";
 import {
@@ -104,7 +105,8 @@ function ItemFila({
 
   function mudarStatus(to: ContentStatus) {
     iniciar(async () => {
-      await definirStatusConteudoAction(content.id, to);
+      const r = await definirStatusConteudoAction(content.id, to);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível mudar o status.");
       router.refresh();
     });
   }
@@ -228,7 +230,8 @@ export function EditQueue({ itens, clientes }: EditQueueProps) {
     const nova = arrayMove(ordem, de, para);
     setOrdem(nova); // otimista
     iniciar(async () => {
-      await reordenarFilaEdicaoAction(nova.map((c) => c.id));
+      const r = await reordenarFilaEdicaoAction(nova.map((c) => c.id));
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível salvar a ordem.");
     });
   }
 

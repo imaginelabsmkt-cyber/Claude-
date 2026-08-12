@@ -14,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { alterarDataPostagemAction } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
 import { cn } from "@/lib/utils";
 
@@ -144,7 +145,8 @@ export function ContentWeekBoard({
       l.map((c) => (c.id === active.id ? { ...c, iso: novoDia } : c)),
     );
     iniciar(async () => {
-      await alterarDataPostagemAction(String(active.id), novoDia);
+      const r = await alterarDataPostagemAction(String(active.id), novoDia);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível mudar a data.");
       router.refresh();
     });
   }

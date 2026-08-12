@@ -19,7 +19,7 @@ export default async function NovoConteudoPage() {
     <>
       <PageHeader
         titulo="Novo conteúdo"
-        descricao="Cadastro rápido — os detalhes de gravação e edição você preenche na etapa certa."
+        descricao="Cadastro rápido. Os detalhes de gravação e edição você preenche na etapa certa."
       />
       <Link
         href="/conteudos"

@@ -14,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { definirStatusConteudoAction } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
 import { COR_PRIORIDADE } from "@/lib/ui/prioridade";
 import { prazoPrincipal, estaAtrasado } from "@/lib/rules/contents";
@@ -219,7 +220,8 @@ export function KanbanBoard({ contents, clientes }: KanbanBoardProps) {
       l.map((c) => (c.id === active.id ? { ...c, status: novo } : c)),
     );
     iniciar(async () => {
-      await definirStatusConteudoAction(String(active.id), novo);
+      const r = await definirStatusConteudoAction(String(active.id), novo);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível mover.");
       router.refresh();
     });
   }

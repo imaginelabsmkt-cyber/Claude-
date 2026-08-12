@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionWatcher } from "@/components/layout/session-watcher";
 import { getAuthContext, displayName } from "@/lib/auth";
-import { reconciliarTarefasGoogle } from "@/lib/google/reconcile";
+import { GoogleReconciler } from "@/components/layout/google-reconciler";
 import { ROLE_LABELS } from "@/types";
 
 /**
@@ -21,10 +21,6 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  // Dois sentidos: reflete no sistema o que foi concluído/movido no Google
-  // (com freio interno de 2 min para não pesar).
-  await reconciliarTarefasGoogle();
-
   const nome = displayName(ctx);
   const role = ctx.profile?.role ?? null;
   const papel = ctx.profile ? ROLE_LABELS[ctx.profile.role] : undefined;
@@ -32,6 +28,7 @@ export default async function DashboardLayout({
   return (
     <>
       <SessionWatcher />
+      <GoogleReconciler />
       <AppShell nomeUsuario={nome} papelUsuario={papel} papel={role}>
         {children}
       </AppShell>

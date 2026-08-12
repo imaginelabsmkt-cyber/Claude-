@@ -9,7 +9,7 @@
  */
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
-import { renovarAccessToken } from "@/lib/google/oauth";
+import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import type { ContentStatus } from "@/types";
 
 const TZ = "America/Sao_Paulo";
@@ -31,7 +31,11 @@ async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
   if (!data?.refresh_token) return null;
   try {
     return await renovarAccessToken(data.refresh_token);
-  } catch {
+  } catch (e) {
+    // Token revogado/expirado: remove a conexão para forçar reconectar.
+    if (e instanceof GoogleRevogadoError) {
+      await sb.from("google_accounts").delete().eq("user_id", userId);
+    }
     return null;
   }
 }
@@ -88,16 +92,26 @@ async function apagarSync(
 // -------------------------------------------------------------
 // Helpers de data/hora (servidor roda em America/Sao_Paulo)
 // -------------------------------------------------------------
-function maisUmaHora(hhmm: string): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  const nh = Math.min((h ?? 0) + 1, 23);
-  return `${String(nh).padStart(2, "0")}:${String(m ?? 0).padStart(2, "0")}`;
-}
-
 function diaSeguinte(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   const dt = new Date(y, m - 1, d + 1);
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+/** Fim do evento = início + 1h, rolando para o dia seguinte se passar de 23:59. */
+function fimEvento(
+  date: string,
+  hhmm: string,
+): { date: string; time: string } {
+  const [h, m] = hhmm.split(":").map(Number);
+  const total = (h ?? 0) * 60 + (m ?? 0) + 60;
+  const nh = Math.floor(total / 60) % 24;
+  const nm = total % 60;
+  const rolou = total >= 24 * 60;
+  return {
+    date: rolou ? diaSeguinte(date) : date,
+    time: `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`,
+  };
 }
 
 // -------------------------------------------------------------
@@ -135,20 +149,19 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     }
 
     const participantes = (c.participants ?? []).join(", ");
+    // null (não undefined) para LIMPAR campos antigos no PATCH.
     const corpo: Record<string, unknown> = {
       summary: `Gravação: ${c.title}`,
-      description: participantes ? `Participantes: ${participantes}` : undefined,
-      location: c.recording_location ?? undefined,
+      description: participantes ? `Participantes: ${participantes}` : null,
+      location: c.recording_location ?? null,
     };
     if (c.recording_time) {
+      const fim = fimEvento(c.recording_date, c.recording_time);
       corpo.start = {
         dateTime: `${c.recording_date}T${c.recording_time}:00`,
         timeZone: TZ,
       };
-      corpo.end = {
-        dateTime: `${c.recording_date}T${maisUmaHora(c.recording_time)}:00`,
-        timeZone: TZ,
-      };
+      corpo.end = { dateTime: `${fim.date}T${fim.time}:00`, timeZone: TZ };
     } else {
       corpo.start = { date: c.recording_date };
       corpo.end = { date: diaSeguinte(c.recording_date) };
@@ -165,6 +178,23 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       body: JSON.stringify(corpo),
     });
     if (!resp.ok) {
+      // Evento apagado à mão no Google: limpa o mapeamento e recria agora.
+      if (existente && resp.status === 404) {
+        await apagarSync(sb, contentId, userId, "event");
+        const novo = await fetch(base, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(corpo),
+        });
+        if (novo.ok) {
+          const json = (await novo.json()) as { id?: string };
+          if (json.id) await salvarSync(sb, contentId, userId, "event", json.id);
+        }
+        return;
+      }
       console.error("Google Agenda (evento) falhou:", resp.status);
       return;
     }

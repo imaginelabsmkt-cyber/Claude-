@@ -22,7 +22,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    const origem = url.origin;
+    // Confirma a sessão ANTES de trocar o code (evita concessão órfã).
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.redirect(new URL("/login", request.url));
+
+    const origem =
+      process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
     const tokens = await trocarCodePorTokens(code, origem);
     if (!tokens.refresh_token) {
       // Sem refresh token: o usuário já havia autorizado antes. Peça para
@@ -31,12 +39,6 @@ export async function GET(request: Request) {
     }
 
     const email = await emailDaConta(tokens.access_token);
-
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return NextResponse.redirect(new URL("/login", request.url));
 
     const { error } = await supabase.from("google_accounts").upsert({
       user_id: user.id,

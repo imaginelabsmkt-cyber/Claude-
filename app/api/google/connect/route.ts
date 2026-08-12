@@ -8,12 +8,12 @@ export async function GET(request: Request) {
       new URL("/configuracoes?google=naoconfig", request.url),
     );
   }
-  const origem = new URL(request.url).origin;
+  const origem = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
   const state = crypto.randomUUID();
   const res = NextResponse.redirect(urlDeConsentimento(origem, state));
   res.cookies.set("g_state", state, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 600,

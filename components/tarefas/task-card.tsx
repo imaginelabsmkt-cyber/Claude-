@@ -14,6 +14,7 @@ import {
   statusAoConcluir,
 } from "@/lib/rules/contents";
 import { definirStatusConteudoAction } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import type { Content } from "@/types";
 
 interface TaskCardProps {
@@ -31,7 +32,9 @@ export function TaskCard({ content, clienteNome, cor }: TaskCardProps) {
   function concluir() {
     if (!proximo) return;
     iniciar(async () => {
-      await definirStatusConteudoAction(content.id, proximo);
+      const r = await definirStatusConteudoAction(content.id, proximo);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível concluir.");
+      else toast.sucesso("Tarefa concluída");
       router.refresh();
     });
   }

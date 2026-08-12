@@ -9,9 +9,35 @@
  */
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
-import { renovarAccessToken } from "@/lib/google/oauth";
+import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { registrarHistorico } from "@/lib/history";
 import type { ContentStatus } from "@/types";
+
+const TZ = "America/Sao_Paulo";
+
+/** Extrai data (YYYY-MM-DD) e hora (HH:MM) no fuso de SP a partir do evento. */
+function dataHoraLocal(start: {
+  date?: string;
+  dateTime?: string;
+}): { data: string | null; hora: string | null } {
+  if (start.date) return { data: start.date, hora: null };
+  if (!start.dateTime) return { data: null, hora: null };
+  const d = new Date(start.dateTime);
+  const partes = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (t: string) => partes.find((p) => p.type === t)?.value ?? "";
+  return {
+    data: `${get("year")}-${get("month")}-${get("day")}`,
+    hora: `${get("hour")}:${get("minute")}`,
+  };
+}
 
 const STATUS_EDICAO: ContentStatus[] = [
   "Fila de edição",
@@ -26,25 +52,26 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
     if (!userId) return;
     const sb = createClient();
 
-    const { data: conta } = await sb
-      .from("google_accounts")
-      .select("refresh_token, updated_at")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (!conta?.refresh_token) return;
-
-    // Freio: só consulta o Google no máximo a cada INTERVALO_MS.
-    const ultimo = conta.updated_at ? new Date(conta.updated_at).getTime() : 0;
-    if (Date.now() - ultimo < INTERVALO_MS) return;
-    await sb
+    // Freio ATÔMICO: só uma execução por vez a cada INTERVALO_MS. O UPDATE
+    // condicional (updated_at antigo) evita corrida entre abas/prefetch —
+    // apenas quem alterar a linha segue adiante.
+    const limite = new Date(Date.now() - INTERVALO_MS).toISOString();
+    const { data: marcado } = await sb
       .from("google_accounts")
       .update({ updated_at: new Date().toISOString() })
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .lt("updated_at", limite)
+      .select("refresh_token");
+    const refresh = marcado?.[0]?.refresh_token;
+    if (!refresh) return; // não conectado, ou já rodou há < INTERVALO_MS
 
     let token: string | null = null;
     try {
-      token = await renovarAccessToken(conta.refresh_token);
-    } catch {
+      token = await renovarAccessToken(refresh);
+    } catch (e) {
+      if (e instanceof GoogleRevogadoError) {
+        await sb.from("google_accounts").delete().eq("user_id", userId);
+      }
       return;
     }
 
@@ -115,54 +142,58 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
       .eq("user_id", userId)
       .eq("kind", "event");
 
-    for (const ev of eventos ?? []) {
-      const r = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${ev.external_id}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      if (!r.ok) continue;
-      const evento = (await r.json()) as {
-        status?: string;
-        start?: { date?: string; dateTime?: string };
-      };
-      if (evento.status === "cancelled") continue; // não apaga a gravação aqui
+    // Busca todos os eventos em paralelo (não em série).
+    await Promise.all(
+      (eventos ?? []).map(async (ev) => {
+        const r = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${ev.external_id}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        // Evento apagado à mão no Google: limpa o mapeamento.
+        if (r.status === 404) {
+          await sb
+            .from("google_sync")
+            .delete()
+            .eq("content_id", ev.content_id)
+            .eq("user_id", userId)
+            .eq("kind", "event");
+          return;
+        }
+        if (!r.ok) return;
+        const evento = (await r.json()) as {
+          status?: string;
+          start?: { date?: string; dateTime?: string };
+        };
+        if (evento.status === "cancelled" || !evento.start) return;
 
-      // Extrai data (YYYY-MM-DD) e hora (HH:MM) do evento no Google.
-      let novaData: string | null = null;
-      let novaHora: string | null = null;
-      if (evento.start?.dateTime) {
-        novaData = evento.start.dateTime.slice(0, 10);
-        novaHora = evento.start.dateTime.slice(11, 16);
-      } else if (evento.start?.date) {
-        novaData = evento.start.date;
-        novaHora = null;
-      }
-      if (!novaData) continue;
+        const { data: novaData, hora: novaHora } = dataHoraLocal(evento.start);
+        if (!novaData) return;
 
-      const { data: c } = await sb
-        .from("contents")
-        .select("recording_date, recording_time")
-        .eq("id", ev.content_id)
-        .maybeSingle();
-      if (!c) continue;
+        const { data: c } = await sb
+          .from("contents")
+          .select("recording_date, recording_time")
+          .eq("id", ev.content_id)
+          .maybeSingle();
+        if (!c) return;
 
-      const mudou =
-        c.recording_date !== novaData ||
-        (c.recording_time ?? null) !== (novaHora ?? null);
-      if (!mudou) continue;
+        const mudou =
+          c.recording_date !== novaData ||
+          (c.recording_time ?? null) !== (novaHora ?? null);
+        if (!mudou) return;
 
-      await sb
-        .from("contents")
-        .update({ recording_date: novaData, recording_time: novaHora })
-        .eq("id", ev.content_id);
-      await registrarHistorico(ev.content_id, [
-        {
-          field: "Data de gravação",
-          old: c.recording_date ?? "—",
-          new: novaData,
-        },
-      ]);
-    }
+        await sb
+          .from("contents")
+          .update({ recording_date: novaData, recording_time: novaHora })
+          .eq("id", ev.content_id);
+        await registrarHistorico(ev.content_id, [
+          {
+            field: "Data de gravação",
+            old: c.recording_date ?? "—",
+            new: novaData,
+          },
+        ]);
+      }),
+    );
   } catch (e) {
     console.error("reconciliarTarefasGoogle:", e);
   }

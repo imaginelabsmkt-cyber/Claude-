@@ -81,8 +81,8 @@ export const FORMAT_OPTIONS: string[] = [
   "Outro",
 ];
 
-/** Semanas previstas do mês (1 a 6). */
-export const WEEK_OPTIONS: number[] = [1, 2, 3, 4, 5, 6];
+/** Semanas previstas do mês (1 a 5). */
+export const WEEK_OPTIONS: number[] = [1, 2, 3, 4, 5];
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   planner: "Planejamento",

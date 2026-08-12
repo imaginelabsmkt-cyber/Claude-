@@ -24,7 +24,7 @@ export default async function QuadroPage({ searchParams }: PageProps) {
     <>
       <PageHeader
         titulo="Quadro"
-        descricao="Produção por fase — arraste um card para mudar o status"
+        descricao="Produção por fase. Arraste um card para mudar o status."
         acao={
           <Link href="/conteudos/novo">
             <Button>+ Novo conteúdo</Button>

@@ -29,7 +29,7 @@ export default async function FilaEdicaoPage() {
     <>
       <PageHeader
         titulo="Fila de edição"
-        descricao="Ordenada automaticamente por urgência. Arraste para reordenar manualmente — a ordem manual tem prioridade."
+        descricao="Ordenada automaticamente por urgência. Arraste para reordenar manualmente; a ordem manual tem prioridade."
       />
 
       {itens.length === 0 ? (

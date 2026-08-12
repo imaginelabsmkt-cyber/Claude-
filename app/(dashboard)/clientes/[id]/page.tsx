@@ -190,7 +190,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
             Conteúdos do cliente
           </h2>
           <span className="text-[11px] text-gray-400">
-            Edite qualquer campo direto na linha — salva sozinho. Clique no
+            Edite qualquer campo direto na linha, salva sozinho. Clique no
             título para abrir.
           </span>
         </div>

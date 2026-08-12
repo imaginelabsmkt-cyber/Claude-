@@ -15,6 +15,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { StatusContentBadge, PriorityBadge } from "@/components/shared/status-badge";
 import { alterarDataPostagemAction } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import { cn } from "@/lib/utils";
 import type { Content } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
@@ -146,7 +147,8 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
       ),
     );
     iniciar(async () => {
-      await alterarDataPostagemAction(String(active.id), novoDia);
+      const r = await alterarDataPostagemAction(String(active.id), novoDia);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível mudar a data.");
       router.refresh();
     });
   }
