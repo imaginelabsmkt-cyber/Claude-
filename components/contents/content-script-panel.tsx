@@ -304,43 +304,6 @@ function TabelaRoteiro({
   );
 }
 
-/** Tabela dos stories (direcionamento). */
-function TabelaStories({ linhas }: { linhas: string[] }) {
-  let n = 0;
-  return (
-    <div className="overflow-hidden rounded-lg border border-gray-200">
-      <table className="w-full border-collapse text-left text-sm">
-        <tbody>
-          {linhas.map((l, i) => {
-            const cabecalho = ehTitulo(l.replace(/:$/, ""));
-            if (cabecalho) {
-              return (
-                <tr key={i} className="bg-purple-50">
-                  <td
-                    colSpan={2}
-                    className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-purple-700"
-                  >
-                    {l.replace(/:$/, "")}
-                  </td>
-                </tr>
-              );
-            }
-            n += 1;
-            return (
-              <tr key={i} className="border-t border-gray-100 align-top">
-                <td className="w-16 whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase text-purple-600">
-                  {n}
-                </td>
-                <td className="px-3 py-2 leading-relaxed text-gray-800">{l}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 /** Leitura grande do roteiro/layout (para gravação ou criação, tela cheia). */
 function LeituraGrande({ blocos }: { blocos: Bloco[] }) {
   return (
@@ -732,8 +695,7 @@ export function ContentScriptPanel({
     (caption && caption.trim()) || secoes.legenda.join("\n").trim(),
   );
 
-  const temAlgo =
-    blocos.length > 0 || legendaTexto.length > 0 || secoes.stories.length > 0;
+  const temAlgo = blocos.length > 0 || legendaTexto.length > 0;
   if (!temAlgo) return null;
 
   return (
@@ -753,15 +715,6 @@ export function ContentScriptPanel({
         />
       ) : null}
 
-      {/* Stories — direcionamento separado */}
-      {secoes.stories.length > 0 ? (
-        <div>
-          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <span aria-hidden="true">⚡</span> Direcionamento de stories
-          </h2>
-          <TabelaStories linhas={secoes.stories} />
-        </div>
-      ) : null}
     </div>
   );
 }
