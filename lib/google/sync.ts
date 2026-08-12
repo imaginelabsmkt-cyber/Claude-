@@ -130,7 +130,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     const { data: c } = await sb
       .from("contents")
       .select(
-        "title, recording_date, recording_time, recording_location, participants, client_id",
+        "title, format, recording_date, recording_time, recording_location, participants, client_id",
       )
       .eq("id", contentId)
       .maybeSingle();
@@ -151,11 +151,12 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     }
 
     const participantes = (c.participants ?? []).join(", ");
-    // Gravação/produção é responsabilidade da Fran (producer).
+    // Gravação/produção (e produção de fotos das artes) é da Fran (producer).
     const resp1 = await rotuloResponsavel(sb, "producer");
+    const verboProd = ehArte(c.format) ? "Fotos" : "Gravação";
     // null (não undefined) para LIMPAR campos antigos no PATCH.
     const corpo: Record<string, unknown> = {
-      summary: `Gravação${resp1}: ${c.title}`,
+      summary: `${verboProd}${resp1}: ${c.title}`,
       description: participantes ? `Participantes: ${participantes}` : null,
       location: c.recording_location ?? null,
     };

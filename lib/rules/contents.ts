@@ -40,6 +40,14 @@ export const ORDEM_STATUS: Record<ContentStatus, number> = {
 /** Janela (em dias) para considerar uma data fixa "próxima". */
 export const JANELA_DATA_FIXA_DIAS = 3;
 
+/** Formatos tratados como arte/design (Carrossel, Post estático). */
+export const FORMATOS_ARTE = ["Carrossel", "Post estático"];
+
+/** É um conteúdo de arte/design (Carrossel, Post estático)? */
+export function ehArte(format: string | null | undefined): boolean {
+  return format != null && FORMATOS_ARTE.includes(format);
+}
+
 // -------------------------------------------------------------
 // Utilitários de data (comparação por dia, sem hora)
 // -------------------------------------------------------------

@@ -9,17 +9,12 @@
  * código: se as pessoas mudarem, o rótulo acompanha.
  */
 import { createClient } from "@/lib/supabase/server";
+import { ehArte } from "@/lib/rules/contents";
 
 type SB = ReturnType<typeof createClient>;
 export type Papel = "planner" | "producer";
 
-/** Formatos tratados como arte/design (responsabilidade do planejamento). */
-export const FORMATOS_ARTE = ["Carrossel", "Post estático"];
-
-/** É uma demanda de arte/design (Carrossel, Post estático)? */
-export function ehArte(format: string | null | undefined): boolean {
-  return format != null && FORMATOS_ARTE.includes(format);
-}
+export { ehArte };
 
 /**
  * Rótulo " (Nome)" da pessoa responsável por aquele papel, para pôr no título

@@ -8,7 +8,7 @@ import {
 } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import type { Content, ContentStatus } from "@/types";
-import { prazoEntrega } from "@/lib/rules/contents";
+import { prazoEntrega, ehArte } from "@/lib/rules/contents";
 import { cn } from "@/lib/utils";
 
 type Etapa = "gravacao" | "edicao" | "postagem";
@@ -107,6 +107,32 @@ function CampoData({
         onChange={(e) => onSalvar(e.target.value || null)}
         className={CLASSE_INPUT}
       />
+    </Campo>
+  );
+}
+
+/** Prazo de entrega: automático (48h antes) mas editável. */
+function CampoPrazoEntrega({
+  content,
+  onSalvar,
+  disabled,
+}: {
+  content: Content;
+  onSalvar: (v: string | null) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Campo label="Prazo de entrega">
+      <input
+        type="date"
+        defaultValue={content.editing_deadline ?? prazoEntrega(content) ?? ""}
+        disabled={disabled}
+        onChange={(e) => onSalvar(e.target.value || null)}
+        className={CLASSE_INPUT}
+      />
+      <span className="mt-0.5 block text-[11px] text-gray-400">
+        Automático: 48h antes da postagem. Você pode alterar.
+      </span>
     </Campo>
   );
 }
@@ -240,6 +266,7 @@ export function ProductionStages({ content }: { content: Content }) {
   const { salvar, salvando } = useSalvar();
   const etapa = etapaDoStatus(content.status);
   const set = (patch: ContentStagePatch) => salvar(content.id, patch);
+  const arte = ehArte(content.format);
 
   return (
     <div className="mt-6 space-y-3">
@@ -274,100 +301,186 @@ export function ProductionStages({ content }: { content: Content }) {
         />
       </div>
 
-      {/* GRAVAÇÃO */}
-      <Painel
-        titulo="Gravação"
-        emoji="🎥"
-        atual={etapa === "gravacao"}
-        abertoInicial
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <CampoData
-            label="Data de gravação"
-            valor={content.recording_date}
-            onSalvar={(v) => set({ recording_date: v })}
-          />
-          <CampoData
-            label="Horário de gravação"
-            valor={content.recording_time}
-            tipo="time"
-            onSalvar={(v) => set({ recording_time: v })}
-          />
-          <CampoData
-            label="Prazo da gravação"
-            valor={content.recording_deadline}
-            onSalvar={(v) => set({ recording_deadline: v })}
-          />
-          <CampoTexto
-            label="Local"
-            valor={content.recording_location}
-            placeholder="Onde vai gravar"
-            onSalvar={(v) => set({ recording_location: v })}
-          />
-          <CampoTexto
-            label="Roupa"
-            valor={content.outfit}
-            placeholder="O que vestir"
-            onSalvar={(v) => set({ outfit: v })}
-          />
-          <CampoLista
-            label="Participantes"
-            valor={content.participants}
-            placeholder="Ex.: Beatriz, equipe"
-            onSalvar={(v) => set({ participants: v })}
-          />
-          <CampoLista
-            label="Materiais"
-            valor={content.required_materials}
-            placeholder="Ex.: tripé, microfone"
-            onSalvar={(v) => set({ required_materials: v })}
-          />
-        </div>
-      </Painel>
+      {arte ? (
+        <>
+          {/* PRODUÇÃO DE FOTOS (arte) — só quando precisa */}
+          <Painel
+            titulo="Produção de fotos"
+            emoji="📸"
+            atual={etapa === "gravacao"}
+            abertoInicial
+          >
+            <label className="mb-3 flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                defaultChecked={content.requires_recording}
+                disabled={salvando}
+                onChange={(e) => set({ requires_recording: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              Esta arte precisa de produção de fotos
+            </label>
+            {content.requires_recording ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <CampoData
+                  label="Data das fotos"
+                  valor={content.recording_date}
+                  onSalvar={(v) => set({ recording_date: v })}
+                />
+                <CampoData
+                  label="Horário"
+                  valor={content.recording_time}
+                  tipo="time"
+                  onSalvar={(v) => set({ recording_time: v })}
+                />
+                <CampoTexto
+                  label="Local"
+                  valor={content.recording_location}
+                  placeholder="Onde vai fotografar"
+                  onSalvar={(v) => set({ recording_location: v })}
+                />
+                <CampoLista
+                  label="Participantes"
+                  valor={content.participants}
+                  placeholder="Ex.: modelo, equipe"
+                  onSalvar={(v) => set({ participants: v })}
+                />
+                <CampoLista
+                  label="Materiais"
+                  valor={content.required_materials}
+                  placeholder="Ex.: fundo, luz, tripé"
+                  onSalvar={(v) => set({ required_materials: v })}
+                />
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400">
+                Marque acima para agendar as fotos desta arte (aparece na agenda
+                da Fran).
+              </p>
+            )}
+          </Painel>
 
-      {/* EDIÇÃO */}
-      <Painel
-        titulo="Edição"
-        emoji="✂️"
-        atual={etapa === "edicao"}
-        abertoInicial
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Campo label="Prazo de entrega">
-            <input
-              type="date"
-              defaultValue={content.editing_deadline ?? prazoEntrega(content) ?? ""}
-              disabled={salvando}
-              onChange={(e) => set({ editing_deadline: e.target.value || null })}
-              className={CLASSE_INPUT}
-            />
-            <span className="mt-0.5 block text-[11px] text-gray-400">
-              Automático: 48h antes da postagem. Você pode alterar.
-            </span>
-          </Campo>
-          <CampoTexto
-            label="Link do roteiro"
-            valor={content.script_url}
-            tipo="url"
-            placeholder="https://"
-            onSalvar={(v) => set({ script_url: v })}
-          />
-          <CampoTexto
-            label="Arquivos brutos"
-            valor={content.raw_files_url}
-            tipo="url"
-            placeholder="https://"
-            onSalvar={(v) => set({ raw_files_url: v })}
-          />
-          <CampoTexto
-            label="Arquivo editado"
-            valor={content.edited_file_url}
-            tipo="url"
-            placeholder="https://"
-            onSalvar={(v) => set({ edited_file_url: v })}
-          />
-        </div>
-      </Painel>
+          {/* CRIAÇÃO DA ARTE */}
+          <Painel
+            titulo="Criação da arte"
+            emoji="🎨"
+            atual={etapa === "edicao"}
+            abertoInicial
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <CampoPrazoEntrega
+                content={content}
+                disabled={salvando}
+                onSalvar={(v) => set({ editing_deadline: v })}
+              />
+              <CampoTexto
+                label="Link do layout"
+                valor={content.script_url}
+                tipo="url"
+                placeholder="https://"
+                onSalvar={(v) => set({ script_url: v })}
+              />
+              <CampoTexto
+                label="Arte final"
+                valor={content.edited_file_url}
+                tipo="url"
+                placeholder="https://"
+                onSalvar={(v) => set({ edited_file_url: v })}
+              />
+            </div>
+          </Painel>
+        </>
+      ) : (
+        <>
+          {/* GRAVAÇÃO (vídeo) */}
+          <Painel
+            titulo="Gravação"
+            emoji="🎥"
+            atual={etapa === "gravacao"}
+            abertoInicial
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <CampoData
+                label="Data de gravação"
+                valor={content.recording_date}
+                onSalvar={(v) => set({ recording_date: v })}
+              />
+              <CampoData
+                label="Horário de gravação"
+                valor={content.recording_time}
+                tipo="time"
+                onSalvar={(v) => set({ recording_time: v })}
+              />
+              <CampoData
+                label="Prazo da gravação"
+                valor={content.recording_deadline}
+                onSalvar={(v) => set({ recording_deadline: v })}
+              />
+              <CampoTexto
+                label="Local"
+                valor={content.recording_location}
+                placeholder="Onde vai gravar"
+                onSalvar={(v) => set({ recording_location: v })}
+              />
+              <CampoTexto
+                label="Roupa"
+                valor={content.outfit}
+                placeholder="O que vestir"
+                onSalvar={(v) => set({ outfit: v })}
+              />
+              <CampoLista
+                label="Participantes"
+                valor={content.participants}
+                placeholder="Ex.: Beatriz, equipe"
+                onSalvar={(v) => set({ participants: v })}
+              />
+              <CampoLista
+                label="Materiais"
+                valor={content.required_materials}
+                placeholder="Ex.: tripé, microfone"
+                onSalvar={(v) => set({ required_materials: v })}
+              />
+            </div>
+          </Painel>
+
+          {/* EDIÇÃO (vídeo) */}
+          <Painel
+            titulo="Edição"
+            emoji="✂️"
+            atual={etapa === "edicao"}
+            abertoInicial
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <CampoPrazoEntrega
+                content={content}
+                disabled={salvando}
+                onSalvar={(v) => set({ editing_deadline: v })}
+              />
+              <CampoTexto
+                label="Link do roteiro"
+                valor={content.script_url}
+                tipo="url"
+                placeholder="https://"
+                onSalvar={(v) => set({ script_url: v })}
+              />
+              <CampoTexto
+                label="Arquivos brutos"
+                valor={content.raw_files_url}
+                tipo="url"
+                placeholder="https://"
+                onSalvar={(v) => set({ raw_files_url: v })}
+              />
+              <CampoTexto
+                label="Arquivo editado"
+                valor={content.edited_file_url}
+                tipo="url"
+                placeholder="https://"
+                onSalvar={(v) => set({ edited_file_url: v })}
+              />
+            </div>
+          </Painel>
+        </>
+      )}
 
       {/* POSTAGEM */}
       <Painel

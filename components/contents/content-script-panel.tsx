@@ -2,13 +2,18 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { atualizarRoteiroAction } from "@/lib/actions/contents";
+import {
+  atualizarRoteiroAction,
+  atualizarLegendaAction,
+} from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
+import { ehArte } from "@/lib/rules/contents";
 
 interface ContentScriptPanelProps {
   id: string;
   script: string | null;
   caption: string | null;
+  format?: string | null;
 }
 
 type Bloco =
@@ -122,6 +127,29 @@ function BotaoCopiar({ texto, rotulo }: { texto: string; rotulo: string }) {
   );
 }
 
+/** Botão pequeno padrão (Editar/Salvar/Cancelar). */
+function BotaoSec({
+  children,
+  onClick,
+  disabled,
+  variante = "borda",
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  variante?: "borda" | "primario";
+}) {
+  const base =
+    variante === "primario"
+      ? "rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+      : "rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60";
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} className={base}>
+      {children}
+    </button>
+  );
+}
+
 const LIMITE_PREVIA = 4;
 
 /** Linha da tabela de roteiro: par OFF/LETTERING (fala) + CENAS (cena). */
@@ -163,8 +191,16 @@ function montarLinhas(blocos: Bloco[]): LinhaRoteiro[] {
   return linhas;
 }
 
-/** Tabela do roteiro em 2 colunas, com versão curta que expande. */
-function TabelaRoteiro({ blocos }: { blocos: Bloco[] }) {
+/** Tabela do roteiro/layout em 2 colunas, com versão curta que expande. */
+function TabelaRoteiro({
+  blocos,
+  colEsquerda,
+  colDireita,
+}: {
+  blocos: Bloco[];
+  colEsquerda: string;
+  colDireita: string;
+}) {
   const [aberto, setAberto] = useState(false);
   const linhas = montarLinhas(blocos);
   const visiveis = aberto ? linhas : linhas.slice(0, LIMITE_PREVIA);
@@ -177,9 +213,9 @@ function TabelaRoteiro({ blocos }: { blocos: Bloco[] }) {
           <thead>
             <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
               <th className="w-1/2 border-r border-brand-100 px-3 py-2">
-                OFF / Lettering
+                {colEsquerda}
               </th>
-              <th className="w-1/2 px-3 py-2">Cenas</th>
+              <th className="w-1/2 px-3 py-2">{colDireita}</th>
             </tr>
           </thead>
           <tbody>
@@ -218,7 +254,7 @@ function TabelaRoteiro({ blocos }: { blocos: Bloco[] }) {
           onClick={() => setAberto((v) => !v)}
           className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
         >
-          {aberto ? "Recolher roteiro ▲" : `Ver roteiro completo (+${restantes}) ▼`}
+          {aberto ? "Recolher ▲" : `Ver completo (+${restantes}) ▼`}
         </button>
       ) : null}
     </div>
@@ -262,7 +298,7 @@ function TabelaStories({ linhas }: { linhas: string[] }) {
   );
 }
 
-/** Leitura grande do roteiro (para usar na gravação, tela cheia). */
+/** Leitura grande do roteiro/layout (para gravação ou criação, tela cheia). */
 function LeituraGrande({ blocos }: { blocos: Bloco[] }) {
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
@@ -288,7 +324,7 @@ function LeituraGrande({ blocos }: { blocos: Bloco[] }) {
             key={i}
             className="border-l-2 border-gray-200 pl-3 text-lg italic leading-relaxed text-gray-500"
           >
-            🎬 {b.texto}
+            {b.texto}
           </p>
         ),
       )}
@@ -296,8 +332,114 @@ function LeituraGrande({ blocos }: { blocos: Bloco[] }) {
   );
 }
 
+// -------------------------------------------------------------
+// Edição do roteiro/layout em TABELA (rótulo + conteúdo por linha)
+// -------------------------------------------------------------
+type LinhaEdicao = { rotulo: string; conteudo: string };
+
+/** Divide cada linha em rótulo (antes do ":") + conteúdo, sem perder nada. */
+function parseParaEdicao(linhas: string[]): LinhaEdicao[] {
+  return linhas.map((l) => {
+    const idx = l.indexOf(":");
+    // Só vira rótulo quando a parte antes do ":" é curta (não corta frases).
+    if (idx > 0 && idx <= 24) {
+      return { rotulo: l.slice(0, idx).trim(), conteudo: l.slice(idx + 1).trim() };
+    }
+    return { rotulo: "", conteudo: l.trim() };
+  });
+}
+
+/** Remonta as linhas de texto a partir da tabela editável. */
+function serializarEdicao(linhas: LinhaEdicao[]): string {
+  return linhas
+    .map(({ rotulo, conteudo }) => {
+      const r = rotulo.trim();
+      const c = conteudo.trim();
+      if (!r && !c) return "";
+      return r ? `${r}: ${c}` : c;
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+function TabelaEdicao({
+  linhas,
+  onCampo,
+  onAdd,
+  onRemove,
+  colEsquerda,
+  colDireita,
+  grande = false,
+}: {
+  linhas: LinhaEdicao[];
+  onCampo: (i: number, campo: "rotulo" | "conteudo", valor: string) => void;
+  onAdd: () => void;
+  onRemove: (i: number) => void;
+  colEsquerda: string;
+  colDireita: string;
+  grande?: boolean;
+}) {
+  const txt = grande ? "text-base" : "text-sm";
+  return (
+    <div className="overflow-hidden rounded-lg border border-brand-300">
+      <table className="w-full table-fixed border-collapse text-left">
+        <thead>
+          <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
+            <th className="w-40 border-r border-brand-100 px-2 py-2">
+              {colEsquerda}
+            </th>
+            <th className="px-2 py-2">{colDireita}</th>
+            <th className="w-9" />
+          </tr>
+        </thead>
+        <tbody>
+          {linhas.map((l, i) => (
+            <tr key={i} className="border-t border-gray-100 align-top">
+              <td className="border-r border-gray-100 p-1">
+                <input
+                  value={l.rotulo}
+                  onChange={(e) => onCampo(i, "rotulo", e.target.value)}
+                  placeholder="—"
+                  className="w-full rounded border border-transparent px-1.5 py-1 text-xs font-semibold uppercase text-brand-700 outline-none hover:border-gray-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                />
+              </td>
+              <td className="p-1">
+                <textarea
+                  value={l.conteudo}
+                  onChange={(e) => onCampo(i, "conteudo", e.target.value)}
+                  rows={grande ? 3 : 2}
+                  className={`w-full resize-y rounded border border-transparent px-1.5 py-1 ${txt} leading-relaxed text-gray-800 outline-none hover:border-gray-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500`}
+                />
+              </td>
+              <td className="p-1 text-center">
+                <button
+                  type="button"
+                  onClick={() => onRemove(i)}
+                  title="Remover linha"
+                  className="rounded px-1.5 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                >
+                  ✕
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="border-t border-gray-100 p-2">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="text-xs font-semibold text-brand-700 hover:underline"
+        >
+          + Adicionar linha
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /**
- * Bloco do roteiro com botões de EDITAR e TELA CHEIA (útil na gravação).
+ * Bloco do roteiro/layout com botões de EDITAR (em tabela) e TELA CHEIA.
  * A edição altera o texto do roteiro preservando legenda/stories.
  */
 function RoteiroEditavel({
@@ -306,20 +448,28 @@ function RoteiroEditavel({
   blocos,
   legenda,
   stories,
+  arte,
 }: {
   id: string;
   roteiroLinhas: string[];
   blocos: Bloco[];
   legenda: string[];
   stories: string[];
+  arte: boolean;
 }) {
   const router = useRouter();
   const [editando, setEditando] = useState(false);
   const [telaCheia, setTelaCheia] = useState(false);
-  const [rascunho, setRascunho] = useState(roteiroLinhas.join("\n"));
+  const [linhas, setLinhas] = useState<LinhaEdicao[]>(() =>
+    parseParaEdicao(roteiroLinhas),
+  );
   const [salvando, iniciar] = useTransition();
 
-  useEffect(() => setRascunho(roteiroLinhas.join("\n")), [roteiroLinhas]);
+  useEffect(() => setLinhas(parseParaEdicao(roteiroLinhas)), [roteiroLinhas]);
+
+  const titulo = arte ? "Layout das artes" : "Roteiro";
+  const colEsquerda = arte ? "Elemento" : "OFF / Lettering";
+  const colDireita = arte ? "Conteúdo" : "Cenas";
 
   // Remonta o texto completo preservando LEGENDA e STORIES.
   const remontar = (roteiro: string): string => {
@@ -332,85 +482,80 @@ function RoteiroEditavel({
 
   const salvar = () =>
     iniciar(async () => {
-      const r = await atualizarRoteiroAction(id, remontar(rascunho));
+      const r = await atualizarRoteiroAction(
+        id,
+        remontar(serializarEdicao(linhas)),
+      );
       if (!r.ok) {
-        toast.erro(r.error ?? "Não foi possível salvar o roteiro.");
+        toast.erro(r.error ?? "Não foi possível salvar.");
         return;
       }
-      toast.sucesso("Roteiro salvo");
+      toast.sucesso(arte ? "Layout salvo" : "Roteiro salvo");
       setEditando(false);
       router.refresh();
     });
 
   const iniciarEdicao = () => {
-    setRascunho(roteiroLinhas.join("\n"));
+    setLinhas(parseParaEdicao(roteiroLinhas));
     setEditando(true);
   };
+
+  const onCampo = (i: number, campo: "rotulo" | "conteudo", valor: string) =>
+    setLinhas((ls) =>
+      ls.map((l, idx) => (idx === i ? { ...l, [campo]: valor } : l)),
+    );
+  const onRemove = (i: number) =>
+    setLinhas((ls) => ls.filter((_, idx) => idx !== i));
+  const onAdd = () =>
+    setLinhas((ls) => [...ls, { rotulo: "", conteudo: "" }]);
 
   const Botoes = ({ compacto = false }: { compacto?: boolean }) =>
     editando ? (
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={salvar}
-          disabled={salvando}
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-        >
+        <BotaoSec variante="primario" onClick={salvar} disabled={salvando}>
           Salvar
-        </button>
-        <button
-          type="button"
-          onClick={() => setEditando(false)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          Cancelar
-        </button>
+        </BotaoSec>
+        <BotaoSec onClick={() => setEditando(false)}>Cancelar</BotaoSec>
       </div>
     ) : (
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={iniciarEdicao}
-          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          ✎ Editar
-        </button>
+        <BotaoSec onClick={iniciarEdicao}>✎ Editar</BotaoSec>
         {compacto ? null : (
-          <button
-            type="button"
-            onClick={() => setTelaCheia(true)}
-            className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            ⛶ Tela cheia
-          </button>
+          <BotaoSec onClick={() => setTelaCheia(true)}>⛶ Tela cheia</BotaoSec>
         )}
       </div>
     );
 
-  const areaEdicao = (
-    <textarea
-      value={rascunho}
-      onChange={(e) => setRascunho(e.target.value)}
-      className="min-h-[320px] w-full rounded-lg border border-brand-400 p-3 font-mono text-sm leading-relaxed text-gray-800 outline-none focus:ring-1 focus:ring-brand-500"
-      placeholder="Uma linha por fala/cena. Ex.: FALA FISIOTERAPEUTA: ..."
-    />
-  );
-
   return (
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-gray-900">Roteiro</h2>
+        <h2 className="text-sm font-semibold text-gray-900">{titulo}</h2>
         <Botoes />
       </div>
 
-      {editando ? areaEdicao : <TabelaRoteiro blocos={blocos} />}
+      {editando ? (
+        <TabelaEdicao
+          linhas={linhas}
+          onCampo={onCampo}
+          onAdd={onAdd}
+          onRemove={onRemove}
+          colEsquerda={colEsquerda}
+          colDireita={colDireita}
+        />
+      ) : (
+        <TabelaRoteiro
+          blocos={blocos}
+          colEsquerda={colEsquerda}
+          colDireita={colDireita}
+        />
+      )}
 
-      {/* Overlay de tela cheia (gravação) */}
+      {/* Overlay de tela cheia (gravação / criação) */}
       {telaCheia ? (
         <div className="fixed inset-0 z-50 flex flex-col bg-white">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <h2 className="text-base font-bold text-gray-900">
-              Roteiro {editando ? "(editando)" : ""}
+              {titulo} {editando ? "(editando)" : ""}
             </h2>
             <div className="flex items-center gap-2">
               <Botoes compacto />
@@ -429,10 +574,14 @@ function RoteiroEditavel({
           <div className="flex-1 overflow-y-auto">
             {editando ? (
               <div className="mx-auto max-w-3xl p-4">
-                <textarea
-                  value={rascunho}
-                  onChange={(e) => setRascunho(e.target.value)}
-                  className="min-h-[70vh] w-full rounded-lg border border-brand-400 p-4 font-mono text-lg leading-relaxed text-gray-900 outline-none focus:ring-1 focus:ring-brand-500"
+                <TabelaEdicao
+                  linhas={linhas}
+                  onCampo={onCampo}
+                  onAdd={onAdd}
+                  onRemove={onRemove}
+                  colEsquerda={colEsquerda}
+                  colDireita={colDireita}
+                  grande
                 />
               </div>
             ) : (
@@ -445,15 +594,93 @@ function RoteiroEditavel({
   );
 }
 
+/** Legenda pronta para copiar e também editável. */
+function LegendaEditavel({
+  id,
+  textoInicial,
+}: {
+  id: string;
+  textoInicial: string;
+}) {
+  const router = useRouter();
+  const [editando, setEditando] = useState(false);
+  const [rascunho, setRascunho] = useState(textoInicial);
+  const [salvando, iniciar] = useTransition();
+
+  useEffect(() => setRascunho(textoInicial), [textoInicial]);
+
+  const salvar = () =>
+    iniciar(async () => {
+      const r = await atualizarLegendaAction(id, rascunho);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível salvar a legenda.");
+        return;
+      }
+      toast.sucesso("Legenda salva");
+      setEditando(false);
+      router.refresh();
+    });
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-gray-900">Legenda</h2>
+        {editando ? (
+          <div className="flex items-center gap-2">
+            <BotaoSec variante="primario" onClick={salvar} disabled={salvando}>
+              Salvar
+            </BotaoSec>
+            <BotaoSec
+              onClick={() => {
+                setRascunho(textoInicial);
+                setEditando(false);
+              }}
+            >
+              Cancelar
+            </BotaoSec>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <BotaoSec onClick={() => setEditando(true)}>✎ Editar</BotaoSec>
+            <BotaoCopiar texto={textoInicial} rotulo="Copiar legenda" />
+          </div>
+        )}
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        {editando ? (
+          <textarea
+            value={rascunho}
+            onChange={(e) => setRascunho(e.target.value)}
+            className="min-h-[220px] w-full rounded-lg border border-brand-400 p-3 text-sm leading-relaxed text-gray-800 outline-none focus:ring-1 focus:ring-brand-500"
+            placeholder="Escreva a legenda para postagem..."
+          />
+        ) : (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
+            {textoInicial}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /**
- * Painel de roteiro + legenda + stories de um conteúdo.
- * - Legenda sempre visível e pronta para copiar.
- * - Roteiro em tabela, editável e com modo tela cheia (para a gravação).
+ * Painel de roteiro/layout + legenda + stories de um conteúdo.
+ * - Legenda sempre visível, pronta para copiar e editável.
+ * - Roteiro (ou "Layout das artes", quando for arte) em tabela, editável e
+ *   com modo tela cheia.
  * - Direcionamento de stories separado em tabela própria.
  */
-export function ContentScriptPanel({ id, script, caption }: ContentScriptPanelProps) {
+export function ContentScriptPanel({
+  id,
+  script,
+  caption,
+  format,
+}: ContentScriptPanelProps) {
+  const arte = ehArte(format);
   const secoes = useMemo(
-    () => (script ? separarSecoes(script) : { roteiro: [], legenda: [], stories: [] }),
+    () =>
+      script ? separarSecoes(script) : { roteiro: [], legenda: [], stories: [] },
     [script],
   );
   const blocos = useMemo(() => interpretar(secoes.roteiro), [secoes.roteiro]);
@@ -468,22 +695,10 @@ export function ContentScriptPanel({ id, script, caption }: ContentScriptPanelPr
 
   return (
     <div className="mt-6 space-y-6">
-      {/* Legenda — sempre visível, pronta para copiar */}
-      {legendaTexto ? (
-        <div>
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-gray-900">Legenda</h2>
-            <BotaoCopiar texto={legendaTexto} rotulo="Copiar legenda" />
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
-              {legendaTexto}
-            </p>
-          </div>
-        </div>
-      ) : null}
+      {/* Legenda — sempre visível, pronta para copiar e editável */}
+      {legendaTexto ? <LegendaEditavel id={id} textoInicial={legendaTexto} /> : null}
 
-      {/* Roteiro — tabela, editável e com tela cheia (gravação) */}
+      {/* Roteiro / Layout das artes — tabela, editável e com tela cheia */}
       {blocos.length > 0 ? (
         <RoteiroEditavel
           id={id}
@@ -491,6 +706,7 @@ export function ContentScriptPanel({ id, script, caption }: ContentScriptPanelPr
           blocos={blocos}
           legenda={secoes.legenda}
           stories={secoes.stories}
+          arte={arte}
         />
       ) : null}
 

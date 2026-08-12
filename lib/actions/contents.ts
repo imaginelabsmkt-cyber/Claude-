@@ -432,6 +432,25 @@ export async function atualizarRoteiroAction(
   return { ok: true, id };
 }
 
+/** Salva o texto da legenda (edição rápida na ficha do conteúdo). */
+export async function atualizarLegendaAction(
+  id: string,
+  caption: string | null,
+): Promise<ActionResult> {
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({ caption: caption && caption.trim() ? caption : null })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível salvar a legenda." };
+
+  revalidatePath(`/conteudos/${id}`);
+  return { ok: true, id };
+}
+
 /** Cria rapidamente uma arte/carrossel (fora do planejamento). */
 export async function criarArteRapidaAction(input: {
   clientId: string;
