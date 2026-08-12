@@ -48,15 +48,6 @@ function acoesPara(status: ContentStatus): { label: string; to: ContentStatus }[
   }
 }
 
-const DIAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-
-/** "2026-08-12" -> "Seg 12/08". */
-function rotuloDia(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const dt = new Date(y, m - 1, d);
-  return `${DIAS[dt.getDay()]} ${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}`;
-}
-
 const CLASSE_MINI =
   "rounded-md border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-gray-700 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-50";
 
@@ -172,56 +163,21 @@ function ItemFila({
 }
 
 /**
- * Fila de edição agrupada por DIA de edição. "Sem dia de edição" primeiro,
- * depois um bloco por dia (o que você agendou). Marcar dia/hora cria o bloco
- * no Google Agenda para você distribuir as edições no seu tempo livre.
+ * Fila de edição: lista corrida, já ordenada por urgência. Cada card tem um
+ * controle "Editar em" para agendar quando editar (vira bloco no Google
+ * Agenda), sem mudar a lista.
  */
 export function EditQueue({ itens, clientes }: EditQueueProps) {
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
-
-  const grupos = new Map<string, Content[]>();
-  for (const c of itens) {
-    const chave = c.editing_date ?? "";
-    grupos.set(chave, [...(grupos.get(chave) ?? []), c]);
-  }
-  const chaves = [...grupos.keys()].sort((a, b) => {
-    if (a === "") return -1;
-    if (b === "") return 1;
-    return a.localeCompare(b);
-  });
-
   return (
-    <div className="space-y-6">
-      {chaves.map((chave) => {
-        const lista = grupos.get(chave) ?? [];
-        return (
-          <section key={chave || "sem-dia"}>
-            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-              <span
-                className={
-                  chave
-                    ? "rounded-md bg-brand-50 px-2 py-0.5 text-brand-700"
-                    : "text-gray-500"
-                }
-              >
-                {chave ? rotuloDia(chave) : "Sem dia de edição"}
-              </span>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                {lista.length}
-              </span>
-            </h2>
-            <div className="space-y-2">
-              {lista.map((c) => (
-                <ItemFila
-                  key={c.id}
-                  content={c}
-                  cliente={clientesById.get(c.client_id)}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+    <div className="space-y-2">
+      {itens.map((c) => (
+        <ItemFila
+          key={c.id}
+          content={c}
+          cliente={clientesById.get(c.client_id)}
+        />
+      ))}
     </div>
   );
 }

@@ -29,7 +29,7 @@ export default async function FilaEdicaoPage() {
     <>
       <PageHeader
         titulo="Fila de edição"
-        descricao="Agrupada por dia de edição. Marque quando vai editar cada vídeo (vira um bloco no Google Agenda)."
+        descricao="Ordenada por urgência. Marque em cada vídeo quando vai editar (vira um bloco no Google Agenda)."
       />
 
       {itens.length === 0 ? (
