@@ -31,3 +31,22 @@ export async function rotuloResponsavel(sb: SB, papel: Papel): Promise<string> {
   const nome = data?.name?.trim().split(/\s+/)[0];
   return nome ? ` (${nome})` : "";
 }
+
+/**
+ * E-mail da pessoa responsável por aquele papel (para adicionar como
+ * participante do evento no Google). Null se não houver perfil/e-mail.
+ */
+export async function emailPorPapel(
+  sb: SB,
+  papel: Papel,
+): Promise<string | null> {
+  const { data } = await sb
+    .from("profiles")
+    .select("email")
+    .eq("role", papel)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const email = data?.email?.trim();
+  return email ? email : null;
+}

@@ -10,7 +10,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
-import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
+import { rotuloResponsavel, emailPorPapel, ehArte } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 import { prazoEntregaEfetivo } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
@@ -160,12 +160,15 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     const participantes = (c.participants ?? []).join(", ");
     // Gravação/produção (e produção de fotos das artes) é da Fran (producer).
     const resp1 = await rotuloResponsavel(sb, "producer");
+    const emailResp = await emailPorPapel(sb, "producer");
     const verboProd = ehArte(c.format) ? "Fotos" : "Gravação";
     // null (não undefined) para LIMPAR campos antigos no PATCH.
     const corpo: Record<string, unknown> = {
       summary: `${verboProd}${resp1}: ${c.title}`,
       description: participantes ? `Participantes: ${participantes}` : null,
       location: c.recording_location ?? null,
+      // Responsável entra como participante do evento (agenda única).
+      attendees: emailResp ? [{ email: emailResp }] : [],
     };
     if (c.recording_time) {
       const fim = fimEvento(c.recording_date, c.recording_time);
@@ -180,7 +183,8 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     }
 
     const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
-    const url = existente ? `${base}/${existente}` : base;
+    const q = "?sendUpdates=none"; // não dispara convite por e-mail
+    const url = existente ? `${base}/${existente}${q}` : `${base}${q}`;
     const resp = await fetch(url, {
       method: existente ? "PATCH" : "POST",
       headers: {
@@ -193,7 +197,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       // Evento apagado à mão no Google: limpa o mapeamento e recria agora.
       if (existente && resp.status === 404) {
         await apagarSync(sb, contentId, userId, "event");
-        const novo = await fetch(base, {
+        const novo = await fetch(`${base}${q}`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,

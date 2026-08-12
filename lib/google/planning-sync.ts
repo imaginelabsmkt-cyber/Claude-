@@ -7,7 +7,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
-import { rotuloResponsavel } from "@/lib/google/responsavel";
+import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 
 const TZ = "America/Sao_Paulo";
@@ -123,6 +123,7 @@ export async function sincronizarPlanejamentoGoogle(
     const rotulo = `${nome} (${p.reference_month})`;
     // Planejamento é responsabilidade da Vitória (planner).
     const rot = await rotuloResponsavel(sb, "planner");
+    const emailResp = await emailPorPapel(sb, "planner");
 
     // ---- Reunião => evento (calendário "Imagine Reuniões") ----
     const evExistente = await idSync(sb, planningId, userId, "event");
@@ -140,6 +141,7 @@ export async function sincronizarPlanejamentoGoogle(
     } else {
       const corpo: Record<string, unknown> = {
         summary: `Reunião de planejamento${rot}: ${rotulo}`,
+        attendees: emailResp ? [{ email: emailResp }] : [],
       };
       if (p.meeting_time) {
         const fim = fimEvento(p.meeting_date, p.meeting_time);
@@ -153,7 +155,10 @@ export async function sincronizarPlanejamentoGoogle(
         corpo.end = { date: diaSeguinte(p.meeting_date) };
       }
       const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
-      const resp = await fetch(evExistente ? `${base}/${evExistente}` : base, {
+      const q = "?sendUpdates=none";
+      const resp = await fetch(
+        evExistente ? `${base}/${evExistente}${q}` : `${base}${q}`,
+        {
         method: evExistente ? "PATCH" : "POST",
         headers: {
           Authorization: `Bearer ${token}`,
