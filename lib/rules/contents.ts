@@ -219,6 +219,24 @@ export function responsavelAtual(
   }
 }
 
+/**
+ * Papel FIXO responsável por uma demanda (time de duas pessoas):
+ * - Arte/design (Carrossel, Post estático) => planner (Vitória).
+ * - Vídeo em planejamento/roteiro => planner (Vitória).
+ * - Vídeo em produção/edição em diante => producer (Fran).
+ * Usado para separar "Minhas tarefas" por pessoa.
+ */
+export type PapelDemanda = "planner" | "producer";
+
+export function papelResponsavel(
+  content: Pick<Content, "status" | "format">,
+): PapelDemanda {
+  if (ehArte(content.format)) return "planner";
+  return ORDEM_STATUS[content.status] <= ORDEM_STATUS["Roteiro pronto"]
+    ? "planner"
+    : "producer";
+}
+
 // -------------------------------------------------------------
 // 3. Prazo principal (o prazo relevante para a etapa atual)
 // -------------------------------------------------------------

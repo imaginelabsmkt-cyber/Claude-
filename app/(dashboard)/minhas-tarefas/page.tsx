@@ -6,8 +6,9 @@ import { listContents, listAllClients } from "@/lib/data/contents";
 import {
   classificarGravacao,
   estaGravado,
-  mesmaSemana,
-  parseData,
+  ehArte,
+  papelResponsavel,
+  type PapelDemanda,
 } from "@/lib/rules/contents";
 import type { Content } from "@/types";
 
@@ -16,6 +17,110 @@ export const dynamic = "force-dynamic";
 interface Grupo {
   titulo: string;
   itens: Content[];
+}
+
+const CRIACAO_ARTE = ["Roteiro pronto", "Fila de edição", "Em edição"];
+const PRONTOS_POSTAR = ["Aprovado", "Agendado"];
+
+/** Grupos de tarefas do PLANEJAMENTO (Vitória): roteiros e artes. */
+function gruposPlanner(contents: Content[]): Grupo[] {
+  const meus = contents.filter((c) => papelResponsavel(c) === "planner");
+  return [
+    {
+      titulo: "Planejamentos pendentes",
+      itens: meus.filter((c) => c.status === "Planejamento" && !c.script_url),
+    },
+    {
+      titulo: "Roteiros em criação",
+      itens: meus.filter((c) => c.status === "Planejamento" && !!c.script_url),
+    },
+    {
+      titulo: "Roteiros a finalizar",
+      itens: meus.filter(
+        (c) => c.status === "Roteiro pronto" && !ehArte(c.format),
+      ),
+    },
+    {
+      titulo: "Artes a criar",
+      itens: meus.filter(
+        (c) => ehArte(c.format) && CRIACAO_ARTE.includes(c.status),
+      ),
+    },
+    {
+      titulo: "Ajustes de arte",
+      itens: meus.filter((c) => ehArte(c.format) && c.status === "Ajustes"),
+    },
+    {
+      titulo: "Em revisão interna",
+      itens: meus.filter((c) => c.status === "Revisão interna"),
+    },
+    {
+      titulo: "Aprovações de clientes",
+      itens: meus.filter((c) => c.status === "Aprovação do cliente"),
+    },
+    {
+      titulo: "Prontos para postar",
+      itens: meus.filter((c) => PRONTOS_POSTAR.includes(c.status)),
+    },
+  ];
+}
+
+/** Grupos de tarefas da PRODUÇÃO (Fran): gravações, fotos e edição de vídeo. */
+function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
+  const meus = contents.filter((c) => papelResponsavel(c) === "producer");
+  const paraGravar = meus.filter(
+    (c) =>
+      c.requires_recording && !estaGravado(c.status) && c.status !== "Cancelado",
+  );
+  // Exceção: produção de FOTOS de artes é da Fran (mesmo sendo arte da Vitória).
+  const fotosArte = contents.filter(
+    (c) =>
+      ehArte(c.format) &&
+      c.requires_recording &&
+      !estaGravado(c.status) &&
+      c.status !== "Cancelado",
+  );
+  return [
+    { titulo: "Fotos a produzir (artes)", itens: fotosArte },
+    {
+      titulo: "Gravações da semana",
+      itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "semana"),
+    },
+    {
+      titulo: "Gravações atrasadas",
+      itens: paraGravar.filter(
+        (c) => classificarGravacao(c, hoje) === "atrasada",
+      ),
+    },
+    {
+      titulo: "Próximas gravações",
+      itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "proxima"),
+    },
+    {
+      titulo: "Conteúdos gravados",
+      itens: meus.filter((c) => c.status === "Gravado"),
+    },
+    {
+      titulo: "Fila de edição",
+      itens: meus.filter((c) => c.status === "Fila de edição"),
+    },
+    {
+      titulo: "Vídeos em edição",
+      itens: meus.filter((c) => c.status === "Em edição"),
+    },
+    {
+      titulo: "Ajustes solicitados",
+      itens: meus.filter((c) => c.status === "Ajustes"),
+    },
+    {
+      titulo: "Prontos para revisão",
+      itens: meus.filter((c) => c.status === "Revisão interna"),
+    },
+    {
+      titulo: "Prontos para postar",
+      itens: meus.filter((c) => PRONTOS_POSTAR.includes(c.status)),
+    },
+  ];
 }
 
 export default async function MinhasTarefasPage() {
@@ -28,55 +133,22 @@ export default async function MinhasTarefasPage() {
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
   const hoje = new Date();
 
-  const naoFinal = (c: Content) =>
-    c.status !== "Publicado" && c.status !== "Cancelado";
-  const naSemana = (c: Content) =>
-    c.planned_date != null && mesmaSemana(parseData(c.planned_date)!, hoje);
-
-  // --- Visão de planejamento (Vitória / planner) ---
-  const gruposPlanner: Grupo[] = [
-    { titulo: "Planejamentos pendentes", itens: contents.filter((c) => c.status === "Planejamento" && !c.script_url) },
-    { titulo: "Roteiros em criação", itens: contents.filter((c) => c.status === "Planejamento" && !!c.script_url) },
-    { titulo: "Roteiros a finalizar", itens: contents.filter((c) => c.status === "Roteiro pronto") },
-    { titulo: "Sem semana definida", itens: contents.filter((c) => c.planned_week == null && naoFinal(c)) },
-    { titulo: "Sem data", itens: contents.filter((c) => !c.planned_date && naoFinal(c)) },
-    { titulo: "Revisões internas", itens: contents.filter((c) => c.status === "Revisão interna") },
-    { titulo: "Aprovações de clientes", itens: contents.filter((c) => c.status === "Aprovação do cliente") },
-    { titulo: "Postagens da semana", itens: contents.filter((c) => naSemana(c) && naoFinal(c)) },
-  ];
-
-  // --- Visão de produção (Fran / producer) ---
-  const paraGravar = contents.filter(
-    (c) => c.requires_recording && !estaGravado(c.status) && c.status !== "Cancelado",
-  );
-  const gruposProducer: Grupo[] = [
-    { titulo: "Gravações pendentes", itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "proxima") },
-    { titulo: "Gravações da semana", itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "semana") },
-    { titulo: "Gravações atrasadas", itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "atrasada") },
-    { titulo: "Conteúdos gravados", itens: contents.filter((c) => c.status === "Gravado") },
-    { titulo: "Fila de edição", itens: contents.filter((c) => c.status === "Fila de edição") },
-    { titulo: "Vídeos em edição", itens: contents.filter((c) => c.status === "Em edição") },
-    { titulo: "Ajustes solicitados", itens: contents.filter((c) => c.status === "Ajustes") },
-    { titulo: "Prontos para revisão", itens: contents.filter((c) => c.status === "Revisão interna") },
-    { titulo: "Postagens da semana", itens: contents.filter((c) => naSemana(c) && naoFinal(c)) },
-  ];
-
-  const role = ctx.profile?.role ?? "admin";
+  const role = (ctx.profile?.role ?? "admin") as PapelDemanda | "admin";
   const nome = ctx.profile?.name ?? "você";
 
   const blocos: { rotulo: string; grupos: Grupo[] }[] =
     role === "planner"
-      ? [{ rotulo: "", grupos: gruposPlanner }]
+      ? [{ rotulo: "", grupos: gruposPlanner(contents) }]
       : role === "producer"
-        ? [{ rotulo: "", grupos: gruposProducer }]
+        ? [{ rotulo: "", grupos: gruposProducer(contents, hoje) }]
         : [
-            { rotulo: "Planejamento", grupos: gruposPlanner },
-            { rotulo: "Produção", grupos: gruposProducer },
+            { rotulo: "Planejamento e artes", grupos: gruposPlanner(contents) },
+            { rotulo: "Produção e edição", grupos: gruposProducer(contents, hoje) },
           ];
 
   const descricao =
     role === "admin"
-      ? "Visão completa (planejamento e produção)"
+      ? "Visão completa (planejamento, artes e produção)"
       : `Tarefas de ${nome}`;
 
   const totalItens = blocos.reduce(
@@ -102,19 +174,15 @@ export default async function MinhasTarefasPage() {
                   {bloco.rotulo}
                 </h2>
               ) : null}
-              {bloco.grupos.map((g) => (
-                <section key={bloco.rotulo + g.titulo}>
-                  <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                    {g.titulo}
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      {g.itens.length}
-                    </span>
-                  </h3>
-                  {g.itens.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs text-gray-500">
-                      Nenhuma tarefa aqui.
-                    </p>
-                  ) : (
+              {bloco.grupos.map((g) =>
+                g.itens.length === 0 ? null : (
+                  <section key={bloco.rotulo + g.titulo}>
+                    <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                      {g.titulo}
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                        {g.itens.length}
+                      </span>
+                    </h3>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                       {g.itens.map((c) => (
                         <TaskCard
@@ -125,9 +193,9 @@ export default async function MinhasTarefasPage() {
                         />
                       ))}
                     </div>
-                  )}
-                </section>
-              ))}
+                  </section>
+                ),
+              )}
             </div>
           ))}
         </div>
