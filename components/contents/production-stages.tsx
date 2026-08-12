@@ -6,6 +6,7 @@ import {
   atualizarProducaoConteudoAction,
   type ContentStagePatch,
 } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import type { Content, ContentStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +38,9 @@ function useSalvar() {
   const [salvando, iniciar] = useTransition();
   const salvar = (id: string, patch: ContentStagePatch) =>
     iniciar(async () => {
-      await atualizarProducaoConteudoAction(id, patch);
+      const r = await atualizarProducaoConteudoAction(id, patch);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível salvar.");
+      else toast.sucesso("Salvo");
       router.refresh();
     });
   return { salvar, salvando };

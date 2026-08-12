@@ -21,12 +21,13 @@ export default async function DashboardLayout({
   }
 
   const nome = displayName(ctx);
+  const role = ctx.profile?.role ?? null;
   const papel = ctx.profile ? ROLE_LABELS[ctx.profile.role] : undefined;
 
   return (
     <>
       <SessionWatcher />
-      <AppShell nomeUsuario={nome} papelUsuario={papel}>
+      <AppShell nomeUsuario={nome} papelUsuario={papel} papel={role}>
         {children}
       </AppShell>
     </>

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { definirStatusConteudoAction } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import { STATUS_OPTIONS, type ContentStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,9 @@ export function QuickStatus({ id, status, className }: QuickStatusProps) {
   function alterar(novo: ContentStatus) {
     if (novo === status) return;
     iniciar(async () => {
-      await definirStatusConteudoAction(id, novo);
+      const r = await definirStatusConteudoAction(id, novo);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível alterar o status.");
+      else toast.sucesso("Status atualizado");
       router.refresh();
     });
   }

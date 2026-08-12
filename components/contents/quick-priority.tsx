@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { definirPrioridadeConteudoAction } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import { PRIORITY_OPTIONS, type ContentPriority } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,9 @@ export function QuickPriority({ id, priority, className }: QuickPriorityProps) {
   function alterar(nova: ContentPriority) {
     if (nova === priority) return;
     iniciar(async () => {
-      await definirPrioridadeConteudoAction(id, nova);
+      const r = await definirPrioridadeConteudoAction(id, nova);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível alterar a prioridade.");
+      else toast.sucesso("Prioridade atualizada");
       router.refresh();
     });
   }

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAVEGACAO } from "@/lib/navigation";
+import { navegacaoPara } from "@/lib/navigation";
 import { NavIcon } from "@/components/layout/nav-icon";
 import { signOutAction } from "@/lib/actions/auth";
 import { cn } from "@/lib/utils";
+import type { UserRole } from "@/types";
 
 interface SidebarProps {
   /** Controla a exibição no mobile (drawer). */
@@ -13,6 +14,7 @@ interface SidebarProps {
   aoFechar?: () => void;
   nomeUsuario?: string;
   papelUsuario?: string;
+  papel?: UserRole | null;
 }
 
 /**
@@ -25,8 +27,10 @@ export function Sidebar({
   aoFechar,
   nomeUsuario,
   papelUsuario,
+  papel = null,
 }: SidebarProps) {
   const pathname = usePathname();
+  const itens = navegacaoPara(papel);
 
   return (
     <>
@@ -53,7 +57,7 @@ export function Sidebar({
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
-          {NAVEGACAO.map((item) => {
+          {itens.map((item) => {
             const ativo =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (

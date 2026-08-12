@@ -41,18 +41,21 @@ export const NAVEGACAO: ItemNavegacao[] = [
     label: "Clientes",
     descricao: "Cadastro e gestão de clientes",
     icone: "clientes",
+    papeis: ["planner", "admin"],
   },
   {
     href: "/gravacoes",
     label: "Gravações",
     descricao: "Conteúdos em captação",
     icone: "gravacoes",
+    papeis: ["producer", "admin"],
   },
   {
     href: "/fila-edicao",
     label: "Fila de edição",
     descricao: "Conteúdos aguardando edição",
     icone: "edicao",
+    papeis: ["producer", "admin"],
   },
   {
     href: "/postagens",
@@ -78,4 +81,14 @@ export const NAVEGACAO: ItemNavegacao[] = [
 export function navegacaoPara(papel: UserRole | null): ItemNavegacao[] {
   if (!papel) return NAVEGACAO;
   return NAVEGACAO.filter((item) => !item.papeis || item.papeis.includes(papel));
+}
+
+/**
+ * Tela inicial conforme o papel: a produtora começa nas tarefas dela, a
+ * planejadora nos conteúdos, e o admin na visão geral.
+ */
+export function rotaInicial(papel: UserRole | null): string {
+  if (papel === "producer") return "/minhas-tarefas";
+  if (papel === "planner") return "/conteudos";
+  return "/dashboard";
 }

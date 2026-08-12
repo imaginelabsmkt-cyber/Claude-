@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import {
+  Fragment,
+  useEffect,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { QuickStatus } from "@/components/contents/quick-status";
 import { QuickPriority } from "@/components/contents/quick-priority";
+import { ContentActions } from "@/components/contents/content-actions";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
   atualizarCampoConteudoAction,
   type ContentEditPatch,
 } from "@/lib/actions/contents";
+import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
 import { FORMAT_OPTIONS, WEEK_OPTIONS, type ContentStatus } from "@/types";
 import type { Content, Profile } from "@/types";
@@ -49,13 +57,19 @@ function campoResponsavel(status: ContentStatus): keyof ContentEditPatch {
   }
 }
 
-/** Hook simples de salvamento de um campo com refresh. */
+/** Hook simples de salvamento de um campo com refresh + aviso (toast). */
 function useSalvar() {
   const router = useRouter();
   const [salvando, iniciar] = useTransition();
   const salvar = (id: string, patch: ContentEditPatch) =>
     iniciar(async () => {
-      await atualizarCampoConteudoAction(id, patch);
+      const r = await atualizarCampoConteudoAction(id, patch);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível salvar.");
+        router.refresh();
+        return;
+      }
+      toast.sucesso("Salvo");
       router.refresh();
     });
   return { salvar, salvando };
@@ -121,21 +135,15 @@ function CelulaTitulo({
   );
 }
 
+// Controle "fantasma": aparece como texto e só ganha moldura ao passar o
+// mouse / focar — evita a "parede de caixas" que polui a leitura.
 const CLASSE_SELECT =
-  "w-full rounded-md border border-gray-300 bg-white px-1.5 py-1 text-xs text-gray-800 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-60";
+  "w-full max-w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-500 disabled:opacity-60";
+
+const NUM_COLUNAS = 8;
 
 /** Linha da planilha. */
-function Linha({
-  content,
-  cliente,
-  perfis,
-  mostrarCliente,
-}: {
-  content: Content;
-  cliente?: OpcaoCliente;
-  perfis: Profile[];
-  mostrarCliente: boolean;
-}) {
+function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
   const { salvar, salvando } = useSalvar();
   const est = estiloFormato(content.format);
   const campoResp = campoResponsavel(content.status);
@@ -143,19 +151,6 @@ function Linha({
 
   return (
     <tr className="align-middle hover:bg-gray-50/60">
-      {mostrarCliente ? (
-        <td className="px-2 py-1.5">
-          <span className="flex items-center gap-1.5 text-gray-700">
-            <span
-              className="inline-block h-3 w-3 shrink-0 rounded-full border border-gray-200"
-              style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
-              aria-hidden="true"
-            />
-            <span className="truncate">{cliente?.name ?? "—"}</span>
-          </span>
-        </td>
-      ) : null}
-
       {/* Título (link para abrir + lápis para editar) */}
       <td className="min-w-[200px] px-2 py-1.5">
         <CelulaTitulo
@@ -174,7 +169,7 @@ function Linha({
           onChange={(e) =>
             salvar(content.id, { format: e.target.value || null })
           }
-          className={CLASSE_SELECT}
+          className={cn(CLASSE_SELECT, "font-medium")}
           style={{ color: est.texto }}
         >
           <option value="">—</option>
@@ -197,7 +192,7 @@ function Linha({
               planned_week: e.target.value ? Number(e.target.value) : null,
             })
           }
-          className={cn(CLASSE_SELECT, "w-16")}
+          className={cn(CLASSE_SELECT, "w-14")}
         >
           <option value="">—</option>
           {WEEK_OPTIONS.map((w) => (
@@ -218,7 +213,7 @@ function Linha({
           onChange={(e) =>
             salvar(content.id, { planned_date: e.target.value || null })
           }
-          className={cn(CLASSE_SELECT, "w-[8.5rem]")}
+          className={cn(CLASSE_SELECT, "w-[8.5rem] text-gray-600")}
         />
       </td>
 
@@ -254,14 +249,36 @@ function Linha({
         </select>
       </td>
 
-      {/* Abrir */}
+      {/* Ações (⋮): abrir / editar / excluir */}
       <td className="px-2 py-1.5 text-right">
-        <Link
-          href={`/conteudos/${content.id}`}
-          className="text-xs font-medium text-brand-700 hover:underline"
-        >
-          Abrir
-        </Link>
+        <ContentActions id={content.id} status={content.status} soMenu />
+      </td>
+    </tr>
+  );
+}
+
+/** Cabeçalho de grupo (um cliente) dentro da planilha. */
+function CabecalhoGrupo({
+  cliente,
+  quantidade,
+}: {
+  cliente?: OpcaoCliente;
+  quantidade: number;
+}) {
+  return (
+    <tr className="border-t border-gray-200 bg-gray-50/80">
+      <td colSpan={NUM_COLUNAS} className="px-3 py-2">
+        <span className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+          <span
+            className="inline-block h-3 w-3 shrink-0 rounded-full border border-gray-200"
+            style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
+            aria-hidden="true"
+          />
+          {cliente?.name ?? "Sem cliente"}
+          <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+            {quantidade}
+          </span>
+        </span>
       </td>
     </tr>
   );
@@ -269,8 +286,9 @@ function Linha({
 
 /**
  * Planilha editável de conteúdos: cada célula é editável na hora
- * (título, formato, semana, data, status, prioridade, responsável),
- * sem precisar abrir o conteúdo. Salva no banco a cada mudança.
+ * (título, formato, semana, data, status, prioridade, responsável) e há um
+ * menu ⋮ por linha (abrir/editar/excluir). Na lista geral, os conteúdos
+ * ficam agrupados por cliente.
  */
 export function EditableContentsTable({
   contents,
@@ -292,14 +310,31 @@ export function EditableContentsTable({
   }
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
+  // Agrupa por cliente (só na lista geral). Ordena por nome do cliente e,
+  // dentro do cliente, por data prevista.
+  const grupos = new Map<string, Content[]>();
+  for (const c of contents) {
+    const lista = grupos.get(c.client_id) ?? [];
+    lista.push(c);
+    grupos.set(c.client_id, lista);
+  }
+  const gruposOrdenados = [...grupos.entries()]
+    .map(([clientId, itens]) => ({
+      clientId,
+      cliente: clientesById.get(clientId),
+      itens: itens.sort((a, b) =>
+        (a.planned_date ?? "9999").localeCompare(b.planned_date ?? "9999"),
+      ),
+    }))
+    .sort((a, b) =>
+      (a.cliente?.name ?? "").localeCompare(b.cliente?.name ?? ""),
+    );
+
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-      <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+      <table className="w-full min-w-[820px] border-collapse text-left text-sm">
         <thead className="border-b border-gray-200 bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
           <tr>
-            {mostrarCliente ? (
-              <th className="px-2 py-2 font-semibold">Cliente</th>
-            ) : null}
             <th className="px-2 py-2 font-semibold">Conteúdo</th>
             <th className="px-2 py-2 font-semibold">Formato</th>
             <th className="px-2 py-2 font-semibold">Sem.</th>
@@ -311,15 +346,21 @@ export function EditableContentsTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {contents.map((c) => (
-            <Linha
-              key={c.id}
-              content={c}
-              cliente={clientesById.get(c.client_id)}
-              perfis={perfis}
-              mostrarCliente={mostrarCliente}
-            />
-          ))}
+          {mostrarCliente
+            ? gruposOrdenados.map((g) => (
+                <Fragment key={g.clientId}>
+                  <CabecalhoGrupo
+                    cliente={g.cliente}
+                    quantidade={g.itens.length}
+                  />
+                  {g.itens.map((c) => (
+                    <Linha key={c.id} content={c} perfis={perfis} />
+                  ))}
+                </Fragment>
+              ))
+            : contents.map((c) => (
+                <Linha key={c.id} content={c} perfis={perfis} />
+              ))}
         </tbody>
       </table>
     </div>

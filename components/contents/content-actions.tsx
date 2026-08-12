@@ -9,6 +9,7 @@ import {
   excluirConteudoAction,
 } from "@/lib/actions/contents";
 import { statusAoConcluir, rotuloAvancar } from "@/lib/rules/contents";
+import { toast } from "@/lib/ui/toast";
 import type { ContentStatus } from "@/types";
 
 interface ContentActionsProps {
@@ -18,6 +19,8 @@ interface ContentActionsProps {
   redirecionarAoExcluir?: string;
   /** Tamanho compacto (para cards). */
   compacto?: boolean;
+  /** Mostra apenas o menu ⋮ (sem o botão principal) — útil por linha. */
+  soMenu?: boolean;
 }
 
 /**
@@ -30,6 +33,7 @@ export function ContentActions({
   status,
   redirecionarAoExcluir,
   compacto,
+  soMenu,
 }: ContentActionsProps) {
   const router = useRouter();
   const [menuAberto, setMenuAberto] = useState(false);
@@ -42,14 +46,21 @@ export function ContentActions({
   function avancar() {
     if (!proximo) return;
     iniciar(async () => {
-      await definirStatusConteudoAction(id, proximo);
+      const r = await definirStatusConteudoAction(id, proximo);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível avançar.");
+      else toast.sucesso(rotulo ?? "Atualizado");
       router.refresh();
     });
   }
 
   function excluir() {
     iniciar(async () => {
-      await excluirConteudoAction(id);
+      const r = await excluirConteudoAction(id);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível excluir.");
+        return;
+      }
+      toast.sucesso("Conteúdo excluído");
       setConfirmar(false);
       if (redirecionarAoExcluir) router.push(redirecionarAoExcluir);
       router.refresh();
@@ -58,7 +69,7 @@ export function ContentActions({
 
   return (
     <div className="flex items-center gap-1.5">
-      {rotulo && proximo ? (
+      {!soMenu && rotulo && proximo ? (
         <button
           type="button"
           onClick={avancar}

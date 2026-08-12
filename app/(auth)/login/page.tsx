@@ -50,8 +50,8 @@ export default function LoginPage() {
         return;
       }
 
-      // Sessão criada (cookies definidos). Atualiza o servidor e navega.
-      router.replace("/dashboard");
+      // Sessão criada (cookies definidos). "/" encaminha conforme o papel.
+      router.replace("/");
       router.refresh();
     } catch {
       setErro(traduzirErro("network"));

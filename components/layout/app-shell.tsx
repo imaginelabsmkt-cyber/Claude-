@@ -3,11 +3,14 @@
 import { useState, type ReactNode } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { Toaster } from "@/components/ui/toaster";
+import type { UserRole } from "@/types";
 
 interface AppShellProps {
   children: ReactNode;
   nomeUsuario?: string;
   papelUsuario?: string;
+  papel?: UserRole | null;
 }
 
 /**
@@ -18,16 +21,19 @@ export function AppShell({
   children,
   nomeUsuario,
   papelUsuario,
+  papel,
 }: AppShellProps) {
   const [menuAberto, setMenuAberto] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Toaster />
       <Sidebar
         aberta={menuAberto}
         aoFechar={() => setMenuAberto(false)}
         nomeUsuario={nomeUsuario}
         papelUsuario={papelUsuario}
+        papel={papel}
       />
 
       <div className="lg:pl-64">
