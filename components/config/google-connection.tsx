@@ -3,7 +3,10 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { desconectarGoogleAction } from "@/lib/actions/google";
+import {
+  desconectarGoogleAction,
+  reenviarTudoGoogleAction,
+} from "@/lib/actions/google";
 import { toast } from "@/lib/ui/toast";
 
 interface Props {
@@ -41,6 +44,20 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
     });
   }
 
+  function reenviar() {
+    iniciar(async () => {
+      const r = await reenviarTudoGoogleAction();
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível reenviar.");
+        return;
+      }
+      toast.sucesso(
+        `Reenviado: ${r.planejamentos ?? 0} planejamento(s) e ${r.conteudos ?? 0} conteúdo(s).`,
+      );
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-3">
       {msg ? (
@@ -63,14 +80,24 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
             <strong>eventos</strong> e as edições viram <strong>tarefas</strong>{" "}
             no seu Google.
           </p>
-          <Button
-            type="button"
-            variante="secundaria"
-            onClick={desconectar}
-            disabled={processando}
-          >
-            Desconectar Google
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" onClick={reenviar} disabled={processando}>
+              {processando ? "Reenviando..." : "Reenviar tudo ao Google"}
+            </Button>
+            <Button
+              type="button"
+              variante="secundaria"
+              onClick={desconectar}
+              disabled={processando}
+            >
+              Desconectar Google
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500">
+            “Reenviar tudo” recria as reuniões, postagens e gravações nos
+            calendários certos (Imagine Reuniões / Produção / Postagens) e
+            corrige títulos antigos. Use se algo não apareceu na agenda.
+          </p>
         </>
       ) : (
         <>
