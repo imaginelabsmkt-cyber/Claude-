@@ -13,6 +13,7 @@ import {
   marcarComoGravadoAction,
   alterarDataGravacaoAction,
   adicionarFilaEdicaoAction,
+  atualizarProducaoConteudoAction,
 } from "@/lib/actions/contents";
 import type { Content } from "@/types";
 
@@ -198,6 +199,23 @@ export function RecordingCard({
               Editar
             </Button>
           </Link>
+
+          {!gravado ? (
+            <Button
+              tamanho="sm"
+              variante="fantasma"
+              disabled={processando}
+              onClick={() =>
+                executar(() =>
+                  atualizarProducaoConteudoAction(content.id, {
+                    requires_recording: false,
+                  }),
+                )
+              }
+            >
+              Não precisa gravar
+            </Button>
+          ) : null}
         </div>
       )}
 
