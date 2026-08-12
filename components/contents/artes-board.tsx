@@ -17,7 +17,7 @@ import { definirStatusConteudoAction } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
 import { corPrioridade } from "@/lib/ui/prioridade";
-import { prazoPrincipal, estaAtrasado } from "@/lib/rules/contents";
+import { prazoPrincipal, estaAtrasado, ehCapa } from "@/lib/rules/contents";
 import { formatarData, cn } from "@/lib/utils";
 import type { Content, ContentStatus } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
@@ -70,6 +70,7 @@ interface Props {
 
 function Card({ content, cliente }: { content: Content; cliente?: OpcaoCliente }) {
   const est = estiloFormato(content.format);
+  const capa = ehCapa(content);
   const prazo = prazoPrincipal(content);
   const atrasado = estaAtrasado(content);
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -107,8 +108,8 @@ function Card({ content, cliente }: { content: Content; cliente?: OpcaoCliente }
           className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
           style={{ backgroundColor: est.fundo, color: est.texto }}
         >
-          <span aria-hidden="true">{est.icone}</span>
-          {est.curto}
+          <span aria-hidden="true">{capa ? "🖼️" : est.icone}</span>
+          {capa ? "Capa" : est.curto}
         </span>
       </div>
       {prazo ? (

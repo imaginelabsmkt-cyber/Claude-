@@ -43,7 +43,7 @@ export async function criarCapaDoVideo(
       client_id: v.client_id,
       title: `Capa: ${v.title}`.slice(0, 200),
       format: "Post estático",
-      status: "Roteiro pronto",
+      status: "Em edição", // arte em criação (aparece como "Em criação")
       priority: "Média",
       reference_month: v.reference_month,
       planned_week: null,

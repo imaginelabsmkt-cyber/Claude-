@@ -20,6 +20,7 @@ import { CommentsSection } from "@/components/conteudos/comments-section";
 import { ContentActions } from "@/components/contents/content-actions";
 import { ContentScriptPanel } from "@/components/contents/content-script-panel";
 import { ProductionStages } from "@/components/contents/production-stages";
+import { CoverPanel } from "@/components/contents/cover-panel";
 import {
   proximaAcao,
   responsavelAtual,
@@ -27,6 +28,7 @@ import {
   estaAtrasado,
   entregaEmAlerta,
   motivoPrioridade,
+  ehCapa,
 } from "@/lib/rules/contents";
 import { formatarData } from "@/lib/utils";
 
@@ -70,6 +72,13 @@ export default async function ConteudoPage({ params }: PageProps) {
       ? (porId.get(conteudo.publisher_id)?.name ?? null)
       : null,
   });
+
+  // Capa do vídeo: ficha simplificada (sem roteiro, sem gravação/edição).
+  const capa = ehCapa(conteudo);
+  const videoOrigem =
+    capa && conteudo.cover_source_id
+      ? await getContent(conteudo.cover_source_id)
+      : null;
 
   return (
     <>
@@ -129,6 +138,14 @@ export default async function ConteudoPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {capa ? (
+        <CoverPanel
+          content={conteudo}
+          videoId={conteudo.cover_source_id}
+          videoTitulo={videoOrigem?.title ?? null}
+        />
+      ) : (
+        <>
       {/* Planejamento — mostra só o que está preenchido (sem campos vazios) */}
       <div className="mt-6">
         <h2 className="mb-2 text-sm font-semibold text-gray-900">Planejamento</h2>
@@ -200,6 +217,8 @@ export default async function ConteudoPage({ params }: PageProps) {
         caption={conteudo.caption}
         format={conteudo.format}
       />
+        </>
+      )}
 
       {/* Histórico e comentários */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">

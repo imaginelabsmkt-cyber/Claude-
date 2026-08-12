@@ -640,6 +640,7 @@ export interface ContentStagePatch {
   edited_file_url?: string | null;
   published_url?: string | null;
   actual_post_date?: string | null;
+  description?: string | null;
 }
 
 const ROTULO_ETAPA: Record<keyof ContentStagePatch, string> = {
@@ -659,6 +660,7 @@ const ROTULO_ETAPA: Record<keyof ContentStagePatch, string> = {
   edited_file_url: "Arquivo editado",
   published_url: "Link publicado",
   actual_post_date: "Data real",
+  description: "Título da capa",
 };
 
 const CAMPOS_DATA: (keyof ContentStagePatch)[] = [
@@ -677,6 +679,7 @@ const CAMPOS_TEXTO: (keyof ContentStagePatch)[] = [
   "raw_files_url",
   "edited_file_url",
   "published_url",
+  "description",
 ];
 
 /**

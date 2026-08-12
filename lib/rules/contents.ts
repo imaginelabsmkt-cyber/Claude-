@@ -48,6 +48,17 @@ export function ehArte(format: string | null | undefined): boolean {
   return format != null && FORMATOS_ARTE.includes(format);
 }
 
+/**
+ * É a demanda de CAPA de um vídeo (arte gerada automaticamente ao editar o
+ * vídeo)? A capa NÃO tem roteiro nem gravação: é só a arte da capa (Vitória),
+ * com o título que vai nela. Identificada por ter cover_source_id.
+ */
+export function ehCapa(
+  content: { cover_source_id?: string | null } | null | undefined,
+): boolean {
+  return content?.cover_source_id != null;
+}
+
 // -------------------------------------------------------------
 // Utilitários de data (comparação por dia, sem hora)
 // -------------------------------------------------------------
