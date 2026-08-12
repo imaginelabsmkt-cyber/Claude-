@@ -63,7 +63,6 @@ export default async function ConteudoPage({ params }: PageProps) {
     ...c,
     autor: c.user_id ? (nomePorId.get(c.user_id) ?? "Usuário") : "Usuário",
   }));
-  const nome = (id: string | null) => (id ? (porId.get(id)?.name ?? "—") : "—");
   const responsavel = responsavelAtual(conteudo, {
     planner,
     producer,
@@ -124,10 +123,13 @@ export default async function ConteudoPage({ params }: PageProps) {
           <Item rotulo="Motivo da prioridade">
             {motivoPrioridade(conteudo)}
           </Item>
+          {conteudo.revision_count > 0 ? (
+            <Item rotulo="Ajustes">{conteudo.revision_count}</Item>
+          ) : null}
         </CardContent>
       </Card>
 
-      {/* Planejamento */}
+      {/* Planejamento — mostra só o que está preenchido (sem campos vazios) */}
       <div className="mt-6">
         <h2 className="mb-2 text-sm font-semibold text-gray-900">Planejamento</h2>
         <Card>
@@ -135,42 +137,39 @@ export default async function ConteudoPage({ params }: PageProps) {
             <Item rotulo="Mês de referência">
               {conteudo.reference_month ?? "—"}
             </Item>
-            <Item rotulo="Semana prevista">{conteudo.planned_week ?? "—"}</Item>
             <Item rotulo="Data prevista">
               {formatarData(conteudo.planned_date)}
             </Item>
-            <Item rotulo="Data real">
-              {formatarData(conteudo.actual_post_date)}
-            </Item>
-            <Item rotulo="Pilar">{conteudo.content_pillar ?? "—"}</Item>
-            <Item rotulo="Objetivo">{conteudo.objective ?? "—"}</Item>
-            <div className="sm:col-span-3">
-              <Item rotulo="Descrição">
-                <span className="whitespace-pre-wrap">
-                  {conteudo.description ?? "—"}
-                </span>
+            {conteudo.actual_post_date ? (
+              <Item rotulo="Data real">
+                {formatarData(conteudo.actual_post_date)}
               </Item>
-            </div>
-            <div className="flex gap-2 sm:col-span-3">
-              {conteudo.is_fixed_date ? <Badge tom="roxo">Data fixa</Badge> : null}
-              {conteudo.is_campaign ? <Badge tom="azul">Campanha</Badge> : null}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Responsáveis */}
-      <div className="mt-6">
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">
-          Responsáveis
-        </h2>
-        <Card>
-          <CardContent className="grid grid-cols-2 gap-5 sm:grid-cols-5">
-            <Item rotulo="Planejamento">{nome(conteudo.planner_id)}</Item>
-            <Item rotulo="Gravação">{nome(conteudo.recorder_id)}</Item>
-            <Item rotulo="Edição">{nome(conteudo.editor_id)}</Item>
-            <Item rotulo="Postagem">{nome(conteudo.publisher_id)}</Item>
-            <Item rotulo="Ajustes">{conteudo.revision_count}</Item>
+            ) : null}
+            {conteudo.content_pillar ? (
+              <Item rotulo="Pilar">{conteudo.content_pillar}</Item>
+            ) : null}
+            {conteudo.objective ? (
+              <Item rotulo="Objetivo">{conteudo.objective}</Item>
+            ) : null}
+            {conteudo.description ? (
+              <div className="sm:col-span-3">
+                <Item rotulo="Descrição">
+                  <span className="whitespace-pre-wrap">
+                    {conteudo.description}
+                  </span>
+                </Item>
+              </div>
+            ) : null}
+            {conteudo.is_fixed_date || conteudo.is_campaign ? (
+              <div className="flex gap-2 sm:col-span-3">
+                {conteudo.is_fixed_date ? (
+                  <Badge tom="roxo">Data fixa</Badge>
+                ) : null}
+                {conteudo.is_campaign ? (
+                  <Badge tom="azul">Campanha</Badge>
+                ) : null}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
