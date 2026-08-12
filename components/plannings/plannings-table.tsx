@@ -100,14 +100,24 @@ function Linha({
           </select>
         </td>
         <td className="px-3 py-2">
-          <input
-            type="date"
-            aria-label="Data da reunião"
-            value={p?.meeting_date ?? ""}
-            disabled={salvando}
-            onChange={(e) => set({ meeting_date: e.target.value || null })}
-            className={cn(CLASSE, "w-[8.5rem]")}
-          />
+          <div className="flex items-center gap-1">
+            <input
+              type="date"
+              aria-label="Data da reunião"
+              value={p?.meeting_date ?? ""}
+              disabled={salvando}
+              onChange={(e) => set({ meeting_date: e.target.value || null })}
+              className={cn(CLASSE, "w-[8.5rem]")}
+            />
+            <input
+              type="time"
+              aria-label="Horário da reunião"
+              value={p?.meeting_time ?? ""}
+              disabled={salvando}
+              onChange={(e) => set({ meeting_time: e.target.value || null })}
+              className={cn(CLASSE, "w-[5.5rem]")}
+            />
+          </div>
         </td>
         <td className="px-3 py-2">
           <input
