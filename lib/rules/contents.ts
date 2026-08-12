@@ -243,10 +243,36 @@ export function prazoPrincipal(
     case "Em edição":
     case "Revisão interna":
     case "Ajustes":
-      return content.editing_deadline ?? content.planned_date;
+      // Entrega é sempre 48h antes da postagem (automático).
+      return prazoEntrega(content) ?? content.editing_deadline ?? content.planned_date;
     default:
       return content.planned_date;
   }
+}
+
+// -------------------------------------------------------------
+// Prazo de entrega: FIXO em 48h antes da postagem
+// -------------------------------------------------------------
+/** Antecedência fixa de entrega: o conteúdo fica pronto 48h antes da postagem. */
+export const HORAS_ENTREGA_ANTES = 48;
+
+/**
+ * Prazo de entrega do conteúdo (arte ou vídeo): sempre 48h (2 dias) antes da
+ * data prevista de postagem. É automático — não depende de campo manual.
+ * Retorna "YYYY-MM-DD" ou null quando não há data prevista de postagem.
+ */
+export function prazoEntrega(
+  content: Pick<Content, "planned_date">,
+): string | null {
+  const prevista = parseData(content.planned_date);
+  if (!prevista) return null;
+  const dias = Math.round(HORAS_ENTREGA_ANTES / 24);
+  const entrega = new Date(
+    prevista.getFullYear(),
+    prevista.getMonth(),
+    prevista.getDate() - dias,
+  );
+  return hojeISO(entrega);
 }
 
 // -------------------------------------------------------------
@@ -325,7 +351,8 @@ export function estaAtrasado(
 
   const prevista = parseData(content.planned_date);
   const prazoGravacao = parseData(content.recording_deadline);
-  const prazoEdicao = parseData(content.editing_deadline);
+  // Prazo de edição/entrega = 48h antes da postagem (automático).
+  const prazoEdicao = parseData(prazoEntrega(content) ?? content.editing_deadline);
 
   // 1. data prevista passou e não publicado
   if (prevista && difEmDias(prevista, hoje) < 0) return true;
@@ -395,7 +422,7 @@ function chaveFilaEdicao(
 ): (number)[] {
   const bool = (v: boolean) => (v ? 0 : 1);
   const prevista = parseData(content.planned_date);
-  const prazoEd = parseData(content.editing_deadline);
+  const prazoEd = parseData(prazoEntrega(content) ?? content.editing_deadline);
   const inicioSemanaAtual = inicioDaSemana(hoje).getTime();
   const inicioProxSemana = inicioDaSemana(hoje);
   inicioProxSemana.setDate(inicioProxSemana.getDate() + 7);

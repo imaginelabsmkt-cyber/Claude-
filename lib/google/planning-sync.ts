@@ -7,6 +7,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
+import { rotuloResponsavel } from "@/lib/google/responsavel";
 
 const TZ = "America/Sao_Paulo";
 type SB = ReturnType<typeof createClient>;
@@ -119,6 +120,8 @@ export async function sincronizarPlanejamentoGoogle(
       .maybeSingle();
     const nome = cliente?.name ?? "Cliente";
     const rotulo = `${nome} (${p.reference_month})`;
+    // Planejamento é responsabilidade da Vitória (planner).
+    const rot = await rotuloResponsavel(sb, "planner");
 
     // ---- Reunião => evento ----
     const evExistente = await idSync(sb, planningId, userId, "event");
@@ -132,7 +135,7 @@ export async function sincronizarPlanejamentoGoogle(
       }
     } else {
       const corpo: Record<string, unknown> = {
-        summary: `Reunião de planejamento: ${rotulo}`,
+        summary: `Reunião de planejamento${rot}: ${rotulo}`,
       };
       if (p.meeting_time) {
         const fim = fimEvento(p.meeting_date, p.meeting_time);
@@ -175,7 +178,7 @@ export async function sincronizarPlanejamentoGoogle(
       }
     } else {
       const corpo = {
-        title: `Entregar planejamento: ${rotulo}`,
+        title: `Entregar planejamento${rot}: ${rotulo}`,
         due: `${p.delivery_deadline}T00:00:00.000Z`,
       };
       const base = "https://www.googleapis.com/tasks/v1/lists/@default/tasks";

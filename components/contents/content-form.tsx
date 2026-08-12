@@ -26,6 +26,8 @@ import {
   type Profile,
 } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
+import { prazoEntrega } from "@/lib/rules/contents";
+import { formatarData } from "@/lib/utils";
 
 interface ContentFormProps {
   conteudo?: Content;
@@ -487,14 +489,17 @@ export function ContentForm({
             {erro("recording_deadline")}
           </div>
           <div>
-            <Label htmlFor="editing_deadline">Prazo da edição</Label>
-            <Input
-              id="editing_deadline"
-              type="date"
-              value={values.editing_deadline}
-              onChange={(e) => set("editing_deadline", e.target.value)}
-            />
-            {erro("editing_deadline")}
+            <Label htmlFor="editing_deadline">Prazo de entrega</Label>
+            <div className="flex h-10 items-center rounded-md border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700">
+              {prazoEntrega({ planned_date: values.planned_date || null })
+                ? formatarData(
+                    prazoEntrega({ planned_date: values.planned_date || null }),
+                  )
+                : "Defina a data prevista"}
+            </div>
+            <p className="mt-1 text-[11px] text-gray-400">
+              Automático: 48h antes da postagem.
+            </p>
           </div>
         </div>
       </Secao>

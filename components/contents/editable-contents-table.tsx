@@ -20,7 +20,7 @@ import {
 } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
-import { FORMAT_OPTIONS, WEEK_OPTIONS, type ContentStatus } from "@/types";
+import { FORMAT_OPTIONS, type ContentStatus } from "@/types";
 import type { Content, Profile } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
 import { cn } from "@/lib/utils";
@@ -141,7 +141,7 @@ function CelulaTitulo({
 const CLASSE_SELECT =
   "w-full max-w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-500 disabled:opacity-60";
 
-const NUM_COLUNAS = 8;
+const NUM_COLUNAS = 7;
 
 /** Linha da planilha. */
 function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
@@ -177,28 +177,6 @@ function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
           {FORMAT_OPTIONS.map((f) => (
             <option key={f} value={f}>
               {f}
-            </option>
-          ))}
-        </select>
-      </td>
-
-      {/* Semana */}
-      <td className="px-2 py-1.5">
-        <select
-          aria-label="Semana"
-          value={content.planned_week ?? ""}
-          disabled={salvando}
-          onChange={(e) =>
-            salvar(content.id, {
-              planned_week: e.target.value ? Number(e.target.value) : null,
-            })
-          }
-          className={cn(CLASSE_SELECT, "w-14")}
-        >
-          <option value="">—</option>
-          {WEEK_OPTIONS.map((w) => (
-            <option key={w} value={w}>
-              {w}
             </option>
           ))}
         </select>
@@ -347,7 +325,6 @@ export function EditableContentsTable({
           <tr>
             <th className="px-2 py-2 font-semibold">Conteúdo</th>
             <th className="px-2 py-2 font-semibold">Formato</th>
-            <th className="px-2 py-2 font-semibold">Sem.</th>
             <th className="px-2 py-2 font-semibold">Data</th>
             <th className="px-2 py-2 font-semibold">Status</th>
             <th className="px-2 py-2 font-semibold">Prioridade</th>

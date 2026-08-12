@@ -8,7 +8,8 @@ import {
 } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import type { Content, ContentStatus } from "@/types";
-import { cn } from "@/lib/utils";
+import { prazoEntrega } from "@/lib/rules/contents";
+import { cn, formatarData } from "@/lib/utils";
 
 type Etapa = "gravacao" | "edicao" | "postagem";
 
@@ -332,11 +333,16 @@ export function ProductionStages({ content }: { content: Content }) {
         abertoInicial
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <CampoData
-            label="Prazo da edição"
-            valor={content.editing_deadline}
-            onSalvar={(v) => set({ editing_deadline: v })}
-          />
+          <Campo label="Prazo de entrega">
+            <div className={cn(CLASSE_INPUT, "flex items-center bg-gray-50")}>
+              {prazoEntrega(content)
+                ? formatarData(prazoEntrega(content))
+                : "Defina a data de postagem"}
+            </div>
+            <span className="mt-0.5 block text-[11px] text-gray-400">
+              Automático: 48h antes da postagem.
+            </span>
+          </Campo>
           <CampoTexto
             label="Link do roteiro"
             valor={content.script_url}

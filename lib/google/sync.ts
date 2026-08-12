@@ -10,6 +10,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
+import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
+import { prazoEntrega } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
 
 const TZ = "America/Sao_Paulo";
@@ -149,9 +151,11 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     }
 
     const participantes = (c.participants ?? []).join(", ");
+    // Gravação/produção é responsabilidade da Fran (producer).
+    const resp1 = await rotuloResponsavel(sb, "producer");
     // null (não undefined) para LIMPAR campos antigos no PATCH.
     const corpo: Record<string, unknown> = {
-      summary: `Gravação: ${c.title}`,
+      summary: `Gravação${resp1}: ${c.title}`,
       description: participantes ? `Participantes: ${participantes}` : null,
       location: c.recording_location ?? null,
     };
@@ -241,14 +245,22 @@ export async function sincronizarEdicao(
 
     const { data: c } = await sb
       .from("contents")
-      .select("title, editing_deadline, planned_date, recording_date")
+      .select("title, format, editing_deadline, planned_date, recording_date")
       .eq("id", contentId)
       .maybeSingle();
     if (!c) return;
 
-    const due = c.editing_deadline ?? c.planned_date ?? c.recording_date;
+    // Arte/design (Carrossel, Post estático) => Vitória (planner).
+    // Edição de vídeo (demais formatos) => Fran (producer).
+    const arte = ehArte(c.format);
+    const resp2 = await rotuloResponsavel(sb, arte ? "planner" : "producer");
+    const verbo = arte ? "Arte" : "Editar";
+
+    // Entrega automática: 48h antes da postagem (cai para prazos antigos/gravação).
+    const due =
+      prazoEntrega(c) ?? c.editing_deadline ?? c.planned_date ?? c.recording_date;
     const corpo: Record<string, unknown> = {
-      title: `Editar: ${c.title}`,
+      title: `${verbo}${resp2}: ${c.title}`,
     };
     if (due) corpo.due = `${due}T00:00:00.000Z`;
 

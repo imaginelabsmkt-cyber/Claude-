@@ -3,6 +3,7 @@ import {
   proximaAcao,
   responsavelAtual,
   prazoPrincipal,
+  prazoEntrega,
   estaAtrasado,
   motivoPrioridade,
 } from "@/lib/rules/contents";
@@ -179,6 +180,20 @@ describe("prazoPrincipal", () => {
   });
 });
 
+describe("prazoEntrega", () => {
+  it("é sempre 48h (2 dias) antes da postagem", () => {
+    expect(prazoEntrega({ planned_date: "2026-07-17" })).toBe("2026-07-15");
+  });
+
+  it("vira o mês corretamente", () => {
+    expect(prazoEntrega({ planned_date: "2026-08-01" })).toBe("2026-07-30");
+  });
+
+  it("null quando não há data de postagem", () => {
+    expect(prazoEntrega({ planned_date: null })).toBeNull();
+  });
+});
+
 describe("estaAtrasado", () => {
   it("data prevista passada e não publicado -> atrasado", () => {
     const c = makeContent({ status: "Em edição", planned_date: "2026-07-10" });
@@ -292,10 +307,12 @@ describe("motivoPrioridade", () => {
   });
 
   it("postagem próxima quando a data prevista está dentro da janela", () => {
+    // 17/07 posta em 3 dias; entrega (48h antes) = 15/07, ainda no futuro,
+    // então não está atrasado — só "postagem próxima".
     const c = makeContent({
       status: "Planejamento",
       priority: "Baixa",
-      planned_date: "2026-07-15",
+      planned_date: "2026-07-17",
     });
     expect(motivoPrioridade(c, HOJE)).toBe("Postagem próxima");
   });
