@@ -25,6 +25,7 @@ import {
   responsavelAtual,
   prazoPrincipal,
   estaAtrasado,
+  entregaEmAlerta,
   motivoPrioridade,
 } from "@/lib/rules/contents";
 import { formatarData } from "@/lib/utils";
@@ -110,6 +111,8 @@ export default async function ConteudoPage({ params }: PageProps) {
           <Item rotulo="Situação">
             {estaAtrasado(conteudo) ? (
               <Badge tom="vermelho">Atrasado</Badge>
+            ) : entregaEmAlerta(conteudo) ? (
+              <Badge tom="laranja">Entregar</Badge>
             ) : (
               <Badge tom="verde">Em dia</Badge>
             )}

@@ -5,6 +5,7 @@ import {
   prazoPrincipal,
   prazoEntrega,
   estaAtrasado,
+  entregaEmAlerta,
   motivoPrioridade,
 } from "@/lib/rules/contents";
 import type { Content } from "@/types";
@@ -191,6 +192,41 @@ describe("prazoEntrega", () => {
 
   it("null quando não há data de postagem", () => {
     expect(prazoEntrega({ planned_date: null })).toBeNull();
+  });
+});
+
+describe("entregaEmAlerta", () => {
+  it("dentro da janela de 48h e não pronto -> alerta (não é atraso)", () => {
+    // Posta 15/07, hoje 14/07: entrega (13/07) já venceu, mas a postagem
+    // ainda não chegou.
+    const c = makeContent({ status: "Em edição", planned_date: "2026-07-15" });
+    expect(entregaEmAlerta(c, HOJE)).toBe(true);
+    expect(estaAtrasado(c, HOJE)).toBe(false);
+  });
+
+  it("postagem ainda longe -> sem alerta", () => {
+    const c = makeContent({ status: "Em edição", planned_date: "2026-07-20" });
+    expect(entregaEmAlerta(c, HOJE)).toBe(false);
+  });
+
+  it("postagem já passou é atraso, não alerta de entrega", () => {
+    const c = makeContent({ status: "Em edição", planned_date: "2026-07-10" });
+    expect(entregaEmAlerta(c, HOJE)).toBe(false);
+    expect(estaAtrasado(c, HOJE)).toBe(true);
+  });
+
+  it("já aprovado não gera alerta", () => {
+    const c = makeContent({ status: "Aprovado", planned_date: "2026-07-15" });
+    expect(entregaEmAlerta(c, HOJE)).toBe(false);
+  });
+
+  it("motivoPrioridade vira 'Entregar' na janela de 48h", () => {
+    const c = makeContent({
+      status: "Em edição",
+      priority: "Baixa",
+      planned_date: "2026-07-15",
+    });
+    expect(motivoPrioridade(c, HOJE)).toBe("Entregar");
   });
 });
 

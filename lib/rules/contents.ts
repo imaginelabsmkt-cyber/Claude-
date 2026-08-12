@@ -351,8 +351,7 @@ export function estaAtrasado(
 
   const prevista = parseData(content.planned_date);
   const prazoGravacao = parseData(content.recording_deadline);
-  // Prazo de edição/entrega = 48h antes da postagem (automático).
-  const prazoEdicao = parseData(prazoEntrega(content) ?? content.editing_deadline);
+  const prazoEdicao = parseData(content.editing_deadline);
 
   // 1. data prevista passou e não publicado
   if (prevista && difEmDias(prevista, hoje) < 0) return true;
@@ -371,6 +370,33 @@ export function estaAtrasado(
   }
 
   return false;
+}
+
+/**
+ * Entrega em alerta: entrou na janela de 48h antes da postagem (prazo de
+ * entrega atingido/vencido), a postagem ainda NÃO chegou e o conteúdo ainda
+ * não está pronto. NÃO é "atrasado" — é sinal de "alta prioridade para
+ * entregar agora". Publicado/Pausado/Cancelado nunca entram.
+ */
+export function entregaEmAlerta(
+  content: Pick<Content, "status" | "planned_date">,
+  hoje: Date = new Date(),
+): boolean {
+  const { status } = content;
+  if (status === "Publicado" || status === "Pausado" || status === "Cancelado") {
+    return false;
+  }
+  const naoAprovado = ORDEM_STATUS[status] < ORDEM_STATUS["Aprovado"];
+  if (!naoAprovado) return false;
+
+  const prevista = parseData(content.planned_date);
+  if (!prevista) return false;
+  // Já passou da postagem => isso é "atrasado", não alerta de entrega.
+  if (difEmDias(prevista, hoje) < 0) return false;
+
+  const entrega = parseData(prazoEntrega(content));
+  if (!entrega) return false;
+  return difEmDias(entrega, hoje) <= 0;
 }
 
 // -------------------------------------------------------------
@@ -412,8 +438,8 @@ export function classificarGravacao(
 // -------------------------------------------------------------
 /**
  * Gera a chave de ordenação automática (menor = mais prioritário),
- * seguindo a ordem: atrasado > data fixa > campanha > urgente >
- * data de postagem mais próxima > prazo de edição mais próximo >
+ * seguindo a ordem: atrasado > entregar (48h) > data fixa > campanha >
+ * urgente > data de postagem mais próxima > prazo de entrega mais próximo >
  * prioridade alta > conteúdo da semana > conteúdo da próxima semana.
  */
 function chaveFilaEdicao(
@@ -435,6 +461,7 @@ function chaveFilaEdicao(
 
   return [
     bool(estaAtrasado(content, hoje)),
+    bool(entregaEmAlerta(content, hoje)),
     bool(content.is_fixed_date),
     bool(content.is_campaign),
     bool(content.priority === "Urgente"),
@@ -490,14 +517,15 @@ type ContentMotivo = ContentAtraso & Pick<Content, "priority" | "is_campaign">;
 
 /**
  * Retorna o principal fator que justifica a prioridade do conteúdo,
- * na ordem: atrasado > data fixa > campanha > urgente > prioridade alta >
- * postagem próxima > rotina. Usado em badges e na fila de edição.
+ * na ordem: atrasado > entregar (48h) > data fixa > campanha > urgente >
+ * prioridade alta > postagem próxima > rotina. Usado em badges e na fila.
  */
 export function motivoPrioridade(
   content: ContentMotivo,
   hoje: Date = new Date(),
 ): string {
   if (estaAtrasado(content, hoje)) return "Atrasado";
+  if (entregaEmAlerta(content, hoje)) return "Entregar";
   if (content.is_fixed_date) return "Data fixa";
   if (content.is_campaign) return "Campanha";
   if (content.priority === "Urgente") return "Urgente";
