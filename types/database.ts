@@ -154,6 +154,34 @@ export type Comment = {
   created_at: ISODateString;
 }
 
+/** google_accounts — conexão do usuário com o Google */
+export type GoogleAccount = {
+  user_id: UUID;
+  email: string | null;
+  refresh_token: string;
+  scope: string | null;
+  connected_at: ISODateString;
+  updated_at: ISODateString;
+}
+export type GoogleAccountInsert = Omit<GoogleAccount, "connected_at" | "updated_at"> & {
+  connected_at?: ISODateString;
+  updated_at?: ISODateString;
+};
+
+/** google_sync — mapeia conteúdo -> evento/tarefa no Google, por usuário */
+export type GoogleSync = {
+  id: UUID;
+  content_id: UUID;
+  user_id: UUID;
+  kind: string; // 'event' | 'task'
+  external_id: string;
+  updated_at: ISODateString;
+}
+export type GoogleSyncInsert = Omit<GoogleSync, "id" | "updated_at"> & {
+  id?: UUID;
+  updated_at?: ISODateString;
+};
+
 // -------------------------------------------------------------
 // Tipos de Insert / Update (colunas com default são opcionais)
 // -------------------------------------------------------------
@@ -251,6 +279,18 @@ export interface Database {
         Row: Comment;
         Insert: CommentInsert;
         Update: Partial<CommentInsert>;
+        Relationships: [];
+      };
+      google_accounts: {
+        Row: GoogleAccount;
+        Insert: GoogleAccountInsert;
+        Update: Partial<GoogleAccountInsert>;
+        Relationships: [];
+      };
+      google_sync: {
+        Row: GoogleSync;
+        Insert: GoogleSyncInsert;
+        Update: Partial<GoogleSyncInsert>;
         Relationships: [];
       };
     };
