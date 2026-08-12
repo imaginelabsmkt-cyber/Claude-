@@ -153,17 +153,30 @@ export default async function DashboardPage() {
                 {grupo.itens.length === 0 ? (
                   <p className="mt-2 text-xs text-gray-500">Tudo certo por aqui.</p>
                 ) : (
-                  <ul className="mt-2 space-y-1">
-                    {grupo.itens.slice(0, 5).map((c) => (
-                      <li key={c.id} className="truncate text-sm">
-                        <Link
-                          href={`/conteudos/${c.id}`}
-                          className="text-gray-700 hover:text-brand-700"
-                        >
-                          {c.title}
-                        </Link>
-                      </li>
-                    ))}
+                  <ul className="mt-2 space-y-1.5">
+                    {grupo.itens.slice(0, 5).map((c) => {
+                      const cl = clientesById.get(c.client_id);
+                      return (
+                        <li key={c.id} className="text-sm">
+                          <Link
+                            href={`/conteudos/${c.id}`}
+                            className="group block"
+                          >
+                            <span className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500">
+                              <span
+                                className="inline-block h-2 w-2 shrink-0 rounded-full border border-gray-200"
+                                style={{ backgroundColor: cl?.color ?? "#e5e7eb" }}
+                                aria-hidden="true"
+                              />
+                              {cl?.name ?? "—"}
+                            </span>
+                            <span className="block truncate text-gray-700 group-hover:text-brand-700">
+                              {c.title}
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
                     {grupo.itens.length > 5 ? (
                       <li className="text-xs text-gray-500">
                         +{grupo.itens.length - 5} outros…
