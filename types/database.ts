@@ -43,6 +43,9 @@ export type ContentStatus =
 
 export type ContentPriority = "Urgente" | "Alta" | "Média" | "Baixa";
 
+/** Status de uma cobrança de tráfego. "Atrasado" é derivado, não armazenado. */
+export type ChargeStatus = "Pendente" | "Enviado" | "Pago" | "Cancelado";
+
 // -------------------------------------------------------------
 // Linhas das tabelas (Row)
 // -------------------------------------------------------------
@@ -68,7 +71,52 @@ export type Client = {
   /** Meta de conteúdos por mês (opcional; combo contratado). */
   monthly_goal: number | null;
   notes: string | null;
+  // Cobrança de tráfego
+  /** WhatsApp do cliente (apenas dígitos, com DDI 55). */
+  whatsapp: string | null;
+  /** Se o cliente entra na cobrança semanal de tráfego. */
+  traffic_billing_active: boolean;
+  /** Valor fixo semanal do tráfego (R$). */
+  traffic_value: number | null;
+  /** Código Pix copia-e-cola usado na cobrança do cliente. */
+  traffic_pix_code: string | null;
   created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+/** traffic_charges — cobrança semanal de tráfego */
+export type TrafficCharge = {
+  id: UUID;
+  client_id: UUID;
+  /** Segunda-feira de referência da semana (YYYY-MM-DD). */
+  reference_week: DateString;
+  amount: number;
+  pix_code: string | null;
+  status: ChargeStatus;
+  due_date: DateString | null;
+  sent_at: ISODateString | null;
+  paid_at: ISODateString | null;
+  reminder_count: number;
+  last_reminder_at: ISODateString | null;
+  send_error: string | null;
+  notes: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+/** traffic_settings — configuração única (1 linha) do módulo de cobrança */
+export type TrafficSettings = {
+  id: boolean;
+  /** Dias após o vencimento para o 1º lembrete. */
+  reminder_days: number;
+  /** Dias entre lembretes seguintes. */
+  reminder_interval: number;
+  /** Máximo de lembretes por cobrança. */
+  reminder_max: number;
+  /** Vencimento = segunda-feira da semana + N dias. */
+  due_offset_days: number;
+  charge_template: string;
+  reminder_template: string;
   updated_at: ISODateString;
 }
 
@@ -163,13 +211,46 @@ export type ProfileInsert = Omit<Profile, "created_at" | "updated_at"> & {
 };
 export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at" | "updated_at">>;
 
-export type ClientInsert = Omit<Client, "id" | "created_at" | "updated_at"> & {
+export type ClientInsert = Omit<
+  Client,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "traffic_billing_active"
+> & {
   id?: UUID;
   active?: boolean;
   niche?: string | null;
   monthly_goal?: number | null;
+  whatsapp?: string | null;
+  traffic_billing_active?: boolean;
+  traffic_value?: number | null;
+  traffic_pix_code?: string | null;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
+
+export type TrafficChargeInsert = {
+  id?: UUID;
+  client_id: UUID;
+  reference_week: DateString;
+  amount: number;
+  pix_code?: string | null;
+  status?: ChargeStatus;
+  due_date?: DateString | null;
+  sent_at?: ISODateString | null;
+  paid_at?: ISODateString | null;
+  reminder_count?: number;
+  last_reminder_at?: ISODateString | null;
+  send_error?: string | null;
+  notes?: string | null;
+};
+export type TrafficChargeUpdate = Partial<
+  Omit<TrafficCharge, "id" | "created_at" | "updated_at">
+>;
+
+export type TrafficSettingsUpdate = Partial<
+  Omit<TrafficSettings, "id" | "updated_at">
+>;
 
 export type ContentInsert = Omit<
   Content,
@@ -232,6 +313,18 @@ export interface Database {
         Update: ClientUpdate;
         Relationships: [];
       };
+      traffic_charges: {
+        Row: TrafficCharge;
+        Insert: TrafficChargeInsert;
+        Update: TrafficChargeUpdate;
+        Relationships: [];
+      };
+      traffic_settings: {
+        Row: TrafficSettings;
+        Insert: Partial<TrafficSettings>;
+        Update: TrafficSettingsUpdate;
+        Relationships: [];
+      };
       contents: {
         Row: Content;
         Insert: ContentInsert;
@@ -257,6 +350,7 @@ export interface Database {
       user_role: UserRole;
       content_status: ContentStatus;
       content_priority: ContentPriority;
+      charge_status: ChargeStatus;
     };
     CompositeTypes: Record<string, never>;
   };

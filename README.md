@@ -160,6 +160,12 @@ pendências.
   celular, foco por teclado, `aria-current`, contraste (WCAG AA).
 - **Etapa 16 — Configurações ✅:** edição do próprio perfil e sessão.
 
+- **Etapa 17 — Cobrança de tráfego ✅:** módulo de cobranças semanais
+  (Pix + WhatsApp). Envio do seu número, controle de pagamento (marcação
+  manual) e lembretes automáticos de atraso. Automação por cron
+  (`vercel.json`) e WhatsApp com modo de teste embutido. Guia:
+  **[docs/TRAFEGO.md](./docs/TRAFEGO.md)**.
+
 > **Todas as funcionalidades planejadas estão implementadas.** O próximo
 > passo é o deploy — ver **[docs/DEPLOY_VERCEL.md](./docs/DEPLOY_VERCEL.md)**.
 

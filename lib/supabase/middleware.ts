@@ -56,9 +56,12 @@ export async function atualizarSessao(request: NextRequest) {
 
   const rota = request.nextUrl.pathname;
   const ehPublica = ROTAS_PUBLICAS.includes(rota);
+  // Rotas de API (ex.: automação/cron) têm autenticação própria (CRON_SECRET);
+  // não devem ser redirecionadas para /login.
+  const ehApi = rota.startsWith("/api");
 
   // Não autenticado tentando acessar rota protegida -> login.
-  if (!user && !ehPublica) {
+  if (!user && !ehPublica && !ehApi) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

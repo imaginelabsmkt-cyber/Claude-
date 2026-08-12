@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizarWhatsapp } from "@/lib/utils";
 import {
   clienteFormSchema,
   type ClienteFormValues,
@@ -22,6 +23,7 @@ function normalizar(values: ClienteFormValues) {
     return t ? t : null;
   };
   const meta = values.monthly_goal?.trim();
+  const valorTrafego = values.traffic_value?.trim();
   return {
     name: values.name.trim(),
     color: limpar(values.color),
@@ -29,6 +31,12 @@ function normalizar(values: ClienteFormValues) {
     monthly_goal: meta ? Number(meta) : null,
     notes: limpar(values.notes),
     active: values.active,
+    whatsapp: normalizarWhatsapp(values.whatsapp),
+    traffic_billing_active: values.traffic_billing_active,
+    traffic_value: valorTrafego
+      ? Number(valorTrafego.replace(",", "."))
+      : null,
+    traffic_pix_code: limpar(values.traffic_pix_code),
   };
 }
 

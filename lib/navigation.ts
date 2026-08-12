@@ -43,6 +43,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     icone: "clientes",
   },
   {
+    href: "/trafego",
+    label: "Tráfego",
+    descricao: "Cobranças de tráfego e envio por WhatsApp",
+    icone: "trafego",
+  },
+  {
     href: "/gravacoes",
     label: "Gravações",
     descricao: "Conteúdos em captação",

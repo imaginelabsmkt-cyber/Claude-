@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/trafego-enviar",
+      "schedule": "0 11 * * 1"
+    },
+    {
+      "path": "/api/cron/trafego-lembretes",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}

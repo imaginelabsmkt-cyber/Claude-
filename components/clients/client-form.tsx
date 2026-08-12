@@ -43,6 +43,11 @@ export function ClientForm({ cliente }: ClientFormProps) {
             cliente.monthly_goal != null ? String(cliente.monthly_goal) : "",
           notes: cliente.notes ?? "",
           active: cliente.active,
+          whatsapp: cliente.whatsapp ?? "",
+          traffic_billing_active: cliente.traffic_billing_active ?? false,
+          traffic_value:
+            cliente.traffic_value != null ? String(cliente.traffic_value) : "",
+          traffic_pix_code: cliente.traffic_pix_code ?? "",
         }
       : CLIENTE_FORM_PADRAO,
   );
@@ -206,6 +211,83 @@ export function ClientForm({ cliente }: ClientFormProps) {
           Cliente ativo
         </label>
       ) : null}
+
+      {/* --- Cobrança de tráfego --- */}
+      <fieldset className="space-y-4 rounded-xl border border-gray-200 p-4">
+        <legend className="px-1 text-sm font-semibold text-gray-900">
+          Cobrança de tráfego
+        </legend>
+
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={values.traffic_billing_active ?? false}
+            onChange={(e) =>
+              atualizar("traffic_billing_active", e.target.checked)
+            }
+            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+          />
+          Incluir este cliente na cobrança semanal de tráfego
+        </label>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="whatsapp">WhatsApp</Label>
+            <Input
+              id="whatsapp"
+              value={values.whatsapp ?? ""}
+              onChange={(e) => atualizar("whatsapp", e.target.value)}
+              placeholder="Ex.: (11) 98765-4321"
+              inputMode="tel"
+              aria-invalid={Boolean(erros.whatsapp)}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              DDD + número. O DDI 55 (Brasil) é adicionado automaticamente.
+            </p>
+            {erros.whatsapp ? (
+              <p className="mt-1 text-xs text-red-600">{erros.whatsapp}</p>
+            ) : null}
+          </div>
+
+          <div>
+            <Label htmlFor="traffic_value">Valor semanal (R$)</Label>
+            <Input
+              id="traffic_value"
+              value={values.traffic_value ?? ""}
+              onChange={(e) => atualizar("traffic_value", e.target.value)}
+              placeholder="Ex.: 500 ou 500,00"
+              inputMode="decimal"
+              aria-invalid={Boolean(erros.traffic_value)}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Valor fixo cobrado toda semana.
+            </p>
+            {erros.traffic_value ? (
+              <p className="mt-1 text-xs text-red-600">{erros.traffic_value}</p>
+            ) : null}
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="traffic_pix_code">Código Pix padrão (opcional)</Label>
+          <Textarea
+            id="traffic_pix_code"
+            rows={2}
+            value={values.traffic_pix_code ?? ""}
+            onChange={(e) => atualizar("traffic_pix_code", e.target.value)}
+            placeholder="Deixe em branco se o Pix muda toda semana (você cola na tela de cobranças)"
+            className="font-mono text-xs"
+            aria-invalid={Boolean(erros.traffic_pix_code)}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Como o Pix do Facebook costuma mudar a cada semana, o normal é
+            deixar vazio e colar o código na hora, na página de Tráfego.
+          </p>
+          {erros.traffic_pix_code ? (
+            <p className="mt-1 text-xs text-red-600">{erros.traffic_pix_code}</p>
+          ) : null}
+        </div>
+      </fieldset>
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={salvando}>

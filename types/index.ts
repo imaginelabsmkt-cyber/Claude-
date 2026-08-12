@@ -10,11 +10,13 @@
 export * from "./database";
 
 import type {
+  ChargeStatus,
   Client,
   Content,
   ContentPriority,
   ContentStatus,
   Profile,
+  TrafficCharge,
   UserRole,
 } from "./database";
 
@@ -29,6 +31,13 @@ export interface ContentWithRelations extends Content {
   recorder: Profile | null;
   editor: Profile | null;
   publisher: Profile | null;
+}
+
+/** Cobrança de tráfego com o cliente resolvido, para exibição em telas. */
+export interface TrafficChargeWithClient extends TrafficCharge {
+  client: Client | null;
+  /** Derivado: cobrança vencida ainda não paga/cancelada. */
+  atrasada: boolean;
 }
 
 // -------------------------------------------------------------
@@ -115,4 +124,22 @@ export const PRIORITY_TONE: Record<ContentPriority, BadgeTone> = {
   Alta: "laranja",
   Média: "amarelo",
   Baixa: "cinza",
+};
+
+// -------------------------------------------------------------
+// Cobrança de tráfego
+// -------------------------------------------------------------
+
+export const CHARGE_STATUS_OPTIONS: ChargeStatus[] = [
+  "Pendente",
+  "Enviado",
+  "Pago",
+  "Cancelado",
+];
+
+export const CHARGE_STATUS_TONE: Record<ChargeStatus, BadgeTone> = {
+  Pendente: "cinza",
+  Enviado: "azul",
+  Pago: "verde",
+  Cancelado: "vermelho",
 };

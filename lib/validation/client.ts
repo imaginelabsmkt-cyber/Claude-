@@ -34,6 +34,29 @@ export const clienteFormSchema = z.object({
     .or(z.literal(""))
     .optional(),
   active: z.boolean(),
+  // --- Cobrança de tráfego ---
+  whatsapp: z
+    .string()
+    .trim()
+    .max(30, "Número muito longo")
+    .refine(
+      (v) => !v || v.replace(/\D/g, "").length >= 10,
+      "Informe DDD + número (ex.: 11 98765-4321)",
+    )
+    .or(z.literal(""))
+    .optional(),
+  traffic_billing_active: z.boolean(),
+  traffic_value: z
+    .string()
+    .trim()
+    .regex(/^(\d{1,7}([.,]\d{1,2})?)?$/, "Use um valor válido, ex.: 500 ou 500,00")
+    .optional(),
+  traffic_pix_code: z
+    .string()
+    .trim()
+    .max(2000, "Código Pix muito longo")
+    .or(z.literal(""))
+    .optional(),
 });
 
 export type ClienteFormValues = z.infer<typeof clienteFormSchema>;
@@ -46,4 +69,8 @@ export const CLIENTE_FORM_PADRAO: ClienteFormValues = {
   monthly_goal: "",
   notes: "",
   active: true,
+  whatsapp: "",
+  traffic_billing_active: false,
+  traffic_value: "",
+  traffic_pix_code: "",
 };

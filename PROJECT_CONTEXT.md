@@ -60,7 +60,7 @@ Isso evita funcionalidade duplicada: o dado vive só em `contents`.
 ## 4. Entidades (modelos de dados)
 
 Schema em `supabase/migrations/`; tipos em `types/database.ts` (fonte única).
-São **5 tabelas**:
+São **7 tabelas** (5 do núcleo + 2 do módulo de tráfego):
 
 - **profiles** — usuário (`id` = `auth.users.id`), `role`.
 - **clients** — cliente atendido pela agência.
@@ -71,6 +71,14 @@ São **5 tabelas**:
   `is_fixed_date`, `is_campaign`).
 - **content_history** — auditoria de alterações de campos de `contents`.
 - **comments** — comentários de colaboração em um conteúdo.
+- **traffic_charges** — cobrança semanal de tráfego de um cliente (valor,
+  Pix, status, vencimento, controle de envio/lembretes). 1 por cliente por
+  semana (`unique(client_id, reference_week)`).
+- **traffic_settings** — configuração única (1 linha) do módulo de cobrança:
+  regras de lembrete e modelos de mensagem.
+
+> A tabela **clients** ganhou campos de cobrança de tráfego: `whatsapp`,
+> `traffic_billing_active`, `traffic_value`, `traffic_pix_code`.
 
 > Gravação, agendamento e "tarefas" **não** têm tabela própria: gravação
 > vive em `contents`; as "tarefas de cada pessoa" derivam dos campos de
@@ -95,6 +103,8 @@ profiles   1 ── N content_history / comments (on delete set null)
 | `/dashboard`      | Dashboard       | Indicadores agregados (somente leitura)          |
 | `/conteudos`      | Conteúdos       | `contents` (CRUD + pipeline)                     |
 | `/clientes`       | Clientes        | `clients` (CRUD)                                 |
+| `/trafego`        | Tráfego         | `traffic_charges` (cobranças da semana + envio)  |
+| `/trafego/configuracoes` | Config. tráfego | `traffic_settings` (lembretes + modelos)   |
 | `/gravacoes`      | Gravações       | `contents` (status de gravação)                  |
 | `/fila-edicao`    | Fila de edição  | `contents` (status de edição)                    |
 | `/postagens`      | Postagens       | `contents` (status Agendado/Publicado)           |
@@ -170,3 +180,27 @@ próxima etapa sem confirmar explicitamente:
 
 Sequência planejada: Etapas 1–10 → Dashboard → Tarefas → Histórico →
 Design → Testes → Deploy (detalhado no README).
+
+## 11. Módulo de Cobrança de Tráfego
+
+Automatiza o envio semanal das cobranças de tráfego pelo WhatsApp, o
+acompanhamento de pagamento e os lembretes de atraso. Guia completo em
+**[docs/TRAFEGO.md](./docs/TRAFEGO.md)**.
+
+**Restrição de negócio (importante):** o Pix é gerado por você **dentro do
+Facebook** (a Meta não expõe API para isso) e o cliente paga o Facebook
+direto. Logo, o sistema **não detecta pagamento automaticamente** — a
+confirmação de "pago" é manual (1 clique). Tudo o mais é automático.
+
+- **Regras derivadas** centralizadas em `lib/rules/traffic.ts` (semana de
+  referência = segunda-feira; vencimento; atraso; elegibilidade de
+  lembrete), com testes em `lib/rules/traffic.test.ts`.
+- **Operações** (gerar semana, enviar, lembretes) em `lib/traffic/service.ts`
+  — recebem o cliente Supabase por parâmetro, para servir tanto as Server
+  Actions (sessão do usuário) quanto os crons (service-role).
+- **Envio de WhatsApp** abstraído em `lib/whatsapp/` com provedor padrão
+  `simulacao` (modo teste, não envia) + `evolution`/`zapi` prontos.
+- **Automação** em `app/api/cron/*` (protegida por `CRON_SECRET`), agendada
+  em `vercel.json`. Middleware libera `/api` do redirecionamento de login.
+- **Modelos de mensagem** ficam em `traffic_settings` (editáveis na UI), com
+  placeholders `{cliente}`, `{valor}`, `{pix}`, `{semana}`, `{vencimento}`.
