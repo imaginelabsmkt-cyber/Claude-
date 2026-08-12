@@ -275,19 +275,25 @@ export async function marcarComoGravadoAction(
   return { ok: true, id };
 }
 
-/** Altera a data de gravação. */
+/** Altera a data (e opcionalmente a hora) de gravação. */
 export async function alterarDataGravacaoAction(
   id: string,
   data: string,
+  hora?: string | null,
 ): Promise<ActionResult> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
     return { ok: false, error: "Data inválida." };
   }
+  if (hora && !/^\d{2}:\d{2}$/.test(hora)) {
+    return { ok: false, error: "Hora inválida." };
+  }
   const supabase = createClient();
-  const { error } = await supabase
-    .from("contents")
-    .update({ recording_date: data })
-    .eq("id", id);
+  const dados: { recording_date: string; recording_time?: string | null } = {
+    recording_date: data,
+  };
+  // Só mexe na hora quando o parâmetro é passado (undefined = não alterar).
+  if (hora !== undefined) dados.recording_time = hora || null;
+  const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
 
   await sincronizarGravacao(id);

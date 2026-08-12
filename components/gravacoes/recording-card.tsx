@@ -45,6 +45,7 @@ export function RecordingCard({
   const [processando, iniciar] = useTransition();
   const [editandoData, setEditandoData] = useState(false);
   const [data, setData] = useState(content.recording_date ?? "");
+  const [hora, setHora] = useState(content.recording_time ?? "");
   const [erro, setErro] = useState<string | null>(null);
 
   const gravado = content.status === "Gravado";
@@ -91,7 +92,14 @@ export function RecordingCard({
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-        <Campo rotulo="Data de gravação" valor={formatarData(content.recording_date)} />
+        <Campo
+          rotulo="Data de gravação"
+          valor={
+            content.recording_date
+              ? `${formatarData(content.recording_date)}${content.recording_time ? ` às ${content.recording_time}` : ""}`
+              : "—"
+          }
+        />
         <Campo rotulo="Prazo de gravação" valor={formatarData(content.recording_deadline)} />
         <Campo rotulo="Semana prevista" valor={content.planned_week ? `Semana ${content.planned_week}` : "—"} />
         <Campo rotulo="Data prevista de postagem" valor={formatarData(content.planned_date)} />
@@ -103,10 +111,10 @@ export function RecordingCard({
       </div>
 
       {editandoData ? (
-        <div className="mt-3 flex items-end gap-2">
+        <div className="mt-3 flex flex-wrap items-end gap-2">
           <div>
             <label className="text-[11px] uppercase tracking-wide text-gray-500">
-              Nova data de gravação
+              Data da gravação
             </label>
             <Input
               type="date"
@@ -115,10 +123,25 @@ export function RecordingCard({
               className="mt-1"
             />
           </div>
+          <div>
+            <label className="text-[11px] uppercase tracking-wide text-gray-500">
+              Horário
+            </label>
+            <Input
+              type="time"
+              value={hora}
+              onChange={(e) => setHora(e.target.value)}
+              className="mt-1"
+            />
+          </div>
           <Button
             tamanho="sm"
             disabled={processando || !data}
-            onClick={() => executar(() => alterarDataGravacaoAction(content.id, data))}
+            onClick={() =>
+              executar(() =>
+                alterarDataGravacaoAction(content.id, data, hora || null),
+              )
+            }
           >
             Salvar
           </Button>
