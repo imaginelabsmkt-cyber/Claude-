@@ -112,6 +112,10 @@ export type Content = {
   recording_deadline: DateString | null;
   editing_deadline: DateString | null;
 
+  // Sessão de edição (quando a Fran vai editar — vira bloco no Google Agenda)
+  editing_date: DateString | null;
+  editing_time: string | null;
+
   // Conteúdo rico (vindo do planejamento)
   script: string | null; // roteiro completo (cenas/falas/stories)
   caption: string | null; // legenda do post
@@ -272,12 +276,16 @@ export type ContentInsert = Omit<
   | "reference_url"
   | "recording_time"
   | "cover_source_id"
+  | "editing_date"
+  | "editing_time"
 > & {
   id?: UUID;
   status?: ContentStatus;
   reference_url?: string | null;
   recording_time?: string | null;
   cover_source_id?: UUID | null;
+  editing_date?: DateString | null;
+  editing_time?: string | null;
   priority?: ContentPriority;
   requires_recording?: boolean;
   participants?: string[];

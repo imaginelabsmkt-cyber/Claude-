@@ -23,8 +23,12 @@ const STATUS_EDICAO: ContentStatus[] = [
 ];
 
 type SB = ReturnType<typeof createClient>;
-/** Tipo de item sincronizado: evento de gravação, tarefa de edição ou evento de postagem. */
-type SyncKind = "event" | "task" | "post";
+/**
+ * Tipo de item sincronizado: evento de gravação (event), tarefa de edição
+ * (task), evento de postagem (post) ou bloco da sessão de edição na agenda
+ * (edit_event — quando a Fran agenda quando vai editar).
+ */
+type SyncKind = "event" | "task" | "post" | "edit_event";
 
 /** Access token do usuário (a partir do refresh token guardado). Null se não conectado. */
 async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
@@ -576,6 +580,110 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
 }
 
 // -------------------------------------------------------------
+// EVENTO (sessão de edição) — bloco na agenda "Imagine Produção"
+// Quando a Fran agenda QUANDO vai editar um vídeo, vira um bloco na agenda.
+// -------------------------------------------------------------
+export async function sincronizarSessaoEdicao(contentId: string): Promise<void> {
+  try {
+    const userId = await usuarioAtualId();
+    if (!userId) return;
+    const sb = createClient();
+    const token = await tokenDoUsuario(sb, userId);
+    if (!token) return;
+
+    const { data: c } = await sb
+      .from("contents")
+      .select("title, editing_date, editing_time, client_id")
+      .eq("id", contentId)
+      .maybeSingle();
+    if (!c) return;
+
+    const existente = await idSync(sb, contentId, userId, "edit_event");
+    const calId = encodeURIComponent(
+      await calendarioId(sb, userId, token, "producao"),
+    );
+
+    // Sem dia de edição => remove o bloco, se houver.
+    if (!c.editing_date) {
+      if (existente) {
+        await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente}?sendUpdates=none`,
+          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+        );
+        await apagarSync(sb, contentId, userId, "edit_event");
+      }
+      return;
+    }
+
+    const { data: cli } = await sb
+      .from("clients")
+      .select("name")
+      .eq("id", c.client_id)
+      .maybeSingle();
+    const nomeCli = cli?.name ?? null;
+    const resp1 = await rotuloResponsavel(sb, "producer");
+    const emailResp = await emailPorPapel(sb, "producer");
+
+    const corpo: Record<string, unknown> = {
+      summary: `Editar${resp1}${nomeCli ? ` · ${nomeCli}` : ""}: ${c.title}`,
+      description: nomeCli ? `Cliente: ${nomeCli}` : null,
+      attendees: emailResp ? [{ email: emailResp }] : [],
+    };
+    if (c.editing_time) {
+      const fim = somarMinutos(c.editing_date, c.editing_time, 120); // 2h padrão
+      corpo.start = {
+        dateTime: `${c.editing_date}T${c.editing_time}:00${OFFSET_LOCAL}`,
+        timeZone: TZ,
+      };
+      corpo.end = {
+        dateTime: `${fim.date}T${fim.time}:00${OFFSET_LOCAL}`,
+        timeZone: TZ,
+      };
+    } else {
+      corpo.start = { date: c.editing_date };
+      corpo.end = { date: diaSeguinte(c.editing_date) };
+    }
+
+    const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
+    const q = "?sendUpdates=none";
+    const resp = await fetch(existente ? `${base}/${existente}${q}` : `${base}${q}`, {
+      method: existente ? "PATCH" : "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(corpo),
+    });
+    if (!resp.ok) {
+      if (existente && resp.status === 404) {
+        await apagarSync(sb, contentId, userId, "edit_event");
+        const novo = await fetch(`${base}${q}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(corpo),
+        });
+        if (novo.ok) {
+          const j = (await novo.json()) as { id?: string };
+          if (j.id) await salvarSync(sb, contentId, userId, "edit_event", j.id);
+        }
+        return;
+      }
+      console.error("Google Agenda (sessão de edição) falhou:", resp.status);
+      return;
+    }
+    if (!existente) {
+      const json = (await resp.json()) as { id?: string };
+      if (json.id) await salvarSync(sb, contentId, userId, "edit_event", json.id);
+    }
+  } catch (e) {
+    console.error("sincronizarSessaoEdicao:", e);
+  }
+}
+
+// -------------------------------------------------------------
 // Remoção (ao excluir o conteúdo)
 // -------------------------------------------------------------
 export async function removerGoogleDoConteudo(contentId: string): Promise<void> {
@@ -610,6 +718,16 @@ export async function removerGoogleDoConteudo(contentId: string): Promise<void> 
     if (tarefa) {
       await fetch(
         `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${tarefa}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+      );
+    }
+    const blocoEdicao = await idSync(sb, contentId, userId, "edit_event");
+    if (blocoEdicao) {
+      const calProd = encodeURIComponent(
+        await calendarioId(sb, userId, token, "producao"),
+      );
+      await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${calProd}/events/${blocoEdicao}`,
         { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
       );
     }

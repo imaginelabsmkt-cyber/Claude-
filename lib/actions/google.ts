@@ -9,6 +9,7 @@ import {
   sincronizarGravacao,
   sincronizarGravacaoEmLote,
   sincronizarPostagem,
+  sincronizarSessaoEdicao,
 } from "@/lib/google/sync";
 import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
 import { estaGravado } from "@/lib/rules/contents";
@@ -135,7 +136,7 @@ export async function reenviarTudoGoogleAction(): Promise<
     .from("google_sync")
     .delete()
     .eq("user_id", userId)
-    .in("kind", ["event", "post"]);
+    .in("kind", ["event", "post", "edit_event"]);
   await supabase
     .from("planning_google_sync")
     .delete()
@@ -149,15 +150,18 @@ export async function reenviarTudoGoogleAction(): Promise<
   const planej = (ps ?? []).filter((p) => p.meeting_date || p.delivery_deadline);
   for (const p of planej) await sincronizarPlanejamentoGoogle(p.id);
 
-  // 4) Recria postagens e gravações (gravações agrupadas viram evento único).
+  // 4) Recria postagens, gravações e blocos de edição.
   const { data: cs } = await supabase
     .from("contents")
-    .select("id, planned_date, recording_date, recording_time, client_id, status")
+    .select(
+      "id, planned_date, recording_date, recording_time, editing_date, client_id, status",
+    )
     .neq("status", "Cancelado");
   const conts = cs ?? [];
 
   for (const c of conts) {
     if (c.planned_date) await sincronizarPostagem(c.id);
+    if (c.editing_date) await sincronizarSessaoEdicao(c.id);
   }
 
   const grupos = new Map<string, string[]>();

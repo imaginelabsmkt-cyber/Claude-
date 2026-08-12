@@ -20,6 +20,7 @@ import {
   sincronizarGravacaoEmLote,
   sincronizarEdicao,
   sincronizarPostagem,
+  sincronizarSessaoEdicao,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
 import { criarCapaDoVideo } from "@/lib/content/covers";
@@ -323,6 +324,38 @@ export async function alterarDataGravacaoAction(
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
 
   await sincronizarGravacao(id);
+
+  revalidarConteudos(id);
+  return { ok: true, id };
+}
+
+/**
+ * Agenda (ou desmarca) a SESSÃO DE EDIÇÃO de um vídeo: quando a Fran vai
+ * editar. Vira um bloco na agenda "Imagine Produção". Passe data vazia para
+ * desmarcar.
+ */
+export async function agendarSessaoEdicaoAction(
+  id: string,
+  data: string | null,
+  hora?: string | null,
+): Promise<ActionResult> {
+  if (data && !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return { ok: false, error: "Data inválida." };
+  }
+  if (hora && !/^\d{2}:\d{2}$/.test(hora)) {
+    return { ok: false, error: "Hora inválida." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({
+      editing_date: data || null,
+      editing_time: data ? hora || null : null,
+    })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível agendar a edição." };
+
+  await sincronizarSessaoEdicao(id);
 
   revalidarConteudos(id);
   return { ok: true, id };

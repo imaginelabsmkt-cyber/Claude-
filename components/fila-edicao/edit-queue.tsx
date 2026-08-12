@@ -1,38 +1,23 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-  useSortable,
-  sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
-import { PriorityBadge, StatusContentBadge } from "@/components/shared/status-badge";
+import {
+  PriorityBadge,
+  StatusContentBadge,
+} from "@/components/shared/status-badge";
 import { formatarData } from "@/lib/utils";
 import { toast } from "@/lib/ui/toast";
 import { corPrioridade } from "@/lib/ui/prioridade";
 import { prazoPrincipal } from "@/lib/rules/contents";
 import {
   definirStatusConteudoAction,
-  reordenarFilaEdicaoAction,
+  agendarSessaoEdicaoAction,
 } from "@/lib/actions/contents";
 import type { Content, ContentStatus } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
-
 
 interface EditQueueProps {
   itens: Content[];
@@ -53,43 +38,39 @@ function acoesPara(status: ContentStatus): { label: string; to: ContentStatus }[
       return [
         { label: "Enviar para revisão", to: "Revisão interna" },
         { label: "Marcar como ajuste", to: "Ajustes" },
-        { label: "Marcar como aprovado", to: "Aprovado" },
       ];
     case "Ajustes":
-      return [
-        { label: "Finalizar ajustes", to: "Revisão interna" },
-        { label: "Marcar como aprovado", to: "Aprovado" },
-      ];
+      return [{ label: "Finalizar ajustes", to: "Revisão interna" }];
     case "Revisão interna":
-      return [
-        { label: "Marcar como ajuste", to: "Ajustes" },
-        { label: "Marcar como aprovado", to: "Aprovado" },
-      ];
+      return [{ label: "Marcar como aprovado", to: "Aprovado" }];
     default:
       return [];
   }
 }
 
+const DIAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+/** "2026-08-12" -> "Seg 12/08". */
+function rotuloDia(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return `${DIAS[dt.getDay()]} ${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}`;
+}
+
+const CLASSE_MINI =
+  "rounded-md border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-gray-700 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-50";
+
 function ItemFila({
   content,
-  posicao,
   cliente,
 }: {
   content: Content;
-  posicao: number;
   cliente?: OpcaoCliente;
 }) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: content.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.6 : 1,
-    borderLeftColor: corPrioridade(content.priority),
-  };
+  const prazo = prazoPrincipal(content);
+  const primaria = acoesPara(content.status)[0];
 
   function mudarStatus(to: ContentStatus) {
     iniciar(async () => {
@@ -99,35 +80,21 @@ function ItemFila({
     });
   }
 
-  const prazo = prazoPrincipal(content);
-  const primaria = acoesPara(content.status)[0];
+  function agendarEdicao(data: string | null, hora: string | null) {
+    iniciar(async () => {
+      const r = await agendarSessaoEdicaoAction(content.id, data, hora);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível agendar a edição.");
+      else toast.sucesso(data ? "Edição agendada" : "Edição desmarcada");
+      router.refresh();
+    });
+  }
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
+      style={{ borderLeftColor: corPrioridade(content.priority) }}
       className="rounded-lg border border-l-4 border-gray-200 bg-white p-2.5 shadow-sm"
     >
       <div className="flex items-center gap-2.5">
-        {/* Alça de arraste */}
-        <button
-          type="button"
-          className="shrink-0 cursor-grab touch-none rounded p-1 text-gray-400 hover:bg-gray-100 active:cursor-grabbing"
-          aria-label="Arrastar para reordenar"
-          {...attributes}
-          {...listeners}
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
-            <circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" />
-            <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
-            <circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" />
-          </svg>
-        </button>
-
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">
-          {posicao}
-        </div>
-
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
             <span
@@ -143,7 +110,8 @@ function ItemFila({
             ) : null}
             {content.revision_count > 0 ? (
               <span className="shrink-0 text-amber-600">
-                · {content.revision_count} ajuste{content.revision_count > 1 ? "s" : ""}
+                · {content.revision_count} ajuste
+                {content.revision_count > 1 ? "s" : ""}
               </span>
             ) : null}
           </div>
@@ -170,62 +138,90 @@ function ItemFila({
           ) : null}
         </div>
       </div>
+
+      {/* Agendar quando vai editar (vira bloco no Google Agenda) */}
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
+        <span className="font-medium">🗓️ Editar em:</span>
+        <input
+          type="date"
+          value={content.editing_date ?? ""}
+          disabled={processando}
+          onChange={(e) => agendarEdicao(e.target.value || null, content.editing_time)}
+          className={CLASSE_MINI}
+        />
+        <input
+          type="time"
+          value={content.editing_time ?? ""}
+          disabled={processando || !content.editing_date}
+          onChange={(e) => agendarEdicao(content.editing_date, e.target.value || null)}
+          className={CLASSE_MINI}
+        />
+        {content.editing_date ? (
+          <button
+            type="button"
+            disabled={processando}
+            onClick={() => agendarEdicao(null, null)}
+            className="text-gray-400 hover:text-red-600"
+          >
+            limpar
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
 
-/** Fila de edição com reordenação manual (drag and drop). */
+/**
+ * Fila de edição agrupada por DIA de edição. "Sem dia de edição" primeiro,
+ * depois um bloco por dia (o que você agendou). Marcar dia/hora cria o bloco
+ * no Google Agenda para você distribuir as edições no seu tempo livre.
+ */
 export function EditQueue({ itens, clientes }: EditQueueProps) {
-  const [ordem, setOrdem] = useState<Content[]>(itens);
-  const [pendente, iniciar] = useTransition();
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
-  // Sincroniza com o servidor, mas não durante um salvamento em voo (senão
-  // reverte a reordenação otimista antes de ela ser persistida).
-  useEffect(() => {
-    if (!pendente) setOrdem(itens);
-  }, [itens, pendente]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  function aoSoltar(evento: DragEndEvent) {
-    const { active, over } = evento;
-    if (!over || active.id === over.id) return;
-    const de = ordem.findIndex((c) => c.id === active.id);
-    const para = ordem.findIndex((c) => c.id === over.id);
-    if (de < 0 || para < 0) return;
-    const nova = arrayMove(ordem, de, para);
-    setOrdem(nova); // otimista
-    iniciar(async () => {
-      const r = await reordenarFilaEdicaoAction(nova.map((c) => c.id));
-      if (!r.ok) toast.erro(r.error ?? "Não foi possível salvar a ordem.");
-    });
+  const grupos = new Map<string, Content[]>();
+  for (const c of itens) {
+    const chave = c.editing_date ?? "";
+    grupos.set(chave, [...(grupos.get(chave) ?? []), c]);
   }
+  const chaves = [...grupos.keys()].sort((a, b) => {
+    if (a === "") return -1;
+    if (b === "") return 1;
+    return a.localeCompare(b);
+  });
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={aoSoltar}
-    >
-      <SortableContext
-        items={ordem.map((c) => c.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div className="space-y-3">
-          {ordem.map((c, i) => (
-            <ItemFila
-              key={c.id}
-              content={c}
-              posicao={i + 1}
-              cliente={clientesById.get(c.client_id)}
-            />
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+    <div className="space-y-6">
+      {chaves.map((chave) => {
+        const lista = grupos.get(chave) ?? [];
+        return (
+          <section key={chave || "sem-dia"}>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <span
+                className={
+                  chave
+                    ? "rounded-md bg-brand-50 px-2 py-0.5 text-brand-700"
+                    : "text-gray-500"
+                }
+              >
+                {chave ? rotuloDia(chave) : "Sem dia de edição"}
+              </span>
+              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {lista.length}
+              </span>
+            </h2>
+            <div className="space-y-2">
+              {lista.map((c) => (
+                <ItemFila
+                  key={c.id}
+                  content={c}
+                  cliente={clientesById.get(c.client_id)}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
   );
 }
