@@ -364,6 +364,29 @@ export async function agendarGravacoesEmLoteAction(
   return { ok: true, quantidade: ids.length };
 }
 
+/**
+ * Desmarca a gravação: zera data/hora e remove o evento do Google, MAS mantém
+ * o conteúdo na lista de "a gravar" (requires_recording continua). Assim ele
+ * volta a ser candidato para reagendar, inclusive em lote.
+ */
+export async function limparAgendamentoGravacaoAction(
+  id: string,
+): Promise<ActionResult> {
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({ recording_date: null, recording_time: null })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível desmarcar." };
+
+  await sincronizarGravacao(id); // sem data => remove o evento no Google
+  revalidarConteudos(id);
+  return { ok: true, id };
+}
+
 /** Adiciona o conteúdo à fila de edição (status Fila de edição). */
 export async function adicionarFilaEdicaoAction(
   id: string,

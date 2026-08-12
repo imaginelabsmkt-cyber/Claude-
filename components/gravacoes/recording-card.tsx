@@ -14,6 +14,7 @@ import {
   alterarDataGravacaoAction,
   adicionarFilaEdicaoAction,
   atualizarProducaoConteudoAction,
+  limparAgendamentoGravacaoAction,
 } from "@/lib/actions/contents";
 import type { Content } from "@/types";
 
@@ -184,6 +185,19 @@ export function RecordingCard({
           >
             Alterar data
           </Button>
+
+          {!gravado && content.recording_date ? (
+            <Button
+              tamanho="sm"
+              variante="fantasma"
+              disabled={processando}
+              onClick={() =>
+                executar(() => limparAgendamentoGravacaoAction(content.id))
+              }
+            >
+              Desmarcar
+            </Button>
+          ) : null}
 
           {content.script_url ? (
             <a href={content.script_url} target="_blank" rel="noopener noreferrer">
