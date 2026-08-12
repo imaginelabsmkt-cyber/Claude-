@@ -225,8 +225,12 @@ export async function definirStatusConteudoAction(
   await sincronizarEdicao(id, status);
   await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
 
-  // Vídeo editado (chegou em "Revisão interna") => cria a demanda de capa.
-  if (status === "Revisão interna") await criarCapaDoVideo(supabase, id);
+  // Vídeo entrou em edição => já cria a demanda de capa nas Artes (para a
+  // Vitória trabalhar em paralelo). Também na revisão, por segurança: a função
+  // não duplica (usa cover_source_id).
+  if (status === "Em edição" || status === "Revisão interna") {
+    await criarCapaDoVideo(supabase, id);
+  }
 
   revalidarConteudos(id);
   return { ok: true, id };
