@@ -56,7 +56,7 @@ function gruposPlanner(contents: Content[]): Grupo[] {
       itens: meus.filter((c) => ehArte(c.format) && c.status === "Ajustes"),
     },
     {
-      titulo: "Em revisão interna",
+      titulo: "Vídeos a revisar",
       itens: meus.filter((c) => c.status === "Revisão interna"),
     },
     {
@@ -116,7 +116,7 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
       itens: meus.filter((c) => c.status === "Gravado"),
     },
     {
-      titulo: "Prontos para revisão",
+      titulo: "Artes a revisar",
       itens: meus.filter((c) => c.status === "Revisão interna"),
     },
   ];

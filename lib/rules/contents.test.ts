@@ -108,26 +108,33 @@ describe("responsavelAtual", () => {
     }
   });
 
-  it("revisão interna -> Fran e Vitória", () => {
+  it("vídeo em revisão interna -> Vitória (ela revisa os vídeos)", () => {
     expect(
       responsavelAtual(makeContent({ status: "Revisão interna" }), ctx),
-    ).toBe("Fran e Vitória");
+    ).toBe("Vitória");
   });
 
-  it("arte (Carrossel/Post estático) -> sempre Vitória na criação", () => {
+  it("arte (Carrossel/Post estático) -> Vitória na criação", () => {
     for (const format of ["Carrossel", "Post estático"] as const) {
       for (const status of [
         "Planejamento",
         "Fila de edição",
         "Em edição",
         "Ajustes",
-        "Revisão interna",
         "Aprovação do cliente",
       ] as const) {
         expect(responsavelAtual(makeContent({ format, status }), ctx)).toBe(
           "Vitória",
         );
       }
+    }
+  });
+
+  it("arte em revisão interna -> Fran (ela revisa as artes)", () => {
+    for (const format of ["Carrossel", "Post estático"] as const) {
+      expect(
+        responsavelAtual(makeContent({ format, status: "Revisão interna" }), ctx),
+      ).toBe("Fran");
     }
   });
 

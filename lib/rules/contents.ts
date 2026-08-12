@@ -204,12 +204,16 @@ export function responsavelAtual(
   // sua, mas o dono da demanda continua sendo a Vitória.
   if (ehArte(content.format)) {
     switch (content.status) {
+      case "Revisão interna":
+        return producer; // a arte é revisada pela Fran
+      case "Aprovação do cliente":
+        return planner; // quem manda pro cliente é a Vitória
       case "Aprovado":
       case "Agendado":
       case "Publicado":
         return ctx.publisherName ?? planner;
       default:
-        return planner; // planejamento, criação, ajustes, revisão, aprovação
+        return planner; // planejamento, criação, ajustes
     }
   }
 
@@ -225,9 +229,9 @@ export function responsavelAtual(
     case "Ajustes":
       return producer;
     case "Revisão interna":
-      return `${producer} e ${planner}`;
+      return planner; // o vídeo é revisado pela Vitória
     case "Aprovação do cliente":
-      return planner;
+      return planner; // quem manda pro cliente é a Vitória
     case "Aprovado":
     case "Agendado":
     case "Publicado":
@@ -239,9 +243,11 @@ export function responsavelAtual(
 
 /**
  * Papel FIXO responsável por uma demanda (time de duas pessoas):
- * - Arte/design (Carrossel, Post estático) => planner (Vitória).
+ * - Arte/design (Carrossel, Post estático) => planner (Vitória) na criação.
  * - Vídeo em planejamento/roteiro => planner (Vitória).
  * - Vídeo em produção/edição em diante => producer (Fran).
+ * - REVISÃO INTERNA cruza: vídeo é revisado pela Vitória (planner) e arte é
+ *   revisada pela Fran (producer).
  * Usado para separar "Minhas tarefas" por pessoa.
  */
 export type PapelDemanda = "planner" | "producer";
@@ -249,6 +255,10 @@ export type PapelDemanda = "planner" | "producer";
 export function papelResponsavel(
   content: Pick<Content, "status" | "format">,
 ): PapelDemanda {
+  // Revisão interna: a revisão troca de mãos (vídeo -> Vitória, arte -> Fran).
+  if (content.status === "Revisão interna") {
+    return ehArte(content.format) ? "producer" : "planner";
+  }
   if (ehArte(content.format)) return "planner";
   return ORDEM_STATUS[content.status] <= ORDEM_STATUS["Roteiro pronto"]
     ? "planner"
