@@ -15,6 +15,7 @@ import {
 import {
   classificarGravacao,
   estaGravado,
+  ehArte,
   ORDEM_STATUS,
 } from "@/lib/rules/contents";
 import type { Content } from "@/types";
@@ -47,13 +48,15 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
       ORDEM_STATUS[c.status] >= 0,
   );
 
-  // Candidatos a agendar em lote: ainda PRECISAM ser gravados (antes da etapa
-  // "Gravado") e ainda sem data. Se já está na Fila de edição/edição em diante,
-  // é porque já foi gravado — não aparece aqui.
+  // Candidatos a agendar em lote: ainda sem data e ANTES da etapa "Gravado".
+  // (Não exige "precisa de gravação": muitos vídeos ainda não foram marcados,
+  // e é justamente aqui que se agenda. Já na Fila de edição/edição em diante é
+  // porque já foi gravado — esses não aparecem.) Exclui arte (não é gravação
+  // de vídeo), Pausado e Cancelado.
   const candidatos = todosSemFiltro.filter(
     (c) =>
-      c.requires_recording &&
       !c.recording_date &&
+      !ehArte(c.format) &&
       ORDEM_STATUS[c.status] >= 0 &&
       ORDEM_STATUS[c.status] < ORDEM_STATUS["Gravado"],
   );
