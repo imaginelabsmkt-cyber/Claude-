@@ -20,7 +20,8 @@ import {
 } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
-import { FORMAT_OPTIONS, type ContentStatus } from "@/types";
+import { responsavelAtual } from "@/lib/rules/contents";
+import { FORMAT_OPTIONS } from "@/types";
 import type { Content, Profile } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
 import { cn } from "@/lib/utils";
@@ -35,27 +36,6 @@ interface EditableContentsTableProps {
   vazioDescricao?: string;
   /** Ação exibida no estado vazio (ex.: botão "+ Novo conteúdo"). */
   acaoVazio?: ReactNode;
-}
-
-/** Campo de responsável conforme a etapa (status) do conteúdo. */
-function campoResponsavel(status: ContentStatus): keyof ContentEditPatch {
-  switch (status) {
-    case "Aguardando gravação":
-    case "Gravado":
-      return "recorder_id";
-    case "Fila de edição":
-    case "Em edição":
-    case "Revisão interna":
-    case "Ajustes":
-      return "editor_id";
-    case "Aprovado":
-    case "Agendado":
-    case "Publicado":
-    case "Aprovação do cliente":
-      return "publisher_id";
-    default:
-      return "planner_id"; // Planejamento, Roteiro pronto, Pausado, Cancelado
-  }
 }
 
 /** Hook simples de salvamento de um campo com refresh + aviso (toast). */
@@ -147,8 +127,19 @@ const NUM_COLUNAS = 7;
 function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
   const { salvar, salvando } = useSalvar();
   const est = estiloFormato(content.format);
-  const campoResp = campoResponsavel(content.status);
-  const respAtual = (content[campoResp] as string | null) ?? "";
+
+  // Responsável AUTOMÁTICO pela etapa: planejamento/arte => Vitória (planner);
+  // gravação/edição/produção => Fran (producer). Só exibe, não é editável.
+  const planner = perfis.find((p) => p.role === "planner");
+  const producer = perfis.find((p) => p.role === "producer");
+  const publisherName = content.publisher_id
+    ? (perfis.find((p) => p.id === content.publisher_id)?.name ?? null)
+    : null;
+  const responsavel = responsavelAtual(content, {
+    planner: planner ? { id: planner.id, name: planner.name } : null,
+    producer: producer ? { id: producer.id, name: producer.name } : null,
+    publisherName,
+  });
 
   return (
     <tr className="align-middle hover:bg-gray-50/60">
@@ -206,26 +197,11 @@ function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
         <QuickPriority id={content.id} priority={content.priority} />
       </td>
 
-      {/* Responsável (campo conforme a etapa) */}
+      {/* Responsável — automático conforme a etapa (só leitura) */}
       <td className="px-2 py-1.5">
-        <select
-          aria-label="Responsável"
-          value={respAtual}
-          disabled={salvando}
-          onChange={(e) =>
-            salvar(content.id, {
-              [campoResp]: e.target.value || null,
-            } as ContentEditPatch)
-          }
-          className={CLASSE_SELECT}
-        >
-          <option value="">—</option>
-          {perfis.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+        <span className="px-1.5 text-xs font-medium text-gray-700">
+          {responsavel}
+        </span>
       </td>
 
       {/* Ações (⋮): abrir / editar / excluir */}
