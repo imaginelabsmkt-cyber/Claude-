@@ -1,0 +1,276 @@
+/**
+ * Sincronização com o Google (mão única: sistema -> Google).
+ * - Gravação (tem data/hora, envolve cliente) => EVENTO na Agenda.
+ * - Edição (trabalho interno) => TAREFA (com o quadradinho de concluir).
+ *
+ * Tudo é "melhor esforço": se o Google falhar, a ação principal do sistema
+ * NÃO quebra — apenas não sincroniza (e loga no servidor).
+ * Empurra para a conta do usuário que está fazendo a ação (se conectado).
+ */
+import { createClient } from "@/lib/supabase/server";
+import { usuarioAtualId } from "@/lib/auth";
+import { renovarAccessToken } from "@/lib/google/oauth";
+import type { ContentStatus } from "@/types";
+
+const TZ = "America/Sao_Paulo";
+const STATUS_EDICAO: ContentStatus[] = [
+  "Fila de edição",
+  "Em edição",
+  "Ajustes",
+];
+
+type SB = ReturnType<typeof createClient>;
+
+/** Access token do usuário (a partir do refresh token guardado). Null se não conectado. */
+async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
+  const { data } = await sb
+    .from("google_accounts")
+    .select("refresh_token")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data?.refresh_token) return null;
+  try {
+    return await renovarAccessToken(data.refresh_token);
+  } catch {
+    return null;
+  }
+}
+
+async function idSync(
+  sb: SB,
+  contentId: string,
+  userId: string,
+  kind: "event" | "task",
+): Promise<string | null> {
+  const { data } = await sb
+    .from("google_sync")
+    .select("external_id")
+    .eq("content_id", contentId)
+    .eq("user_id", userId)
+    .eq("kind", kind)
+    .maybeSingle();
+  return data?.external_id ?? null;
+}
+
+async function salvarSync(
+  sb: SB,
+  contentId: string,
+  userId: string,
+  kind: "event" | "task",
+  externalId: string,
+) {
+  await sb.from("google_sync").upsert(
+    {
+      content_id: contentId,
+      user_id: userId,
+      kind,
+      external_id: externalId,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "content_id,user_id,kind" },
+  );
+}
+
+async function apagarSync(
+  sb: SB,
+  contentId: string,
+  userId: string,
+  kind: "event" | "task",
+) {
+  await sb
+    .from("google_sync")
+    .delete()
+    .eq("content_id", contentId)
+    .eq("user_id", userId)
+    .eq("kind", kind);
+}
+
+// -------------------------------------------------------------
+// Helpers de data/hora (servidor roda em America/Sao_Paulo)
+// -------------------------------------------------------------
+function maisUmaHora(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const nh = Math.min((h ?? 0) + 1, 23);
+  return `${String(nh).padStart(2, "0")}:${String(m ?? 0).padStart(2, "0")}`;
+}
+
+function diaSeguinte(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d + 1);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+// -------------------------------------------------------------
+// EVENTO (gravação)
+// -------------------------------------------------------------
+export async function sincronizarGravacao(contentId: string): Promise<void> {
+  try {
+    const userId = await usuarioAtualId();
+    if (!userId) return;
+    const sb = createClient();
+    const token = await tokenDoUsuario(sb, userId);
+    if (!token) return; // usuário não conectou o Google
+
+    const { data: c } = await sb
+      .from("contents")
+      .select(
+        "title, recording_date, recording_time, recording_location, participants, client_id",
+      )
+      .eq("id", contentId)
+      .maybeSingle();
+    if (!c) return;
+
+    const existente = await idSync(sb, contentId, userId, "event");
+
+    // Sem data de gravação => remove o evento, se houver.
+    if (!c.recording_date) {
+      if (existente) {
+        await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${existente}`,
+          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+        );
+        await apagarSync(sb, contentId, userId, "event");
+      }
+      return;
+    }
+
+    const participantes = (c.participants ?? []).join(", ");
+    const corpo: Record<string, unknown> = {
+      summary: `Gravação: ${c.title}`,
+      description: participantes ? `Participantes: ${participantes}` : undefined,
+      location: c.recording_location ?? undefined,
+    };
+    if (c.recording_time) {
+      corpo.start = {
+        dateTime: `${c.recording_date}T${c.recording_time}:00`,
+        timeZone: TZ,
+      };
+      corpo.end = {
+        dateTime: `${c.recording_date}T${maisUmaHora(c.recording_time)}:00`,
+        timeZone: TZ,
+      };
+    } else {
+      corpo.start = { date: c.recording_date };
+      corpo.end = { date: diaSeguinte(c.recording_date) };
+    }
+
+    const base = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+    const url = existente ? `${base}/${existente}` : base;
+    const resp = await fetch(url, {
+      method: existente ? "PATCH" : "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(corpo),
+    });
+    if (!resp.ok) {
+      console.error("Google Agenda (evento) falhou:", resp.status);
+      return;
+    }
+    if (!existente) {
+      const json = (await resp.json()) as { id?: string };
+      if (json.id) await salvarSync(sb, contentId, userId, "event", json.id);
+    }
+  } catch (e) {
+    console.error("sincronizarGravacao:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// TAREFA (edição)
+// -------------------------------------------------------------
+export async function sincronizarEdicao(
+  contentId: string,
+  novoStatus: ContentStatus,
+): Promise<void> {
+  try {
+    const userId = await usuarioAtualId();
+    if (!userId) return;
+    const sb = createClient();
+    const token = await tokenDoUsuario(sb, userId);
+    if (!token) return;
+
+    const existente = await idSync(sb, contentId, userId, "task");
+    const emEdicao = STATUS_EDICAO.includes(novoStatus);
+
+    // Saiu da edição => remove a tarefa (mantém o Google limpo).
+    if (!emEdicao) {
+      if (existente) {
+        await fetch(
+          `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${existente}`,
+          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+        );
+        await apagarSync(sb, contentId, userId, "task");
+      }
+      return;
+    }
+
+    // Está em edição e já tem tarefa => nada a fazer.
+    if (existente) return;
+
+    const { data: c } = await sb
+      .from("contents")
+      .select("title, editing_deadline, planned_date, recording_date")
+      .eq("id", contentId)
+      .maybeSingle();
+    if (!c) return;
+
+    const due = c.editing_deadline ?? c.planned_date ?? c.recording_date;
+    const corpo: Record<string, unknown> = {
+      title: `Editar: ${c.title}`,
+    };
+    if (due) corpo.due = `${due}T00:00:00.000Z`;
+
+    const resp = await fetch(
+      "https://www.googleapis.com/tasks/v1/lists/@default/tasks",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(corpo),
+      },
+    );
+    if (!resp.ok) {
+      console.error("Google Tarefas falhou:", resp.status);
+      return;
+    }
+    const json = (await resp.json()) as { id?: string };
+    if (json.id) await salvarSync(sb, contentId, userId, "task", json.id);
+  } catch (e) {
+    console.error("sincronizarEdicao:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// Remoção (ao excluir o conteúdo)
+// -------------------------------------------------------------
+export async function removerGoogleDoConteudo(contentId: string): Promise<void> {
+  try {
+    const userId = await usuarioAtualId();
+    if (!userId) return;
+    const sb = createClient();
+    const token = await tokenDoUsuario(sb, userId);
+    if (!token) return;
+
+    const evento = await idSync(sb, contentId, userId, "event");
+    if (evento) {
+      await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${evento}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+      );
+    }
+    const tarefa = await idSync(sb, contentId, userId, "task");
+    if (tarefa) {
+      await fetch(
+        `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${tarefa}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+      );
+    }
+    // google_sync some por cascade quando o conteúdo é apagado.
+  } catch (e) {
+    console.error("removerGoogleDoConteudo:", e);
+  }
+}

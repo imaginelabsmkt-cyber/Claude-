@@ -15,6 +15,11 @@ import {
 import { hojeISO } from "@/lib/rules/contents";
 import { registrarHistorico, diffConteudo } from "@/lib/history";
 import { usuarioAtualId } from "@/lib/auth";
+import {
+  sincronizarGravacao,
+  sincronizarEdicao,
+  removerGoogleDoConteudo,
+} from "@/lib/google/sync";
 import { formatarData } from "@/lib/utils";
 
 export interface ActionResult {
@@ -188,6 +193,8 @@ export async function definirStatusConteudoAction(
     { field: "Status", old: antigo?.status ?? null, new: status },
   ]);
 
+  await sincronizarEdicao(id, status);
+
   revalidatePath("/conteudos");
   revalidatePath("/fila-edicao");
   revalidatePath("/gravacoes");
@@ -253,6 +260,8 @@ export async function marcarComoGravadoAction(
     { field: "Status", old: antigo?.status ?? null, new: "Gravado" },
   ]);
 
+  await sincronizarGravacao(id);
+
   revalidatePath("/gravacoes");
   revalidatePath("/conteudos");
   revalidatePath(`/conteudos/${id}`);
@@ -273,6 +282,8 @@ export async function alterarDataGravacaoAction(
     .update({ recording_date: data })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
+
+  await sincronizarGravacao(id);
 
   revalidatePath("/gravacoes");
   revalidatePath(`/conteudos/${id}`);
@@ -300,6 +311,8 @@ export async function adicionarFilaEdicaoAction(
   await registrarHistorico(id, [
     { field: "Status", old: antigo?.status ?? null, new: "Fila de edição" },
   ]);
+
+  await sincronizarEdicao(id, "Fila de edição");
 
   revalidatePath("/gravacoes");
   revalidatePath("/fila-edicao");
@@ -537,6 +550,16 @@ export async function atualizarProducaoConteudoAction(
     .filter((r) => r.old !== r.new);
   if (registros.length > 0) await registrarHistorico(id, registros);
 
+  // Se mexeu em algo da gravação, atualiza o evento no Google.
+  if (
+    "recording_date" in patch ||
+    "recording_time" in patch ||
+    "recording_location" in patch ||
+    "participants" in patch
+  ) {
+    await sincronizarGravacao(id);
+  }
+
   revalidatePath("/conteudos");
   revalidatePath(`/conteudos/${id}`);
   revalidatePath("/gravacoes");
@@ -689,6 +712,8 @@ export async function excluirConteudoAction(
   if (!(await usuarioAtualId())) {
     return { ok: false, error: "Sessão expirada. Entre novamente." };
   }
+  // Remove evento/tarefa no Google antes de apagar (os ids somem por cascade).
+  await removerGoogleDoConteudo(id);
   const supabase = createClient();
   const { error } = await supabase.from("contents").delete().eq("id", id);
   if (error) return { ok: false, error: "Não foi possível excluir o conteúdo." };
