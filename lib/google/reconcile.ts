@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { calendarioId } from "@/lib/google/calendars";
+import { criarCapaDoVideo } from "@/lib/content/covers";
 import { registrarHistorico } from "@/lib/history";
 import type { ContentStatus } from "@/types";
 
@@ -123,6 +124,8 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
       await registrarHistorico(s.content_id, [
         { field: "Status", old: c.status, new: "Revisão interna" },
       ]);
+      // Vídeo editado => gera a demanda de capa (arte).
+      await criarCapaDoVideo(sb, s.content_id);
 
       await fetch(
         `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${s.external_id}`,

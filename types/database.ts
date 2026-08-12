@@ -129,6 +129,8 @@ export type Content = {
   editing_queue_position: number | null;
   is_fixed_date: boolean;
   is_campaign: boolean;
+  /** Se for uma CAPA gerada de um vídeo, guarda o id do vídeo de origem. */
+  cover_source_id: UUID | null;
 
   created_at: ISODateString;
   updated_at: ISODateString;
@@ -269,11 +271,13 @@ export type ContentInsert = Omit<
   | "caption"
   | "reference_url"
   | "recording_time"
+  | "cover_source_id"
 > & {
   id?: UUID;
   status?: ContentStatus;
   reference_url?: string | null;
   recording_time?: string | null;
+  cover_source_id?: UUID | null;
   priority?: ContentPriority;
   requires_recording?: boolean;
   participants?: string[];

@@ -21,6 +21,7 @@ import {
   sincronizarPostagem,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
+import { criarCapaDoVideo } from "@/lib/content/covers";
 import { formatarData } from "@/lib/utils";
 
 export interface ActionResult {
@@ -202,7 +203,11 @@ export async function definirStatusConteudoAction(
   await sincronizarEdicao(id, status);
   await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
 
+  // Vídeo editado (chegou em "Revisão interna") => cria a demanda de capa.
+  if (status === "Revisão interna") await criarCapaDoVideo(supabase, id);
+
   revalidatePath("/conteudos");
+  revalidatePath("/artes");
   revalidatePath("/fila-edicao");
   revalidatePath("/gravacoes");
   revalidatePath(`/conteudos/${id}`);

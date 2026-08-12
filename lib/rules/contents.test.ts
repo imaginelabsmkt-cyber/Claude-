@@ -58,6 +58,7 @@ function makeContent(over: Partial<Content> = {}): Content {
     editing_queue_position: null,
     is_fixed_date: false,
     is_campaign: false,
+    cover_source_id: null,
     created_at: "2026-07-01T00:00:00Z",
     updated_at: "2026-07-01T00:00:00Z",
     ...over,
