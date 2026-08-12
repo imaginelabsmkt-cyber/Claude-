@@ -47,12 +47,15 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
       ORDEM_STATUS[c.status] >= 0,
   );
 
-  // Candidatos a agendar em lote: ainda sem data de gravação, não finalizados.
+  // Candidatos a agendar em lote: ainda PRECISAM ser gravados (antes da etapa
+  // "Gravado") e ainda sem data. Se já está na Fila de edição/edição em diante,
+  // é porque já foi gravado — não aparece aqui.
   const candidatos = todosSemFiltro.filter(
     (c) =>
+      c.requires_recording &&
       !c.recording_date &&
-      c.status !== "Publicado" &&
-      c.status !== "Cancelado",
+      ORDEM_STATUS[c.status] >= 0 &&
+      ORDEM_STATUS[c.status] < ORDEM_STATUS["Gravado"],
   );
 
   // Agrupa: só quem tem DATA vira card. Sem data => lista compacta "A agendar".
