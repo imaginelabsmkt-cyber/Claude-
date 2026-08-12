@@ -146,16 +146,28 @@ export default async function MinhasTarefasPage() {
   const nome = ctx.profile?.name ?? "você";
 
   // Planejamentos a FAZER (planner): reunião já aconteceu e ainda não entregou.
+  // Ordenados por prazo de entrega (fila de prioridade: quem entrega antes vem
+  // primeiro). A reunião em si não aparece — só a demanda de criar o plano.
   const planejamentosAFazer: Planning[] =
     role === "producer"
       ? []
-      : plannings.filter(
-          (p) =>
-            p.meeting_date != null &&
-            p.meeting_date <= hojeStr &&
-            !PLANNING_ENTREGUE.includes(p.status),
-        );
+      : plannings
+          .filter(
+            (p) =>
+              p.meeting_date != null &&
+              p.meeting_date <= hojeStr &&
+              !PLANNING_ENTREGUE.includes(p.status),
+          )
+          .sort((a, b) =>
+            (a.delivery_deadline ?? "9999-99-99").localeCompare(
+              b.delivery_deadline ?? "9999-99-99",
+            ),
+          );
   const mostrarPlanej = planejamentosAFazer.length > 0;
+  const etiquetaPlanej = (status: string) =>
+    status === "Em criação"
+      ? "Em criação de planejamento"
+      : "Reunião feita · aguardando planejamento";
 
   const blocos: { rotulo: string; grupos: Grupo[] }[] =
     role === "planner"
@@ -197,7 +209,7 @@ export default async function MinhasTarefasPage() {
                 </span>
               </h3>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {planejamentosAFazer.map((p) => {
+                {planejamentosAFazer.map((p, i) => {
                   const cli = clientesById.get(p.client_id);
                   return (
                     <Link
@@ -206,25 +218,29 @@ export default async function MinhasTarefasPage() {
                       className="block rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm hover:border-brand-300"
                       style={{ borderLeftColor: cli?.color ?? "#a855f7" }}
                     >
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span
-                          className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
-                          style={{ backgroundColor: cli?.color ?? "#e5e7eb" }}
-                          aria-hidden="true"
-                        />
-                        {cli?.name ?? "Cliente"}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span
+                            className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
+                            style={{ backgroundColor: cli?.color ?? "#e5e7eb" }}
+                            aria-hidden="true"
+                          />
+                          {cli?.name ?? "Cliente"}
+                        </div>
+                        <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {i + 1}º
+                        </span>
                       </div>
                       <p className="mt-0.5 text-sm font-semibold text-gray-900">
                         Fazer planejamento
                       </p>
                       <p className="mt-1 text-[11px] text-gray-500">
-                        Reunião: {formatarData(p.meeting_date)}
                         {p.delivery_deadline
-                          ? ` · Entregar até ${formatarData(p.delivery_deadline)}`
-                          : ""}
+                          ? `Entregar até ${formatarData(p.delivery_deadline)}`
+                          : `Reunião: ${formatarData(p.meeting_date)}`}
                       </p>
-                      <span className="mt-1 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700">
-                        {p.status}
+                      <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                        {etiquetaPlanej(p.status)}
                       </span>
                     </Link>
                   );

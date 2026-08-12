@@ -20,6 +20,16 @@ export interface PlanningPatch {
 const ehData = (v: string | null | undefined) =>
   v == null || v === "" || /^\d{4}-\d{2}-\d{2}$/.test(v);
 
+/** Soma dias a uma data "YYYY-MM-DD" (data local), devolvendo "YYYY-MM-DD". */
+function somarDias(iso: string, dias: number): string {
+  const [a, m, d] = iso.split("-").map(Number);
+  const dt = new Date(a, m - 1, d + dias);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+/** Prazo de entrega automático do planejamento: 7 dias após a reunião. */
+export const DIAS_ENTREGA_PLANEJAMENTO = 7;
+
 /**
  * Cria ou atualiza o planejamento de um cliente num mês (por cliente+mês).
  * Qualquer campo alterado já cria o registro se ainda não existir.
@@ -54,6 +64,19 @@ export async function salvarPlanningAction(
     dados.delivery_deadline = patch.delivery_deadline || null;
   if ("notes" in patch) dados.notes = patch.notes ?? null;
   if ("situation" in patch) dados.situation = patch.situation || null;
+
+  // Prazo de entrega AUTOMÁTICO: 7 dias após a reunião. Só preenche sozinho
+  // quando a reunião é definida e não veio um prazo manual no mesmo salvamento.
+  if (
+    "meeting_date" in patch &&
+    patch.meeting_date &&
+    !("delivery_deadline" in patch)
+  ) {
+    dados.delivery_deadline = somarDias(
+      patch.meeting_date,
+      DIAS_ENTREGA_PLANEJAMENTO,
+    );
+  }
 
   const supabase = createClient();
   const { error } = await supabase
