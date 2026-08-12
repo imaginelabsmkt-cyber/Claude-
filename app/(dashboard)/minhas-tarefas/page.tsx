@@ -85,6 +85,10 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
       !estaGravado(c.status) &&
       c.status !== "Cancelado",
   );
+  // Ordem: primeiro o que está EM EDIÇÃO (trabalho ativo), depois a fila, os
+  // gravados e os ajustes. Gravações/fotos ficam no topo (captação).
+  // "Prontos para postar" NÃO entra aqui: depois de aprovado a edição acabou,
+  // a postagem é tratada na aba Postagens.
   return [
     { titulo: "Fotos a produzir (artes)", itens: fotosArte },
     {
@@ -96,14 +100,6 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
       itens: paraGravar.filter((c) => classificarGravacao(c, hoje) !== "semana"),
     },
     {
-      titulo: "Conteúdos gravados",
-      itens: meus.filter((c) => c.status === "Gravado"),
-    },
-    {
-      titulo: "Fila de edição",
-      itens: meus.filter((c) => c.status === "Fila de edição"),
-    },
-    {
       titulo: "Vídeos em edição",
       itens: meus.filter((c) => c.status === "Em edição"),
     },
@@ -112,12 +108,16 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
       itens: meus.filter((c) => c.status === "Ajustes"),
     },
     {
-      titulo: "Prontos para revisão",
-      itens: meus.filter((c) => c.status === "Revisão interna"),
+      titulo: "Fila de edição",
+      itens: meus.filter((c) => c.status === "Fila de edição"),
     },
     {
-      titulo: "Prontos para postar",
-      itens: meus.filter((c) => PRONTOS_POSTAR.includes(c.status)),
+      titulo: "Conteúdos gravados",
+      itens: meus.filter((c) => c.status === "Gravado"),
+    },
+    {
+      titulo: "Prontos para revisão",
+      itens: meus.filter((c) => c.status === "Revisão interna"),
     },
   ];
 }
