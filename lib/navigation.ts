@@ -17,7 +17,15 @@ export interface ItemNavegacao {
   papeis?: UserRole[];
 }
 
+/**
+ * Ordem ESTRATÉGICA, seguindo o dia a dia e o fluxo de produção:
+ *  1) Visão geral e o que eu preciso fazer  -> Dashboard, Minhas tarefas
+ *  2) Fluxo do conteúdo, na ordem que ele caminha ->
+ *     Planejamentos -> Conteúdos -> Gravações -> Fila de edição -> Artes -> Postagens
+ *  3) Cadastros e ajustes -> Clientes, Configurações
+ */
 export const NAVEGACAO: ItemNavegacao[] = [
+  // --- Visão geral / meu dia ---
   {
     href: "/dashboard",
     label: "Dashboard",
@@ -25,11 +33,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     icone: "dashboard",
   },
   {
-    href: "/conteudos",
-    label: "Conteúdos",
-    descricao: "Pautas, roteiros e pipeline de produção",
-    icone: "conteudos",
+    href: "/minhas-tarefas",
+    label: "Minhas tarefas",
+    descricao: "O que você precisa fazer agora",
+    icone: "tarefas",
   },
+  // --- Fluxo de produção (na ordem que o conteúdo caminha) ---
   {
     href: "/planejamentos",
     label: "Planejamentos",
@@ -37,10 +46,10 @@ export const NAVEGACAO: ItemNavegacao[] = [
     icone: "planejamentos",
   },
   {
-    href: "/clientes",
-    label: "Clientes",
-    descricao: "Cadastro e gestão de clientes",
-    icone: "clientes",
+    href: "/conteudos",
+    label: "Conteúdos",
+    descricao: "Pautas, roteiros e pipeline de produção",
+    icone: "conteudos",
   },
   {
     href: "/gravacoes",
@@ -66,11 +75,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     descricao: "Agendamento e publicação",
     icone: "postagens",
   },
+  // --- Cadastros e ajustes ---
   {
-    href: "/minhas-tarefas",
-    label: "Minhas tarefas",
-    descricao: "Tarefas atribuídas a você",
-    icone: "tarefas",
+    href: "/clientes",
+    label: "Clientes",
+    descricao: "Cadastro e gestão de clientes",
+    icone: "clientes",
   },
   {
     href: "/configuracoes",
