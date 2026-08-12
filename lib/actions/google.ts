@@ -14,35 +14,67 @@ import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
 import { estaGravado } from "@/lib/rules/contents";
 import type { ActionResult } from "@/lib/actions/contents";
 
-/** Apaga TODOS os eventos de um calendário Imagine (limpa duplicados). */
+const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Apaga UM evento com retentativa. O Google bloqueia por excesso de
+ * velocidade (403/429) quando são muitos: nesse caso espera e tenta de novo,
+ * até conseguir de verdade. 404/410 = já não existe (sucesso).
+ */
+async function apagarEventoComRetry(
+  token: string,
+  cal: string,
+  eventId: string,
+): Promise<boolean> {
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${cal}/events/${eventId}?sendUpdates=none`;
+  for (let tentativa = 0; tentativa < 6; tentativa++) {
+    try {
+      const r = await fetch(url, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (r.ok || r.status === 404 || r.status === 410) return true;
+      // Bloqueio por limite (403/429) ou erro do servidor (5xx): espera e repete.
+      if (r.status === 403 || r.status === 429 || r.status >= 500) {
+        await dormir(500 * (tentativa + 1));
+        continue;
+      }
+      return false; // erro definitivo (não adianta repetir)
+    } catch {
+      await dormir(500 * (tentativa + 1));
+    }
+  }
+  return false;
+}
+
+/**
+ * Apaga TODOS os eventos de um calendário Imagine (limpa duplicados).
+ * Vai em blocos pequenos (para não estourar o limite do Google) e SÓ termina
+ * quando o calendário está realmente vazio — assim não sobra duplicado.
+ */
 async function limparCalendario(
   token: string,
   calId: string,
 ): Promise<void> {
   const cal = encodeURIComponent(calId);
-  let pageToken: string | undefined;
-  do {
-    const url =
-      `https://www.googleapis.com/calendar/v3/calendars/${cal}/events?maxResults=250` +
-      (pageToken ? `&pageToken=${pageToken}` : "");
-    const resp = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!resp.ok) return;
-    const j = (await resp.json()) as {
-      items?: { id: string }[];
-      nextPageToken?: string;
-    };
-    await Promise.all(
-      (j.items ?? []).map((ev) =>
-        fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/${cal}/events/${ev.id}?sendUpdates=none`,
-          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
-        ),
-      ),
+  const LOTE = 8; // quantos apagar em paralelo (devagar, sem estourar o limite)
+  // Repete a varredura até não sobrar nenhum evento (no máx. algumas rodadas).
+  for (let rodada = 0; rodada < 40; rodada++) {
+    const resp = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${cal}/events?maxResults=250&showDeleted=false`,
+      { headers: { Authorization: `Bearer ${token}` } },
     );
-    pageToken = j.nextPageToken;
-  } while (pageToken);
+    if (!resp.ok) return;
+    const j = (await resp.json()) as { items?: { id: string }[] };
+    const ids = (j.items ?? []).map((ev) => ev.id);
+    if (ids.length === 0) return; // vazio: terminou
+    for (let i = 0; i < ids.length; i += LOTE) {
+      const bloco = ids.slice(i, i + LOTE);
+      await Promise.all(
+        bloco.map((id) => apagarEventoComRetry(token, cal, id)),
+      );
+    }
+  }
 }
 
 /** Remove a conexão do usuário com o Google (e o mapeamento de sincronização). */

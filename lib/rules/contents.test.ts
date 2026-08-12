@@ -114,6 +114,23 @@ describe("responsavelAtual", () => {
     ).toBe("Fran e Vitória");
   });
 
+  it("arte (Carrossel/Post estático) -> sempre Vitória na criação", () => {
+    for (const format of ["Carrossel", "Post estático"] as const) {
+      for (const status of [
+        "Planejamento",
+        "Fila de edição",
+        "Em edição",
+        "Ajustes",
+        "Revisão interna",
+        "Aprovação do cliente",
+      ] as const) {
+        expect(responsavelAtual(makeContent({ format, status }), ctx)).toBe(
+          "Vitória",
+        );
+      }
+    }
+  });
+
   it("aprovação do cliente -> Vitória", () => {
     expect(
       responsavelAtual(makeContent({ status: "Aprovação do cliente" }), ctx),

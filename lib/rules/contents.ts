@@ -190,12 +190,30 @@ export interface ContextoResponsaveis {
  * - Publicação (Aprovado/Agendado/Publicado) -> responsável cadastrado
  */
 export function responsavelAtual(
-  content: Pick<Content, "status">,
+  content: Pick<Content, "status" | "format">,
   ctx: ContextoResponsaveis,
 ): string {
   const planner = ctx.planner?.name ?? "Planejamento";
   const producer = ctx.producer?.name ?? "Produção";
 
+  // Pausado / Cancelado: sem responsável, independente do tipo.
+  if (content.status === "Pausado" || content.status === "Cancelado") return "—";
+
+  // ARTE / DESIGN (Carrossel, Post estático): a criação inteira é da Vitória
+  // (planner) — layout, design e capa. Só a produção de fotos (quando há) é
+  // sua, mas o dono da demanda continua sendo a Vitória.
+  if (ehArte(content.format)) {
+    switch (content.status) {
+      case "Aprovado":
+      case "Agendado":
+      case "Publicado":
+        return ctx.publisherName ?? planner;
+      default:
+        return planner; // planejamento, criação, ajustes, revisão, aprovação
+    }
+  }
+
+  // VÍDEO: planejamento/roteiro é da Vitória; gravação/edição em diante é sua.
   switch (content.status) {
     case "Planejamento":
     case "Roteiro pronto":
@@ -215,7 +233,7 @@ export function responsavelAtual(
     case "Publicado":
       return ctx.publisherName ?? producer;
     default:
-      return "—"; // Pausado / Cancelado
+      return "—";
   }
 }
 
