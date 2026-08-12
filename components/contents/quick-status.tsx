@@ -5,16 +5,21 @@ import { useRouter } from "next/navigation";
 import { definirStatusConteudoAction } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { STATUS_OPTIONS, type ContentStatus } from "@/types";
+import { ehArte } from "@/lib/rules/contents";
+import { rotuloStatus } from "@/lib/ui/rotulos-arte";
 import { cn } from "@/lib/utils";
 
 interface QuickStatusProps {
   id: string;
   status: ContentStatus;
   className?: string;
+  /** Formato do conteúdo — para exibir rótulos de arte quando for arte. */
+  format?: string | null;
 }
 
 /** Select para alterar o status do conteúdo rapidamente. */
-export function QuickStatus({ id, status, className }: QuickStatusProps) {
+export function QuickStatus({ id, status, className, format }: QuickStatusProps) {
+  const arte = ehArte(format);
   const router = useRouter();
   const [processando, iniciar] = useTransition();
 
@@ -42,7 +47,7 @@ export function QuickStatus({ id, status, className }: QuickStatusProps) {
     >
       {STATUS_OPTIONS.map((s) => (
         <option key={s} value={s}>
-          {s}
+          {rotuloStatus(s, arte)}
         </option>
       ))}
     </select>

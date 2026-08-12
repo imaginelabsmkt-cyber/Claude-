@@ -12,7 +12,9 @@ import {
   proximaAcao,
   prazoPrincipal,
   statusAoConcluir,
+  ehArte,
 } from "@/lib/rules/contents";
+import { rotuloStatus, rotuloAcao } from "@/lib/ui/rotulos-arte";
 import { definirStatusConteudoAction } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import type { Content } from "@/types";
@@ -28,6 +30,7 @@ export function TaskCard({ content, clienteNome, cor }: TaskCardProps) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
   const proximo = statusAoConcluir(content.status);
+  const arte = ehArte(content.format);
 
   function concluir() {
     if (!proximo) return;
@@ -64,14 +67,14 @@ export function TaskCard({ content, clienteNome, cor }: TaskCardProps) {
         <span>
           Próxima ação:{" "}
           <span className="font-medium text-gray-700">
-            {proximaAcao(content.status)}
+            {rotuloAcao(proximaAcao(content.status), arte)}
           </span>
         </span>
         <span>Prazo: {formatarData(prazoPrincipal(content))}</span>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <QuickStatus id={content.id} status={content.status} />
+        <QuickStatus id={content.id} status={content.status} format={content.format} />
         <PriorityBadge priority={content.priority} />
         {proximo ? (
           <Button
@@ -80,7 +83,7 @@ export function TaskCard({ content, clienteNome, cor }: TaskCardProps) {
             onClick={concluir}
             className="ml-auto"
           >
-            {processando ? "..." : `Concluir → ${proximo}`}
+            {processando ? "..." : `Concluir → ${rotuloStatus(proximo, arte)}`}
           </Button>
         ) : null}
       </div>
