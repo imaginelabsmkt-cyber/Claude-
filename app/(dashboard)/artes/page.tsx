@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { ArtesBoard } from "@/components/contents/artes-board";
+import { NovaArteButton } from "@/components/contents/nova-arte-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { listContents, listClientOptions } from "@/lib/data/contents";
 import { estaAtrasado } from "@/lib/rules/contents";
@@ -64,6 +65,7 @@ export default async function ArtesPage({ searchParams }: PageProps) {
       <PageHeader
         titulo="Artes"
         descricao="Entrega de artes e carrosséis. Arraste para avançar a etapa."
+        acao={<NovaArteButton clientes={clientes} mes={mes} />}
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

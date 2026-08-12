@@ -432,6 +432,73 @@ export async function atualizarRoteiroAction(
   return { ok: true, id };
 }
 
+/** Cria rapidamente uma arte/carrossel (fora do planejamento). */
+export async function criarArteRapidaAction(input: {
+  clientId: string;
+  title: string;
+  format: string;
+  referenceMonth: string;
+  plannedDate?: string | null;
+}): Promise<ActionResult> {
+  const { clientId, title, format, referenceMonth, plannedDate } = input;
+  if (!clientId) return { ok: false, error: "Selecione o cliente." };
+  if (!title.trim()) return { ok: false, error: "Dê um título à arte." };
+  if (!/^\d{4}-\d{2}$/.test(referenceMonth)) {
+    return { ok: false, error: "Mês inválido." };
+  }
+  if (plannedDate && !/^\d{4}-\d{2}-\d{2}$/.test(plannedDate)) {
+    return { ok: false, error: "Data inválida." };
+  }
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("contents")
+    .insert({
+      client_id: clientId,
+      title: title.trim().slice(0, 200),
+      format,
+      status: "Roteiro pronto",
+      priority: "Média",
+      reference_month: referenceMonth,
+      planned_week: null,
+      planned_date: plannedDate ?? null,
+      actual_post_date: null,
+      requires_recording: false,
+      recording_date: null,
+      recording_location: null,
+      outfit: null,
+      participants: [],
+      description: null,
+      content_pillar: null,
+      objective: null,
+      planner_id: null,
+      recorder_id: null,
+      editor_id: null,
+      publisher_id: null,
+      script_deadline: null,
+      recording_deadline: null,
+      editing_deadline: null,
+      script_url: null,
+      raw_files_url: null,
+      edited_file_url: null,
+      published_url: null,
+      notes: null,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    return { ok: false, error: "Não foi possível criar a arte." };
+  }
+
+  revalidatePath("/artes");
+  revalidatePath("/conteudos");
+  revalidatePath(`/clientes/${clientId}`);
+  return { ok: true, id: data.id };
+}
+
 // -------------------------------------------------------------
 // Preenchimento por etapa (produção)
 // -------------------------------------------------------------
