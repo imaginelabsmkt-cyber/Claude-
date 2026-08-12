@@ -308,7 +308,7 @@ export function ProductionStages({ content }: { content: Content }) {
             titulo="Produção de fotos"
             emoji="📸"
             atual={etapa === "gravacao"}
-            abertoInicial
+            abertoInicial={false}
           >
             <label className="mb-3 flex items-center gap-2 text-sm text-gray-700">
               <input
@@ -365,7 +365,7 @@ export function ProductionStages({ content }: { content: Content }) {
             titulo="Criação da arte"
             emoji="🎨"
             atual={etapa === "edicao"}
-            abertoInicial
+            abertoInicial={false}
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <CampoPrazoEntrega
@@ -397,7 +397,7 @@ export function ProductionStages({ content }: { content: Content }) {
             titulo="Gravação"
             emoji="🎥"
             atual={etapa === "gravacao"}
-            abertoInicial
+            abertoInicial={false}
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <CampoData
@@ -448,7 +448,7 @@ export function ProductionStages({ content }: { content: Content }) {
             titulo="Edição"
             emoji="✂️"
             atual={etapa === "edicao"}
-            abertoInicial
+            abertoInicial={false}
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <CampoPrazoEntrega
