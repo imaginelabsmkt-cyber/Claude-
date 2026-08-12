@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { RecordingCard } from "@/components/gravacoes/recording-card";
 import { RecordingsFilters } from "@/components/gravacoes/recordings-filters";
 import { AgendarLoteButton } from "@/components/gravacoes/agendar-lote-button";
+import { GravadosList } from "@/components/gravacoes/gravados-list";
 import {
   listContents,
   listAllClients,
@@ -85,37 +86,47 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
         />
       ) : (
         <div className="space-y-8">
-          {GRUPOS.map(
-            (g) => {
-              const lista = grupos[g.chave];
+          {GRUPOS.map((g) => {
+            const lista = grupos[g.chave];
+            if (lista.length === 0) return null;
+
+            // "Já gravados" fica como lista compacta e recolhível.
+            if (g.chave === "gravada") {
               return (
-                <section key={g.chave}>
-                  <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                    {g.titulo}
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      {lista.length}
-                    </span>
-                  </h2>
-                  {lista.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs text-gray-500">
-                      Nenhum conteúdo aqui.
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      {lista.map((c) => (
-                        <RecordingCard
-                          key={c.id}
-                          content={c}
-                          clienteNome={clientesById.get(c.client_id)?.name ?? "—"}
-                          cor={clientesById.get(c.client_id)?.color}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
+                <GravadosList
+                  key={g.chave}
+                  rows={lista.map((c) => ({
+                    id: c.id,
+                    title: c.title,
+                    clienteNome: clientesById.get(c.client_id)?.name ?? "—",
+                    cor: clientesById.get(c.client_id)?.color,
+                    recording_date: c.recording_date,
+                  }))}
+                />
               );
-            },
-          )}
+            }
+
+            return (
+              <section key={g.chave}>
+                <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                  {g.titulo}
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                    {lista.length}
+                  </span>
+                </h2>
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {lista.map((c) => (
+                    <RecordingCard
+                      key={c.id}
+                      content={c}
+                      clienteNome={clientesById.get(c.client_id)?.name ?? "—"}
+                      cor={clientesById.get(c.client_id)?.color}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
       )}
     </>
