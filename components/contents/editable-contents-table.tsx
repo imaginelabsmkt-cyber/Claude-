@@ -230,17 +230,22 @@ function CabecalhoGrupo({
     <tr className="border-t border-gray-200 bg-gray-50/80">
       <td colSpan={NUM_COLUNAS} className="px-3 py-2">
         <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+          <Link
+            href={`/clientes/${clientId}`}
+            className="group flex items-center gap-2 text-sm font-semibold text-gray-800 hover:text-brand-700"
+          >
             <span
               className="inline-block h-3 w-3 shrink-0 rounded-full border border-gray-200"
               style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
               aria-hidden="true"
             />
-            {cliente?.name ?? "Sem cliente"}
+            <span className="group-hover:underline">
+              {cliente?.name ?? "Sem cliente"}
+            </span>
             <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-600">
               {quantidade}
             </span>
-          </span>
+          </Link>
           <DeleteClientContentsButton
             clientId={clientId}
             nome={cliente?.name ?? "este cliente"}
