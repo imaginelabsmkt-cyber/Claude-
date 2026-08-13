@@ -3,61 +3,55 @@
 import { useState, type ReactNode } from "react";
 import { Icon } from "@/components/ui/icon";
 
-type Aba = "conteudos" | "arquivos";
+export interface AbaCliente {
+  id: string;
+  label: string;
+  icone: string;
+  badge?: number;
+  conteudo: ReactNode;
+}
 
 /**
- * Abas da ficha do cliente: alterna entre a planilha de conteúdos e a central
- * de arquivos. Os dois painéis são renderizados no servidor e só trocam de
- * visibilidade (sem recarregar), então a planilha não perde o estado.
+ * Abas da ficha do cliente (Onboard, Conteúdos, Arquivos, Relatórios).
+ * Todos os painéis são renderizados no servidor e só trocam de visibilidade
+ * (sem recarregar), então nenhum perde o estado ao alternar.
  */
-export function ClientSectionTabs({
-  conteudos,
-  arquivos,
-  totalArquivos,
-}: {
-  conteudos: ReactNode;
-  arquivos: ReactNode;
-  totalArquivos: number;
-}) {
-  const [aba, setAba] = useState<Aba>("conteudos");
-
-  const Botao = ({ id, children }: { id: Aba; children: ReactNode }) => {
-    const ativo = aba === id;
-    return (
-      <button
-        type="button"
-        onClick={() => setAba(id)}
-        className={
-          "-mb-px flex items-center gap-1.5 border-b-2 px-1 pb-2 text-sm font-semibold transition-colors " +
-          (ativo
-            ? "border-brand-600 text-brand-700"
-            : "border-transparent text-gray-500 hover:text-gray-800")
-        }
-      >
-        {children}
-      </button>
-    );
-  };
+export function ClientSectionTabs({ abas }: { abas: AbaCliente[] }) {
+  const [ativa, setAtiva] = useState<string>(abas[0]?.id ?? "");
 
   return (
     <div className="mt-8">
-      <div className="mb-4 flex items-center gap-5 border-b border-gray-200">
-        <Botao id="conteudos">
-          <Icon nome="list" className="h-4 w-4" />
-          Conteúdos
-        </Botao>
-        <Botao id="arquivos">
-          <Icon nome="folder" className="h-4 w-4" />
-          Arquivos
-          {totalArquivos > 0 ? (
-            <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[11px] font-bold text-gray-600">
-              {totalArquivos}
-            </span>
-          ) : null}
-        </Botao>
+      <div className="mb-4 flex items-center gap-5 overflow-x-auto border-b border-gray-200">
+        {abas.map((aba) => {
+          const on = ativa === aba.id;
+          return (
+            <button
+              key={aba.id}
+              type="button"
+              onClick={() => setAtiva(aba.id)}
+              className={
+                "-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-1 pb-2 text-sm font-semibold transition-colors " +
+                (on
+                  ? "border-brand-600 text-brand-700"
+                  : "border-transparent text-gray-500 hover:text-gray-800")
+              }
+            >
+              <Icon nome={aba.icone} className="h-4 w-4" />
+              {aba.label}
+              {aba.badge && aba.badge > 0 ? (
+                <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[11px] font-bold text-gray-600">
+                  {aba.badge}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
-      <div className={aba === "conteudos" ? "" : "hidden"}>{conteudos}</div>
-      <div className={aba === "arquivos" ? "" : "hidden"}>{arquivos}</div>
+      {abas.map((aba) => (
+        <div key={aba.id} className={ativa === aba.id ? "" : "hidden"}>
+          {aba.conteudo}
+        </div>
+      ))}
     </div>
   );
 }

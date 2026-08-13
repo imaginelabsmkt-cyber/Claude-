@@ -175,6 +175,36 @@ export type ClientFileInsert = Omit<ClientFile, "id" | "created_at"> & {
   id?: UUID;
 };
 
+/** client_onboarding — DNA/onboarding do cliente (JSONB flexível). */
+export type ClientOnboarding = {
+  client_id: UUID;
+  data: Record<string, string>;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+export type ClientOnboardingInsert = {
+  client_id: UUID;
+  data?: Record<string, string>;
+};
+
+/** client_reports — relatórios mensais/quinzenais do cliente. */
+export type ClientReport = {
+  id: UUID;
+  client_id: UUID;
+  reference_month: string | null;
+  title: string | null;
+  path: string | null;
+  file_name: string | null;
+  size_bytes: number | null;
+  mime_type: string | null;
+  notes: string | null;
+  uploaded_by: UUID | null;
+  created_at: ISODateString;
+}
+export type ClientReportInsert = Omit<ClientReport, "id" | "created_at"> & {
+  id?: UUID;
+};
+
 /** plannings — gestão da criação do planejamento mensal por cliente */
 export type Planning = {
   id: UUID;
@@ -363,6 +393,18 @@ export interface Database {
         Row: ClientFile;
         Insert: ClientFileInsert;
         Update: Partial<ClientFileInsert>;
+        Relationships: [];
+      };
+      client_onboarding: {
+        Row: ClientOnboarding;
+        Insert: ClientOnboardingInsert;
+        Update: Partial<ClientOnboardingInsert>;
+        Relationships: [];
+      };
+      client_reports: {
+        Row: ClientReport;
+        Insert: ClientReportInsert;
+        Update: Partial<ClientReportInsert>;
         Relationships: [];
       };
       plannings: {
