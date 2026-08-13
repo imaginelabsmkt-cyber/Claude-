@@ -173,7 +173,7 @@ export function AgoraPanel({
 
               {col.itens.length === 0 ? (
                 <p className="mt-4 rounded-xl bg-gray-50 px-3 py-4 text-center text-xs text-gray-500">
-                  Sem tarefas em andamento agora 🎉
+                  Sem tarefas em andamento agora
                 </p>
               ) : (
                 <ul className="mt-3 space-y-1.5">

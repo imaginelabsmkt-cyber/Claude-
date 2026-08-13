@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { Icon } from "@/components/ui/icon";
 
 type Aba = "conteudos" | "arquivos";
 
@@ -41,9 +42,13 @@ export function ClientSectionTabs({
   return (
     <div className="mt-8">
       <div className="mb-4 flex items-center gap-5 border-b border-gray-200">
-        <Botao id="conteudos">📋 Conteúdos</Botao>
+        <Botao id="conteudos">
+          <Icon nome="list" className="h-4 w-4" />
+          Conteúdos
+        </Botao>
         <Botao id="arquivos">
-          📁 Arquivos
+          <Icon nome="folder" className="h-4 w-4" />
+          Arquivos
           {totalArquivos > 0 ? (
             <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[11px] font-bold text-gray-600">
               {totalArquivos}

@@ -59,9 +59,9 @@ function grupoUrgencia(prazo: string | null, hoje: string): 0 | 1 | 2 {
 }
 
 const GRUPOS = [
-  { titulo: "Atrasado / Hoje", cor: "text-red-600" },
-  { titulo: "Esta semana", cor: "text-amber-600" },
-  { titulo: "Próximas", cor: "text-gray-500" },
+  { titulo: "Atrasado / Hoje", cor: "text-red-600", ponto: "bg-red-500", pilula: "bg-red-100 text-red-700" },
+  { titulo: "Esta semana", cor: "text-amber-600", ponto: "bg-amber-500", pilula: "bg-amber-100 text-amber-700" },
+  { titulo: "Próximas", cor: "text-gray-500", ponto: "bg-gray-400", pilula: "bg-gray-100 text-gray-600" },
 ] as const;
 
 /** Ações contextuais por status (rótulo -> novo status). */
@@ -224,8 +224,9 @@ export function EditQueue({ itens, clientes, hoje }: EditQueueProps) {
         baldes[i].length === 0 ? null : (
           <section key={g.titulo}>
             <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+              <span className={`inline-block h-2 w-2 rounded-full ${g.ponto}`} aria-hidden="true" />
               <span className={g.cor}>{g.titulo}</span>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${g.pilula}`}>
                 {baldes[i].length}
               </span>
             </h2>

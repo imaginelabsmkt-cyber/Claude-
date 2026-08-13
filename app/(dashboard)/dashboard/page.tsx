@@ -73,16 +73,16 @@ export default async function DashboardPage() {
   ).length;
 
   const cards = [
-    { rotulo: "Planejamentos a fazer", valor: planejAFazer, href: "/planejamentos", destaque: planejAFazer > 0, icone: "🗓️", tom: "indigo" as const },
-    { rotulo: "Postagens desta semana", valor: postSemana, href: "/postagens?view=semana", icone: "📆", tom: "indigo" as const },
-    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1", destaque: true, icone: "⚠️", tom: "vermelho" as const },
-    { rotulo: "Aguardando gravação", valor: conta("Aguardando gravação"), href: linkStatus("Aguardando gravação"), icone: "🎬", tom: "ambar" as const },
-    { rotulo: "Gravados", valor: conta("Gravado"), href: linkStatus("Gravado"), icone: "📹", tom: "azul" as const },
-    { rotulo: "Fila de edição", valor: conta("Fila de edição"), href: "/fila-edicao", icone: "✂️", tom: "ambar" as const },
-    { rotulo: "Em edição", valor: conta("Em edição"), href: linkStatus("Em edição"), icone: "🎞️", tom: "ambar" as const },
-    { rotulo: "Em aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente"), icone: "👀", tom: "indigo" as const },
-    { rotulo: "Prontos para publicar", valor: prontosPublicar, href: linkStatus("Aprovado"), icone: "✅", tom: "verde" as const },
-    { rotulo: "Publicados no mês", valor: publicadosMes, href: linkStatus("Publicado"), icone: "🚀", tom: "verde" as const },
+    { rotulo: "Planejamentos a fazer", valor: planejAFazer, href: "/planejamentos", destaque: planejAFazer > 0, icone: "clipboard", tom: "indigo" as const },
+    { rotulo: "Postagens desta semana", valor: postSemana, href: "/postagens?view=semana", icone: "calendar", tom: "indigo" as const },
+    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1", destaque: true, icone: "alert", tom: "vermelho" as const },
+    { rotulo: "Aguardando gravação", valor: conta("Aguardando gravação"), href: linkStatus("Aguardando gravação"), icone: "video", tom: "ambar" as const },
+    { rotulo: "Gravados", valor: conta("Gravado"), href: linkStatus("Gravado"), icone: "film", tom: "azul" as const },
+    { rotulo: "Fila de edição", valor: conta("Fila de edição"), href: "/fila-edicao", icone: "scissors", tom: "ambar" as const },
+    { rotulo: "Em edição", valor: conta("Em edição"), href: linkStatus("Em edição"), icone: "edit", tom: "ambar" as const },
+    { rotulo: "Em aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente"), icone: "eye", tom: "indigo" as const },
+    { rotulo: "Prontos para publicar", valor: prontosPublicar, href: linkStatus("Aprovado"), icone: "check-circle", tom: "verde" as const },
+    { rotulo: "Publicados no mês", valor: publicadosMes, href: linkStatus("Publicado"), icone: "send", tom: "verde" as const },
   ];
 
   // Atenção esta semana

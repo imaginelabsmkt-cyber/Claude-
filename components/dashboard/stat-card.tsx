@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
 
 /** Tons de cor disponíveis para o chip do indicador. */
 export type StatTom =
@@ -33,7 +34,7 @@ interface StatCardProps {
   href: string;
   /** Realça o número em vermelho quando > 0 (ex.: atrasados). */
   destaque?: boolean;
-  /** Emoji/ícone exibido no chip colorido. */
+  /** Nome do ícone (components/ui/icon) exibido no chip colorido. */
   icone?: string;
   /** Cor do chip e do hover. */
   tom?: StatTom;
@@ -61,12 +62,11 @@ export function StatCard({
         {icone ? (
           <span
             className={
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg " +
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl " +
               CHIP[alerta ? "vermelho" : tom]
             }
-            aria-hidden="true"
           >
-            {icone}
+            <Icon nome={icone} className="h-5 w-5" />
           </span>
         ) : null}
         <div className="min-w-0">

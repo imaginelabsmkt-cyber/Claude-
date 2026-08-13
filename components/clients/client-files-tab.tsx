@@ -5,24 +5,30 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/lib/ui/toast";
 import { formatarData } from "@/lib/utils";
+import { Icon } from "@/components/ui/icon";
 import type { ClientFile } from "@/types";
 
 const BUCKET = "client-files";
 const LIMITE_MB = 50;
 
-/** Ícone conforme o tipo do arquivo. */
-function iconePorTipo(mime: string | null, nome: string): string {
+/** Ícone (nome + cor do chip) conforme o tipo do arquivo. */
+function iconePorTipo(
+  mime: string | null,
+  nome: string,
+): { nome: string; chip: string } {
   const m = (mime ?? "").toLowerCase();
   const ext = nome.toLowerCase().split(".").pop() ?? "";
-  if (m.startsWith("image/")) return "🖼️";
-  if (m.startsWith("video/")) return "🎬";
-  if (m.startsWith("audio/")) return "🎵";
-  if (m === "application/pdf" || ext === "pdf") return "📄";
-  if (["doc", "docx"].includes(ext)) return "📝";
-  if (["xls", "xlsx", "csv"].includes(ext)) return "📊";
-  if (["ppt", "pptx"].includes(ext)) return "📽️";
-  if (["zip", "rar", "7z"].includes(ext)) return "🗜️";
-  return "📎";
+  if (m.startsWith("image/"))
+    return { nome: "image", chip: "bg-violet-100 text-violet-700" };
+  if (m.startsWith("video/"))
+    return { nome: "film", chip: "bg-rose-100 text-rose-700" };
+  if (m.startsWith("audio/"))
+    return { nome: "audio", chip: "bg-blue-100 text-blue-700" };
+  if (m === "application/pdf" || ext === "pdf")
+    return { nome: "file", chip: "bg-red-100 text-red-700" };
+  if (["xls", "xlsx", "csv"].includes(ext))
+    return { nome: "file", chip: "bg-green-100 text-green-700" };
+  return { nome: "file", chip: "bg-gray-100 text-gray-600" };
 }
 
 /** Tamanho legível (KB/MB). */
@@ -160,8 +166,13 @@ export function ClientFilesTab({
             e.target.value = "";
           }}
         />
-        <span className="text-2xl" aria-hidden="true">
-          {enviando ? "⏳" : "⬆️"}
+        <span
+          className={
+            "flex h-11 w-11 items-center justify-center rounded-full bg-brand-100 text-brand-700 " +
+            (enviando ? "animate-pulse" : "")
+          }
+        >
+          <Icon nome="upload" className="h-5 w-5" />
         </span>
         <p className="mt-2 text-sm font-medium text-gray-700">
           {enviando
@@ -186,9 +197,16 @@ export function ClientFilesTab({
               key={file.id}
               className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
             >
-              <span className="text-xl" aria-hidden="true">
-                {iconePorTipo(file.mime_type, file.name)}
-              </span>
+              {(() => {
+                const ic = iconePorTipo(file.mime_type, file.name);
+                return (
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${ic.chip}`}
+                  >
+                    <Icon nome={ic.nome} className="h-4 w-4" />
+                  </span>
+                );
+              })()}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-900">
                   {file.name}
@@ -202,9 +220,10 @@ export function ClientFilesTab({
               <button
                 type="button"
                 onClick={() => baixar(file)}
-                className="rounded-md border border-brand-300 bg-white px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50"
+                className="inline-flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50"
               >
-                ⬇ Baixar
+                <Icon nome="download" className="h-3.5 w-3.5" />
+                Baixar
               </button>
               <button
                 type="button"
