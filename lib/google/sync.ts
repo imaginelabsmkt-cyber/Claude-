@@ -22,6 +22,19 @@ const STATUS_EDICAO: ContentStatus[] = [
   "Ajustes",
 ];
 
+/**
+ * Etapas em que a edição FOI CONCLUÍDA (avançou pra revisão em diante). Ao
+ * chegar aqui, a tarefa de edição vira "concluída" no Google (fica de
+ * registro do dia em que editou) em vez de sumir.
+ */
+const STATUS_EDICAO_CONCLUIDA: ContentStatus[] = [
+  "Revisão interna",
+  "Aprovação do cliente",
+  "Aprovado",
+  "Agendado",
+  "Publicado",
+];
+
 type SB = ReturnType<typeof createClient>;
 /**
  * Tipo de item sincronizado: evento de gravação (event), tarefa de edição
@@ -431,13 +444,30 @@ export async function sincronizarEdicao(
       STATUS_EDICAO.includes(novoStatus) ||
       (novoStatus === "Gravado" && !!c?.editing_date);
 
-    // Não é (mais) tarefa de edição => remove a tarefa (mantém o Google limpo).
+    // Saiu da edição. Se AVANÇOU (revisão em diante), marca a tarefa como
+    // CONCLUÍDA no Google — fica de registro de que editou naquele dia. Se foi
+    // cancelado/pausado/voltou pra trás, aí sim remove a tarefa.
     if (!emEdicao || !c) {
       if (existente) {
-        await fetch(
-          `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${existente}`,
-          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
-        );
+        const concluiu = !!c && STATUS_EDICAO_CONCLUIDA.includes(novoStatus);
+        const url = `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${existente}`;
+        if (concluiu) {
+          await fetch(url, {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: "completed" }),
+          });
+        } else {
+          await fetch(url, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+        // Solta o vínculo: a tarefa concluída fica parada no Google como
+        // histórico; se a edição recomeçar (Ajustes), cria uma nova.
         await apagarSync(sb, contentId, userId, "task");
       }
       return;
