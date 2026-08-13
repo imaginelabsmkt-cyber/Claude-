@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parsePlanejamento } from "@/lib/import/planning-parser";
+import { parsePlanejamento, COL_DELIM } from "@/lib/import/planning-parser";
 
 // Amostra no formato real da Vitória (documento verticalizado).
 const AMOSTRA = `
@@ -88,6 +88,20 @@ describe("parsePlanejamento", () => {
       2026,
     );
     expect(r[0].link).toBe("https://www.instagram.com/reel/abc123/");
+  });
+
+  it("preserva as colunas da tabela do roteiro (COL_DELIM)", () => {
+    const r = parsePlanejamento(
+      `CONTEÚDO 1: REELS teste\n` +
+        `FALA${COL_DELIM}CENAS\n` +
+        `FALA X: oi${COL_DELIM}cena de abertura\n` +
+        `LEGENDA: minha legenda`,
+      2026,
+    );
+    const linhas = (r[0].roteiro ?? "").split("\n");
+    expect(linhas[0]).toBe(`FALA${COL_DELIM}CENAS`);
+    expect(linhas[1]).toBe(`FALA X: oi${COL_DELIM}cena de abertura`);
+    expect(r[0].legenda).toBe("minha legenda");
   });
 
   it("captura link de referência solto (sem rótulo) e não polui o roteiro", () => {

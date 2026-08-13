@@ -14,6 +14,13 @@
  * =============================================================
  */
 
+/**
+ * Separador INTERNO de coluna de tabela: guarda a estrutura da tabela do
+ * roteiro (ex.: FALA | CENAS) dentro do texto. Caractere de uso privado, que
+ * nunca aparece em conteúdo real.
+ */
+export const COL_DELIM = "\uE000";
+
 export interface ItemPlanejamento {
   titulo: string;
   formato: string; // Reel, Carrossel, Story, Post estático, Vídeo longo

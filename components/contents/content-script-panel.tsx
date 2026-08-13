@@ -8,6 +8,7 @@ import {
 } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { ehArte } from "@/lib/rules/contents";
+import { COL_DELIM } from "@/lib/import/planning-parser";
 
 interface ContentScriptPanelProps {
   id: string;
@@ -242,6 +243,72 @@ function TabelaRoteiro({
   );
 }
 
+/**
+ * Tabela FIEL ao documento da Vitória: as linhas do roteiro trazem as colunas
+ * separadas por COL_DELIM (ex.: FALA | CENAS). Usa a 1ª linha como cabeçalho
+ * (o que a Vitória escreveu) quando ela for curta. Versão curta que expande.
+ */
+function TabelaDoc({ linhas, grande = false }: { linhas: string[]; grande?: boolean }) {
+  const [aberto, setAberto] = useState(false);
+  const rows = linhas
+    .filter((l) => l.includes(COL_DELIM))
+    .map((l) => l.split(COL_DELIM).map((c) => c.trim()));
+  if (rows.length === 0) return null;
+
+  // 1ª linha é cabeçalho se as duas colunas forem curtas (ex.: "FALA"/"CENAS").
+  const primeira = rows[0];
+  const ehCabecalho =
+    primeira.length >= 2 && primeira.every((c) => c.length <= 40);
+  const colEsq = ehCabecalho ? primeira[0] || "Fala" : "Fala";
+  const colDir = ehCabecalho ? primeira[1] || "Cenas" : "Cenas";
+  const corpo = ehCabecalho ? rows.slice(1) : rows;
+
+  const limite = grande ? corpo.length : LIMITE_PREVIA;
+  const visiveis = aberto ? corpo : corpo.slice(0, limite);
+  const restantes = corpo.length - limite;
+  const txt = grande ? "text-base" : "text-sm";
+
+  return (
+    <div>
+      <div className="overflow-hidden rounded-lg border border-gray-200">
+        <table
+          className={`w-full table-fixed border-collapse text-left ${txt}`}
+        >
+          <thead>
+            <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
+              <th className="w-1/2 border-r border-brand-100 px-3 py-2">
+                {colEsq}
+              </th>
+              <th className="w-1/2 px-3 py-2">{colDir}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visiveis.map((r, i) => (
+              <tr key={i} className="border-t border-gray-100 align-top">
+                <td className="whitespace-pre-wrap break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
+                  {r[0] || "—"}
+                </td>
+                <td className="whitespace-pre-wrap break-words px-3 py-2 italic leading-relaxed text-gray-500">
+                  {r[1] || "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {!grande && restantes > 0 ? (
+        <button
+          type="button"
+          onClick={() => setAberto((v) => !v)}
+          className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
+        >
+          {aberto ? "Recolher ▲" : `Ver completo (+${restantes}) ▼`}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 /** Leitura grande do roteiro/layout (para gravação ou criação, tela cheia). */
 function LeituraGrande({ blocos }: { blocos: Bloco[] }) {
   return (
@@ -414,6 +481,10 @@ function RoteiroEditavel({
   const titulo = arte ? "Layout das artes" : "Roteiro";
   const colEsquerda = arte ? "Elemento" : "OFF / Lettering";
   const colDireita = arte ? "Conteúdo" : "Cenas";
+  // Roteiro veio como TABELA fiel do documento (colunas separadas por
+  // COL_DELIM). Nesse caso mostra a tabela do jeito da Vitória (só leitura).
+  const temTabelaDoc =
+    !arte && roteiroLinhas.some((l) => l.includes(COL_DELIM));
 
   // Remonta o texto completo preservando LEGENDA e STORIES.
   const remontar = (roteiro: string): string => {
@@ -463,7 +534,9 @@ function RoteiroEditavel({
       </div>
     ) : (
       <div className="flex items-center gap-2">
-        <BotaoSec onClick={iniciarEdicao}>✎ Editar</BotaoSec>
+        {temTabelaDoc ? null : (
+          <BotaoSec onClick={iniciarEdicao}>✎ Editar</BotaoSec>
+        )}
         {compacto ? null : (
           <BotaoSec onClick={() => setTelaCheia(true)}>⛶ Tela cheia</BotaoSec>
         )}
@@ -486,23 +559,23 @@ function RoteiroEditavel({
           colEsquerda={colEsquerda}
           colDireita={colDireita}
         />
+      ) : temTabelaDoc ? (
+        <TabelaDoc linhas={roteiroLinhas} />
+      ) : arte ? (
+        <TabelaRoteiro
+          linhas={parseParaEdicao(roteiroLinhas)}
+          colEsquerda={colEsquerda}
+          colDireita={colDireita}
+        />
       ) : (
-        arte ? (
-          <TabelaRoteiro
-            linhas={parseParaEdicao(roteiroLinhas)}
-            colEsquerda={colEsquerda}
-            colDireita={colDireita}
-          />
-        ) : (
-          <TabelaRoteiro
-            linhas={parseParaEdicao(roteiroLinhas).map((l) => ({
-              rotulo: l.rotulo || "CENA",
-              conteudo: l.conteudo,
-            }))}
-            colEsquerda="Tipo"
-            colDireita="Texto"
-          />
-        )
+        <TabelaRoteiro
+          linhas={parseParaEdicao(roteiroLinhas).map((l) => ({
+            rotulo: l.rotulo || "CENA",
+            conteudo: l.conteudo,
+          }))}
+          colEsquerda="Tipo"
+          colDireita="Texto"
+        />
       )}
 
       {/* Overlay de tela cheia (gravação / criação) */}
@@ -538,6 +611,10 @@ function RoteiroEditavel({
                   colDireita={colDireita}
                   grande
                 />
+              </div>
+            ) : temTabelaDoc ? (
+              <div className="mx-auto max-w-5xl p-4">
+                <TabelaDoc linhas={roteiroLinhas} grande />
               </div>
             ) : (
               <LeituraGrande blocos={blocos} />

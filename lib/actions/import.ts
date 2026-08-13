@@ -63,6 +63,8 @@ export interface ImportarResult {
   ok: boolean;
   error?: string;
   quantidade?: number;
+  criados?: number;
+  atualizados?: number;
 }
 
 /**
@@ -89,7 +91,7 @@ export async function importarConteudosAction(input: {
   const recortar = (v: string | null, max: number) =>
     v == null ? null : v.slice(0, max);
 
-  const linhas = itens.map((it) => ({
+  const montarLinha = (it: ItemPlanejamento) => ({
     client_id: clientId,
     title: (it.titulo ?? "Conteúdo sem título").slice(0, 200),
     format: it.formato,
@@ -123,15 +125,57 @@ export async function importarConteudosAction(input: {
     edited_file_url: null,
     published_url: null,
     notes: recortar(it.observacoes, 2000),
-  }));
+  });
 
   const supabase = createClient();
-  const { error } = await supabase.from("contents").insert(linhas);
-  if (error) {
-    return { ok: false, error: "Não foi possível criar os conteúdos." };
+
+  // Conteúdos que JÁ existem para este cliente/mês (para atualizar em vez de
+  // duplicar). Assim reimportar corrige o roteiro dos que já estão no sistema.
+  const { data: existentes } = await supabase
+    .from("contents")
+    .select("id, title")
+    .eq("client_id", clientId)
+    .eq("reference_month", referenceMonth);
+  const norm = (t: string) => t.trim().toLowerCase();
+  const porTitulo = new Map(
+    (existentes ?? []).map((c) => [norm(c.title), c.id]),
+  );
+
+  const paraInserir: ReturnType<typeof montarLinha>[] = [];
+  let atualizados = 0;
+  for (const it of itens) {
+    const linha = montarLinha(it);
+    const id = porTitulo.get(norm(linha.title));
+    if (id) {
+      // Atualiza SÓ o que vem do documento (roteiro, legenda, referência),
+      // preservando o que a Fran já mexeu (status, datas, gravação, etc.).
+      const { error } = await supabase
+        .from("contents")
+        .update({
+          script: linha.script,
+          caption: linha.caption,
+          reference_url: linha.reference_url,
+        })
+        .eq("id", id);
+      if (!error) atualizados += 1;
+    } else {
+      paraInserir.push(linha);
+    }
+  }
+
+  if (paraInserir.length > 0) {
+    const { error } = await supabase.from("contents").insert(paraInserir);
+    if (error) {
+      return { ok: false, error: "Não foi possível criar os conteúdos." };
+    }
   }
 
   revalidatePath("/conteudos");
   revalidatePath(`/clientes/${clientId}`);
-  return { ok: true, quantidade: linhas.length };
+  return {
+    ok: true,
+    quantidade: itens.length,
+    criados: paraInserir.length,
+    atualizados,
+  };
 }

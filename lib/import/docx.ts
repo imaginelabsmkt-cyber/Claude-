@@ -1,4 +1,5 @@
 import { unzipSync, strFromU8 } from "fflate";
+import { COL_DELIM } from "@/lib/import/planning-parser";
 
 /** Decodifica as entidades XML mais comuns. */
 function decodificar(texto: string): string {
@@ -35,10 +36,41 @@ function mapaHyperlinks(
   return rels;
 }
 
+/** Texto de UMA célula (junta os parágrafos da célula num espaço só). */
+function textoDaCelula(tcXml: string): string {
+  const partes: string[] = [];
+  for (const p of tcXml.split(/<\/w:p>/)) {
+    const runs = p.match(/<w:t(?: [^>]*)?>([\s\S]*?)<\/w:t>/g) ?? [];
+    const txt = runs
+      .map((r) => r.replace(/<[^>]+>/g, ""))
+      .join("")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (txt) partes.push(txt);
+  }
+  return partes.join(" ");
+}
+
+/**
+ * Converte uma TABELA do Word em texto preservando a estrutura: cada linha da
+ * tabela vira uma linha; as colunas ficam separadas por COL_DELIM. É assim que
+ * o roteiro (ex.: FALA | CENAS) mantém as colunas do documento da Vitória.
+ */
+function tabelaParaTexto(tblXml: string): string {
+  const linhas: string[] = [];
+  for (const tr of tblXml.match(/<w:tr\b[\s\S]*?<\/w:tr>/g) ?? []) {
+    const celulas = (tr.match(/<w:tc\b[\s\S]*?<\/w:tc>/g) ?? []).map(textoDaCelula);
+    // Linha totalmente vazia não entra.
+    if (celulas.some((c) => c.length > 0)) linhas.push(celulas.join(COL_DELIM));
+  }
+  return linhas.join("\n");
+}
+
 /**
  * Extrai o texto de um arquivo .docx (que é um zip com word/document.xml).
  * Cada parágrafo vira uma linha. Links clicáveis têm a URL real reinjetada
- * no texto (senão o destino do link se perderia). Sem dependências pesadas.
+ * no texto. TABELAS (roteiro) são preservadas: cada linha da tabela vira uma
+ * linha com as colunas separadas por COL_DELIM.
  */
 export function extrairTextoDocx(bytes: Uint8Array): string {
   const arquivos = unzipSync(bytes);
@@ -53,6 +85,11 @@ export function extrairTextoDocx(bytes: Uint8Array): string {
     const url = links.get(id);
     return url ? `${tag} ${url} ` : tag;
   });
+  // Substitui cada TABELA pelo seu texto estruturado (linhas + COL_DELIM).
+  xml = xml.replace(
+    /<w:tbl>[\s\S]*?<\/w:tbl>/g,
+    (tbl) => `\n${tabelaParaTexto(tbl)}\n`,
+  );
   // fim de parágrafo -> quebra de linha; tabs
   xml = xml.replace(/<\/w:p>/g, "\n").replace(/<w:tab[^>]*\/>/g, "\t");
   // remove todas as tags restantes
