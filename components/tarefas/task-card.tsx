@@ -47,14 +47,17 @@ export function TaskCard({ content, clienteNome, cor }: TaskCardProps) {
       className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
       style={{ borderLeftColor: corPrioridade(content.priority) }}
     >
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+      <Link
+        href={`/clientes/${content.client_id}`}
+        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-700"
+      >
         <span
           className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
           style={{ backgroundColor: cor ?? "#e5e7eb" }}
           aria-hidden="true"
         />
-        <span className="truncate">{clienteNome}</span>
-      </div>
+        <span className="truncate hover:underline">{clienteNome}</span>
+      </Link>
 
       <Link
         href={`/conteudos/${content.id}`}

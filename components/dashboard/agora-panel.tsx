@@ -180,32 +180,34 @@ export function AgoraPanel({
                   {col.itens.slice(0, 6).map((item) => {
                     const cl = clientesById.get(item.content.client_id);
                     return (
-                      <li key={item.content.id}>
-                        <Link
-                          href={`/conteudos/${item.content.id}`}
-                          className="group flex items-center gap-2.5 rounded-xl px-2 py-2 transition-colors hover:bg-gray-50"
-                        >
-                          <span
-                            className="inline-block h-2.5 w-2.5 shrink-0 rounded-full border border-gray-200"
-                            style={{
-                              backgroundColor: cl?.color ?? "#e5e7eb",
-                            }}
-                            aria-hidden="true"
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium text-gray-800 group-hover:text-brand-700">
-                              {item.content.title}
-                            </span>
-                            <span className="block truncate text-[11px] text-gray-400">
-                              {cl?.name ?? "—"}
-                            </span>
-                          </span>
-                          <span
-                            className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${item.tom}`}
+                      <li
+                        key={item.content.id}
+                        className="flex items-center gap-2.5 rounded-xl px-2 py-2 transition-colors hover:bg-gray-50"
+                      >
+                        <span
+                          className="inline-block h-2.5 w-2.5 shrink-0 rounded-full border border-gray-200"
+                          style={{ backgroundColor: cl?.color ?? "#e5e7eb" }}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <Link
+                            href={`/conteudos/${item.content.id}`}
+                            className="block truncate text-sm font-medium text-gray-800 hover:text-brand-700"
                           >
-                            {item.verbo}
-                          </span>
-                        </Link>
+                            {item.content.title}
+                          </Link>
+                          <Link
+                            href={`/clientes/${item.content.client_id}`}
+                            className="block truncate text-[11px] text-gray-400 hover:text-brand-700 hover:underline"
+                          >
+                            {cl?.name ?? "—"}
+                          </Link>
+                        </span>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${item.tom}`}
+                        >
+                          {item.verbo}
+                        </span>
                       </li>
                     );
                   })}

@@ -181,20 +181,23 @@ export default async function DashboardPage() {
                       return (
                         <li key={c.id} className="text-sm">
                           <Link
-                            href={`/conteudos/${c.id}`}
-                            className="group block"
+                            href={`/clientes/${c.client_id}`}
+                            className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 hover:text-brand-700"
                           >
-                            <span className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500">
-                              <span
-                                className="inline-block h-2 w-2 shrink-0 rounded-full border border-gray-200"
-                                style={{ backgroundColor: cl?.color ?? "#e5e7eb" }}
-                                aria-hidden="true"
-                              />
+                            <span
+                              className="inline-block h-2 w-2 shrink-0 rounded-full border border-gray-200"
+                              style={{ backgroundColor: cl?.color ?? "#e5e7eb" }}
+                              aria-hidden="true"
+                            />
+                            <span className="truncate hover:underline">
                               {cl?.name ?? "—"}
                             </span>
-                            <span className="block truncate text-gray-700 group-hover:text-brand-700">
-                              {c.title}
-                            </span>
+                          </Link>
+                          <Link
+                            href={`/conteudos/${c.id}`}
+                            className="block truncate text-gray-700 hover:text-brand-700"
+                          >
+                            {c.title}
                           </Link>
                         </li>
                       );
@@ -256,27 +259,32 @@ export default async function DashboardPage() {
               {proximas.map((c) => {
                 const cl = clientesById.get(c.client_id);
                 return (
-                  <Link
+                  <div
                     key={c.id}
-                    href={`/conteudos/${c.id}`}
                     className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50"
                   >
                     <span className="w-20 shrink-0 text-xs font-medium text-gray-500">
                       {formatarData(c.planned_date)}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+                    <Link
+                      href={`/conteudos/${c.id}`}
+                      className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900 hover:text-brand-700"
+                    >
                       {c.title}
-                    </span>
-                    <span className="hidden items-center gap-1.5 text-xs text-gray-500 sm:flex">
+                    </Link>
+                    <Link
+                      href={`/clientes/${c.client_id}`}
+                      className="hidden items-center gap-1.5 text-xs text-gray-500 hover:text-brand-700 sm:flex"
+                    >
                       <span
                         className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
                         style={{ backgroundColor: cl?.color ?? "#e5e7eb" }}
                         aria-hidden="true"
                       />
-                      {cl?.name ?? "—"}
-                    </span>
+                      <span className="hover:underline">{cl?.name ?? "—"}</span>
+                    </Link>
                     <StatusContentBadge status={c.status} />
-                  </Link>
+                  </div>
                 );
               })}
             </div>

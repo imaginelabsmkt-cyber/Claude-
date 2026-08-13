@@ -39,14 +39,17 @@ export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
 
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
         {clienteNome ? (
-          <span className="flex items-center gap-1">
+          <Link
+            href={`/clientes/${content.client_id}`}
+            className="flex items-center gap-1 hover:text-brand-700 hover:underline"
+          >
             <span
               className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
               style={{ backgroundColor: cor ?? "#e5e7eb" }}
               aria-hidden="true"
             />
             {clienteNome}
-          </span>
+          </Link>
         ) : null}
         <span>{content.format ?? "—"}</span>
         {content.planned_week ? <span>Semana {content.planned_week}</span> : null}
