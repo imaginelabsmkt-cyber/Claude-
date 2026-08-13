@@ -242,126 +242,6 @@ function TabelaRoteiro({
   );
 }
 
-// -------------------------------------------------------------
-// Tabela do ROTEIRO de vídeo em 2 colunas: OFF / Lettering | Cenas
-// -------------------------------------------------------------
-type ItemFala = { tipo: "fala" | "lettering"; quem?: string; texto: string };
-/** Um trecho do roteiro: as falas/lettering + a cena (imagem) que as acompanha. */
-type TrechoRoteiro = { fala: ItemFala[]; cena: string[] };
-
-/** Classifica uma linha como FALA, LETTERING/OFF, ou CENA (descrição visual). */
-function classificarLinha(
-  linha: string,
-): ItemFala | { tipo: "cena"; texto: string } {
-  const mFala = linha.match(/^FALA\s*([^:]*?)\s*:\s*(.*)$/i);
-  if (mFala) {
-    return { tipo: "fala", quem: mFala[1].trim() || undefined, texto: mFala[2].trim() };
-  }
-  const mLet = linha.match(/^LETTERING\s*:?\s*(.*)$/i);
-  if (mLet) return { tipo: "lettering", texto: mLet[1].trim() };
-  const mOff = linha.match(/^OFF\s*:?\s*(.*)$/i);
-  if (mOff) return { tipo: "fala", texto: mOff[1].trim() };
-  return { tipo: "cena", texto: linha.trim() };
-}
-
-/**
- * Agrupa as linhas do roteiro em trechos: cada bloco de FALA/LETTERING vem
- * pareado com a CENA (descrição de imagem) que o acompanha — igual ao
- * planejamento (coluna OFF/Lettering à esquerda, Cenas à direita).
- */
-function agruparRoteiro(linhas: string[]): TrechoRoteiro[] {
-  const trechos: TrechoRoteiro[] = [];
-  let atual: TrechoRoteiro = { fala: [], cena: [] };
-  const fechar = () => {
-    if (atual.fala.length || atual.cena.length) trechos.push(atual);
-    atual = { fala: [], cena: [] };
-  };
-  for (const l of linhas) {
-    if (!l.trim()) continue;
-    const item = classificarLinha(l);
-    if (item.tipo === "cena") {
-      atual.cena.push(item.texto);
-    } else {
-      // Nova fala depois de já ter uma cena => começa um novo trecho.
-      if (atual.cena.length) fechar();
-      atual.fala.push(item);
-    }
-  }
-  fechar();
-  return trechos;
-}
-
-/** Tabela do roteiro de vídeo: OFF/Lettering (falas) | Cenas (imagens). */
-function TabelaRoteiroVideo({ linhas }: { linhas: string[] }) {
-  const [aberto, setAberto] = useState(false);
-  const trechos = agruparRoteiro(linhas);
-  const visiveis = aberto ? trechos : trechos.slice(0, LIMITE_PREVIA);
-  const restantes = trechos.length - LIMITE_PREVIA;
-
-  return (
-    <div>
-      <div className="overflow-hidden rounded-lg border border-gray-200">
-        <table className="w-full table-fixed border-collapse text-left text-sm">
-          <thead>
-            <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
-              <th className="w-1/2 border-r border-brand-100 px-3 py-2">
-                OFF / Lettering
-              </th>
-              <th className="w-1/2 px-3 py-2">Cenas</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visiveis.map((t, i) => (
-              <tr key={i} className="border-t border-gray-100 align-top">
-                <td className="break-words border-r border-gray-100 px-3 py-2 align-top">
-                  {t.fala.length === 0 ? (
-                    <span className="text-gray-300">—</span>
-                  ) : (
-                    <div className="space-y-2">
-                      {t.fala.map((f, j) => (
-                        <div key={j}>
-                          <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wide text-brand-600">
-                            {f.tipo === "lettering"
-                              ? "Lettering"
-                              : f.quem
-                                ? `Fala · ${f.quem}`
-                                : "Fala"}
-                          </span>
-                          <span
-                            className={
-                              f.tipo === "lettering"
-                                ? "leading-relaxed text-gray-600"
-                                : "leading-relaxed text-gray-900"
-                            }
-                          >
-                            {f.texto || "—"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </td>
-                <td className="break-words px-3 py-2 align-top italic leading-relaxed text-gray-500">
-                  {t.cena.length === 0 ? "—" : t.cena.join(" ")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {restantes > 0 ? (
-        <button
-          type="button"
-          onClick={() => setAberto((v) => !v)}
-          className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
-        >
-          {aberto ? "Recolher ▲" : `Ver completo (+${restantes}) ▼`}
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
 /** Leitura grande do roteiro/layout (para gravação ou criação, tela cheia). */
 function LeituraGrande({ blocos }: { blocos: Bloco[] }) {
   return (
@@ -608,13 +488,20 @@ function RoteiroEditavel({
         />
       ) : (
         arte ? (
-        <TabelaRoteiro
-          linhas={parseParaEdicao(roteiroLinhas)}
-          colEsquerda={colEsquerda}
-          colDireita={colDireita}
-        />
+          <TabelaRoteiro
+            linhas={parseParaEdicao(roteiroLinhas)}
+            colEsquerda={colEsquerda}
+            colDireita={colDireita}
+          />
         ) : (
-          <TabelaRoteiroVideo linhas={roteiroLinhas} />
+          <TabelaRoteiro
+            linhas={parseParaEdicao(roteiroLinhas).map((l) => ({
+              rotulo: l.rotulo || "CENA",
+              conteudo: l.conteudo,
+            }))}
+            colEsquerda="Tipo"
+            colDireita="Texto"
+          />
         )
       )}
 
