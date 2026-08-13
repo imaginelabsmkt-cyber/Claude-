@@ -475,6 +475,125 @@ function serializarEdicao(linhas: LinhaEdicao[]): string {
     .join("\n");
 }
 
+// -------------------------------------------------------------
+// Edição da TABELA FIEL do documento (2 colunas separadas por COL_DELIM)
+// -------------------------------------------------------------
+type LinhaDoc = { left: string; right: string };
+type TabelaDocEstado = { colEsq: string; colDir: string; rows: LinhaDoc[] };
+
+/** Lê as linhas COL_DELIM em cabeçalho + linhas (mesma regra do TabelaDoc). */
+function parseTabelaDoc(linhas: string[]): TabelaDocEstado {
+  const raw = linhas
+    .filter((l) => l.includes(COL_DELIM))
+    .map((l) => l.split(COL_DELIM).map((c) => c.trim()));
+  if (raw.length === 0) return { colEsq: "Fala", colDir: "Cenas", rows: [] };
+  const primeira = raw[0];
+  const ehCabecalho = primeira.length >= 2 && primeira.every((c) => c.length <= 40);
+  const colEsq = ehCabecalho ? primeira[0] || "Fala" : "Fala";
+  const colDir = ehCabecalho ? primeira[1] || "Cenas" : "Cenas";
+  const corpo = ehCabecalho ? raw.slice(1) : raw;
+  const rows = corpo.map((r) => ({ left: r[0] ?? "", right: r[1] ?? "" }));
+  return { colEsq, colDir, rows };
+}
+
+/** Remonta a tabela fiel em texto com COL_DELIM (cabeçalho + linhas). */
+function serializarTabelaDoc(estado: TabelaDocEstado): string {
+  const header = `${estado.colEsq.trim() || "Fala"}${COL_DELIM}${
+    estado.colDir.trim() || "Cenas"
+  }`;
+  const body = estado.rows
+    .filter((r) => r.left.trim() || r.right.trim())
+    .map((r) => `${r.left.trim()}${COL_DELIM}${r.right.trim()}`);
+  return [header, ...body].join("\n");
+}
+
+/** Editor da tabela fiel: rótulos das colunas editáveis + duas colunas de texto. */
+function TabelaDocEdicao({
+  estado,
+  onHeader,
+  onCampo,
+  onAdd,
+  onRemove,
+  grande = false,
+}: {
+  estado: TabelaDocEstado;
+  onHeader: (lado: "colEsq" | "colDir", valor: string) => void;
+  onCampo: (i: number, lado: "left" | "right", valor: string) => void;
+  onAdd: () => void;
+  onRemove: (i: number) => void;
+  grande?: boolean;
+}) {
+  const txt = grande ? "text-base" : "text-sm";
+  const cabecalhoCls =
+    "w-full rounded bg-transparent px-1.5 py-1 text-[11px] font-bold uppercase tracking-wider text-brand-700 outline-none focus:ring-1 focus:ring-brand-500";
+  return (
+    <div className="overflow-hidden rounded-lg border border-brand-300">
+      <table className="w-full table-fixed border-collapse text-left">
+        <thead>
+          <tr className="bg-brand-50">
+            <th className="w-1/2 border-r border-brand-100 p-1">
+              <input
+                value={estado.colEsq}
+                onChange={(e) => onHeader("colEsq", e.target.value)}
+                className={cabecalhoCls}
+              />
+            </th>
+            <th className="w-1/2 p-1">
+              <input
+                value={estado.colDir}
+                onChange={(e) => onHeader("colDir", e.target.value)}
+                className={cabecalhoCls}
+              />
+            </th>
+            <th className="w-9" />
+          </tr>
+        </thead>
+        <tbody>
+          {estado.rows.map((r, i) => (
+            <tr key={i} className="border-t border-gray-100 align-top">
+              <td className="border-r border-gray-100 p-1">
+                <textarea
+                  value={r.left}
+                  onChange={(e) => onCampo(i, "left", e.target.value)}
+                  rows={grande ? 3 : 2}
+                  className={`w-full resize-y rounded border border-transparent px-1.5 py-1 ${txt} leading-relaxed text-gray-900 outline-none hover:border-gray-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500`}
+                />
+              </td>
+              <td className="p-1">
+                <textarea
+                  value={r.right}
+                  onChange={(e) => onCampo(i, "right", e.target.value)}
+                  rows={grande ? 3 : 2}
+                  className={`w-full resize-y rounded border border-transparent px-1.5 py-1 ${txt} italic leading-relaxed text-gray-600 outline-none hover:border-gray-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500`}
+                />
+              </td>
+              <td className="p-1 text-center">
+                <button
+                  type="button"
+                  onClick={() => onRemove(i)}
+                  title="Remover linha"
+                  className="rounded px-1.5 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                >
+                  ✕
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="border-t border-gray-100 p-2">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="text-xs font-semibold text-brand-700 hover:underline"
+        >
+          + Adicionar linha
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TabelaEdicao({
   linhas,
   onCampo,
@@ -576,15 +695,21 @@ function RoteiroEditavel({
   const [linhas, setLinhas] = useState<LinhaEdicao[]>(() =>
     parseParaEdicao(roteiroLinhas),
   );
+  const [doc, setDoc] = useState<TabelaDocEstado>(() =>
+    parseTabelaDoc(roteiroLinhas),
+  );
   const [salvando, iniciar] = useTransition();
 
-  useEffect(() => setLinhas(parseParaEdicao(roteiroLinhas)), [roteiroLinhas]);
+  useEffect(() => {
+    setLinhas(parseParaEdicao(roteiroLinhas));
+    setDoc(parseTabelaDoc(roteiroLinhas));
+  }, [roteiroLinhas]);
 
   const titulo = arte ? "Layout das artes" : "Roteiro";
   const colEsquerda = arte ? "Elemento" : "OFF / Lettering";
   const colDireita = arte ? "Conteúdo" : "Cenas";
   // Roteiro veio como TABELA fiel do documento (colunas separadas por
-  // COL_DELIM). Nesse caso mostra a tabela do jeito da Vitória (só leitura).
+  // COL_DELIM). Editável na própria estrutura de 2 colunas da Vitória.
   const temTabelaDoc =
     !arte && roteiroLinhas.some((l) => l.includes(COL_DELIM));
 
@@ -599,10 +724,10 @@ function RoteiroEditavel({
 
   const salvar = () =>
     iniciar(async () => {
-      const r = await atualizarRoteiroAction(
-        id,
-        remontar(serializarEdicao(linhas)),
-      );
+      const roteiro = temTabelaDoc
+        ? serializarTabelaDoc(doc)
+        : serializarEdicao(linhas);
+      const r = await atualizarRoteiroAction(id, remontar(roteiro));
       if (!r.ok) {
         toast.erro(r.error ?? "Não foi possível salvar.");
         return;
@@ -614,6 +739,7 @@ function RoteiroEditavel({
 
   const iniciarEdicao = () => {
     setLinhas(parseParaEdicao(roteiroLinhas));
+    setDoc(parseTabelaDoc(roteiroLinhas));
     setEditando(true);
   };
 
@@ -626,6 +752,19 @@ function RoteiroEditavel({
   const onAdd = () =>
     setLinhas((ls) => [...ls, { rotulo: "", conteudo: "" }]);
 
+  // Handlers da tabela fiel (2 colunas COL_DELIM).
+  const onDocHeader = (lado: "colEsq" | "colDir", valor: string) =>
+    setDoc((d) => ({ ...d, [lado]: valor }));
+  const onDocCampo = (i: number, lado: "left" | "right", valor: string) =>
+    setDoc((d) => ({
+      ...d,
+      rows: d.rows.map((r, idx) => (idx === i ? { ...r, [lado]: valor } : r)),
+    }));
+  const onDocRemove = (i: number) =>
+    setDoc((d) => ({ ...d, rows: d.rows.filter((_, idx) => idx !== i) }));
+  const onDocAdd = () =>
+    setDoc((d) => ({ ...d, rows: [...d.rows, { left: "", right: "" }] }));
+
   const Botoes = ({ compacto = false }: { compacto?: boolean }) =>
     editando ? (
       <div className="flex items-center gap-2">
@@ -636,9 +775,7 @@ function RoteiroEditavel({
       </div>
     ) : (
       <div className="flex items-center gap-2">
-        {temTabelaDoc ? null : (
-          <BotaoSec onClick={iniciarEdicao}>✎ Editar</BotaoSec>
-        )}
+        <BotaoSec onClick={iniciarEdicao}>✎ Editar</BotaoSec>
         {compacto ? null : (
           <BotaoSec onClick={() => setTelaCheia(true)}>⛶ Tela cheia</BotaoSec>
         )}
@@ -653,14 +790,24 @@ function RoteiroEditavel({
       </div>
 
       {editando ? (
-        <TabelaEdicao
-          linhas={linhas}
-          onCampo={onCampo}
-          onAdd={onAdd}
-          onRemove={onRemove}
-          colEsquerda={colEsquerda}
-          colDireita={colDireita}
-        />
+        temTabelaDoc ? (
+          <TabelaDocEdicao
+            estado={doc}
+            onHeader={onDocHeader}
+            onCampo={onDocCampo}
+            onAdd={onDocAdd}
+            onRemove={onDocRemove}
+          />
+        ) : (
+          <TabelaEdicao
+            linhas={linhas}
+            onCampo={onCampo}
+            onAdd={onAdd}
+            onRemove={onRemove}
+            colEsquerda={colEsquerda}
+            colDireita={colDireita}
+          />
+        )
       ) : temTabelaDoc ? (
         <TabelaDoc linhas={roteiroLinhas} />
       ) : arte ? (
@@ -696,16 +843,27 @@ function RoteiroEditavel({
           </div>
           <div className="flex-1 overflow-y-auto">
             {editando ? (
-              <div className="mx-auto max-w-3xl p-4">
-                <TabelaEdicao
-                  linhas={linhas}
-                  onCampo={onCampo}
-                  onAdd={onAdd}
-                  onRemove={onRemove}
-                  colEsquerda={colEsquerda}
-                  colDireita={colDireita}
-                  grande
-                />
+              <div className="mx-auto max-w-5xl p-4">
+                {temTabelaDoc ? (
+                  <TabelaDocEdicao
+                    estado={doc}
+                    onHeader={onDocHeader}
+                    onCampo={onDocCampo}
+                    onAdd={onDocAdd}
+                    onRemove={onDocRemove}
+                    grande
+                  />
+                ) : (
+                  <TabelaEdicao
+                    linhas={linhas}
+                    onCampo={onCampo}
+                    onAdd={onAdd}
+                    onRemove={onRemove}
+                    colEsquerda={colEsquerda}
+                    colDireita={colDireita}
+                    grande
+                  />
+                )}
               </div>
             ) : temTabelaDoc ? (
               <div className="mx-auto max-w-5xl p-4">
