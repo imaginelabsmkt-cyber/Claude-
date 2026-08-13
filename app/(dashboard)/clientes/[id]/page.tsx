@@ -230,6 +230,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                   clientes={clienteOpt}
                   perfis={perfis}
                   mostrarCliente={false}
+                  compacto
                   vazioTitulo="Nenhum conteúdo"
                   vazioDescricao="Este cliente ainda não tem conteúdos cadastrados."
                   acaoVazio={

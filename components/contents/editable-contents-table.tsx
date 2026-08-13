@@ -32,6 +32,8 @@ interface EditableContentsTableProps {
   perfis: Profile[];
   /** Mostra a coluna de cliente (útil na lista geral; dispensável na do cliente). */
   mostrarCliente?: boolean;
+  /** Modo enxuto: esconde Prioridade e Responsável (menos poluído na ficha do cliente). */
+  compacto?: boolean;
   vazioTitulo?: string;
   vazioDescricao?: string;
   /** Ação exibida no estado vazio (ex.: botão "+ Novo conteúdo"). */
@@ -124,7 +126,15 @@ const CLASSE_SELECT =
 const NUM_COLUNAS = 7;
 
 /** Linha da planilha. */
-function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
+function Linha({
+  content,
+  perfis,
+  compacto = false,
+}: {
+  content: Content;
+  perfis: Profile[];
+  compacto?: boolean;
+}) {
   const { salvar, salvando } = useSalvar();
   const est = estiloFormato(content.format);
 
@@ -197,16 +207,20 @@ function Linha({ content, perfis }: { content: Content; perfis: Profile[] }) {
       </td>
 
       {/* Prioridade */}
-      <td className="px-2 py-1.5">
-        <QuickPriority id={content.id} priority={content.priority} />
-      </td>
+      {compacto ? null : (
+        <td className="px-2 py-1.5">
+          <QuickPriority id={content.id} priority={content.priority} />
+        </td>
+      )}
 
       {/* Responsável — automático conforme a etapa (só leitura) */}
-      <td className="px-2 py-1.5">
-        <span className="px-1.5 text-xs font-medium text-gray-700">
-          {responsavel}
-        </span>
-      </td>
+      {compacto ? null : (
+        <td className="px-2 py-1.5">
+          <span className="px-1.5 text-xs font-medium text-gray-700">
+            {responsavel}
+          </span>
+        </td>
+      )}
 
       {/* Ações (⋮): abrir / editar / excluir */}
       <td className="px-2 py-1.5 text-right">
@@ -268,6 +282,7 @@ export function EditableContentsTable({
   clientes,
   perfis,
   mostrarCliente = true,
+  compacto = false,
   vazioTitulo = "Nenhum conteúdo",
   vazioDescricao = "Cadastre ou importe um planejamento para começar.",
   acaoVazio,
@@ -305,15 +320,24 @@ export function EditableContentsTable({
 
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-      <table className="w-full min-w-[820px] border-collapse text-left text-sm">
+      <table
+        className={cn(
+          "w-full border-collapse text-left text-sm",
+          compacto ? "min-w-[560px]" : "min-w-[820px]",
+        )}
+      >
         <thead className="border-b border-gray-200 bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
           <tr>
             <th className="px-2 py-2 font-semibold">Conteúdo</th>
             <th className="px-2 py-2 font-semibold">Formato</th>
             <th className="px-2 py-2 font-semibold">Data</th>
             <th className="px-2 py-2 font-semibold">Status</th>
-            <th className="px-2 py-2 font-semibold">Prioridade</th>
-            <th className="px-2 py-2 font-semibold">Responsável</th>
+            {compacto ? null : (
+              <th className="px-2 py-2 font-semibold">Prioridade</th>
+            )}
+            {compacto ? null : (
+              <th className="px-2 py-2 font-semibold">Responsável</th>
+            )}
             <th className="px-2 py-2" />
           </tr>
         </thead>
@@ -327,12 +351,12 @@ export function EditableContentsTable({
                     quantidade={g.itens.length}
                   />
                   {g.itens.map((c) => (
-                    <Linha key={c.id} content={c} perfis={perfis} />
+                    <Linha key={c.id} content={c} perfis={perfis} compacto={compacto} />
                   ))}
                 </Fragment>
               ))
             : contents.map((c) => (
-                <Linha key={c.id} content={c} perfis={perfis} />
+                <Linha key={c.id} content={c} perfis={perfis} compacto={compacto} />
               ))}
         </tbody>
       </table>
