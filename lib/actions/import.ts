@@ -129,13 +129,13 @@ export async function importarConteudosAction(input: {
 
   const supabase = createClient();
 
-  // Conteúdos que JÁ existem para este cliente/mês (para atualizar em vez de
-  // duplicar). Assim reimportar corrige o roteiro dos que já estão no sistema.
+  // Conteúdos que JÁ existem para este cliente (para atualizar em vez de
+  // duplicar). Casa por título (independe do mês), então reimportar corrige o
+  // roteiro dos que já estão no sistema sem atrito.
   const { data: existentes } = await supabase
     .from("contents")
     .select("id, title")
-    .eq("client_id", clientId)
-    .eq("reference_month", referenceMonth);
+    .eq("client_id", clientId);
   const norm = (t: string) => t.trim().toLowerCase();
   const porTitulo = new Map(
     (existentes ?? []).map((c) => [norm(c.title), c.id]),
