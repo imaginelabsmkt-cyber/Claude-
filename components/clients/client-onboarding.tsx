@@ -4,7 +4,10 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { toast } from "@/lib/ui/toast";
-import { salvarOnboardingAction } from "@/lib/actions/client-onboarding";
+import {
+  salvarOnboardingAction,
+  preencherOnboardComIAAction,
+} from "@/lib/actions/client-onboarding";
 import { ONBOARDING_SECOES } from "@/lib/onboarding/schema";
 
 export function ClientOnboarding({
@@ -17,6 +20,7 @@ export function ClientOnboarding({
   const router = useRouter();
   const [valores, setValores] = useState<Record<string, string>>(inicial);
   const [salvando, iniciar] = useTransition();
+  const [preenchendo, iniciarPreencher] = useTransition();
 
   const sujo = useMemo(() => {
     const chaves = new Set([
@@ -43,13 +47,50 @@ export function ClientOnboarding({
       router.refresh();
     });
 
+  const preencherComIA = () =>
+    iniciarPreencher(async () => {
+      const r = await preencherOnboardComIAAction(clientId);
+      if (!r.ok || !r.campos) {
+        toast.erro(r.error ?? "Não foi possível preencher com IA.");
+        return;
+      }
+      // Só preenche o que ainda está vazio — não sobrescreve o que você digitou.
+      setValores((atual) => {
+        const novo = { ...atual };
+        let mudou = 0;
+        for (const [k, v] of Object.entries(r.campos!)) {
+          if (!novo[k]?.trim() && v.trim()) {
+            novo[k] = v;
+            mudou += 1;
+          }
+        }
+        toast.sucesso(
+          mudou > 0
+            ? `IA preencheu ${mudou} campo(s). Revise e salve.`
+            : "Nada novo a preencher — já estava tudo lá.",
+        );
+        return novo;
+      });
+    });
+
   return (
     <div className="space-y-5">
-      <p className="text-xs text-gray-500">
-        O DNA do cliente: as informações principais e a direção do conteúdo,
-        sempre à mão para não perder o rumo. Preencha o que fizer sentido e
-        clique em salvar.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
+        <p className="max-w-xl text-xs text-gray-600">
+          O DNA do cliente: informações principais e direção do conteúdo, sempre
+          à mão. Preencha à mão, ou deixe a <strong>IA ler o diagnóstico</strong>{" "}
+          e preencher pra você (é só revisar e salvar).
+        </p>
+        <button
+          type="button"
+          onClick={preencherComIA}
+          disabled={preenchendo}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+        >
+          <Icon nome="sparkles" className="h-4 w-4" />
+          {preenchendo ? "Lendo o diagnóstico…" : "Preencher com IA"}
+        </button>
+      </div>
 
       {ONBOARDING_SECOES.map((secao) => (
         <div

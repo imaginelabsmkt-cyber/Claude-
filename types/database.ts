@@ -200,9 +200,15 @@ export type ClientReport = {
   notes: string | null;
   uploaded_by: UUID | null;
   created_at: ISODateString;
+  /** Análise "mastigada" gerada por IA (JSON serializado). */
+  analysis: string | null;
 }
-export type ClientReportInsert = Omit<ClientReport, "id" | "created_at"> & {
+export type ClientReportInsert = Omit<
+  ClientReport,
+  "id" | "created_at" | "analysis"
+> & {
   id?: UUID;
+  analysis?: string | null;
 };
 
 /** client_diagnostics — diagnóstico visual (HTML) do cliente. */

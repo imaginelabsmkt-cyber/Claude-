@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/lib/ui/toast";
 import { formatarData } from "@/lib/utils";
 import { Icon } from "@/components/ui/icon";
+import { analisarRelatorioComIAAction } from "@/lib/actions/client-reports";
+import type { RelatorioAnalise } from "@/lib/ai/types";
 import type { ClientReport } from "@/types";
 
 const BUCKET = "client-files";
@@ -47,6 +49,36 @@ export function ClientReportsTab({
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [removendo, setRemovendo] = useState<string | null>(null);
+  const [analisando, setAnalisando] = useState<string | null>(null);
+  const [aberto, setAberto] = useState<string | null>(null);
+  const [analises, setAnalises] = useState<Record<string, RelatorioAnalise>>(
+    () => {
+      const m: Record<string, RelatorioAnalise> = {};
+      for (const r of relatorios) {
+        if (r.analysis) {
+          try {
+            m[r.id] = JSON.parse(r.analysis) as RelatorioAnalise;
+          } catch {
+            /* ignora análise corrompida */
+          }
+        }
+      }
+      return m;
+    },
+  );
+
+  const analisar = async (r: ClientReport) => {
+    setAnalisando(r.id);
+    const res = await analisarRelatorioComIAAction(r.id, clientId);
+    setAnalisando(null);
+    if (!res.ok || !res.analise) {
+      toast.erro(res.error ?? "Não foi possível analisar.");
+      return;
+    }
+    setAnalises((a) => ({ ...a, [r.id]: res.analise! }));
+    setAberto(r.id);
+    toast.sucesso("Relatório analisado");
+  };
 
   const enviar = async (file: File) => {
     if (file.size > LIMITE_MB * 1024 * 1024) {
@@ -182,45 +214,181 @@ export function ClientReportsTab({
         </p>
       ) : (
         <ul className="mt-6 space-y-2">
-          {relatorios.map((r) => (
-            <li
-              key={r.id}
-              className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
-                <Icon nome="report" className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium capitalize text-gray-900">
-                  {rotuloMes(r.reference_month)}
-                </p>
-                <p className="truncate text-xs text-gray-400">
-                  {[r.file_name, r.notes, formatarData(r.created_at)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => baixar(r)}
-                className="inline-flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50"
+          {relatorios.map((r) => {
+            const analise = analises[r.id];
+            const temAnalise = !!analise;
+            const expandido = aberto === r.id;
+            return (
+              <li
+                key={r.id}
+                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
               >
-                <Icon nome="download" className="h-3.5 w-3.5" />
-                Abrir
-              </button>
-              <button
-                type="button"
-                onClick={() => remover(r)}
-                disabled={removendo === r.id}
-                title="Remover"
-                className="rounded-md px-2 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-              >
-                ✕
-              </button>
+                <div className="flex items-center gap-3 p-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+                    <Icon nome="report" className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium capitalize text-gray-900">
+                      {rotuloMes(r.reference_month)}
+                    </p>
+                    <p className="truncate text-xs text-gray-400">
+                      {[r.file_name, r.notes, formatarData(r.created_at)]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  </div>
+                  {temAnalise ? (
+                    <button
+                      type="button"
+                      onClick={() => setAberto(expandido ? null : r.id)}
+                      className="inline-flex items-center gap-1 rounded-md border border-violet-300 bg-white px-2.5 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-50"
+                    >
+                      <Icon nome="chart" className="h-3.5 w-3.5" />
+                      {expandido ? "Ocultar" : "Análise"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => analisar(r)}
+                      disabled={analisando === r.id}
+                      className="inline-flex items-center gap-1 rounded-md bg-violet-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-60"
+                    >
+                      <Icon nome="sparkles" className="h-3.5 w-3.5" />
+                      {analisando === r.id ? "Lendo…" : "Analisar com IA"}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => baixar(r)}
+                    className="inline-flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50"
+                  >
+                    <Icon nome="download" className="h-3.5 w-3.5" />
+                    Abrir
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remover(r)}
+                    disabled={removendo === r.id}
+                    title="Remover"
+                    className="rounded-md px-2 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {temAnalise && expandido ? (
+                  <AnaliseCard analise={analise} onReanalisar={() => analisar(r)} reanalisando={analisando === r.id} />
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** Bloco visual da análise do relatório feita pela IA. */
+function AnaliseCard({
+  analise,
+  onReanalisar,
+  reanalisando,
+}: {
+  analise: RelatorioAnalise;
+  onReanalisar: () => void;
+  reanalisando: boolean;
+}) {
+  const Lista = ({
+    titulo,
+    itens,
+    cor,
+  }: {
+    titulo: string;
+    itens?: string[];
+    cor: string;
+  }) =>
+    itens && itens.length > 0 ? (
+      <div>
+        <p className={`mb-1 text-xs font-bold uppercase tracking-wide ${cor}`}>
+          {titulo}
+        </p>
+        <ul className="space-y-1">
+          {itens.map((it, i) => (
+            <li key={i} className="flex gap-1.5 text-sm text-gray-700">
+              <span className={cor}>•</span>
+              <span>{it}</span>
             </li>
           ))}
         </ul>
-      )}
+      </div>
+    ) : null;
+
+  return (
+    <div className="border-t border-gray-100 bg-gray-50/60 p-4">
+      {analise.periodo ? (
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+          {analise.periodo}
+        </p>
+      ) : null}
+      {analise.resumo ? (
+        <p className="text-sm leading-relaxed text-gray-800">{analise.resumo}</p>
+      ) : null}
+
+      {analise.indicadores && analise.indicadores.length > 0 ? (
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {analise.indicadores.map((ind, i) => {
+            const sobe = (ind.variacao ?? "").trim().startsWith("+");
+            const desce = (ind.variacao ?? "").trim().startsWith("-");
+            return (
+              <div
+                key={i}
+                className="rounded-xl border border-gray-200 bg-white p-3"
+              >
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                  {ind.rotulo}
+                </p>
+                <p className="mt-0.5 text-lg font-bold text-gray-900">
+                  {ind.valor}
+                </p>
+                {ind.variacao ? (
+                  <p
+                    className={
+                      "text-xs font-semibold " +
+                      (sobe
+                        ? "text-green-600"
+                        : desce
+                          ? "text-red-600"
+                          : "text-gray-500")
+                    }
+                  >
+                    {ind.variacao}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Lista titulo="O que deu certo" itens={analise.positivos} cor="text-green-600" />
+        <Lista titulo="O que melhorar" itens={analise.negativos} cor="text-red-600" />
+        <Lista titulo="Recomendações" itens={analise.recomendacoes} cor="text-brand-600" />
+      </div>
+
+      <div className="mt-4 flex items-center justify-between">
+        <span className="text-[11px] text-gray-400">
+          Resumo gerado por IA a partir do relatório. Confira sempre os números
+          no arquivo original.
+        </span>
+        <button
+          type="button"
+          onClick={onReanalisar}
+          disabled={reanalisando}
+          className="text-xs font-semibold text-violet-700 hover:underline disabled:opacity-60"
+        >
+          {reanalisando ? "Refazendo…" : "Refazer análise"}
+        </button>
+      </div>
     </div>
   );
 }
