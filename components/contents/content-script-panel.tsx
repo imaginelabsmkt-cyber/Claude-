@@ -765,6 +765,12 @@ function RoteiroEditavel({
   const onDocAdd = () =>
     setDoc((d) => ({ ...d, rows: [...d.rows, { left: "", right: "" }] }));
 
+  // Texto do roteiro pronto para copiar (as colunas viram " | ").
+  const textoRoteiroCopiavel = roteiroLinhas
+    .map((l) => l.split(COL_DELIM).join("  |  "))
+    .join("\n")
+    .trim();
+
   const Botoes = ({ compacto = false }: { compacto?: boolean }) =>
     editando ? (
       <div className="flex items-center gap-2">
@@ -775,6 +781,12 @@ function RoteiroEditavel({
       </div>
     ) : (
       <div className="flex items-center gap-2">
+        {textoRoteiroCopiavel ? (
+          <BotaoCopiar
+            texto={textoRoteiroCopiavel}
+            rotulo={arte ? "Copiar layout" : "Copiar roteiro"}
+          />
+        ) : null}
         <BotaoSec onClick={iniciarEdicao}>✎ Editar</BotaoSec>
         {compacto ? null : (
           <BotaoSec onClick={() => setTelaCheia(true)}>⛶ Tela cheia</BotaoSec>
