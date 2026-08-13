@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { EditQueue } from "@/components/fila-edicao/edit-queue";
 import { listContents, listAllClients } from "@/lib/data/contents";
-import { ordenarFilaFinal, hojeISO } from "@/lib/rules/contents";
+import { ordenarFilaFinal, hojeISO, ehCapa, ehArte } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +21,11 @@ export default async function FilaEdicaoPage() {
     listAllClients(),
   ]);
 
+  // Só EDIÇÃO DE VÍDEO (Fran). Capas e artes (Vitória) ficam na aba Artes.
   const itens = ordenarFilaFinal(
-    todos.filter((c) => STATUS_FILA.includes(c.status)),
+    todos.filter(
+      (c) => STATUS_FILA.includes(c.status) && !ehCapa(c) && !ehArte(c.format),
+    ),
   );
 
   return (
