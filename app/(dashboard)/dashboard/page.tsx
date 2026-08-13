@@ -143,14 +143,16 @@ export default async function DashboardPage() {
     <>
       <PageHeader titulo="Dashboard" descricao="Visão geral da produção" />
 
-      {/* Agora: o que cada uma está fazendo neste momento */}
-      <AgoraPanel contents={contents} perfis={perfis} clientes={clientes} />
-
-      {/* Cards principais */}
+      {/* Cards principais — primeira coisa do dashboard */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         {cards.map((c) => (
           <StatCard key={c.rotulo} {...c} />
         ))}
+      </div>
+
+      {/* Agora: o que cada uma está fazendo neste momento */}
+      <div className="mt-8">
+        <AgoraPanel contents={contents} perfis={perfis} clientes={clientes} />
       </div>
 
       {/* Atenção esta semana */}
