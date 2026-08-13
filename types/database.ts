@@ -205,6 +205,22 @@ export type ClientReportInsert = Omit<ClientReport, "id" | "created_at"> & {
   id?: UUID;
 };
 
+/** client_diagnostics — diagnóstico visual (HTML) do cliente. */
+export type ClientDiagnostic = {
+  id: UUID;
+  client_id: UUID;
+  title: string | null;
+  html: string;
+  created_at: ISODateString;
+  uploaded_by: UUID | null;
+}
+export type ClientDiagnosticInsert = Omit<
+  ClientDiagnostic,
+  "id" | "created_at"
+> & {
+  id?: UUID;
+};
+
 /** plannings — gestão da criação do planejamento mensal por cliente */
 export type Planning = {
   id: UUID;
@@ -405,6 +421,12 @@ export interface Database {
         Row: ClientReport;
         Insert: ClientReportInsert;
         Update: Partial<ClientReportInsert>;
+        Relationships: [];
+      };
+      client_diagnostics: {
+        Row: ClientDiagnostic;
+        Insert: ClientDiagnosticInsert;
+        Update: Partial<ClientDiagnosticInsert>;
         Relationships: [];
       };
       plannings: {

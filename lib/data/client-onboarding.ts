@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { ClientReport } from "@/types";
+import type { ClientReport, ClientDiagnostic } from "@/types";
 
 /** DNA/onboarding do cliente (mapa campo->valor). Vazio se ainda não existe. */
 export async function getOnboarding(
@@ -24,6 +24,19 @@ export async function listClientReports(
     .select("*")
     .eq("client_id", clientId)
     .order("reference_month", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+/** Diagnósticos do cliente (mais recentes primeiro, com o HTML completo). */
+export async function listClientDiagnostics(
+  clientId: string,
+): Promise<ClientDiagnostic[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("client_diagnostics")
+    .select("*")
+    .eq("client_id", clientId)
     .order("created_at", { ascending: false });
   return data ?? [];
 }

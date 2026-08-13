@@ -15,10 +15,15 @@ import { ClientSectionTabs } from "@/components/clients/client-section-tabs";
 import { ClientFilesTab } from "@/components/clients/client-files-tab";
 import { ClientOnboarding } from "@/components/clients/client-onboarding";
 import { ClientReportsTab } from "@/components/clients/client-reports-tab";
+import { ClientDiagnosticsTab } from "@/components/clients/client-diagnostics-tab";
 import { obterCliente } from "@/lib/data/clients";
 import { listContents, listProfiles } from "@/lib/data/contents";
 import { listClientFiles } from "@/lib/data/client-files";
-import { getOnboarding, listClientReports } from "@/lib/data/client-onboarding";
+import {
+  getOnboarding,
+  listClientReports,
+  listClientDiagnostics,
+} from "@/lib/data/client-onboarding";
 import { resumoProducao, inicioDaSemana, hojeISO } from "@/lib/rules/contents";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -66,13 +71,15 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const cliente = await obterCliente(params.id);
   if (!cliente) notFound();
 
-  const [todos, perfis, arquivos, onboarding, relatorios] = await Promise.all([
-    listContents({ client_id: cliente.id }),
-    listProfiles(),
-    listClientFiles(cliente.id),
-    getOnboarding(cliente.id),
-    listClientReports(cliente.id),
-  ]);
+  const [todos, perfis, arquivos, onboarding, relatorios, diagnosticos] =
+    await Promise.all([
+      listContents({ client_id: cliente.id }),
+      listProfiles(),
+      listClientFiles(cliente.id),
+      getOnboarding(cliente.id),
+      listClientReports(cliente.id),
+      listClientDiagnostics(cliente.id),
+    ]);
 
   const hoje = new Date();
 
@@ -248,6 +255,18 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
             badge: arquivos.length,
             conteudo: (
               <ClientFilesTab clientId={cliente.id} arquivos={arquivos} />
+            ),
+          },
+          {
+            id: "diagnostico",
+            label: "Diagnóstico",
+            icone: "chart",
+            badge: diagnosticos.length,
+            conteudo: (
+              <ClientDiagnosticsTab
+                clientId={cliente.id}
+                diagnosticos={diagnosticos}
+              />
             ),
           },
           {
