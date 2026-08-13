@@ -2,11 +2,16 @@ import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { AgoraPanel } from "@/components/dashboard/agora-panel";
 import { BarChart } from "@/components/dashboard/bar-chart";
 import { StatusContentBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { formatarData } from "@/lib/utils";
-import { listContents, listAllClients } from "@/lib/data/contents";
+import {
+  listContents,
+  listAllClients,
+  listProfiles,
+} from "@/lib/data/contents";
 import { listPlannings } from "@/lib/data/plannings";
 import {
   estaAtrasado,
@@ -28,10 +33,11 @@ export default async function DashboardPage() {
   const hojeStr = hojeISO(hoje);
   const mesAtual = hojeStr.slice(0, 7);
 
-  const [contents, clientes, plannings] = await Promise.all([
+  const [contents, clientes, plannings, perfis] = await Promise.all([
     listContents({}),
     listAllClients(),
     listPlannings(mesAtual),
+    listProfiles(),
   ]);
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
@@ -67,16 +73,16 @@ export default async function DashboardPage() {
   ).length;
 
   const cards = [
-    { rotulo: "Planejamentos a fazer", valor: planejAFazer, href: "/planejamentos", destaque: planejAFazer > 0 },
-    { rotulo: "Postagens desta semana", valor: postSemana, href: "/postagens?view=semana" },
-    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1", destaque: true },
-    { rotulo: "Aguardando gravação", valor: conta("Aguardando gravação"), href: linkStatus("Aguardando gravação") },
-    { rotulo: "Gravados", valor: conta("Gravado"), href: linkStatus("Gravado") },
-    { rotulo: "Fila de edição", valor: conta("Fila de edição"), href: "/fila-edicao" },
-    { rotulo: "Em edição", valor: conta("Em edição"), href: linkStatus("Em edição") },
-    { rotulo: "Em aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente") },
-    { rotulo: "Prontos para publicar", valor: prontosPublicar, href: linkStatus("Aprovado") },
-    { rotulo: "Publicados no mês", valor: publicadosMes, href: linkStatus("Publicado") },
+    { rotulo: "Planejamentos a fazer", valor: planejAFazer, href: "/planejamentos", destaque: planejAFazer > 0, icone: "🗓️", tom: "indigo" as const },
+    { rotulo: "Postagens desta semana", valor: postSemana, href: "/postagens?view=semana", icone: "📆", tom: "indigo" as const },
+    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1", destaque: true, icone: "⚠️", tom: "vermelho" as const },
+    { rotulo: "Aguardando gravação", valor: conta("Aguardando gravação"), href: linkStatus("Aguardando gravação"), icone: "🎬", tom: "ambar" as const },
+    { rotulo: "Gravados", valor: conta("Gravado"), href: linkStatus("Gravado"), icone: "📹", tom: "azul" as const },
+    { rotulo: "Fila de edição", valor: conta("Fila de edição"), href: "/fila-edicao", icone: "✂️", tom: "ambar" as const },
+    { rotulo: "Em edição", valor: conta("Em edição"), href: linkStatus("Em edição"), icone: "🎞️", tom: "ambar" as const },
+    { rotulo: "Em aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente"), icone: "👀", tom: "indigo" as const },
+    { rotulo: "Prontos para publicar", valor: prontosPublicar, href: linkStatus("Aprovado"), icone: "✅", tom: "verde" as const },
+    { rotulo: "Publicados no mês", valor: publicadosMes, href: linkStatus("Publicado"), icone: "🚀", tom: "verde" as const },
   ];
 
   // Atenção esta semana
@@ -136,6 +142,9 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader titulo="Dashboard" descricao="Visão geral da produção" />
+
+      {/* Agora: o que cada uma está fazendo neste momento */}
+      <AgoraPanel contents={contents} perfis={perfis} clientes={clientes} />
 
       {/* Cards principais */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
