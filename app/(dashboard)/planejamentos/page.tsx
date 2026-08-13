@@ -15,13 +15,33 @@ interface PageProps {
   searchParams: { mes?: string };
 }
 
-function Stat({ rotulo, valor }: { rotulo: string; valor: number }) {
+function Stat({
+  rotulo,
+  valor,
+  destaque,
+}: {
+  rotulo: string;
+  valor: number;
+  destaque?: boolean;
+}) {
+  const alerta = destaque && valor > 0;
   return (
-    <div className="flex items-baseline gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5">
+    <div
+      className={
+        "flex items-baseline gap-2 rounded-lg border px-3 py-1.5 " +
+        (alerta ? "border-red-200 bg-red-50" : "border-gray-200 bg-white")
+      }
+    >
       <span className="text-[11px] uppercase tracking-wide text-gray-500">
         {rotulo}
       </span>
-      <span className="text-sm font-bold text-gray-900">{valor}</span>
+      <span
+        className={
+          "text-sm font-bold " + (alerta ? "text-red-600" : "text-gray-900")
+        }
+      >
+        {valor}
+      </span>
     </div>
   );
 }
@@ -79,6 +99,8 @@ export default async function PlanejamentosPage({ searchParams }: PageProps) {
       <PageHeader
         titulo="Planejamentos"
         descricao="Reunião, criação e entrega do planejamento de cada cliente."
+        icone="planejamentos"
+        tom="rosa"
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -101,7 +123,7 @@ export default async function PlanejamentosPage({ searchParams }: PageProps) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Stat rotulo="A marcar reunião" valor={aMarcar} />
-          <Stat rotulo="Atrasados" valor={atrasados} />
+          <Stat rotulo="Atrasados" valor={atrasados} destaque />
           <Stat rotulo="Aprovados" valor={aprovados} />
         </div>
       </div>

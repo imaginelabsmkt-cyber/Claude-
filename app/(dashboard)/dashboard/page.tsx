@@ -141,7 +141,7 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <PageHeader titulo="Dashboard" descricao="Visão geral da produção" />
+      <PageHeader titulo="Dashboard" descricao="Visão geral da produção" icone="dashboard" tom="indigo" />
 
       {/* Cards principais — primeira coisa do dashboard */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">

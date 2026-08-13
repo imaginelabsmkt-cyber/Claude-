@@ -137,6 +137,8 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         descricao={
           cliente.niche ? `Nicho: ${cliente.niche}` : "Painel operacional"
         }
+        icone="clientes"
+        tom="verde"
         acao={
           <div className="flex items-center gap-2">
             {cliente.active ? (

@@ -66,6 +66,8 @@ export default async function ArtesPage({ searchParams }: PageProps) {
         titulo="Artes"
         descricao="Entrega de artes e carrosséis. Arraste para avançar a etapa."
         acao={<NovaArteButton clientes={clientes} mes={mes} />}
+        icone="artes"
+        tom="rosa"
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

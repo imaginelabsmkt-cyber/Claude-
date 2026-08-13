@@ -53,6 +53,8 @@ export default async function PostagensPage({ searchParams }: PageProps) {
       <PageHeader
         titulo="Postagens"
         descricao="Agendamento das publicações por semana e por mês"
+        icone="postagens"
+        tom="azul"
         acao={
           <div className="inline-flex rounded-lg border border-gray-300 p-0.5">
             <Link

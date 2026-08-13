@@ -185,7 +185,7 @@ export default async function MinhasTarefasPage() {
 
   return (
     <>
-      <PageHeader titulo="Minhas tarefas" descricao={descricao} />
+      <PageHeader titulo="Minhas tarefas" descricao={descricao} icone="tarefas" tom="indigo" />
 
       {totalItens === 0 && !mostrarPlanej ? (
         <EmptyState

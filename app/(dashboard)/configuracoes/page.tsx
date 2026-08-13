@@ -24,7 +24,7 @@ export default async function ConfiguracoesPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <PageHeader titulo="Configurações" descricao="Perfil e sessão" />
+      <PageHeader titulo="Configurações" descricao="Perfil e sessão" icone="configuracoes" tom="indigo" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>

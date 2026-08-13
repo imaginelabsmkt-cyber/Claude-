@@ -38,6 +38,8 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
       <PageHeader
         titulo="Conteúdos"
         descricao="Pautas, roteiros e acompanhamento do pipeline de produção"
+        icone="conteudos"
+        tom="indigo"
         acao={
           <div className="flex flex-wrap gap-2">
             <Link href="/conteudos/importar">

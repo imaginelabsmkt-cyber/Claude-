@@ -102,6 +102,8 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
       <PageHeader
         titulo="Gravações"
         descricao="Conteúdos que precisam de gravação, por situação"
+        icone="gravacoes"
+        tom="ambar"
         acao={
           <AgendarLoteButton clientes={clientOptions} candidatos={candidatos} />
         }

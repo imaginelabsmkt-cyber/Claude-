@@ -27,6 +27,8 @@ export default async function ClientesPage({ searchParams }: PageProps) {
       <PageHeader
         titulo="Clientes"
         descricao="Cadastro e gestão dos clientes da agência"
+        icone="clientes"
+        tom="verde"
         acao={
           <Link href="/clientes/novo">
             <Button>Novo cliente</Button>
