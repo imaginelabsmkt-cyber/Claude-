@@ -9,6 +9,7 @@ import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
+import { PLANNING_ENTREGUE } from "@/types";
 
 const TZ = "America/Boa_Vista";
 const OFFSET_LOCAL = "-04:00"; // Boa Vista / Roraima (UTC-4)
@@ -110,7 +111,9 @@ export async function sincronizarPlanejamentoGoogle(
 
     const { data: p } = await sb
       .from("plannings")
-      .select("reference_month, meeting_date, meeting_time, delivery_deadline, client_id")
+      .select(
+        "reference_month, meeting_date, meeting_time, delivery_deadline, client_id, status",
+      )
       .eq("id", planningId)
       .maybeSingle();
     if (!p) return;
@@ -194,7 +197,25 @@ export async function sincronizarPlanejamentoGoogle(
 
     // ---- Prazo de entrega => tarefa ----
     const tkExistente = await idSync(sb, planningId, userId, "task");
-    if (!p.delivery_deadline) {
+    const entregue = PLANNING_ENTREGUE.includes(p.status);
+    if (entregue) {
+      // Vitória entregou: marca a tarefa como CONCLUÍDA no Google (fica de
+      // registro do que foi entregue) em vez de deixar pendente/sumir.
+      if (tkExistente) {
+        await fetch(
+          `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${tkExistente}`,
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: "completed" }),
+          },
+        );
+        await apagarSync(sb, planningId, userId, "task");
+      }
+    } else if (!p.delivery_deadline) {
       if (tkExistente) {
         await fetch(
           `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${tkExistente}`,
