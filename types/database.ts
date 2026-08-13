@@ -160,6 +160,21 @@ export type Comment = {
   created_at: ISODateString;
 }
 
+/** client_files — arquivos centralizados por cliente (metadados). */
+export type ClientFile = {
+  id: UUID;
+  client_id: UUID;
+  name: string;
+  path: string;
+  size_bytes: number | null;
+  mime_type: string | null;
+  uploaded_by: UUID | null;
+  created_at: ISODateString;
+}
+export type ClientFileInsert = Omit<ClientFile, "id" | "created_at"> & {
+  id?: UUID;
+};
+
 /** plannings — gestão da criação do planejamento mensal por cliente */
 export type Planning = {
   id: UUID;
@@ -342,6 +357,12 @@ export interface Database {
         Row: Comment;
         Insert: CommentInsert;
         Update: Partial<CommentInsert>;
+        Relationships: [];
+      };
+      client_files: {
+        Row: ClientFile;
+        Insert: ClientFileInsert;
+        Update: Partial<ClientFileInsert>;
         Relationships: [];
       };
       plannings: {

@@ -11,8 +11,11 @@ import {
   type ItemCalendario,
 } from "@/components/contents/content-week-board";
 import { DeletePlanningButton } from "@/components/contents/delete-planning-button";
+import { ClientSectionTabs } from "@/components/clients/client-section-tabs";
+import { ClientFilesTab } from "@/components/clients/client-files-tab";
 import { obterCliente } from "@/lib/data/clients";
 import { listContents, listProfiles } from "@/lib/data/contents";
+import { listClientFiles } from "@/lib/data/client-files";
 import { resumoProducao, inicioDaSemana, hojeISO } from "@/lib/rules/contents";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -60,9 +63,10 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const cliente = await obterCliente(params.id);
   if (!cliente) notFound();
 
-  const [todos, perfis] = await Promise.all([
+  const [todos, perfis, arquivos] = await Promise.all([
     listContents({ client_id: cliente.id }),
     listProfiles(),
+    listClientFiles(cliente.id),
   ]);
 
   const hoje = new Date();
@@ -183,36 +187,39 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         />
       </div>
 
-      {/* Planilha editável — ferramenta principal */}
-      <div className="mt-8">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-gray-900">
-            Conteúdos do cliente
-          </h2>
-          <span className="text-[11px] text-gray-400">
-            Edite qualquer campo direto na linha, salva sozinho. Clique no
-            título para abrir.
-          </span>
-        </div>
-        <EditableContentsTable
-          contents={todos}
-          clientes={clienteOpt}
-          perfis={perfis}
-          mostrarCliente={false}
-          vazioTitulo="Nenhum conteúdo"
-          vazioDescricao="Este cliente ainda não tem conteúdos cadastrados."
-          acaoVazio={
-            <div className="flex flex-wrap justify-center gap-2">
-              <Link href="/conteudos/importar">
-                <Button variante="secundaria">Importar planejamento</Button>
-              </Link>
-              <Link href="/conteudos/novo">
-                <Button>+ Novo conteúdo</Button>
-              </Link>
+      {/* Abas: planilha de conteúdos | central de arquivos do cliente */}
+      <ClientSectionTabs
+        totalArquivos={arquivos.length}
+        conteudos={
+          <div>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[11px] text-gray-400">
+                Edite qualquer campo direto na linha, salva sozinho. Clique no
+                título para abrir.
+              </span>
             </div>
-          }
-        />
-      </div>
+            <EditableContentsTable
+              contents={todos}
+              clientes={clienteOpt}
+              perfis={perfis}
+              mostrarCliente={false}
+              vazioTitulo="Nenhum conteúdo"
+              vazioDescricao="Este cliente ainda não tem conteúdos cadastrados."
+              acaoVazio={
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Link href="/conteudos/importar">
+                    <Button variante="secundaria">Importar planejamento</Button>
+                  </Link>
+                  <Link href="/conteudos/novo">
+                    <Button>+ Novo conteúdo</Button>
+                  </Link>
+                </div>
+              }
+            />
+          </div>
+        }
+        arquivos={<ClientFilesTab clientId={cliente.id} arquivos={arquivos} />}
+      />
     </>
   );
 }
