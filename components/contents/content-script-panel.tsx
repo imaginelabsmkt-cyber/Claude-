@@ -243,6 +243,108 @@ function TabelaRoteiro({
   );
 }
 
+/** Linha é uma FALA/lettering? (rótulo em MAIÚSCULAS seguido de ":"). */
+function ehFala(linha: string): boolean {
+  return /^[A-ZÀ-Ý0-9][A-ZÀ-Ý0-9 ./]{0,40}:/.test(linha);
+}
+/** Parece cabeçalho de coluna? (curto e todo em maiúsculas, ex.: "CENAS"). */
+function pareceCabecalho(l: string): boolean {
+  return l.length > 0 && l.length <= 40 && l === l.toUpperCase() && /[A-ZÀ-Ý]/.test(l);
+}
+
+/**
+ * Reconstrói a tabela 2 colunas (fala | cena) a partir do roteiro ACHATADO
+ * (conteúdos importados antes da preservação de tabela). Best-effort: pareia
+ * cada fala com a cena seguinte. Usa as 2 primeiras linhas como cabeçalho se
+ * forem rótulos curtos.
+ */
+function reconstruirRoteiro(linhas: string[]): {
+  colEsq: string;
+  colDir: string;
+  rows: { left: string; right: string }[];
+} {
+  let colEsq = "Fala";
+  let colDir = "Cenas";
+  let corpo = linhas;
+  if (
+    linhas.length >= 2 &&
+    pareceCabecalho(linhas[0]) &&
+    pareceCabecalho(linhas[1])
+  ) {
+    colEsq = linhas[0];
+    colDir = linhas[1];
+    corpo = linhas.slice(2);
+  }
+  const rows: { left: string; right: string }[] = [];
+  let cur: { left: string; right: string } | null = null;
+  for (const l of corpo) {
+    if (ehFala(l)) {
+      cur = { left: l, right: "" };
+      rows.push(cur);
+    } else if (cur && !cur.right) {
+      cur.right = l;
+    } else {
+      rows.push({ left: "", right: l });
+      cur = null;
+    }
+  }
+  return { colEsq, colDir, rows };
+}
+
+/** Tabela reconstruída (fala | cena) do roteiro achatado. Expande. */
+function TabelaReconstruida({
+  linhas,
+  grande = false,
+}: {
+  linhas: string[];
+  grande?: boolean;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const { colEsq, colDir, rows } = reconstruirRoteiro(linhas);
+  if (rows.length === 0) return null;
+  const limite = grande ? rows.length : LIMITE_PREVIA;
+  const visiveis = aberto ? rows : rows.slice(0, limite);
+  const restantes = rows.length - limite;
+  const txt = grande ? "text-base" : "text-sm";
+  return (
+    <div>
+      <div className="overflow-hidden rounded-lg border border-gray-200">
+        <table className={`w-full table-fixed border-collapse text-left ${txt}`}>
+          <thead>
+            <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
+              <th className="w-1/2 border-r border-brand-100 px-3 py-2">
+                {colEsq}
+              </th>
+              <th className="w-1/2 px-3 py-2">{colDir}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visiveis.map((r, i) => (
+              <tr key={i} className="border-t border-gray-100 align-top">
+                <td className="whitespace-pre-wrap break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
+                  {r.left || "—"}
+                </td>
+                <td className="whitespace-pre-wrap break-words px-3 py-2 italic leading-relaxed text-gray-500">
+                  {r.right || "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {!grande && restantes > 0 ? (
+        <button
+          type="button"
+          onClick={() => setAberto((v) => !v)}
+          className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
+        >
+          {aberto ? "Recolher ▲" : `Ver completo (+${restantes}) ▼`}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Tabela FIEL ao documento da Vitória: as linhas do roteiro trazem as colunas
  * separadas por COL_DELIM (ex.: FALA | CENAS). Usa a 1ª linha como cabeçalho
@@ -568,14 +670,7 @@ function RoteiroEditavel({
           colDireita={colDireita}
         />
       ) : (
-        <TabelaRoteiro
-          linhas={parseParaEdicao(roteiroLinhas).map((l) => ({
-            rotulo: l.rotulo || "CENA",
-            conteudo: l.conteudo,
-          }))}
-          colEsquerda="Tipo"
-          colDireita="Texto"
-        />
+        <TabelaReconstruida linhas={roteiroLinhas} />
       )}
 
       {/* Overlay de tela cheia (gravação / criação) */}
@@ -616,8 +711,12 @@ function RoteiroEditavel({
               <div className="mx-auto max-w-5xl p-4">
                 <TabelaDoc linhas={roteiroLinhas} grande />
               </div>
-            ) : (
+            ) : arte ? (
               <LeituraGrande blocos={blocos} />
+            ) : (
+              <div className="mx-auto max-w-5xl p-4">
+                <TabelaReconstruida linhas={roteiroLinhas} grande />
+              </div>
             )}
           </div>
         </div>
