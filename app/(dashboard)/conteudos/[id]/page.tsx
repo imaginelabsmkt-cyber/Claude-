@@ -19,7 +19,10 @@ import { HistoryTimeline } from "@/components/conteudos/history-timeline";
 import { CommentsSection } from "@/components/conteudos/comments-section";
 import { ContentActions } from "@/components/contents/content-actions";
 import { ContentScriptPanel } from "@/components/contents/content-script-panel";
-import { ProductionStages } from "@/components/contents/production-stages";
+import {
+  ProductionStages,
+  PostagemStage,
+} from "@/components/contents/production-stages";
 import { CoverPanel } from "@/components/contents/cover-panel";
 import {
   proximaAcao,
@@ -27,7 +30,6 @@ import {
   prazoPrincipal,
   estaAtrasado,
   entregaEmAlerta,
-  motivoPrioridade,
   ehCapa,
 } from "@/lib/rules/contents";
 import { formatarData } from "@/lib/utils";
@@ -129,9 +131,6 @@ export default async function ConteudoPage({ params }: PageProps) {
               <Badge tom="verde">Em dia</Badge>
             )}
           </Item>
-          <Item rotulo="Motivo da prioridade">
-            {motivoPrioridade(conteudo)}
-          </Item>
           {conteudo.revision_count > 0 ? (
             <Item rotulo="Ajustes">{conteudo.revision_count}</Item>
           ) : null}
@@ -217,6 +216,9 @@ export default async function ConteudoPage({ params }: PageProps) {
         caption={conteudo.caption}
         format={conteudo.format}
       />
+
+      {/* Postagem — último passo, depois do roteiro */}
+      <PostagemStage content={conteudo} />
         </>
       )}
 

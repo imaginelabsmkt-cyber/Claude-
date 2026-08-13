@@ -481,13 +481,27 @@ export function ProductionStages({ content }: { content: Content }) {
           </Painel>
         </>
       )}
+    </div>
+  );
+}
 
-      {/* POSTAGEM */}
+/**
+ * Painel de POSTAGEM (link publicado + data real). Separado da produção por
+ * etapa para aparecer DEPOIS do roteiro/legenda na ficha (a postagem é o
+ * último passo, então vem por último).
+ */
+export function PostagemStage({ content }: { content: Content }) {
+  const { salvar } = useSalvar();
+  const etapa = etapaDoStatus(content.status);
+  const set = (patch: ContentStagePatch) => salvar(content.id, patch);
+
+  return (
+    <div className="mt-6">
       <Painel
         titulo="Postagem"
         emoji="🚀"
         atual={etapa === "postagem"}
-        abertoInicial
+        abertoInicial={false}
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <CampoTexto
