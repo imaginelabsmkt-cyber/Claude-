@@ -7,8 +7,10 @@ import Anthropic from "@anthropic-ai/sdk";
  * Precisa da variável de ambiente ANTHROPIC_API_KEY no servidor.
  */
 
-// Modelo padrão. Trocar aqui afeta todas as chamadas de IA do sistema.
-export const MODELO_IA = "claude-opus-5";
+// Modelo padrão. Haiku = econômico (centavos por análise) e ótimo para ler
+// diagnóstico e resumir relatório. Trocar aqui afeta todas as chamadas de IA
+// (ex.: "claude-sonnet-5" ou "claude-opus-5" para análises mais afiadas).
+export const MODELO_IA = "claude-haiku-4-5";
 
 /** A IA está configurada (há chave)? */
 export function iaDisponivel(): boolean {
