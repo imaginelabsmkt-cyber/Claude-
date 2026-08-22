@@ -12,6 +12,14 @@ export interface FiltrosConteudo {
   planned_week?: string;
 }
 
+export interface OpcoesListagem {
+  /**
+   * Esconde conteúdos de clientes DESATIVADOS (mantém os "sem cliente").
+   * Usado na aba Conteúdos — a página do próprio cliente não usa isso.
+   */
+  excluirClientesInativos?: boolean;
+}
+
 export interface OpcaoCliente {
   id: string;
   name: string;
@@ -24,6 +32,7 @@ export interface OpcaoCliente {
  */
 export async function listContents(
   filtros: FiltrosConteudo = {},
+  opcoes: OpcoesListagem = {},
 ): Promise<Content[]> {
   const supabase = createClient();
 
@@ -32,6 +41,18 @@ export async function listContents(
     .select("*")
     .order("planned_date", { ascending: true, nullsFirst: false })
     .order("title", { ascending: true });
+
+  // Esconde conteúdos de clientes desativados (mantém os "sem cliente").
+  if (opcoes.excluirClientesInativos) {
+    const { data: inativos } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("active", false);
+    const ids = (inativos ?? []).map((c) => c.id);
+    if (ids.length > 0) {
+      query = query.or(`client_id.is.null,client_id.not.in.(${ids.join(",")})`);
+    }
+  }
 
   if (filtros.q?.trim())
     query = query.ilike("title", `%${escaparLike(filtros.q.trim())}%`);
