@@ -73,7 +73,10 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
 
   const [todos, perfis, arquivos, onboarding, relatorios, diagnosticos] =
     await Promise.all([
-      listContents({ client_id: cliente.id }),
+      listContents(
+        { client_id: cliente.id },
+        { incluirClientesInativos: true },
+      ),
       listProfiles(),
       listClientFiles(cliente.id),
       getOnboarding(cliente.id),

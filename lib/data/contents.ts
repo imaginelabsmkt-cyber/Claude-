@@ -14,10 +14,11 @@ export interface FiltrosConteudo {
 
 export interface OpcoesListagem {
   /**
-   * Esconde conteúdos de clientes DESATIVADOS (mantém os "sem cliente").
-   * Usado na aba Conteúdos — a página do próprio cliente não usa isso.
+   * Por padrão, conteúdos de clientes DESATIVADOS ficam escondidos em todas as
+   * telas (os "sem cliente" continuam aparecendo). A única exceção é a página
+   * do próprio cliente, que passa `true` aqui para poder consultá-los/reativar.
    */
-  excluirClientesInativos?: boolean;
+  incluirClientesInativos?: boolean;
 }
 
 export interface OpcaoCliente {
@@ -42,8 +43,9 @@ export async function listContents(
     .order("planned_date", { ascending: true, nullsFirst: false })
     .order("title", { ascending: true });
 
-  // Esconde conteúdos de clientes desativados (mantém os "sem cliente").
-  if (opcoes.excluirClientesInativos) {
+  // Por padrão, esconde conteúdos de clientes desativados em todas as telas
+  // (mantém os "sem cliente"). A página do cliente pede incluí-los.
+  if (!opcoes.incluirClientesInativos) {
     const { data: inativos } = await supabase
       .from("clients")
       .select("id")
