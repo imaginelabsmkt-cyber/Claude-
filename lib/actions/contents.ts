@@ -19,6 +19,7 @@ import {
   sincronizarGravacao,
   sincronizarGravacaoEmLote,
   sincronizarEdicao,
+  sincronizarSessaoEdicao,
   sincronizarPostagem,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
@@ -336,9 +337,13 @@ export async function alterarDataGravacaoAction(
 export async function agendarSessaoEdicaoAction(
   id: string,
   data: string | null,
+  hora?: string | null,
 ): Promise<ActionResult> {
   if (data && !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
     return { ok: false, error: "Data inválida." };
+  }
+  if (hora && !/^\d{2}:\d{2}$/.test(hora)) {
+    return { ok: false, error: "Horário inválido." };
   }
   const supabase = createClient();
   const { data: atual } = await supabase
@@ -346,16 +351,23 @@ export async function agendarSessaoEdicaoAction(
     .select("status")
     .eq("id", id)
     .maybeSingle();
+  // Sem dia não faz sentido guardar horário.
   const { error } = await supabase
     .from("contents")
-    .update({ editing_date: data || null })
+    .update({
+      editing_date: data || null,
+      editing_time: data ? hora || null : null,
+    })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível agendar a edição." };
 
-  // Atualiza a TAREFA de edição no Google para cair no dia escolhido.
+  // Atualiza a TAREFA de edição (to-do da fila) para cair no dia escolhido...
   if (atual?.status) {
     await sincronizarEdicao(id, atual.status as ContentStatus);
   }
+  // ...e cria/atualiza/remove o BLOCO na Agenda "Imagine Produção" (o horário
+  // que a Fran reservou para editar). Sem dia, o bloco é removido.
+  await sincronizarSessaoEdicao(id);
 
   revalidarConteudos(id);
   return { ok: true, id };
