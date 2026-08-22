@@ -229,42 +229,74 @@ function ItemFila({
   );
 }
 
+/** Status em que a Fran está com a mão na massa (edição em andamento). */
+const STATUS_EDITANDO: ContentStatus[] = ["Em edição", "Ajustes"];
+
 /**
- * Fila de edição agrupada por URGÊNCIA (Atrasado/Hoje, Esta semana, Próximas),
- * para bater o olho no que precisa sair primeiro. Cada card mostra formato,
- * cliente e a contagem de prazo, e tem o controle "Editar em" (Google Agenda).
+ * Fila de edição em duas áreas:
+ *  1. "Editando agora" — o que está EM EDIÇÃO / AJUSTES (trabalho ativo).
+ *  2. "Na fila" — o que ainda vai editar, agrupado por URGÊNCIA
+ *     (Atrasado/Hoje, Esta semana, Próximas).
+ * Cada card mostra formato, cliente e a contagem de prazo, e tem o controle
+ * "Editar em" (bloco na Agenda).
  */
 export function EditQueue({ itens, clientes, hoje }: EditQueueProps) {
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
+  // Separa o que está sendo editado agora do restante da fila.
+  const editando = itens.filter((c) => STATUS_EDITANDO.includes(c.status));
+  const naFila = itens.filter((c) => !STATUS_EDITANDO.includes(c.status));
+
   const baldes: Content[][] = [[], [], []];
-  for (const c of itens) baldes[grupoUrgencia(prazoPrincipal(c), hoje)].push(c);
+  for (const c of naFila) baldes[grupoUrgencia(prazoPrincipal(c), hoje)].push(c);
+
+  const renderItem = (c: Content) => (
+    <ItemFila
+      key={c.id}
+      content={c}
+      cliente={clientesById.get(c.client_id)}
+      hoje={hoje}
+    />
+  );
 
   return (
     <div className="space-y-6">
-      {GRUPOS.map((g, i) =>
-        baldes[i].length === 0 ? null : (
-          <section key={g.titulo}>
-            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <span className={`inline-block h-2 w-2 rounded-full ${g.ponto}`} aria-hidden="true" />
-              <span className={g.cor}>{g.titulo}</span>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${g.pilula}`}>
-                {baldes[i].length}
-              </span>
-            </h2>
-            <div className="space-y-2">
-              {baldes[i].map((c) => (
-                <ItemFila
-                  key={c.id}
-                  content={c}
-                  cliente={clientesById.get(c.client_id)}
-                  hoje={hoje}
-                />
-              ))}
-            </div>
-          </section>
-        ),
-      )}
+      {editando.length > 0 ? (
+        <section>
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <span aria-hidden="true">🎬</span>
+            <span className="text-brand-700">Editando agora</span>
+            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700">
+              {editando.length}
+            </span>
+          </h2>
+          <div className="space-y-2">{editando.map(renderItem)}</div>
+        </section>
+      ) : null}
+
+      {naFila.length > 0 ? (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <span className="h-px flex-1 bg-gray-200" aria-hidden="true" />
+            Na fila
+            <span className="h-px flex-1 bg-gray-200" aria-hidden="true" />
+          </div>
+          {GRUPOS.map((g, i) =>
+            baldes[i].length === 0 ? null : (
+              <section key={g.titulo}>
+                <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <span className={`inline-block h-2 w-2 rounded-full ${g.ponto}`} aria-hidden="true" />
+                  <span className={g.cor}>{g.titulo}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${g.pilula}`}>
+                    {baldes[i].length}
+                  </span>
+                </h2>
+                <div className="space-y-2">{baldes[i].map(renderItem)}</div>
+              </section>
+            ),
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
