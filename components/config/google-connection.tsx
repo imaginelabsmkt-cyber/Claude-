@@ -94,9 +94,10 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
             </Button>
           </div>
           <p className="text-xs text-gray-500">
-            “Reenviar tudo” recria as reuniões, postagens e gravações nos
-            calendários certos (Imagine Reuniões / Produção / Postagens) e
-            corrige títulos antigos. Use se algo não apareceu na agenda.
+            “Reenviar tudo” recria as reuniões, postagens, gravações e edições
+            (tarefa + bloco na Agenda) nos calendários certos (Imagine Reuniões
+            / Produção / Postagens) e corrige títulos antigos. Use se algo não
+            apareceu na agenda.
           </p>
         </>
       ) : (

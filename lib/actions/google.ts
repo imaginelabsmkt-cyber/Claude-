@@ -9,10 +9,20 @@ import {
   sincronizarGravacao,
   sincronizarGravacaoEmLote,
   sincronizarPostagem,
+  sincronizarEdicao,
+  sincronizarSessaoEdicao,
 } from "@/lib/google/sync";
 import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
 import { estaGravado } from "@/lib/rules/contents";
 import type { ActionResult } from "@/lib/actions/contents";
+import type { ContentStatus } from "@/types";
+
+/** Status em que o vídeo está na fila/edição (viram tarefa + bloco na Agenda). */
+const STATUS_EDICAO_REENVIO: ContentStatus[] = [
+  "Fila de edição",
+  "Em edição",
+  "Ajustes",
+];
 
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -170,6 +180,14 @@ export async function reenviarTudoGoogleAction(): Promise<
   for (const ids of grupos.values()) {
     if (ids.length > 1) await sincronizarGravacaoEmLote(ids);
     else await sincronizarGravacao(ids[0]);
+  }
+
+  // 5) Recria as EDIÇÕES: tarefa (to-do) e, se houver dia marcado, o bloco na
+  // Agenda "Imagine Produção". Ambos são idempotentes (não duplicam).
+  for (const c of conts) {
+    if (!STATUS_EDICAO_REENVIO.includes(c.status as ContentStatus)) continue;
+    await sincronizarEdicao(c.id, c.status as ContentStatus);
+    await sincronizarSessaoEdicao(c.id);
   }
 
   revalidatePath("/configuracoes");
