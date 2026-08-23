@@ -200,7 +200,7 @@ export async function definirStatusConteudoAction(
   const supabase = createClient();
   const { data: antigo } = await supabase
     .from("contents")
-    .select("status")
+    .select("status, editing_date")
     .eq("id", id)
     .maybeSingle();
 
@@ -212,9 +212,18 @@ export async function definirStatusConteudoAction(
     "Em edição",
     "Ajustes",
   ];
-  const dados: { status: ContentStatus; editing_queue_position?: number | null } =
-    { status };
+  const dados: {
+    status: ContentStatus;
+    editing_queue_position?: number | null;
+    editing_date?: string | null;
+  } = { status };
   if (!NA_FILA.includes(status)) dados.editing_queue_position = null;
+
+  // "Iniciar edição": se ainda não há dia marcado, agenda a edição para HOJE,
+  // para que o bloco apareça na Agenda automaticamente (a hora ela ajusta na
+  // fila ou no próprio Google).
+  const iniciouEdicao = status === "Em edição" && !antigo?.editing_date;
+  if (iniciouEdicao) dados.editing_date = hojeISO();
 
   const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar o status." };
@@ -224,6 +233,9 @@ export async function definirStatusConteudoAction(
   ]);
 
   await sincronizarEdicao(id, status);
+  // Cria/atualiza o BLOCO na Agenda quando entra em edição (dia = hoje ou o que
+  // já estava marcado).
+  if (status === "Em edição") await sincronizarSessaoEdicao(id);
   await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
 
   // Vídeo entrou em edição => já cria a demanda de capa nas Artes (para a
