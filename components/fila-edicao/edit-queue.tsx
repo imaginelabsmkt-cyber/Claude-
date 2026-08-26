@@ -115,11 +115,11 @@ function ItemFila({
     });
   }
 
-  function agendarEdicao(data: string | null, hora: string | null) {
+  function agendarEdicao(data: string | null) {
     iniciar(async () => {
-      const r = await agendarSessaoEdicaoAction(content.id, data, hora);
+      const r = await agendarSessaoEdicaoAction(content.id, data);
       if (!r.ok) toast.erro(r.error ?? "Não foi possível agendar a edição.");
-      else toast.sucesso(data ? "Edição na Agenda" : "Edição desmarcada");
+      else toast.sucesso(data ? "Prazo da edição no Google" : "Edição desmarcada");
       router.refresh();
     });
   }
@@ -181,49 +181,27 @@ function ItemFila({
         </div>
       </div>
 
-      {/* Agendar quando vai editar (vira bloco na Agenda "Imagine Produção") */}
+      {/* Dia de editar = prazo da TAREFA no Google (não vira evento) */}
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
         <span className="font-medium">🗓️ Editar em:</span>
         <input
           type="date"
           value={content.editing_date ?? ""}
           disabled={processando}
-          onChange={(e) =>
-            agendarEdicao(e.target.value || null, content.editing_time ?? null)
-          }
+          onChange={(e) => agendarEdicao(e.target.value || null)}
           className={CLASSE_MINI}
-        />
-        <input
-          type="time"
-          value={content.editing_time ?? ""}
-          disabled={processando || !content.editing_date}
-          onChange={(e) =>
-            agendarEdicao(content.editing_date ?? null, e.target.value || null)
-          }
-          className={CLASSE_MINI}
-          title={
-            content.editing_date
-              ? "Horário da edição"
-              : "Escolha o dia primeiro"
-          }
         />
         {content.editing_date ? (
           <button
             type="button"
             disabled={processando}
-            onClick={() => agendarEdicao(null, null)}
+            onClick={() => agendarEdicao(null)}
             className="text-gray-400 hover:text-red-600"
           >
             limpar
           </button>
         ) : null}
-        <span className="text-gray-400">
-          {content.editing_date
-            ? content.editing_time
-              ? "(bloco na Agenda com horário)"
-              : "(bloco na Agenda o dia todo — ponha a hora)"
-            : "(vira um bloco na sua Agenda)"}
-        </span>
+        <span className="text-gray-400">(vira tarefa no Google, no dia escolhido)</span>
       </div>
     </div>
   );

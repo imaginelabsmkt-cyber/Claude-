@@ -32,7 +32,7 @@ export default async function FilaEdicaoPage() {
     <>
       <PageHeader
         titulo="Fila de edição"
-        descricao="Os que você está editando ficam em cima; o resto, na fila por urgência. Marque o dia e a hora de editar para virar um bloco na sua Agenda."
+        descricao="Os que você está editando ficam em cima; o resto, na fila por urgência. Marque o dia de editar — vira uma tarefa no Google (não um evento na Agenda)."
         icone="edicao"
         tom="ambar"
       />

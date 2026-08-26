@@ -19,7 +19,6 @@ import {
   sincronizarGravacao,
   sincronizarGravacaoEmLote,
   sincronizarEdicao,
-  sincronizarSessaoEdicao,
   sincronizarPostagem,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
@@ -200,7 +199,7 @@ export async function definirStatusConteudoAction(
   const supabase = createClient();
   const { data: antigo } = await supabase
     .from("contents")
-    .select("status, editing_date")
+    .select("status")
     .eq("id", id)
     .maybeSingle();
 
@@ -212,18 +211,9 @@ export async function definirStatusConteudoAction(
     "Em edição",
     "Ajustes",
   ];
-  const dados: {
-    status: ContentStatus;
-    editing_queue_position?: number | null;
-    editing_date?: string | null;
-  } = { status };
+  const dados: { status: ContentStatus; editing_queue_position?: number | null } =
+    { status };
   if (!NA_FILA.includes(status)) dados.editing_queue_position = null;
-
-  // "Iniciar edição": se ainda não há dia marcado, agenda a edição para HOJE,
-  // para que o bloco apareça na Agenda automaticamente (a hora ela ajusta na
-  // fila ou no próprio Google).
-  const iniciouEdicao = status === "Em edição" && !antigo?.editing_date;
-  if (iniciouEdicao) dados.editing_date = hojeISO();
 
   const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar o status." };
@@ -232,10 +222,8 @@ export async function definirStatusConteudoAction(
     { field: "Status", old: antigo?.status ?? null, new: status },
   ]);
 
+  // Edição = TAREFA no Google (não evento). Gravação/postagem = evento.
   await sincronizarEdicao(id, status);
-  // Cria/atualiza o BLOCO na Agenda quando entra em edição (dia = hoje ou o que
-  // já estava marcado).
-  if (status === "Em edição") await sincronizarSessaoEdicao(id);
   await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
 
   // Vídeo entrou em edição => já cria a demanda de capa nas Artes (para a
@@ -349,13 +337,9 @@ export async function alterarDataGravacaoAction(
 export async function agendarSessaoEdicaoAction(
   id: string,
   data: string | null,
-  hora?: string | null,
 ): Promise<ActionResult> {
   if (data && !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
     return { ok: false, error: "Data inválida." };
-  }
-  if (hora && !/^\d{2}:\d{2}$/.test(hora)) {
-    return { ok: false, error: "Horário inválido." };
   }
   const supabase = createClient();
   const { data: atual } = await supabase
@@ -363,23 +347,17 @@ export async function agendarSessaoEdicaoAction(
     .select("status")
     .eq("id", id)
     .maybeSingle();
-  // Sem dia não faz sentido guardar horário.
   const { error } = await supabase
     .from("contents")
-    .update({
-      editing_date: data || null,
-      editing_time: data ? hora || null : null,
-    })
+    .update({ editing_date: data || null })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível agendar a edição." };
 
-  // Atualiza a TAREFA de edição (to-do da fila) para cair no dia escolhido...
+  // Edição = TAREFA no Google. O dia escolhido vira o prazo da tarefa (não um
+  // evento na Agenda).
   if (atual?.status) {
     await sincronizarEdicao(id, atual.status as ContentStatus);
   }
-  // ...e cria/atualiza/remove o BLOCO na Agenda "Imagine Produção" (o horário
-  // que a Fran reservou para editar). Sem dia, o bloco é removido.
-  await sincronizarSessaoEdicao(id);
 
   revalidarConteudos(id);
   return { ok: true, id };

@@ -10,7 +10,6 @@ import {
   sincronizarGravacaoEmLote,
   sincronizarPostagem,
   sincronizarEdicao,
-  sincronizarSessaoEdicao,
 } from "@/lib/google/sync";
 import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
 import { estaGravado } from "@/lib/rules/contents";
@@ -140,12 +139,13 @@ export async function reenviarTudoGoogleAction(): Promise<
     await limparCalendario(token, calId);
   }
 
-  // 2) Limpa os vínculos de EVENTOS (mantém tarefas para não duplicar tarefa).
+  // 2) Limpa os vínculos de EVENTOS e de BLOCOS de edição antigos (o calendário
+  // já foi esvaziado acima). Mantém as tarefas para não duplicá-las.
   await supabase
     .from("google_sync")
     .delete()
     .eq("user_id", userId)
-    .in("kind", ["event", "post"]);
+    .in("kind", ["event", "post", "edit_event"]);
   await supabase
     .from("planning_google_sync")
     .delete()
@@ -182,12 +182,10 @@ export async function reenviarTudoGoogleAction(): Promise<
     else await sincronizarGravacao(ids[0]);
   }
 
-  // 5) Recria as EDIÇÕES: tarefa (to-do) e, se houver dia marcado, o bloco na
-  // Agenda "Imagine Produção". Ambos são idempotentes (não duplicam).
+  // 5) Recria as EDIÇÕES como TAREFA (to-do) no Google — nunca como evento.
   for (const c of conts) {
     if (!STATUS_EDICAO_REENVIO.includes(c.status as ContentStatus)) continue;
     await sincronizarEdicao(c.id, c.status as ContentStatus);
-    await sincronizarSessaoEdicao(c.id);
   }
 
   revalidatePath("/configuracoes");

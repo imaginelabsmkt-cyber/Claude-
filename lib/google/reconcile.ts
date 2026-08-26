@@ -12,7 +12,6 @@ import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { calendarioId } from "@/lib/google/calendars";
 import { criarCapaDoVideo } from "@/lib/content/covers";
-import { sincronizarSessaoEdicao } from "@/lib/google/sync";
 import { registrarHistorico } from "@/lib/history";
 import type { ContentStatus } from "@/types";
 
@@ -204,26 +203,6 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
         ]);
       }),
     );
-
-    // ---- BLOCOS DE EDIÇÃO faltantes: cria na Agenda o que ficou pra trás ----
-    // Edições com dia marcado mas sem bloco (kind=edit_event) — ex.: dias
-    // marcados antes de o bloco existir. Cria o que falta (idempotente).
-    const { data: comBloco } = await sb
-      .from("google_sync")
-      .select("content_id")
-      .eq("user_id", userId)
-      .eq("kind", "edit_event");
-    const jaTemBloco = new Set((comBloco ?? []).map((r) => r.content_id));
-
-    const { data: paraAgendar } = await sb
-      .from("contents")
-      .select("id")
-      .not("editing_date", "is", null)
-      .in("status", STATUS_EDICAO);
-
-    for (const c of paraAgendar ?? []) {
-      if (!jaTemBloco.has(c.id)) await sincronizarSessaoEdicao(c.id);
-    }
   } catch (e) {
     console.error("reconciliarTarefasGoogle:", e);
   }

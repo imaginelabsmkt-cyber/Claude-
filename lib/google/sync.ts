@@ -182,11 +182,28 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     const { data: c } = await sb
       .from("contents")
       .select(
-        "title, format, recording_date, recording_time, recording_location, participants, client_id",
+        "title, format, recording_date, recording_time, recording_location, participants, client_id, cover_source_id",
       )
       .eq("id", contentId)
       .maybeSingle();
     if (!c) return;
+
+    // Capa (arte vinculada a um vídeo) NUNCA vira evento — capa é sempre TAREFA.
+    // Se havia um evento antigo de capa, remove-o.
+    if (c.cover_source_id) {
+      const antigo = await idSync(sb, contentId, userId, "event");
+      if (antigo) {
+        const calCapa = encodeURIComponent(
+          await calendarioId(sb, userId, token, "producao"),
+        );
+        await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${calCapa}/events/${antigo}`,
+          { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+        );
+        await apagarSync(sb, contentId, userId, "event");
+      }
+      return;
+    }
 
     const existente = await idSync(sb, contentId, userId, "event");
     // Nome do cliente (para aparecer no evento: com quem vai gravar).
