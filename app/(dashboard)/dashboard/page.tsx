@@ -103,8 +103,6 @@ export default async function DashboardPage() {
   // Atenção esta semana
   const naSemana = (c: Content) =>
     c.planned_date != null && mesmaSemana(parseData(c.planned_date)!, hoje);
-  const semResponsavel = (c: Content) =>
-    !c.planner_id && !c.recorder_id && !c.editor_id && !c.publisher_id;
 
   const atencao: { titulo: string; itens: Content[] }[] = [
     { titulo: "Urgentes", itens: contents.filter((c) => c.priority === "Urgente" && naoFinal(c)) },
@@ -113,7 +111,6 @@ export default async function DashboardPage() {
     { titulo: "Da semana sem edição", itens: contents.filter((c) => naSemana(c) && (c.status === "Gravado" || c.status === "Fila de edição")) },
     { titulo: "Aguardando aprovação", itens: contents.filter((c) => GRUPO_EM_APROVACAO.includes(c.status)) },
     { titulo: "Sem data", itens: contents.filter((c) => !c.planned_date && naoFinal(c)) },
-    { titulo: "Sem responsável", itens: contents.filter((c) => semResponsavel(c) && naoFinal(c)) },
   ];
 
   // Próximas postagens
