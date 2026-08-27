@@ -199,7 +199,7 @@ export async function definirStatusConteudoAction(
   const supabase = createClient();
   const { data: antigo } = await supabase
     .from("contents")
-    .select("status")
+    .select("status, actual_post_date")
     .eq("id", id)
     .maybeSingle();
 
@@ -211,9 +211,19 @@ export async function definirStatusConteudoAction(
     "Em edição",
     "Ajustes",
   ];
-  const dados: { status: ContentStatus; editing_queue_position?: number | null } =
-    { status };
+  const dados: {
+    status: ContentStatus;
+    editing_queue_position?: number | null;
+    actual_post_date?: string | null;
+  } = { status };
   if (!NA_FILA.includes(status)) dados.editing_queue_position = null;
+
+  // Ao publicar, carimba a DATA REAL da postagem como hoje (se ainda vazia).
+  // A pessoa pode ajustar depois se saiu em outro dia. A "data prevista"
+  // (planned_date) é preservada — serve de registro do que foi planejado.
+  if (status === "Publicado" && !antigo?.actual_post_date) {
+    dados.actual_post_date = hojeISO();
+  }
 
   const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar o status." };
