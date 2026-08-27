@@ -562,7 +562,7 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
 
     const { data: c } = await sb
       .from("contents")
-      .select("title, planned_date, status, client_id")
+      .select("title, planned_date, status, client_id, cover_source_id")
       .eq("id", contentId)
       .maybeSingle();
     if (!c) return;
@@ -579,8 +579,9 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
       await calendarioId(sb, userId, token, "postagens"),
     );
 
-    // Sem data prevista ou cancelado => remove o evento de postagem.
-    if (!c.planned_date || c.status === "Cancelado") {
+    // Sem data prevista, cancelado, OU é capa (capa não é postagem) => remove o
+    // evento de postagem, se houver.
+    if (!c.planned_date || c.status === "Cancelado" || c.cover_source_id) {
       if (existente) {
         await fetch(
           `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente}`,

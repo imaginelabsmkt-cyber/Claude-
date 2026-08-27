@@ -37,7 +37,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
   const hojeStr = hojeISO(hoje);
 
   const [contents, clientes] = await Promise.all([
-    listContents({}),
+    listContents({}, { excluirCapas: true }), // capa não é postagem
     listAllClients(),
   ]);
 
