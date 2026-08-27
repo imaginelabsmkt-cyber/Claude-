@@ -448,6 +448,98 @@ export function estaAtrasado(
   return false;
 }
 
+// -------------------------------------------------------------
+// Urgência automática (por prazo) — o mais apertado entre o prazo da ETAPA
+// atual e a DATA DE POSTAGEM. "Urgente" manual sempre no topo (reforço).
+// -------------------------------------------------------------
+export type NivelUrgencia =
+  | "urgente"
+  | "atrasado"
+  | "hoje"
+  | "semana"
+  | "tranquilo";
+
+export interface Urgencia {
+  nivel: NivelUrgencia;
+  /** Dias até o prazo mais apertado (negativo = atrasado); null se sem prazo. */
+  dias: number | null;
+  /** Chave de ordenação: menor = mais urgente. */
+  ordem: number;
+  /** Texto curto para o selo ("Atrasado 3d", "Vence hoje", "Em 5d"). */
+  rotulo: string;
+}
+
+const ORDEM_URGENCIA: Record<NivelUrgencia, number> = {
+  urgente: 0,
+  atrasado: 1,
+  hoje: 2,
+  semana: 3,
+  tranquilo: 4,
+};
+
+type ContentUrgencia = Pick<
+  Content,
+  | "status"
+  | "priority"
+  | "script_deadline"
+  | "recording_deadline"
+  | "editing_deadline"
+  | "planned_date"
+>;
+
+/**
+ * Classifica a urgência de um conteúdo pelo prazo mais apertado entre a etapa
+ * atual (gravar/editar/roteiro) e a data de postagem. Um "Urgente" manual fura
+ * a fila e vem sempre no topo. Publicado/Pausado/Cancelado ficam "tranquilo".
+ */
+export function urgenciaConteudo(
+  content: ContentUrgencia,
+  hoje: Date = new Date(),
+): Urgencia {
+  const tranquilo = (dias: number | null, rotulo: string): Urgencia => ({
+    nivel: "tranquilo",
+    dias,
+    ordem: ORDEM_URGENCIA.tranquilo,
+    rotulo,
+  });
+
+  if (
+    content.status === "Publicado" ||
+    content.status === "Cancelado" ||
+    content.status === "Pausado"
+  ) {
+    return tranquilo(null, "");
+  }
+
+  // O mais apertado (mais cedo) entre o prazo da etapa e a data de postagem.
+  const prazoEtapa = parseData(prazoPrincipal(content));
+  const postagem = parseData(content.planned_date);
+  const datas = [prazoEtapa, postagem].filter((d): d is Date => d != null);
+  const alvo = datas.length
+    ? datas.reduce((a, b) => (a < b ? a : b))
+    : null;
+  const dias = alvo ? difEmDias(alvo, hoje) : null;
+
+  // Urgente manual fura a fila.
+  if (content.priority === "Urgente") {
+    return { nivel: "urgente", dias, ordem: ORDEM_URGENCIA.urgente, rotulo: "Urgente" };
+  }
+  if (dias == null) return tranquilo(null, "");
+  if (dias < 0)
+    return { nivel: "atrasado", dias, ordem: ORDEM_URGENCIA.atrasado, rotulo: `Atrasado ${Math.abs(dias)}d` };
+  if (dias === 0)
+    return { nivel: "hoje", dias, ordem: ORDEM_URGENCIA.hoje, rotulo: "Vence hoje" };
+  if (dias <= 7)
+    return { nivel: "semana", dias, ordem: ORDEM_URGENCIA.semana, rotulo: `Em ${dias}d` };
+  return tranquilo(dias, `Em ${dias}d`);
+}
+
+/** Ordena por urgência (mais urgente primeiro; mais atrasado desempata). */
+export function compararUrgencia(a: Urgencia, b: Urgencia): number {
+  if (a.ordem !== b.ordem) return a.ordem - b.ordem;
+  return (a.dias ?? 9999) - (b.dias ?? 9999);
+}
+
 /**
  * Entrega em alerta: entrou na janela de 48h antes da postagem (prazo de
  * entrega atingido/vencido), a postagem ainda NÃO chegou e o conteúdo ainda

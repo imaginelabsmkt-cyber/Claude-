@@ -14,13 +14,18 @@ import { QuickPriority } from "@/components/contents/quick-priority";
 import { ContentActions } from "@/components/contents/content-actions";
 import { DeleteClientContentsButton } from "@/components/contents/delete-client-contents-button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { UrgencyBadge } from "@/components/shared/urgency-badge";
 import {
   atualizarCampoConteudoAction,
   type ContentEditPatch,
 } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
-import { responsavelAtual } from "@/lib/rules/contents";
+import {
+  responsavelAtual,
+  urgenciaConteudo,
+  compararUrgencia,
+} from "@/lib/rules/contents";
 import { FORMAT_OPTIONS } from "@/types";
 import type { Content, Profile } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
@@ -137,6 +142,7 @@ function Linha({
 }) {
   const { salvar, salvando } = useSalvar();
   const est = estiloFormato(content.format);
+  const urg = urgenciaConteudo(content);
 
   // Responsável AUTOMÁTICO pela etapa: planejamento/arte => Vitória (planner);
   // gravação/edição/produção => Fran (producer). Só exibe, não é editável.
@@ -153,13 +159,18 @@ function Linha({
 
   return (
     <tr className="align-middle hover:bg-gray-50/60">
-      {/* Título (link para abrir + lápis para editar) */}
+      {/* Título (link para abrir + lápis para editar) + urgência automática */}
       <td className="min-w-[200px] px-2 py-1.5">
         <CelulaTitulo
           href={`/conteudos/${content.id}`}
           valor={content.title}
           onSalvar={(novo) => salvar(content.id, { title: novo })}
         />
+        {urg.nivel !== "tranquilo" ? (
+          <div className="mt-1">
+            <UrgencyBadge urgencia={urg} />
+          </div>
+        ) : null}
       </td>
 
       {/* Formato */}
@@ -298,8 +309,16 @@ export function EditableContentsTable({
   }
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
+  // Ordena por URGÊNCIA (mais apertado primeiro; data prevista desempata).
+  const porUrgencia = (a: Content, b: Content) => {
+    const d = compararUrgencia(urgenciaConteudo(a), urgenciaConteudo(b));
+    return d !== 0
+      ? d
+      : (a.planned_date ?? "9999").localeCompare(b.planned_date ?? "9999");
+  };
+
   // Agrupa por cliente (só na lista geral). Ordena por nome do cliente e,
-  // dentro do cliente, por data prevista.
+  // dentro do cliente, por urgência.
   const grupos = new Map<string, Content[]>();
   for (const c of contents) {
     const lista = grupos.get(c.client_id) ?? [];
@@ -310,13 +329,13 @@ export function EditableContentsTable({
     .map(([clientId, itens]) => ({
       clientId,
       cliente: clientesById.get(clientId),
-      itens: itens.sort((a, b) =>
-        (a.planned_date ?? "9999").localeCompare(b.planned_date ?? "9999"),
-      ),
+      itens: itens.sort(porUrgencia),
     }))
     .sort((a, b) =>
       (a.cliente?.name ?? "").localeCompare(b.cliente?.name ?? ""),
     );
+
+  const contentsOrdenados = [...contents].sort(porUrgencia);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -355,7 +374,7 @@ export function EditableContentsTable({
                   ))}
                 </Fragment>
               ))
-            : contents.map((c) => (
+            : contentsOrdenados.map((c) => (
                 <Linha key={c.id} content={c} perfis={perfis} compacto={compacto} />
               ))}
         </tbody>
