@@ -14,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { StatusContentBadge, PriorityBadge } from "@/components/shared/status-badge";
+import { ehArte } from "@/lib/rules/contents";
 import { alterarDataPostagemAction } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { cn } from "@/lib/utils";
@@ -72,7 +73,7 @@ function Cartao({
         <span className="text-[11px] text-gray-500">{content.format ?? "—"}</span>
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-1">
-        <StatusContentBadge status={content.status} />
+        <StatusContentBadge status={content.status} arte={ehArte(content.format)} />
         <PriorityBadge priority={content.priority} />
       </div>
     </div>

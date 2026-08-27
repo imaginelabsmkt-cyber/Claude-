@@ -11,7 +11,7 @@ import {
 import { toast } from "@/lib/ui/toast";
 import { corPrioridade } from "@/lib/ui/prioridade";
 import { estiloFormato } from "@/lib/ui/formato";
-import { prazoPrincipal } from "@/lib/rules/contents";
+import { prazoPrincipal, ehArte } from "@/lib/rules/contents";
 import {
   definirStatusConteudoAction,
   agendarSessaoEdicaoAction,
@@ -166,7 +166,7 @@ function ItemFila({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          <StatusContentBadge status={content.status} />
+          <StatusContentBadge status={content.status} arte={ehArte(content.format)} />
           <PriorityBadge priority={content.priority} />
           {primaria ? (
             <Button

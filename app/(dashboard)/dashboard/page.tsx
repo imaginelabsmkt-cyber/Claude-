@@ -333,7 +333,7 @@ export default async function DashboardPage() {
                       />
                       <span className="hover:underline">{cl?.name ?? "—"}</span>
                     </Link>
-                    <StatusContentBadge status={c.status} />
+                    <StatusContentBadge status={c.status} arte={ehArte(c.format)} />
                   </div>
                 );
               })}

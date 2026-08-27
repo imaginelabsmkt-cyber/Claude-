@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { rotuloStatus } from "@/lib/ui/rotulos-arte";
 import {
   PRIORITY_TONE,
   STATUS_TONE,
@@ -6,9 +7,18 @@ import {
   type ContentStatus,
 } from "@/types";
 
-/** Badge de status do conteúdo. O rótulo é o próprio valor (pt-BR). */
-export function StatusContentBadge({ status }: { status: ContentStatus }) {
-  return <Badge tom={STATUS_TONE[status]}>{status}</Badge>;
+/**
+ * Badge de status do conteúdo. Em arte (Carrossel/Post estático) o texto usa a
+ * linguagem de criação ("Em criação" em vez de "Em edição"); a cor não muda.
+ */
+export function StatusContentBadge({
+  status,
+  arte = false,
+}: {
+  status: ContentStatus;
+  arte?: boolean;
+}) {
+  return <Badge tom={STATUS_TONE[status]}>{rotuloStatus(status, arte)}</Badge>;
 }
 
 /**
