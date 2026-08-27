@@ -36,7 +36,7 @@ export default async function DashboardPage() {
   const mesAtual = hojeStr.slice(0, 7);
 
   const [contents, clientes, plannings, perfis] = await Promise.all([
-    listContents({}),
+    listContents({}, { excluirCapas: true }), // capa não é conteúdo
     listAllClients(),
     listPlannings(mesAtual),
     listProfiles(),
