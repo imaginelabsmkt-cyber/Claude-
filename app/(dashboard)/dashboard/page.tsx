@@ -17,6 +17,7 @@ import {
   estaAtrasado,
   estaGravado,
   ehArte,
+  ehCapa,
   hojeISO,
   mesmaSemana,
   parseData,
@@ -64,6 +65,7 @@ export default async function DashboardPage() {
   const publicadosMes = contents.filter(
     (c) =>
       c.status === "Publicado" &&
+      !ehCapa(c) && // capa não é conteúdo publicado
       (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === mesAtual,
   ).length;
 
@@ -120,7 +122,10 @@ export default async function DashboardPage() {
   // Resumo por cliente
   const resumoClientes = clientes
     .map((cl) => {
-      const doCliente = contents.filter((c) => c.client_id === cl.id);
+      // Capa não é conteúdo — não conta no resumo do cliente.
+      const doCliente = contents.filter(
+        (c) => c.client_id === cl.id && !ehCapa(c),
+      );
       return {
         cliente: cl,
         planejados: doCliente.filter((c) => c.status !== "Cancelado").length,
@@ -143,6 +148,7 @@ export default async function DashboardPage() {
         (c) =>
           c.client_id === cl.id &&
           c.status === "Publicado" &&
+          !ehCapa(c) &&
           (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === mesAtual,
       ).length,
       cor: cl.color ?? "#4f46e5",

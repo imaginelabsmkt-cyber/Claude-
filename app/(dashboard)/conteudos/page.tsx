@@ -21,7 +21,7 @@ interface PageProps {
 /** Página geral de conteúdos: filtros, busca e tabela. */
 export default async function ConteudosPage({ searchParams }: PageProps) {
   const [contentsRaw, clientes, perfis, meses] = await Promise.all([
-    listContents(searchParams),
+    listContents(searchParams, { excluirCapas: true }),
     listClientOptions(),
     listProfiles(),
     listReferenceMonths(),

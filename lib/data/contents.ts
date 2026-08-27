@@ -19,6 +19,12 @@ export interface OpcoesListagem {
    * do próprio cliente, que passa `true` aqui para poder consultá-los/reativar.
    */
   incluirClientesInativos?: boolean;
+  /**
+   * Esconde as CAPAS (arte vinculada a um vídeo por cover_source_id). Capa não
+   * é conteúdo — mora na aba Artes e nas tarefas da Vitória. Usado na aba
+   * Conteúdos.
+   */
+  excluirCapas?: boolean;
 }
 
 export interface OpcaoCliente {
@@ -55,6 +61,9 @@ export async function listContents(
       query = query.or(`client_id.is.null,client_id.not.in.(${ids.join(",")})`);
     }
   }
+
+  // Capas (arte de capa vinculada a um vídeo) não aparecem na lista de Conteúdos.
+  if (opcoes.excluirCapas) query = query.is("cover_source_id", null);
 
   if (filtros.q?.trim())
     query = query.ilike("title", `%${escaparLike(filtros.q.trim())}%`);
