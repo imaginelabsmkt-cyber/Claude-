@@ -75,7 +75,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     await Promise.all([
       listContents(
         { client_id: cliente.id },
-        { incluirClientesInativos: true },
+        { incluirClientesInativos: true, excluirCapas: true }, // capa não é conteúdo
       ),
       listProfiles(),
       listClientFiles(cliente.id),
