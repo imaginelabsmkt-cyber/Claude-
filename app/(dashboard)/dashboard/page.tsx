@@ -30,10 +30,19 @@ export const dynamic = "force-dynamic";
 
 const linkStatus = (s: string) => `/conteudos?status=${encodeURIComponent(s)}`;
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { mes?: string };
+}) {
   const hoje = new Date();
   const hojeStr = hojeISO(hoje);
   const mesAtual = hojeStr.slice(0, 7);
+  // Mês selecionado para os gráficos de produção por cliente (?mes=YYYY-MM).
+  // Os cards de cima seguem sempre o mês atual.
+  const mesSel = /^\d{4}-\d{2}$/.test(searchParams?.mes ?? "")
+    ? searchParams.mes!
+    : mesAtual;
 
   const [contents, clientes, plannings, perfis] = await Promise.all([
     listContents({}, { excluirCapas: true }), // capa não é conteúdo
@@ -62,23 +71,37 @@ export default async function DashboardPage() {
   ).length;
 
   const atrasados = contents.filter((c) => estaAtrasado(c, hoje));
-  const publicadosMes = contents.filter(
-    (c) =>
-      c.status === "Publicado" &&
-      !ehCapa(c) && // capa não é conteúdo publicado
-      (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === mesAtual,
-  ).length;
 
-  // PRODUÇÃO DO MÊS — vídeo (não-arte) já gravado. Usa a data de gravação; se
-  // ela estiver vazia (ex.: status mudado pela setinha), cai no mês de
-  // planejamento do vídeo, para não perder produção da contagem.
-  const gravadoNoMes = (c: Content) =>
+  // Publicado no mês de referência (capa não conta). Usa a data real de
+  // postagem; se vazia, cai na prevista.
+  const publicadoNoMesRef = (c: Content, ref: string) =>
+    c.status === "Publicado" &&
+    !ehCapa(c) &&
+    (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === ref;
+
+  // Vídeo (não-arte) gravado no mês de referência. Usa a data de gravação; se
+  // vazia (ex.: status mudado pela setinha), cai no mês de planejamento.
+  const gravadoNoMesRef = (c: Content, ref: string) =>
     !ehArte(c.format) &&
     estaGravado(c.status) &&
     (c.recording_date
-      ? c.recording_date.slice(0, 7) === mesAtual
-      : (c.reference_month ?? "") === mesAtual);
-  const gravadosMes = contents.filter(gravadoNoMes).length;
+      ? c.recording_date.slice(0, 7) === ref
+      : (c.reference_month ?? "") === ref);
+
+  // Cards de cima: sempre o mês ATUAL.
+  const publicadosMes = contents.filter((c) =>
+    publicadoNoMesRef(c, mesAtual),
+  ).length;
+  const gravadosMes = contents.filter((c) =>
+    gravadoNoMesRef(c, mesAtual),
+  ).length;
+  // Gráficos por cliente: mês SELECIONADO.
+  const publicadosMesSel = contents.filter((c) =>
+    publicadoNoMesRef(c, mesSel),
+  ).length;
+  const gravadosMesSel = contents.filter((c) =>
+    gravadoNoMesRef(c, mesSel),
+  ).length;
   const prontosPublicar = contents.filter((c) =>
     GRUPO_PRONTOS_PUBLICAR.includes(c.status),
   ).length;
@@ -145,11 +168,7 @@ export default async function DashboardPage() {
     .map((cl) => ({
       label: cl.name,
       value: contents.filter(
-        (c) =>
-          c.client_id === cl.id &&
-          c.status === "Publicado" &&
-          !ehCapa(c) &&
-          (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === mesAtual,
+        (c) => c.client_id === cl.id && publicadoNoMesRef(c, mesSel),
       ).length,
       cor: cl.color ?? "#4f46e5",
     }))
@@ -157,10 +176,24 @@ export default async function DashboardPage() {
   const gravadosPorCliente = clientes
     .map((cl) => ({
       label: cl.name,
-      value: contents.filter((c) => c.client_id === cl.id && gravadoNoMes(c)).length,
+      value: contents.filter(
+        (c) => c.client_id === cl.id && gravadoNoMesRef(c, mesSel),
+      ).length,
       cor: cl.color ?? "#4f46e5",
     }))
     .filter((d) => d.value > 0);
+
+  // Navegação de mês dos gráficos de produção.
+  const [anoSel, mesNumSel] = mesSel.split("-").map(Number);
+  const tituloMesSel = new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(anoSel, mesNumSel - 1, 1));
+  const mesDeltaHref = (delta: number) => {
+    const d = new Date(anoSel, mesNumSel - 1 + delta, 1);
+    const ref = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    return `/dashboard?mes=${ref}`;
+  };
 
   return (
     <>
@@ -238,40 +271,84 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Gráficos */}
-      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardContent>
-            <div className="mb-3 flex items-baseline justify-between">
-              <h3 className="text-sm font-semibold text-gray-900">
-                Gravados por cliente no mês
-              </h3>
-              <span className="text-xs font-medium text-gray-500">
-                {gravadosMes} no total
-              </span>
-            </div>
-            {gravadosPorCliente.length === 0 ? (
-              <p className="py-6 text-center text-xs text-gray-500">
-                Nenhum vídeo gravado neste mês ainda.
-              </p>
-            ) : (
-              <BarChart dados={gravadosPorCliente} />
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <div className="mb-3 flex items-baseline justify-between">
-              <h3 className="text-sm font-semibold text-gray-900">
-                Publicados por cliente no mês
-              </h3>
-              <span className="text-xs font-medium text-gray-500">
-                {publicadosMes} no total
-              </span>
-            </div>
-            <BarChart dados={publicadosPorCliente} />
-          </CardContent>
-        </Card>
+      {/* Produção por cliente — mês selecionável */}
+      <div className="mt-8">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-gray-900">
+            Produção por cliente
+          </h2>
+          <div className="flex items-center gap-2">
+            <Link
+              href={mesDeltaHref(-1)}
+              aria-label="Mês anterior"
+              className="rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+            >
+              ←
+            </Link>
+            <span className="min-w-[8.5rem] text-center text-xs font-semibold capitalize text-gray-700">
+              {tituloMesSel}
+            </span>
+            <Link
+              href={mesDeltaHref(1)}
+              aria-label="Próximo mês"
+              className="rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+            >
+              →
+            </Link>
+            {mesSel !== mesAtual ? (
+              <Link
+                href="/dashboard"
+                className="text-xs font-medium text-brand-700 hover:underline"
+              >
+                mês atual
+              </Link>
+            ) : null}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Card>
+            <CardContent>
+              <div className="mb-3 flex items-baseline justify-between">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Gravados por cliente
+                </h3>
+                <span className="text-xs font-medium text-gray-500">
+                  {gravadosMesSel} no total
+                </span>
+              </div>
+              {gravadosPorCliente.length === 0 ? (
+                <p className="py-6 text-center text-xs text-gray-500">
+                  Nenhum vídeo gravado neste mês.
+                </p>
+              ) : (
+                <BarChart dados={gravadosPorCliente} />
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <div className="mb-3 flex items-baseline justify-between">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Publicados por cliente
+                </h3>
+                <span className="text-xs font-medium text-gray-500">
+                  {publicadosMesSel} no total
+                </span>
+              </div>
+              {publicadosPorCliente.length === 0 ? (
+                <p className="py-6 text-center text-xs text-gray-500">
+                  Nenhum conteúdo publicado neste mês.
+                </p>
+              ) : (
+                <BarChart dados={publicadosPorCliente} />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Conteúdos por status — visão geral (não é do mês) */}
+      <div className="mt-8">
         <Card>
           <CardContent>
             <h3 className="mb-3 text-sm font-semibold text-gray-900">
