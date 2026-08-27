@@ -12,7 +12,7 @@ import {
   type ContentPriority,
   type ContentStatus,
 } from "@/types";
-import { hojeISO } from "@/lib/rules/contents";
+import { hojeISO, estaGravado, ehArte } from "@/lib/rules/contents";
 import { registrarHistorico, diffConteudo } from "@/lib/history";
 import { usuarioAtualId } from "@/lib/auth";
 import {
@@ -199,7 +199,9 @@ export async function definirStatusConteudoAction(
   const supabase = createClient();
   const { data: antigo } = await supabase
     .from("contents")
-    .select("status, actual_post_date")
+    .select(
+      "status, actual_post_date, recording_date, format, requires_recording",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -215,6 +217,7 @@ export async function definirStatusConteudoAction(
     status: ContentStatus;
     editing_queue_position?: number | null;
     actual_post_date?: string | null;
+    recording_date?: string | null;
   } = { status };
   if (!NA_FILA.includes(status)) dados.editing_queue_position = null;
 
@@ -223,6 +226,19 @@ export async function definirStatusConteudoAction(
   // (planned_date) é preservada — serve de registro do que foi planejado.
   if (status === "Publicado" && !antigo?.actual_post_date) {
     dados.actual_post_date = hojeISO();
+  }
+
+  // Ao mudar o status pela setinha direto para "Gravado" ou além, carimba a
+  // DATA DE GRAVAÇÃO como hoje (se vazia) — só para VÍDEO que precisa gravar
+  // (não para arte). Assim a contagem de "gravados no mês" não perde vídeos.
+  if (
+    antigo &&
+    estaGravado(status) &&
+    !ehArte(antigo.format) &&
+    antigo.requires_recording !== false &&
+    !antigo.recording_date
+  ) {
+    dados.recording_date = hojeISO();
   }
 
   const { error } = await supabase.from("contents").update(dados).eq("id", id);

@@ -69,12 +69,15 @@ export default async function DashboardPage() {
       (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === mesAtual,
   ).length;
 
-  // PRODUÇÃO DO MÊS — vídeo (não-arte) já gravado, com data de gravação no mês
-  // atual. Melhor proxy disponível (não há timestamp de "gravado em").
+  // PRODUÇÃO DO MÊS — vídeo (não-arte) já gravado. Usa a data de gravação; se
+  // ela estiver vazia (ex.: status mudado pela setinha), cai no mês de
+  // planejamento do vídeo, para não perder produção da contagem.
   const gravadoNoMes = (c: Content) =>
     !ehArte(c.format) &&
     estaGravado(c.status) &&
-    (c.recording_date ?? "").slice(0, 7) === mesAtual;
+    (c.recording_date
+      ? c.recording_date.slice(0, 7) === mesAtual
+      : (c.reference_month ?? "") === mesAtual);
   const gravadosMes = contents.filter(gravadoNoMes).length;
   const prontosPublicar = contents.filter((c) =>
     GRUPO_PRONTOS_PUBLICAR.includes(c.status),
