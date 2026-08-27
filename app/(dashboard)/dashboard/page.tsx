@@ -16,6 +16,7 @@ import { listPlannings } from "@/lib/data/plannings";
 import {
   estaAtrasado,
   estaGravado,
+  ehArte,
   hojeISO,
   mesmaSemana,
   parseData,
@@ -65,6 +66,14 @@ export default async function DashboardPage() {
       c.status === "Publicado" &&
       (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === mesAtual,
   ).length;
+
+  // PRODUÇÃO DO MÊS — vídeo (não-arte) já gravado, com data de gravação no mês
+  // atual. Melhor proxy disponível (não há timestamp de "gravado em").
+  const gravadoNoMes = (c: Content) =>
+    !ehArte(c.format) &&
+    estaGravado(c.status) &&
+    (c.recording_date ?? "").slice(0, 7) === mesAtual;
+  const gravadosMes = contents.filter(gravadoNoMes).length;
   const prontosPublicar = contents.filter((c) =>
     GRUPO_PRONTOS_PUBLICAR.includes(c.status),
   ).length;
@@ -82,6 +91,7 @@ export default async function DashboardPage() {
     { rotulo: "Em edição", valor: conta("Em edição"), href: linkStatus("Em edição"), icone: "edit", tom: "ambar" as const },
     { rotulo: "Em aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente"), icone: "eye", tom: "indigo" as const },
     { rotulo: "Prontos para publicar", valor: prontosPublicar, href: linkStatus("Aprovado"), icone: "check-circle", tom: "verde" as const },
+    { rotulo: "Gravados no mês", valor: gravadosMes, href: "/gravacoes", icone: "film", tom: "azul" as const },
     { rotulo: "Publicados no mês", valor: publicadosMes, href: linkStatus("Publicado"), icone: "send", tom: "verde" as const },
   ];
 
@@ -135,6 +145,13 @@ export default async function DashboardPage() {
           c.status === "Publicado" &&
           (c.actual_post_date ?? c.planned_date ?? "").slice(0, 7) === mesAtual,
       ).length,
+      cor: cl.color ?? "#4f46e5",
+    }))
+    .filter((d) => d.value > 0);
+  const gravadosPorCliente = clientes
+    .map((cl) => ({
+      label: cl.name,
+      value: contents.filter((c) => c.client_id === cl.id && gravadoNoMes(c)).length,
       cor: cl.color ?? "#4f46e5",
     }))
     .filter((d) => d.value > 0);
@@ -219,18 +236,42 @@ export default async function DashboardPage() {
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardContent>
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">
-              Conteúdos por status
-            </h3>
-            <BarChart dados={porStatus} />
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Gravados por cliente no mês
+              </h3>
+              <span className="text-xs font-medium text-gray-500">
+                {gravadosMes} no total
+              </span>
+            </div>
+            {gravadosPorCliente.length === 0 ? (
+              <p className="py-6 text-center text-xs text-gray-500">
+                Nenhum vídeo gravado neste mês ainda.
+              </p>
+            ) : (
+              <BarChart dados={gravadosPorCliente} />
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Publicados por cliente no mês
+              </h3>
+              <span className="text-xs font-medium text-gray-500">
+                {publicadosMes} no total
+              </span>
+            </div>
+            <BarChart dados={publicadosPorCliente} />
           </CardContent>
         </Card>
         <Card>
           <CardContent>
             <h3 className="mb-3 text-sm font-semibold text-gray-900">
-              Publicados por cliente no mês
+              Conteúdos por status
             </h3>
-            <BarChart dados={publicadosPorCliente} />
+            <BarChart dados={porStatus} />
           </CardContent>
         </Card>
       </div>
