@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken } from "@/lib/google/oauth";
-import { calendarioId, type CalendarioKind } from "@/lib/google/calendars";
 import {
   sincronizarGravacao,
   sincronizarGravacaoEmLote,
@@ -12,7 +11,6 @@ import {
   sincronizarEdicao,
 } from "@/lib/google/sync";
 import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
-import { estaGravado } from "@/lib/rules/contents";
 import type { ActionResult } from "@/lib/actions/contents";
 import type { ContentStatus } from "@/types";
 
@@ -22,69 +20,6 @@ const STATUS_EDICAO_REENVIO: ContentStatus[] = [
   "Em edição",
   "Ajustes",
 ];
-
-const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/**
- * Apaga UM evento com retentativa. O Google bloqueia por excesso de
- * velocidade (403/429) quando são muitos: nesse caso espera e tenta de novo,
- * até conseguir de verdade. 404/410 = já não existe (sucesso).
- */
-async function apagarEventoComRetry(
-  token: string,
-  cal: string,
-  eventId: string,
-): Promise<boolean> {
-  const url = `https://www.googleapis.com/calendar/v3/calendars/${cal}/events/${eventId}?sendUpdates=none`;
-  for (let tentativa = 0; tentativa < 6; tentativa++) {
-    try {
-      const r = await fetch(url, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (r.ok || r.status === 404 || r.status === 410) return true;
-      // Bloqueio por limite (403/429) ou erro do servidor (5xx): espera e repete.
-      if (r.status === 403 || r.status === 429 || r.status >= 500) {
-        await dormir(500 * (tentativa + 1));
-        continue;
-      }
-      return false; // erro definitivo (não adianta repetir)
-    } catch {
-      await dormir(500 * (tentativa + 1));
-    }
-  }
-  return false;
-}
-
-/**
- * Apaga TODOS os eventos de um calendário Imagine (limpa duplicados).
- * Vai em blocos pequenos (para não estourar o limite do Google) e SÓ termina
- * quando o calendário está realmente vazio — assim não sobra duplicado.
- */
-async function limparCalendario(
-  token: string,
-  calId: string,
-): Promise<void> {
-  const cal = encodeURIComponent(calId);
-  const LOTE = 8; // quantos apagar em paralelo (devagar, sem estourar o limite)
-  // Repete a varredura até não sobrar nenhum evento (no máx. algumas rodadas).
-  for (let rodada = 0; rodada < 40; rodada++) {
-    const resp = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${cal}/events?maxResults=250&showDeleted=false`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    if (!resp.ok) return;
-    const j = (await resp.json()) as { items?: { id: string }[] };
-    const ids = (j.items ?? []).map((ev) => ev.id);
-    if (ids.length === 0) return; // vazio: terminou
-    for (let i = 0; i < ids.length; i += LOTE) {
-      const bloco = ids.slice(i, i + LOTE);
-      await Promise.all(
-        bloco.map((id) => apagarEventoComRetry(token, cal, id)),
-      );
-    }
-  }
-}
 
 /** Remove a conexão do usuário com o Google (e o mapeamento de sincronização). */
 export async function desconectarGoogleAction(): Promise<ActionResult> {
@@ -104,11 +39,12 @@ export async function desconectarGoogleAction(): Promise<ActionResult> {
 }
 
 /**
- * Reenvia TUDO ao Google de forma IDEMPOTENTE (pode clicar quantas vezes
- * quiser, nunca duplica): apaga todos os eventos dos calendários Imagine e
- * recria do zero. Reuniões => Imagine Reuniões, gravações/fotos => Imagine
- * Produção, postagens => Imagine Postagens. Gravações do mesmo cliente na
- * mesma data/hora viram um evento só (lote).
+ * Reenvia TUDO ao Google SEM APAGAR nada: só atualiza (ou cria o que está
+ * faltando) o que o app controla, usando os vínculos de sincronização — então
+ * NUNCA remove eventos criados à mão pela pessoa. Reuniões => Imagine Reuniões,
+ * gravações/fotos => Imagine Produção, postagens => Imagine Postagens.
+ * Idempotente: pode clicar quantas vezes quiser. Inclui também as gravações que
+ * JÁ aconteceram (ficam de registro histórico na agenda).
  */
 export async function reenviarTudoGoogleAction(): Promise<
   ActionResult & { planejamentos?: number; conteudos?: number }
@@ -132,27 +68,11 @@ export async function reenviarTudoGoogleAction(): Promise<
     return { ok: false, error: "Reconecte o Google e tente de novo." };
   }
 
-  // 1) Apaga TODOS os eventos dos 3 calendários Imagine (limpa duplicados).
-  const kinds: CalendarioKind[] = ["reunioes", "producao", "postagens"];
-  for (const k of kinds) {
-    const calId = await calendarioId(supabase, userId, token, k);
-    await limparCalendario(token, calId);
-  }
+  // Não apaga nada: os vínculos de sincronização são mantidos, então cada
+  // item é ATUALIZADO no evento que já existe (ou criado se faltar). Eventos
+  // que a pessoa criou à mão nos calendários Imagine ficam intocados.
 
-  // 2) Limpa os vínculos de EVENTOS e de BLOCOS de edição antigos (o calendário
-  // já foi esvaziado acima). Mantém as tarefas para não duplicá-las.
-  await supabase
-    .from("google_sync")
-    .delete()
-    .eq("user_id", userId)
-    .in("kind", ["event", "post", "edit_event"]);
-  await supabase
-    .from("planning_google_sync")
-    .delete()
-    .eq("user_id", userId)
-    .eq("kind", "event");
-
-  // 3) Recria reuniões (e atualiza a tarefa de entrega, sem duplicar).
+  // Atualiza/cria reuniões (e a tarefa de entrega).
   const { data: ps } = await supabase
     .from("plannings")
     .select("id, meeting_date, delivery_deadline");
@@ -172,8 +92,9 @@ export async function reenviarTudoGoogleAction(): Promise<
 
   const grupos = new Map<string, string[]>();
   for (const c of conts) {
-    // Só cria evento de gravação para o que AINDA vai gravar (não o já gravado).
-    if (!c.recording_date || estaGravado(c.status)) continue;
+    // Toda gravação com data vira evento — inclusive as que JÁ aconteceram
+    // (ficam de registro na agenda). Sem data, não há o que registrar.
+    if (!c.recording_date) continue;
     const chave = `${c.client_id}|${c.recording_date}|${c.recording_time ?? ""}`;
     grupos.set(chave, [...(grupos.get(chave) ?? []), c.id]);
   }
