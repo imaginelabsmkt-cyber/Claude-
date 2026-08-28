@@ -148,9 +148,12 @@ export default async function DashboardPage({
   // Resumo por cliente
   const resumoClientes = clientes
     .map((cl) => {
-      // Capa não é conteúdo — não conta no resumo do cliente.
+      // Capa não é conteúdo; resumo é do MÊS selecionado.
       const doCliente = contents.filter(
-        (c) => c.client_id === cl.id && !ehCapa(c),
+        (c) =>
+          c.client_id === cl.id &&
+          !ehCapa(c) &&
+          (c.reference_month ?? "") === mesSel,
       );
       return {
         cliente: cl,
@@ -419,10 +422,10 @@ export default async function DashboardPage({
         )}
       </div>
 
-      {/* Resumo por cliente */}
+      {/* Resumo por cliente — do mês selecionado (mesmo seletor da produção) */}
       <div className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">
-          Resumo por cliente
+        <h2 className="mb-3 text-sm font-semibold capitalize text-gray-900">
+          Resumo por cliente — {tituloMesSel}
         </h2>
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
