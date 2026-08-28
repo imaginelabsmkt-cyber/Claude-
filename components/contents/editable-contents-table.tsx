@@ -10,7 +10,6 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { QuickStatus } from "@/components/contents/quick-status";
-import { QuickPriority } from "@/components/contents/quick-priority";
 import { ContentActions } from "@/components/contents/content-actions";
 import { DeleteClientContentsButton } from "@/components/contents/delete-client-contents-button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -128,7 +127,7 @@ function CelulaTitulo({
 const CLASSE_SELECT =
   "w-full max-w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-500 disabled:opacity-60";
 
-const NUM_COLUNAS = 7;
+const NUM_COLUNAS = 6;
 
 /** Linha da planilha. */
 function Linha({
@@ -216,13 +215,6 @@ function Linha({
           format={content.format}
         />
       </td>
-
-      {/* Prioridade */}
-      {compacto ? null : (
-        <td className="px-2 py-1.5">
-          <QuickPriority id={content.id} priority={content.priority} />
-        </td>
-      )}
 
       {/* Responsável — automático conforme a etapa (só leitura) */}
       {compacto ? null : (
@@ -351,9 +343,6 @@ export function EditableContentsTable({
             <th className="px-2 py-2 font-semibold">Formato</th>
             <th className="px-2 py-2 font-semibold">Data</th>
             <th className="px-2 py-2 font-semibold">Status</th>
-            {compacto ? null : (
-              <th className="px-2 py-2 font-semibold">Prioridade</th>
-            )}
             {compacto ? null : (
               <th className="px-2 py-2 font-semibold">Responsável</th>
             )}
