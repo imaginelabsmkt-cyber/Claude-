@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { QuickStatus } from "@/components/contents/quick-status";
-import { QuickPriority } from "@/components/contents/quick-priority";
+import { UrgencyBadge } from "@/components/shared/urgency-badge";
 import { ContentActions } from "@/components/contents/content-actions";
 import { corPrioridade } from "@/lib/ui/prioridade";
 import { formatarData } from "@/lib/utils";
-import { estaAtrasado, prazoPrincipal } from "@/lib/rules/contents";
+import { prazoPrincipal, urgenciaConteudo } from "@/lib/rules/contents";
 import type { Content } from "@/types";
 
 interface ContentCardProps {
@@ -21,7 +20,7 @@ interface ContentCardProps {
  * alterar status e alterar prioridade. Usado nas seções operacionais.
  */
 export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
-  const atrasado = estaAtrasado(content);
+  const urg = urgenciaConteudo(content);
   return (
     <div
       className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
@@ -34,7 +33,7 @@ export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
         >
           {content.title}
         </Link>
-        {atrasado ? <Badge tom="vermelho">Atrasado</Badge> : null}
+        <UrgencyBadge urgencia={urg} />
       </div>
 
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
@@ -59,7 +58,6 @@ export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <QuickStatus id={content.id} status={content.status} format={content.format} />
-        <QuickPriority id={content.id} priority={content.priority} />
         <div className="ml-auto">
           <ContentActions id={content.id} status={content.status} compacto />
         </div>
