@@ -7,6 +7,7 @@ import {
   estaAtrasado,
   entregaEmAlerta,
   motivoPrioridade,
+  mesEfetivo,
 } from "@/lib/rules/contents";
 import type { Content } from "@/types";
 
@@ -383,5 +384,42 @@ describe("motivoPrioridade", () => {
   it("rotina quando não há fatores de urgência", () => {
     const c = makeContent({ status: "Planejamento", priority: "Baixa" });
     expect(motivoPrioridade(c, HOJE)).toBe("Rotina");
+  });
+});
+
+describe("mesEfetivo", () => {
+  // HOJE = 14/07/2026 => mês atual "2026-07".
+  it("pendente cai no mês atual, não no mês do planejamento", () => {
+    const c = makeContent({ status: "Aprovação do cliente", reference_month: "2026-05" });
+    expect(mesEfetivo(c, HOJE)).toBe("2026-07");
+  });
+
+  it("pausado também cai no mês atual", () => {
+    const c = makeContent({ status: "Pausado", reference_month: "2026-05" });
+    expect(mesEfetivo(c, HOJE)).toBe("2026-07");
+  });
+
+  it("publicado fica no mês em que realmente saiu (data real)", () => {
+    const c = makeContent({
+      status: "Publicado",
+      reference_month: "2026-05",
+      planned_date: "2026-05-20",
+      actual_post_date: "2026-09-03",
+    });
+    expect(mesEfetivo(c, HOJE)).toBe("2026-09");
+  });
+
+  it("publicado sem data real usa a data prevista", () => {
+    const c = makeContent({
+      status: "Publicado",
+      actual_post_date: null,
+      planned_date: "2026-08-10",
+    });
+    expect(mesEfetivo(c, HOJE)).toBe("2026-08");
+  });
+
+  it("cancelado fica congelado no mês dele (reference_month)", () => {
+    const c = makeContent({ status: "Cancelado", reference_month: "2026-05" });
+    expect(mesEfetivo(c, HOJE)).toBe("2026-05");
   });
 });

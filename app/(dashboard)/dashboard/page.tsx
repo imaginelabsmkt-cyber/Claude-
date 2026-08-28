@@ -19,6 +19,7 @@ import {
   ehArte,
   ehCapa,
   hojeISO,
+  mesEfetivo,
   mesmaSemana,
   parseData,
   GRUPO_EM_APROVACAO,
@@ -148,12 +149,11 @@ export default async function DashboardPage({
   // Resumo por cliente
   const resumoClientes = clientes
     .map((cl) => {
-      // Capa não é conteúdo; resumo é do MÊS selecionado.
+      // Capa não é conteúdo; resumo é do MÊS EFETIVO selecionado (pendente cai
+      // no mês atual; publicado, no mês real; cancelado, congelado).
       const doCliente = contents.filter(
         (c) =>
-          c.client_id === cl.id &&
-          !ehCapa(c) &&
-          (c.reference_month ?? "") === mesSel,
+          c.client_id === cl.id && !ehCapa(c) && mesEfetivo(c) === mesSel,
       );
       return {
         cliente: cl,

@@ -540,6 +540,40 @@ export function compararUrgencia(a: Urgencia, b: Urgencia): number {
   return (a.dias ?? 9999) - (b.dias ?? 9999);
 }
 
+// -------------------------------------------------------------
+// Mês EFETIVO do conteúdo (para o acompanhamento por mês).
+// Depende do status, não de um campo fixo — porque "ainda não postado"
+// pertence ao mês ATUAL (rola sozinho com o tempo):
+//   - Publicado  => mês em que REALMENTE saiu (data real da postagem).
+//   - Cancelado  => congelado no mês dele (reference_month).
+//   - Qualquer outro (em produção, aguardando, pausado) => mês ATUAL.
+// -------------------------------------------------------------
+export function mesEfetivo(
+  content: Pick<
+    Content,
+    "status" | "actual_post_date" | "planned_date" | "reference_month"
+  >,
+  hoje: Date = new Date(),
+): string {
+  const mesAtual = hojeISO(hoje).slice(0, 7);
+  if (content.status === "Publicado") {
+    return (
+      content.actual_post_date ??
+      content.planned_date ??
+      content.reference_month ??
+      mesAtual
+    ).slice(0, 7);
+  }
+  if (content.status === "Cancelado") {
+    return (content.reference_month ?? content.planned_date ?? mesAtual).slice(
+      0,
+      7,
+    );
+  }
+  // Ainda não postado: pertence ao mês atual.
+  return mesAtual;
+}
+
 /**
  * Entrega em alerta: entrou na janela de 48h antes da postagem (prazo de
  * entrega atingido/vencido), a postagem ainda NÃO chegou e o conteúdo ainda

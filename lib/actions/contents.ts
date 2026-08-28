@@ -238,6 +238,15 @@ export async function definirStatusConteudoAction(
     }
   }
 
+  // Cancelado => CONGELA no mês em que estava (deixa de rolar pro mês atual).
+  // Se já era publicado, mantém o mês em que saiu; senão, o mês atual.
+  if (status === "Cancelado") {
+    dados.reference_month =
+      antigo?.status === "Publicado" && antigo?.actual_post_date
+        ? antigo.actual_post_date.slice(0, 7)
+        : hojeISO().slice(0, 7);
+  }
+
   // Ao mudar o status pela setinha direto para "Gravado" ou além, carimba a
   // DATA DE GRAVAÇÃO como hoje (se vazia) — só para VÍDEO que precisa gravar
   // (não para arte). Assim a contagem de "gravados no mês" não perde vídeos.

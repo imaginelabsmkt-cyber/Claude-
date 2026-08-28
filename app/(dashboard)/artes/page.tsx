@@ -4,7 +4,7 @@ import { ArtesBoard } from "@/components/contents/artes-board";
 import { NovaArteButton } from "@/components/contents/nova-arte-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { listContents, listClientOptions } from "@/lib/data/contents";
-import { estaAtrasado } from "@/lib/rules/contents";
+import { estaAtrasado, mesEfetivo } from "@/lib/rules/contents";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +43,7 @@ export default async function ArtesPage({ searchParams }: PageProps) {
       FORMATOS_ARTE.includes(c.format) &&
       c.status !== "Cancelado" &&
       c.status !== "Pausado" &&
-      (!filtrarMes || c.reference_month === mes),
+      (!filtrarMes || mesEfetivo(c) === mes),
   );
 
   const atrasadas = artes.filter(

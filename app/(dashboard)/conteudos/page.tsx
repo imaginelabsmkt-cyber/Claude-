@@ -10,7 +10,7 @@ import {
   listReferenceMonths,
   type FiltrosConteudo,
 } from "@/lib/data/contents";
-import { estaAtrasado, hojeISO } from "@/lib/rules/contents";
+import { estaAtrasado, hojeISO, mesEfetivo } from "@/lib/rules/contents";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +24,10 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
   // troca de mês na barra, ou escolhe "todos" (reference_month=todos).
   const mesAtual = hojeISO(new Date()).slice(0, 7);
   const mesSel = searchParams.reference_month ?? mesAtual;
-  const filtros: FiltrosConteudo = {
-    ...searchParams,
-    reference_month: mesSel === "todos" ? undefined : mesSel,
-  };
+  // O mês NÃO é filtrado no banco: usamos o "mês efetivo" (que depende do
+  // status — pendente cai no mês atual; publicado, no mês real; cancelado,
+  // congelado). Os demais filtros continuam no banco.
+  const filtros: FiltrosConteudo = { ...searchParams, reference_month: undefined };
 
   const [contentsRaw, clientes, perfis, meses] = await Promise.all([
     listContents(filtros, { excluirCapas: true }),
@@ -36,11 +36,14 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
     listReferenceMonths(),
   ]);
 
+  const doMes =
+    mesSel === "todos"
+      ? contentsRaw
+      : contentsRaw.filter((c) => mesEfetivo(c) === mesSel);
+
   // Filtro derivado "somente atrasados" (regra calculada, não no banco).
   const contents =
-    searchParams.atrasado === "1"
-      ? contentsRaw.filter((c) => estaAtrasado(c))
-      : contentsRaw;
+    searchParams.atrasado === "1" ? doMes.filter((c) => estaAtrasado(c)) : doMes;
 
   return (
     <>
