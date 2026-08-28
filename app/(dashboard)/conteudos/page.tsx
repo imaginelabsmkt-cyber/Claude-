@@ -10,7 +10,7 @@ import {
   listReferenceMonths,
   type FiltrosConteudo,
 } from "@/lib/data/contents";
-import { estaAtrasado } from "@/lib/rules/contents";
+import { estaAtrasado, hojeISO } from "@/lib/rules/contents";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +20,17 @@ interface PageProps {
 
 /** Página geral de conteúdos: filtros, busca e tabela. */
 export default async function ConteudosPage({ searchParams }: PageProps) {
+  // Por padrão, abre no MÊS ATUAL (evita despejar todo o histórico). O usuário
+  // troca de mês na barra, ou escolhe "todos" (reference_month=todos).
+  const mesAtual = hojeISO(new Date()).slice(0, 7);
+  const mesSel = searchParams.reference_month ?? mesAtual;
+  const filtros: FiltrosConteudo = {
+    ...searchParams,
+    reference_month: mesSel === "todos" ? undefined : mesSel,
+  };
+
   const [contentsRaw, clientes, perfis, meses] = await Promise.all([
-    listContents(searchParams, { excluirCapas: true }),
+    listContents(filtros, { excluirCapas: true }),
     listClientOptions(),
     listProfiles(),
     listReferenceMonths(),
@@ -52,7 +61,12 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
         }
       />
 
-      <ContentsToolbar clientes={clientes} meses={meses} />
+      <ContentsToolbar
+        clientes={clientes}
+        meses={meses}
+        mesSelecionado={mesSel}
+        mesAtual={mesAtual}
+      />
 
       <EditableContentsTable
         contents={contents}

@@ -28,7 +28,10 @@ import { STATUS_OPTIONS, PLANNING_ENTREGUE, type Content } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-const linkStatus = (s: string) => `/conteudos?status=${encodeURIComponent(s)}`;
+// Atalhos por status abrem a lista com TODOS os meses (o card conta em todos),
+// para o número do card bater com a lista aberta.
+const linkStatus = (s: string) =>
+  `/conteudos?status=${encodeURIComponent(s)}&reference_month=todos`;
 
 export default async function DashboardPage({
   searchParams,
@@ -112,7 +115,7 @@ export default async function DashboardPage({
   const cards = [
     { rotulo: "Planejamentos a fazer", valor: planejAFazer, href: "/planejamentos", destaque: planejAFazer > 0, icone: "clipboard", tom: "indigo" as const },
     { rotulo: "Postagens desta semana", valor: postSemana, href: "/postagens?view=semana", icone: "calendar", tom: "indigo" as const },
-    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1", destaque: true, icone: "alert", tom: "vermelho" as const },
+    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1&reference_month=todos", destaque: true, icone: "alert", tom: "vermelho" as const },
     { rotulo: "Aguardando gravação", valor: conta("Aguardando gravação"), href: linkStatus("Aguardando gravação"), icone: "video", tom: "ambar" as const },
     { rotulo: "Gravados", valor: conta("Gravado"), href: linkStatus("Gravado"), icone: "film", tom: "azul" as const },
     { rotulo: "Fila de edição", valor: conta("Fila de edição"), href: "/fila-edicao", icone: "scissors", tom: "ambar" as const },
@@ -120,7 +123,7 @@ export default async function DashboardPage({
     { rotulo: "Em aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente"), icone: "eye", tom: "indigo" as const },
     { rotulo: "Prontos para publicar", valor: prontosPublicar, href: linkStatus("Aprovado"), icone: "check-circle", tom: "verde" as const },
     { rotulo: "Gravados no mês", valor: gravadosMes, href: "/gravacoes", icone: "film", tom: "azul" as const },
-    { rotulo: "Publicados no mês", valor: publicadosMes, href: linkStatus("Publicado"), icone: "send", tom: "verde" as const },
+    { rotulo: "Publicados no mês", valor: publicadosMes, href: `/conteudos?status=Publicado&reference_month=${mesAtual}`, icone: "send", tom: "verde" as const },
   ];
 
   // Atenção esta semana
@@ -366,7 +369,7 @@ export default async function DashboardPage({
             Próximas postagens
           </h2>
           <Link
-            href="/conteudos"
+            href="/conteudos?reference_month=todos"
             className="text-xs font-medium text-brand-700 hover:underline"
           >
             Ver todos →

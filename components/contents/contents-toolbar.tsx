@@ -16,13 +16,32 @@ import type { OpcaoCliente } from "@/lib/data/contents";
 interface ContentsToolbarProps {
   clientes: OpcaoCliente[];
   meses: string[];
+  /** Mês efetivo selecionado ("YYYY-MM" ou "todos"). */
+  mesSelecionado?: string;
+  /** Mês atual ("YYYY-MM") — garantido na lista mesmo sem conteúdo ainda. */
+  mesAtual?: string;
+}
+
+/** "2026-08" -> "ago/2026". */
+function rotuloMes(m: string): string {
+  const [a, mm] = m.split("-").map(Number);
+  if (!a || !mm) return m;
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "short",
+    year: "numeric",
+  }).format(new Date(a, mm - 1, 1));
 }
 
 /**
  * Filtros e busca da listagem de conteúdos. Estado na URL (compartilhável).
  * Filtros: cliente, status, prioridade, formato, mês, semana. Busca: título.
  */
-export function ContentsToolbar({ clientes, meses }: ContentsToolbarProps) {
+export function ContentsToolbar({
+  clientes,
+  meses,
+  mesSelecionado,
+  mesAtual,
+}: ContentsToolbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -114,15 +133,24 @@ export function ContentsToolbar({ clientes, meses }: ContentsToolbarProps) {
 
         <Select
           aria-label="Mês"
-          value={valor("reference_month")}
+          value={mesSelecionado ?? "todos"}
           onChange={(e) => aplicar({ reference_month: e.target.value })}
         >
-          <option value="">Mês: todos</option>
-          {meses.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
+          <option value="todos">Mês: todos</option>
+          {Array.from(
+            new Set(
+              [mesAtual, mesSelecionado, ...meses].filter(
+                (m): m is string => !!m && m !== "todos",
+              ),
+            ),
+          )
+            .sort()
+            .reverse()
+            .map((m) => (
+              <option key={m} value={m}>
+                {rotuloMes(m)}
+              </option>
+            ))}
         </Select>
 
         <Select
