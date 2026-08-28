@@ -200,7 +200,7 @@ export async function definirStatusConteudoAction(
   const { data: antigo } = await supabase
     .from("contents")
     .select(
-      "status, actual_post_date, recording_date, format, requires_recording",
+      "status, actual_post_date, recording_date, format, requires_recording, reference_month",
     )
     .eq("id", id)
     .maybeSingle();
@@ -218,6 +218,7 @@ export async function definirStatusConteudoAction(
     editing_queue_position?: number | null;
     actual_post_date?: string | null;
     recording_date?: string | null;
+    reference_month?: string | null;
   } = { status };
   if (!NA_FILA.includes(status)) dados.editing_queue_position = null;
 
@@ -226,6 +227,15 @@ export async function definirStatusConteudoAction(
   // (planned_date) é preservada — serve de registro do que foi planejado.
   if (status === "Publicado" && !antigo?.actual_post_date) {
     dados.actual_post_date = hojeISO();
+  }
+
+  // Publicado num mês diferente do planejado => move o conteúdo pro mês em que
+  // REALMENTE saiu (reference_month), para bater com a realidade.
+  if (status === "Publicado") {
+    const dataReal = dados.actual_post_date ?? antigo?.actual_post_date ?? null;
+    if (dataReal && antigo?.reference_month !== dataReal.slice(0, 7)) {
+      dados.reference_month = dataReal.slice(0, 7);
+    }
   }
 
   // Ao mudar o status pela setinha direto para "Gravado" ou além, carimba a
@@ -807,9 +817,18 @@ export async function atualizarProducaoConteudoAction(
     .eq("id", id)
     .maybeSingle();
 
+  // Data real em outro mês => move o conteúdo pro mês em que REALMENTE saiu
+  // (reference_month), para não ficar preso no mês do planejamento.
+  const mesRealMove =
+    typeof dados.actual_post_date === "string" && dados.actual_post_date
+      ? dados.actual_post_date.slice(0, 7)
+      : null;
   const { error } = await supabase
     .from("contents")
-    .update(dados as ContentStagePatch)
+    .update({
+      ...(dados as ContentStagePatch),
+      ...(mesRealMove ? { reference_month: mesRealMove } : {}),
+    })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar." };
 
