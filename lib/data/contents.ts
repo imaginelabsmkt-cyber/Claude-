@@ -62,8 +62,12 @@ export async function listContents(
     }
   }
 
-  // Capas (arte de capa vinculada a um vídeo) não aparecem na lista de Conteúdos.
-  if (opcoes.excluirCapas) query = query.is("cover_source_id", null);
+  // Capas não aparecem na lista de Conteúdos. Detecta pelo vínculo interno
+  // (cover_source_id) E pelo título "Capa: ..." — algumas capas vêm da
+  // importação/criação manual sem o vínculo.
+  if (opcoes.excluirCapas) {
+    query = query.is("cover_source_id", null).not("title", "ilike", "Capa:%");
+  }
 
   if (filtros.q?.trim())
     query = query.ilike("title", `%${escaparLike(filtros.q.trim())}%`);
