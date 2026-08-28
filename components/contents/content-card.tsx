@@ -21,6 +21,11 @@ interface ContentCardProps {
  */
 export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
   const urg = urgenciaConteudo(content);
+  // Saiu num MÊS diferente do previsto = "fugiu do previsto".
+  const saiuForaDoPrevisto =
+    !!content.actual_post_date &&
+    !!content.planned_date &&
+    content.actual_post_date.slice(0, 7) !== content.planned_date.slice(0, 7);
   return (
     <div
       className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
@@ -53,7 +58,18 @@ export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
         <span>{content.format ?? "—"}</span>
         {content.planned_week ? <span>Semana {content.planned_week}</span> : null}
         <span>Prev.: {formatarData(content.planned_date)}</span>
-        <span>Prazo: {formatarData(prazoPrincipal(content))}</span>
+        {content.actual_post_date ? (
+          <span
+            className={
+              saiuForaDoPrevisto ? "font-medium text-amber-600" : "text-green-600"
+            }
+          >
+            Postado: {formatarData(content.actual_post_date)}
+            {saiuForaDoPrevisto ? " (fora do previsto)" : ""}
+          </span>
+        ) : (
+          <span>Prazo: {formatarData(prazoPrincipal(content))}</span>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
