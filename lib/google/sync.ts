@@ -10,7 +10,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
-import { rotuloResponsavel, emailPorPapel, ehArte } from "@/lib/google/responsavel";
+import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 import { prazoEntregaEfetivo } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
@@ -247,7 +247,6 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     const participantes = (c.participants ?? []).join(", ");
     // Gravação/produção (e produção de fotos das artes) é da Fran (producer).
     const resp1 = await rotuloResponsavel(sb, "producer");
-    const emailResp = await emailPorPapel(sb, "producer");
     const verboProd = ehArte(c.format) ? "Fotos" : "Gravação";
     // Cliente no título (com quem vai gravar) + na descrição.
     const cliRotulo = nomeCliente ? ` · ${nomeCliente}` : "";
@@ -260,8 +259,9 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       summary: `${verboProd}${resp1}${cliRotulo}: ${c.title}`,
       description: descLinhas.length ? descLinhas.join("\n") : null,
       location: c.recording_location ?? null,
-      // Responsável entra como participante do evento (agenda única).
-      attendees: emailResp ? [{ email: emailResp }] : [],
+      // Sem convidados: o evento fica só no calendário compartilhado. Convidar
+      // criava convite que sumia da visão quando "recusado".
+      attendees: [],
     };
     if (c.recording_time) {
       const fim = fimEvento(c.recording_date, c.recording_time);
@@ -355,7 +355,6 @@ export async function sincronizarGravacaoEmLote(
       .maybeSingle();
     const nomeCli = cli?.name ?? null;
     const resp1 = await rotuloResponsavel(sb, "producer");
-    const emailResp = await emailPorPapel(sb, "producer");
 
     const lista = cs.map((c, i) => `${i + 1}. ${c.title}`).join("\n");
     const descLinhas = [
@@ -368,7 +367,7 @@ export async function sincronizarGravacaoEmLote(
       summary: `Gravação${resp1}${nomeCli ? ` · ${nomeCli}` : ""}: ${cs.length} vídeo${cs.length > 1 ? "s" : ""}`,
       description: descLinhas.join("\n"),
       location: base0.recording_location ?? null,
-      attendees: emailResp ? [{ email: emailResp }] : [],
+      attendees: [], // sem convidados (ver sincronizarGravacao)
     };
     if (hora) {
       const fim = somarMinutos(data, hora, cs.length * 60); // 1h por vídeo
@@ -680,12 +679,11 @@ export async function sincronizarSessaoEdicao(contentId: string): Promise<void> 
       .maybeSingle();
     const nomeCli = cli?.name ?? null;
     const resp1 = await rotuloResponsavel(sb, "producer");
-    const emailResp = await emailPorPapel(sb, "producer");
 
     const corpo: Record<string, unknown> = {
       summary: `Editar${resp1}${nomeCli ? ` · ${nomeCli}` : ""}: ${c.title}`,
       description: nomeCli ? `Cliente: ${nomeCli}` : null,
-      attendees: emailResp ? [{ email: emailResp }] : [],
+      attendees: [], // sem convidados (ver sincronizarGravacao)
     };
     if (c.editing_time) {
       const fim = somarMinutos(c.editing_date, c.editing_time, 120); // 2h padrão

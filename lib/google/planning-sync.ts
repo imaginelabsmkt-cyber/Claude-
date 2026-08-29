@@ -7,7 +7,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
-import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
+import { rotuloResponsavel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 import { PLANNING_ENTREGUE } from "@/types";
 
@@ -127,7 +127,6 @@ export async function sincronizarPlanejamentoGoogle(
     const rotulo = `${nome} (${p.reference_month})`;
     // Planejamento é responsabilidade da Vitória (planner).
     const rot = await rotuloResponsavel(sb, "planner");
-    const emailResp = await emailPorPapel(sb, "planner");
 
     // ---- Reunião => evento (calendário "Imagine Reuniões") ----
     const evExistente = await idSync(sb, planningId, userId, "event");
@@ -145,7 +144,7 @@ export async function sincronizarPlanejamentoGoogle(
     } else {
       const corpo: Record<string, unknown> = {
         summary: `Reunião de planejamento${rot}: ${rotulo}`,
-        attendees: emailResp ? [{ email: emailResp }] : [],
+        attendees: [], // sem convidados (evita convite que some se recusado)
       };
       if (p.meeting_time) {
         const fim = fimEvento(p.meeting_date, p.meeting_time);
