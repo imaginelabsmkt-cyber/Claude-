@@ -3,11 +3,11 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PriorityBadge } from "@/components/shared/status-badge";
+import { UrgencyBadge } from "@/components/shared/urgency-badge";
 import { corPrioridade } from "@/lib/ui/prioridade";
+import { urgenciaConteudo } from "@/lib/rules/contents";
 import { formatarData } from "@/lib/utils";
 import {
   marcarComoGravadoAction,
@@ -22,7 +22,6 @@ interface RecordingCardProps {
   content: Content;
   clienteNome: string;
   cor?: string | null;
-  atrasada?: boolean;
 }
 
 function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
@@ -41,9 +40,9 @@ export function RecordingCard({
   content,
   clienteNome,
   cor,
-  atrasada,
 }: RecordingCardProps) {
   const router = useRouter();
+  const urg = urgenciaConteudo(content);
   const [processando, iniciar] = useTransition();
   const [editandoData, setEditandoData] = useState(false);
   const [data, setData] = useState(content.recording_date ?? "");
@@ -88,8 +87,7 @@ export function RecordingCard({
           </Link>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <PriorityBadge priority={content.priority} />
-          {atrasada ? <Badge tom="vermelho">Atrasada</Badge> : null}
+          <UrgencyBadge urgencia={urg} />
         </div>
       </div>
 
