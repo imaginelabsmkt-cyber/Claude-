@@ -49,13 +49,26 @@ export async function atualizarSessao(request: NextRequest) {
     },
   });
 
-  // IMPORTANTE: getUser() valida o token e renova a sessão quando necessário.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  // getUser() valida o token e renova a sessão. Com TEMPO-LIMITE: se o Supabase
+  // demorar (ex.: projeto "dormindo"), o middleware NÃO pendura o site inteiro
+  // com um 504 — degrada em segurança e deixa passar (a página revalida a
+  // sessão do seu jeito).
   const rota = request.nextUrl.pathname;
   const ehPublica = ROTAS_PUBLICAS.includes(rota);
+
+  let user: { id: string } | null = null;
+  try {
+    const resultado = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 3000),
+      ),
+    ]);
+    user = resultado.data.user;
+  } catch {
+    // Supabase lento/indisponível: não bloqueia a navegação (evita o 504).
+    return response;
+  }
 
   // Não autenticado tentando acessar rota protegida -> login.
   if (!user && !ehPublica) {
