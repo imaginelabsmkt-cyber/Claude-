@@ -10,36 +10,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
-import { calendarioId } from "@/lib/google/calendars";
 import { criarCapaDoVideo } from "@/lib/content/covers";
 import { registrarHistorico } from "@/lib/history";
 import type { ContentStatus } from "@/types";
-
-const TZ = "America/Boa_Vista";
-
-/** Extrai data (YYYY-MM-DD) e hora (HH:MM) no fuso de SP a partir do evento. */
-function dataHoraLocal(start: {
-  date?: string;
-  dateTime?: string;
-}): { data: string | null; hora: string | null } {
-  if (start.date) return { data: start.date, hora: null };
-  if (!start.dateTime) return { data: null, hora: null };
-  const d = new Date(start.dateTime);
-  const partes = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(d);
-  const get = (t: string) => partes.find((p) => p.type === t)?.value ?? "";
-  return {
-    data: `${get("year")}-${get("month")}-${get("day")}`,
-    hora: `${get("hour")}:${get("minute")}`,
-  };
-}
 
 const STATUS_EDICAO: ContentStatus[] = [
   "Fila de edição",
@@ -139,70 +112,10 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
         .eq("kind", "task");
     }
 
-    // ---- EVENTOS: se a produção foi movida no Google, atualiza aqui ----
-    const { data: eventos } = await sb
-      .from("google_sync")
-      .select("content_id, external_id")
-      .eq("user_id", userId)
-      .eq("kind", "event");
-
-    // Gravações vivem no calendário "Imagine Produção".
-    const calProd = encodeURIComponent(
-      await calendarioId(sb, userId, token, "producao"),
-    );
-
-    // Busca todos os eventos em paralelo (não em série).
-    await Promise.all(
-      (eventos ?? []).map(async (ev) => {
-        const r = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/${calProd}/events/${ev.external_id}`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-        // Evento apagado à mão no Google: limpa o mapeamento.
-        if (r.status === 404) {
-          await sb
-            .from("google_sync")
-            .delete()
-            .eq("content_id", ev.content_id)
-            .eq("user_id", userId)
-            .eq("kind", "event");
-          return;
-        }
-        if (!r.ok) return;
-        const evento = (await r.json()) as {
-          status?: string;
-          start?: { date?: string; dateTime?: string };
-        };
-        if (evento.status === "cancelled" || !evento.start) return;
-
-        const { data: novaData, hora: novaHora } = dataHoraLocal(evento.start);
-        if (!novaData) return;
-
-        const { data: c } = await sb
-          .from("contents")
-          .select("recording_date, recording_time")
-          .eq("id", ev.content_id)
-          .maybeSingle();
-        if (!c) return;
-
-        const mudou =
-          c.recording_date !== novaData ||
-          (c.recording_time ?? null) !== (novaHora ?? null);
-        if (!mudou) return;
-
-        await sb
-          .from("contents")
-          .update({ recording_date: novaData, recording_time: novaHora })
-          .eq("id", ev.content_id);
-        await registrarHistorico(ev.content_id, [
-          {
-            field: "Data de gravação",
-            old: c.recording_date ?? "—",
-            new: novaData,
-          },
-        ]);
-      }),
-    );
+    // O app é a FONTE DA VERDADE das datas: não puxamos mais a data do evento
+    // do Google de volta pro sistema (isso revertia a data que a pessoa marcava
+    // no app quando o Google estava desatualizado). A sincronização de datas é
+    // só de mão única: app -> Google.
   } catch (e) {
     console.error("reconciliarTarefasGoogle:", e);
   }
