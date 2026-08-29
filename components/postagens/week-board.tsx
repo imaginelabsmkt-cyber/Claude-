@@ -16,6 +16,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { StatusContentBadge, PriorityBadge } from "@/components/shared/status-badge";
 import { ehArte } from "@/lib/rules/contents";
 import { alterarDataPostagemAction } from "@/lib/actions/contents";
+import { formatarData } from "@/lib/utils";
 import { toast } from "@/lib/ui/toast";
 import { cn } from "@/lib/utils";
 import type { Content } from "@/types";
@@ -72,6 +73,12 @@ function Cartao({
       <div className="mt-1 flex flex-wrap items-center gap-1">
         <span className="text-[11px] text-gray-500">{content.format ?? "—"}</span>
       </div>
+      {content.actual_post_date &&
+      content.actual_post_date !== content.planned_date ? (
+        <div className="mt-0.5 text-[10px] font-medium text-amber-600">
+          Postado em {formatarData(content.actual_post_date)} (fora do previsto)
+        </div>
+      ) : null}
       <div className="mt-1 flex flex-wrap items-center gap-1">
         <StatusContentBadge status={content.status} arte={ehArte(content.format)} />
         <PriorityBadge priority={content.priority} />
