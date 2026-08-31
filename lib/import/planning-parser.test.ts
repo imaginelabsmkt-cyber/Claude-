@@ -114,3 +114,33 @@ describe("parsePlanejamento", () => {
     expect(r[0].roteiro ?? "").toContain("Cena de abertura");
   });
 });
+
+describe("parsePlanejamento — formato Kiku", () => {
+  // Kiku: sem marcador "SEMANA" e data escrita "DATA POSTAGEM:" (sem "DA").
+  const AMOSTRA_KIKU = `
+PLANEJAMENTO KIKU
+#########################
+CONTEÚDO 1:REELS SOM DA FELICIDADE
+DATA POSTAGEM:26/08
+REFERENCIA: https://www.instagram.com/p/DPkESWEjuT6/
+#########################
+CONTEÚDO 2: CARROSSEL ACHO CHIC
+DATA POSTAGEM: 07/09
+`;
+  const itens = parsePlanejamento(AMOSTRA_KIKU, 2026);
+
+  it("lê a data mesmo com 'DATA POSTAGEM' (sem 'DA')", () => {
+    expect(itens[0].dataPrevista).toBe("2026-08-26");
+    expect(itens[1].dataPrevista).toBe("2026-09-07");
+  });
+
+  it("deriva a semana pela data quando não há marcador SEMANA", () => {
+    expect(itens[0].semana).toBe(4); // dia 26 -> ceil(26/7) = 4
+    expect(itens[1].semana).toBe(1); // dia 07 -> ceil(7/7) = 1
+  });
+
+  it("ainda detecta título e formato", () => {
+    expect(itens[0].formato).toBe("Reel");
+    expect(itens[1].formato).toBe("Carrossel");
+  });
+});

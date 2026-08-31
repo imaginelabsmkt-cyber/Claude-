@@ -174,9 +174,16 @@ export function parsePlanejamento(
 
     if (!atual) continue;
 
-    // Campos rotulados (não entram no roteiro)
-    if (/^DATA(\s+DA\s+POSTAGEM)?\s*[:\-–]/i.test(semSep)) {
+    // Campos rotulados (não entram no roteiro). Aceita "DATA:", "DATA POSTAGEM:"
+    // e "DATA DA POSTAGEM:" (o "DA" é opcional). "DATA DO EVENTO:" NÃO entra.
+    if (/^DATA(\s+(DA\s+)?POSTAGEM)?\s*[:\-–]/i.test(semSep)) {
       atual.dataPrevista = parseData(valorDepois(semSep), ano);
+      // Sem marcador "SEMANA" no planejamento? Deriva a semana pelo dia do mês
+      // (1–7 = semana 1, 8–14 = semana 2, ...), para não deixar vazio.
+      if (atual.semana == null && atual.dataPrevista) {
+        const dia = Number(atual.dataPrevista.slice(8, 10));
+        if (dia >= 1) atual.semana = Math.min(5, Math.ceil(dia / 7));
+      }
       continue;
     }
     if (/^LOCAL\s*[:\-–]/i.test(semSep)) {
