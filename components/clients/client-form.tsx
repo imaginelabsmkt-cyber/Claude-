@@ -129,7 +129,7 @@ export function ClientForm({ cliente }: ClientFormProps) {
             <input
               type="color"
               aria-label="Selecionar cor"
-              value={/^#([0-9a-fA-F]{6})$/.test(values.color ?? "") ? values.color : "#4f46e5"}
+              value={/^#([0-9a-fA-F]{6})$/.test(values.color ?? "") ? values.color : "#6a2336"}
               onChange={(e) => atualizar("color", e.target.value)}
               className="h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-gray-300"
             />
@@ -137,7 +137,7 @@ export function ClientForm({ cliente }: ClientFormProps) {
               id="color"
               value={values.color ?? ""}
               onChange={(e) => atualizar("color", e.target.value)}
-              placeholder="#4f46e5"
+              placeholder="#6a2336"
               aria-invalid={Boolean(erros.color)}
             />
           </div>

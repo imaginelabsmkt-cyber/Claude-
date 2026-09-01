@@ -51,9 +51,9 @@ export function Sidebar({
       >
         <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-            I
+            F
           </div>
-          <span className="font-semibold text-gray-900">Imagine</span>
+          <span className="font-semibold text-gray-900">Favie</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">

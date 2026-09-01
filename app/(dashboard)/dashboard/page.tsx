@@ -176,7 +176,7 @@ export default async function DashboardPage({
       value: contents.filter(
         (c) => c.client_id === cl.id && publicadoNoMesRef(c, mesSel),
       ).length,
-      cor: cl.color ?? "#4f46e5",
+      cor: cl.color ?? "#6a2336",
     }))
     .filter((d) => d.value > 0);
   const gravadosPorCliente = clientes
@@ -185,7 +185,7 @@ export default async function DashboardPage({
       value: contents.filter(
         (c) => c.client_id === cl.id && gravadoNoMesRef(c, mesSel),
       ).length,
-      cor: cl.color ?? "#4f46e5",
+      cor: cl.color ?? "#6a2336",
     }))
     .filter((d) => d.value > 0);
 

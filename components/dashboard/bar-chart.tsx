@@ -29,7 +29,7 @@ export function BarChart({ dados }: BarChartProps) {
               className="h-full rounded"
               style={{
                 width: `${(d.value / max) * 100}%`,
-                backgroundColor: d.cor ?? "#4f46e5",
+                backgroundColor: d.cor ?? "#6a2336",
                 minWidth: d.value > 0 ? "4px" : "0",
               }}
             />

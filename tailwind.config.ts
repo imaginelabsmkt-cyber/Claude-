@@ -9,12 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Favie — vinho da marca (#6A2336) como cor principal, sobre fundo
+        // claro. Tons do mais claro (fundos/badges) ao mais escuro (hover).
         brand: {
-          50: "#eef2ff",
-          100: "#e0e7ff",
-          500: "#6366f1",
-          600: "#4f46e5",
-          700: "#4338ca",
+          50: "#faf1f3",
+          100: "#f4dbe1",
+          400: "#b06579",
+          500: "#8f3b51",
+          600: "#6a2336",
+          700: "#501a29",
+        },
+        // Acento suave da marca (lilás) para detalhes.
+        lilas: {
+          100: "#efe6f4",
+          300: "#bea0cc",
+          500: "#9a77ad",
         },
       },
       fontFamily: {

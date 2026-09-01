@@ -128,7 +128,7 @@ export function AgoraPanel({
       papel: "planner",
       itens: daPlanejadora,
       corAvatar: "bg-brand-100 text-brand-700 ring-brand-200",
-      corBarra: "from-indigo-400 to-violet-500",
+      corBarra: "from-lilas-300 to-brand-500",
       subtitulo: "Planejamento · Arte",
     },
   ];
