@@ -64,7 +64,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardContent className="space-y-6">
           <div className="text-center">
-            <h1 className="text-5xl font-light lowercase leading-none tracking-tight text-brand-600">
+            <h1 className="text-4xl font-bold lowercase leading-none tracking-tight text-brand-600">
               favie
             </h1>
             <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.24em] text-lilas-500">

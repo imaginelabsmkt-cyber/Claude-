@@ -50,7 +50,7 @@ export function Sidebar({
         )}
       >
         <div className="flex h-16 flex-col justify-center border-b border-gray-200 px-5">
-          <span className="text-2xl font-light lowercase leading-none tracking-tight text-brand-600">
+          <span className="text-2xl font-bold lowercase leading-none tracking-tight text-brand-600">
             favie
           </span>
           <span className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] text-lilas-500">
