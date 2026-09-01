@@ -54,7 +54,7 @@ export function Sidebar({
             favie
           </span>
           <span className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] text-lilas-500">
-            estratégia e posicionamento
+            gestão de demandas
           </span>
         </div>
 

@@ -68,7 +68,7 @@ export default function LoginPage() {
               favie
             </h1>
             <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.24em] text-lilas-500">
-              estratégia e posicionamento
+              gestão de demandas
             </p>
             <p className="mt-4 text-sm text-gray-500">
               Entre para gerenciar a produção de conteúdo
