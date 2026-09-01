@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "favie · Gestão de Conteúdo",
+  title: "favie · Gestão de Demandas",
   description:
     "Sistema de gestão de produção de conteúdo para agência de social media.",
 };
