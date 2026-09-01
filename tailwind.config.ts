@@ -18,12 +18,18 @@ const config: Config = {
           500: "#8f3b51",
           600: "#6a2336",
           700: "#501a29",
+          800: "#3b0d1c",
         },
         // Acento suave da marca (lilás) para detalhes.
         lilas: {
           100: "#efe6f4",
           300: "#bea0cc",
           500: "#9a77ad",
+        },
+        // Creme da marca — acento quente para destaques pontuais.
+        creme: {
+          100: "#fff1c7",
+          200: "#ffe8a6",
         },
       },
       fontFamily: {

@@ -64,10 +64,13 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardContent className="space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-brand-600">
-              Favie
+            <h1 className="text-5xl font-light lowercase leading-none tracking-tight text-brand-600">
+              favie
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.24em] text-lilas-500">
+              estratégia e posicionamento
+            </p>
+            <p className="mt-4 text-sm text-gray-500">
               Entre para gerenciar a produção de conteúdo
             </p>
           </div>

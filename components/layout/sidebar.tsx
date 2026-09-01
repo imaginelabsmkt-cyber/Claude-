@@ -49,9 +49,12 @@ export function Sidebar({
           aberta ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-16 items-center border-b border-gray-200 px-5">
-          <span className="text-lg font-bold tracking-tight text-brand-600">
-            Favie
+        <div className="flex h-16 flex-col justify-center border-b border-gray-200 px-5">
+          <span className="text-2xl font-light lowercase leading-none tracking-tight text-brand-600">
+            favie
+          </span>
+          <span className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] text-lilas-500">
+            estratégia e posicionamento
           </span>
         </div>
 
