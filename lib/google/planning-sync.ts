@@ -7,7 +7,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
-import { rotuloResponsavel } from "@/lib/google/responsavel";
+import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 import { PLANNING_ENTREGUE } from "@/types";
 
@@ -142,9 +142,12 @@ export async function sincronizarPlanejamentoGoogle(
         await apagarSync(sb, planningId, userId, "event");
       }
     } else {
+      // Reunião de planejamento convida a Vitória (planner). Só ela — não
+      // convidamos a Fran (producer) para não encher a agenda dela.
+      const emailPlanner = await emailPorPapel(sb, "planner");
       const corpo: Record<string, unknown> = {
         summary: `Reunião de planejamento${rot}: ${rotulo}`,
-        attendees: [], // sem convidados (evita convite que some se recusado)
+        attendees: emailPlanner ? [{ email: emailPlanner }] : [],
       };
       if (p.meeting_time) {
         const fim = fimEvento(p.meeting_date, p.meeting_time);
@@ -161,7 +164,8 @@ export async function sincronizarPlanejamentoGoogle(
         corpo.end = { date: diaSeguinte(p.meeting_date) };
       }
       const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
-      const q = "?sendUpdates=none";
+      // Envia o convite para a Vitória (participante). Só a reunião faz isso.
+      const q = "?sendUpdates=all";
       const resp = await fetch(
         evExistente ? `${base}/${evExistente}${q}` : `${base}${q}`,
         {
