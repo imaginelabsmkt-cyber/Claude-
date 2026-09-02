@@ -8,7 +8,6 @@ import { toast } from "@/lib/ui/toast";
 import {
   PLANNING_STATUS_OPTIONS,
   PLANNING_ENTREGUE,
-  PLANNING_SITUACAO_OPTIONS,
   PLANNING_SITUACAO_TONE,
 } from "@/types";
 import type { Planning } from "@/types";
@@ -151,6 +150,14 @@ function Linha({
   const prazo = p?.delivery_deadline ?? null;
   const atrasado =
     !!prazo && prazo < hojeISO && !PLANNING_ENTREGUE.includes(status);
+  // Situação AUTOMÁTICA (não é mais marcada à mão): segue o status + prazo.
+  // Entregue quando enviado/aprovado; Atrasado quando passou do prazo sem
+  // entregar; senão Pendente.
+  const situacao = PLANNING_ENTREGUE.includes(status)
+    ? "Entregue"
+    : atrasado
+      ? "Atrasado"
+      : "Pendente";
 
   const [notasAbertas, setNotasAbertas] = useState(false);
   const [notas, setNotas] = useState(p?.notes ?? "");
@@ -235,23 +242,16 @@ function Linha({
           />
         </td>
         <td className="px-3 py-2">
-          <select
-            aria-label="Situação"
-            value={p?.situation ?? "Pendente"}
-            disabled={salvando}
-            onChange={(e) => set({ situation: e.target.value })}
+          <span
+            aria-label="Situação (automática)"
+            title="Atualiza sozinha conforme o status e o prazo"
             className={cn(
-              "rounded-full px-2.5 py-1 text-xs font-semibold outline-none",
-              PLANNING_SITUACAO_TONE[p?.situation ?? "Pendente"] ??
-                "bg-gray-100 text-gray-600",
+              "inline-block rounded-full px-2.5 py-1 text-xs font-semibold",
+              PLANNING_SITUACAO_TONE[situacao] ?? "bg-gray-100 text-gray-600",
             )}
           >
-            {PLANNING_SITUACAO_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            {situacao}
+          </span>
         </td>
         <td className="px-3 py-2 text-right">
           <button
