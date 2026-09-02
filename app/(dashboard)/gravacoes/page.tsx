@@ -72,6 +72,13 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
     else if (classificarGravacao(c) === "semana") semana.push(c);
     else proxima.push(c);
   }
+  // Ordena por data/hora da gravação: a mais próxima primeiro.
+  const porData = (a: Content, b: Content) =>
+    `${a.recording_date ?? ""}T${a.recording_time ?? "00:00"}`.localeCompare(
+      `${b.recording_date ?? ""}T${b.recording_time ?? "00:00"}`,
+    );
+  semana.sort(porData);
+  proxima.sort(porData);
 
   const nomeCli = (c: Content) => clientesById.get(c.client_id)?.name ?? "—";
   const corCli = (c: Content) => clientesById.get(c.client_id)?.color;

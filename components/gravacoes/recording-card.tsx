@@ -24,13 +24,21 @@ interface RecordingCardProps {
   cor?: string | null;
 }
 
-function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
+/** Campo compacto: NÃO renderiza nada quando está vazio (sem poluir com "—"). */
+function Campo({
+  rotulo,
+  valor,
+}: {
+  rotulo: string;
+  valor: string | null | undefined;
+}) {
+  if (!valor || valor === "—") return null;
   return (
     <div>
-      <span className="text-[11px] uppercase tracking-wide text-gray-500">
+      <span className="text-[10px] uppercase tracking-wide text-gray-400">
         {rotulo}
       </span>
-      <p className="text-gray-700">{valor}</p>
+      <p className="text-sm text-gray-700">{valor}</p>
     </div>
   );
 }
@@ -66,7 +74,7 @@ export function RecordingCard({
 
   return (
     <div
-      className="rounded-lg border border-l-4 border-gray-200 bg-white p-4 shadow-sm"
+      className="rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm"
       style={{ borderLeftColor: corPrioridade(content.priority) }}
     >
       <div className="flex items-start justify-between gap-2">
@@ -91,22 +99,28 @@ export function RecordingCard({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+      <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
         <Campo
           rotulo="Data de gravação"
           valor={
             content.recording_date
               ? `${formatarData(content.recording_date)}${content.recording_time ? ` às ${content.recording_time}` : ""}`
-              : "—"
+              : null
           }
         />
-        <Campo rotulo="Prazo de gravação" valor={formatarData(content.recording_deadline)} />
-        <Campo rotulo="Data prevista de postagem" valor={formatarData(content.planned_date)} />
-        <Campo rotulo="Local" valor={content.recording_location ?? "—"} />
-        <Campo rotulo="Roupa" valor={content.outfit ?? "—"} />
-        <Campo rotulo="Participantes" valor={content.participants.length ? content.participants.join(", ") : "—"} />
-        <Campo rotulo="Materiais" valor={content.required_materials.length ? content.required_materials.join(", ") : "—"} />
-        <Campo rotulo="Observações" valor={content.notes ?? "—"} />
+        <Campo
+          rotulo="Prazo de gravação"
+          valor={content.recording_deadline ? formatarData(content.recording_deadline) : null}
+        />
+        <Campo
+          rotulo="Prevista p/ postagem"
+          valor={content.planned_date ? formatarData(content.planned_date) : null}
+        />
+        <Campo rotulo="Local" valor={content.recording_location} />
+        <Campo rotulo="Roupa" valor={content.outfit} />
+        <Campo rotulo="Participantes" valor={content.participants.length ? content.participants.join(", ") : null} />
+        <Campo rotulo="Materiais" valor={content.required_materials.length ? content.required_materials.join(", ") : null} />
+        <Campo rotulo="Observações" valor={content.notes} />
       </div>
 
       {editandoData ? (
@@ -154,7 +168,7 @@ export function RecordingCard({
           </Button>
         </div>
       ) : (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {!gravado ? (
             <Button
               tamanho="sm"
