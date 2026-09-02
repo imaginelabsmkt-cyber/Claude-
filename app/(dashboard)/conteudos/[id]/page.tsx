@@ -24,6 +24,7 @@ import {
   PostagemStage,
 } from "@/components/contents/production-stages";
 import { CoverPanel } from "@/components/contents/cover-panel";
+import { PlanejamentoDatas } from "@/components/contents/planejamento-datas";
 import {
   proximaAcao,
   responsavelAtual,
@@ -153,14 +154,11 @@ export default async function ConteudoPage({ params }: PageProps) {
             <Item rotulo="Mês de referência">
               {conteudo.reference_month ?? "—"}
             </Item>
-            <Item rotulo="Data prevista">
-              {formatarData(conteudo.planned_date)}
-            </Item>
-            {conteudo.actual_post_date ? (
-              <Item rotulo="Data real">
-                {formatarData(conteudo.actual_post_date)}
-              </Item>
-            ) : null}
+            <PlanejamentoDatas
+              contentId={conteudo.id}
+              plannedDate={conteudo.planned_date}
+              actualPostDate={conteudo.actual_post_date}
+            />
             {conteudo.content_pillar ? (
               <Item rotulo="Pilar">{conteudo.content_pillar}</Item>
             ) : null}

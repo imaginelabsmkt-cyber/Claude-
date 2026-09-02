@@ -119,7 +119,7 @@ function Card({ content, cliente }: { content: Content; cliente?: OpcaoCliente }
             atrasado ? "font-semibold text-red-600" : "text-gray-500",
           )}
         >
-          {atrasado ? "⚠ " : "📅 "}
+          {atrasado ? "⚠ " : ""}
           {formatarData(prazo)}
         </p>
       ) : null}

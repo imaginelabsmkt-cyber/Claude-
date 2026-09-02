@@ -6,6 +6,8 @@
  */
 
 const STATUS_ARTE: Record<string, string> = {
+  // Em arte não há "roteiro" — o texto é a copy/legenda para o layout.
+  "Roteiro pronto": "Copy pronta",
   "Fila de edição": "Fila de criação",
   "Em edição": "Em criação",
 };
