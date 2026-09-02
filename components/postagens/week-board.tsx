@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   useDraggable,
@@ -51,11 +53,32 @@ function Cartao({
     <div
       ref={setNodeRef}
       style={style}
-      className="cursor-grab touch-none rounded-md border border-gray-200 bg-white p-2 shadow-sm active:cursor-grabbing"
-      {...attributes}
-      {...listeners}
+      className={cn(
+        "rounded-md border bg-white p-2 shadow-sm",
+        isDragging
+          ? "border-brand-400 ring-2 ring-brand-200"
+          : "border-gray-200",
+      )}
     >
       <div className="flex items-center gap-1 text-[11px] text-gray-500">
+        {/* Alça de arrastar: só ela move o card (evita conflito com o link). */}
+        <button
+          type="button"
+          className="-ml-1 flex cursor-grab touch-none items-center rounded px-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
+          aria-label="Arraste para mudar a data"
+          title="Arraste para mudar a data"
+          {...attributes}
+          {...listeners}
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+            <circle cx="7" cy="5" r="1.4" />
+            <circle cx="13" cy="5" r="1.4" />
+            <circle cx="7" cy="10" r="1.4" />
+            <circle cx="13" cy="10" r="1.4" />
+            <circle cx="7" cy="15" r="1.4" />
+            <circle cx="13" cy="15" r="1.4" />
+          </svg>
+        </button>
         <span
           className="inline-block h-2 w-2 rounded-full border border-gray-200"
           style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
@@ -66,7 +89,6 @@ function Cartao({
       <Link
         href={`/conteudos/${content.id}`}
         className="mt-0.5 block text-sm font-medium text-gray-900 hover:text-brand-700"
-        onPointerDown={(e) => e.stopPropagation()}
       >
         {content.title}
       </Link>
@@ -139,7 +161,11 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
   }, [contents, pendente]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 150, tolerance: 6 },
+    }),
+    useSensor(KeyboardSensor),
   );
 
   function aoSoltar(evento: DragEndEvent) {
@@ -165,6 +191,18 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
 
   return (
     <DndContext sensors={sensors} onDragEnd={aoSoltar}>
+      <p className="mb-2 flex items-center gap-1.5 text-xs text-gray-500">
+        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-gray-400" aria-hidden="true">
+          <circle cx="7" cy="5" r="1.4" />
+          <circle cx="13" cy="5" r="1.4" />
+          <circle cx="7" cy="10" r="1.4" />
+          <circle cx="13" cy="10" r="1.4" />
+          <circle cx="7" cy="15" r="1.4" />
+          <circle cx="13" cy="15" r="1.4" />
+        </svg>
+        Arraste pelo ícone para mudar a data da postagem — atualiza no sistema e
+        no Google Agenda.
+      </p>
       <div className="overflow-x-auto">
         <div className="grid min-w-[900px] grid-cols-7 gap-2">
           {dias.map((d) => (
