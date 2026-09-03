@@ -92,7 +92,46 @@ export async function preencherOnboardComIAAction(
     };
   }
 
-  const texto = htmlParaTexto(diag.html).slice(0, 60000);
+  return extrairOnboardingDeTexto(
+    htmlParaTexto(diag.html).slice(0, 60000),
+    "DIAGNÓSTICO",
+  );
+}
+
+/**
+ * Preenche o DNA do cliente a partir de um TEXTO colado (respostas do
+ * formulário do cliente, briefing, bio, áudio transcrito, conversa…). A IA
+ * organiza nos campos certos. Não salva sozinho — devolve para revisar.
+ */
+export async function preencherOnboardDeTextoAction(
+  clientId: string,
+  texto: string,
+): Promise<PreencherIAResult> {
+  if (!clientId) return { ok: false, error: "Cliente inválido." };
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  if (!iaDisponivel()) {
+    return {
+      ok: false,
+      error: "IA não configurada. Falta a chave ANTHROPIC_API_KEY no servidor.",
+    };
+  }
+  const limpo = (texto ?? "").trim();
+  if (limpo.length < 15) {
+    return { ok: false, error: "Cole um texto com as informações do cliente." };
+  }
+  return extrairOnboardingDeTexto(limpo.slice(0, 60000), "TEXTO");
+}
+
+/**
+ * Núcleo compartilhado: pede à IA para preencher os campos do onboarding a
+ * partir de um texto qualquer (diagnóstico, briefing, respostas do cliente…).
+ */
+async function extrairOnboardingDeTexto(
+  texto: string,
+  rotuloFonte: string,
+): Promise<PreencherIAResult> {
   const campos = ONBOARDING_SECOES.flatMap((s) =>
     s.campos.map((c) => ({ id: c.id, rotulo: c.rotulo, secao: s.titulo })),
   );
@@ -100,7 +139,7 @@ export async function preencherOnboardComIAAction(
     .map((c) => `- ${c.id} (${c.secao} › ${c.rotulo})`)
     .join("\n");
 
-  const prompt = `Você é analista de uma agência de social media. A seguir está o DIAGNÓSTICO de um cliente. Extraia o DNA do cliente preenchendo os campos abaixo com base APENAS no que o diagnóstico traz.
+  const prompt = `Você é analista de uma agência de social media. A seguir está um ${rotuloFonte} com informações de um cliente. Extraia o DNA do cliente preenchendo os campos abaixo com base APENAS no que o texto traz.
 
 Campos (id e o que significa):
 ${listaCampos}
@@ -108,10 +147,10 @@ ${listaCampos}
 Regras:
 - Responda com UM único objeto JSON, chaves = os ids acima, valores = texto em português.
 - Seja objetivo e útil (frases curtas, direto ao ponto). Nada de enrolação.
-- Se o diagnóstico não trouxer informação para um campo, use "" (string vazia). Não invente.
+- Se o texto não trouxer informação para um campo, use "" (string vazia). Não invente.
 - Não escreva nada fora do JSON.
 
-DIAGNÓSTICO:
+${rotuloFonte}:
 ${texto}`;
 
   try {
