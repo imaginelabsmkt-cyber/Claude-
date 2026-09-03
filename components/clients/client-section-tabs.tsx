@@ -16,8 +16,17 @@ export interface AbaCliente {
  * Todos os painéis são renderizados no servidor e só trocam de visibilidade
  * (sem recarregar), então nenhum perde o estado ao alternar.
  */
-export function ClientSectionTabs({ abas }: { abas: AbaCliente[] }) {
-  const [ativa, setAtiva] = useState<string>(abas[0]?.id ?? "");
+export function ClientSectionTabs({
+  abas,
+  padrao,
+}: {
+  abas: AbaCliente[];
+  /** Aba aberta ao entrar (padrão: a primeira). */
+  padrao?: string;
+}) {
+  const inicial =
+    padrao && abas.some((a) => a.id === padrao) ? padrao : (abas[0]?.id ?? "");
+  const [ativa, setAtiva] = useState<string>(inicial);
 
   return (
     <div className="mt-8">

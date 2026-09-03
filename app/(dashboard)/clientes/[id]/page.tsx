@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActiveToggle } from "@/components/clients/active-toggle";
-import { EditableContentsTable } from "@/components/contents/editable-contents-table";
+import { ClientContentsByMonth } from "@/components/clients/client-contents-by-month";
 import {
   ContentWeekBoard,
   type DiaSemana,
@@ -204,8 +204,9 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         />
       </div>
 
-      {/* Abas do cliente: Onboard (DNA) | Conteúdos | Arquivos | Relatórios */}
+      {/* Abas do cliente: abre sempre em Conteúdos (uso do dia a dia). */}
       <ClientSectionTabs
+        padrao="conteudos"
         abas={[
           {
             id: "onboard",
@@ -225,16 +226,13 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[11px] text-gray-400">
                     Edite qualquer campo direto na linha, salva sozinho. Clique
-                    no título para abrir.
+                    no título para abrir. O que não foi feito segue no mês atual.
                   </span>
                 </div>
-                <EditableContentsTable
+                <ClientContentsByMonth
                   contents={todos}
                   clientes={clienteOpt}
                   perfis={perfis}
-                  mostrarCliente={false}
-                  compacto
-                  vazioTitulo="Nenhum conteúdo"
                   vazioDescricao="Este cliente ainda não tem conteúdos cadastrados."
                   acaoVazio={
                     <div className="flex flex-wrap justify-center gap-2">
