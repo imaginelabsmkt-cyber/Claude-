@@ -201,7 +201,6 @@ function ItemFila({
             limpar
           </button>
         ) : null}
-        <span className="text-gray-400">(vira tarefa no Google, no dia escolhido)</span>
       </div>
     </div>
   );
