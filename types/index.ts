@@ -96,19 +96,14 @@ export const PLANNING_STATUS_OPTIONS: string[] = [
 /** Status em que o planejamento já foi entregue (não conta como atrasado). */
 export const PLANNING_ENTREGUE: string[] = ["Enviado ao cliente", "Aprovado"];
 
-/** Situação MANUAL do planejamento (marcada à mão pela planejadora). */
-export const PLANNING_SITUACAO_OPTIONS: string[] = [
-  "Pendente",
-  "Entregue",
-  "Atrasado",
-  "Reagendado",
-];
-
+/**
+ * Situação do planejamento — agora AUTOMÁTICA (derivada do status + prazo em
+ * plannings-table). Mantida só a paleta de cores para o selo.
+ */
 export const PLANNING_SITUACAO_TONE: Record<string, string> = {
   Pendente: "bg-gray-100 text-gray-600",
   Entregue: "bg-green-100 text-green-700",
   Atrasado: "bg-red-100 text-red-700",
-  Reagendado: "bg-amber-100 text-amber-700",
 };
 
 export const ROLE_LABELS: Record<UserRole, string> = {
