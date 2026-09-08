@@ -12,6 +12,12 @@ Gerenciar todo o ciclo de produção de conteúdo de uma agência de social
 media — do planejamento à publicação —, de forma que duas pessoas
 consigam coordenar o trabalho sem depender de planilhas soltas.
 
+O sistema tem **dois domínios independentes**, ligados apenas por `clients`:
+
+1. **Produção** — o pipeline do conteúdo (pautas, gravação, edição, postagem).
+2. **Financeiro** — o fluxo de caixa da agência (receitas, despesas, saldo),
+   que substitui a planilha "Fluxo de Caixa Imagine Labs 2026".
+
 ## 2. Usuários e papéis
 
 O sistema tem **dois usuários** no MVP, cada um com um papel
@@ -99,11 +105,74 @@ profiles   1 ── N content_history / comments (on delete set null)
 | `/fila-edicao`    | Fila de edição  | `contents` (status de edição)                    |
 | `/postagens`      | Postagens       | `contents` (status Agendado/Publicado)           |
 | `/minhas-tarefas` | Minhas tarefas  | `contents` (filtrado pelos campos de responsável)|
+| `/financeiro`     | Financeiro      | `financial_*` (ver seção 5.1)                    |
 | `/configuracoes`  | Configurações   | `profiles` + preferências                        |
 
 Cada página tem **uma responsabilidade**. Nenhuma duplica a função de outra:
 o CRUD de conteúdo vive só em `/conteudos`; as demais páginas de pipeline são
 recortes de leitura/ação sobre o mesmo dado.
+
+## 5.1 Módulo financeiro (fluxo de caixa)
+
+Domínio separado do pipeline de conteúdo. A entidade central é o
+**lançamento** (`financial_entries`): uma entrada ou saída de dinheiro,
+classificada por categoria e com um **mês de competência** (`reference_month`,
+no formato `"YYYY-MM"`).
+
+### Regras de cálculo (fonte: `lib/financeiro/calculo.ts`, funções puras + testes)
+
+```
+Realizado = lançamentos com status "Pago"        (o dinheiro que andou)
+Previsto  = "Pago" + "Pendente"                  (se tudo se confirmar)
+Resultado líquido      = receitas - despesas
+Saldo final do mês     = saldo inicial + resultado líquido
+Saldo inicial do mês   = saldo final do mês anterior
+Margem líquida         = resultado / receitas    (0 quando não há receita)
+```
+
+O **encadeamento do saldo usa o realizado**, porque é o que existe em caixa;
+o previsto aparece em paralelo como projeção. O primeiro mês da série parte
+de `financial_settings.opening_balance` (o "saldo inicial" da planilha).
+
+> **Diferença proposital em relação à planilha:** lá, os totais somavam todas
+> as linhas independentemente da coluna "Status". Aqui, o status é levado a
+> sério — pendências não entram no realizado e aparecem em "a receber" e
+> "a pagar". É o comportamento que as próprias instruções da planilha
+> descreviam.
+
+### Tabelas (4)
+
+- **financial_settings** — linha única: saldo inicial e mês de partida.
+- **financial_categories** — as linhas de agrupamento do resumo anual
+  (`kind` = `Receita` | `Despesa`).
+- **financial_entries** — os lançamentos. Referencia `category_id`
+  (on delete restrict) e `client_id` (on delete set null: apagar um cliente
+  nunca apaga histórico financeiro).
+- **financial_recurrences** — as regras de mensalidades e custos fixos.
+
+### Recorrências: a razão de o sistema existir
+
+Na planilha, a mesma lista de mensalidades e custos fixos era redigitada em
+cada aba mensal. Aqui ela é cadastrada **uma vez** em `financial_recurrences`
+e vira lançamento de qualquer mês com um clique ("Gerar do plano fixo").
+
+A unicidade `(recurrence_id, reference_month)` no banco garante que clicar
+duas vezes **não duplica nada** — a proteção é do banco, não da tela.
+
+### Páginas do módulo
+
+| Rota                          | Responsabilidade                                   |
+| ----------------------------- | -------------------------------------------------- |
+| `/financeiro`                 | Painel do mês: saldo, resultado, a receber/a pagar |
+| `/financeiro/lancamentos`     | CRUD dos lançamentos + baixa rápida (pago)         |
+| `/financeiro/fluxo-caixa`     | O mês linha a linha, no formato da planilha        |
+| `/financeiro/resumo-anual`    | Matriz categoria × mês do ano inteiro              |
+| `/financeiro/recorrencias`    | Mensalidades e custos fixos                        |
+| `/financeiro/categorias`      | Categorias + saldo inicial da série                |
+
+Vale a mesma regra do pipeline: **cada página tem uma responsabilidade**.
+O CRUD do lançamento vive só em `/financeiro/lancamentos`; as demais telas
+são recortes de leitura sobre o mesmo dado.
 
 ## 6. Convenções de código
 
@@ -114,6 +183,12 @@ recortes de leitura/ação sobre o mesmo dado.
   ex.: `client_id`, `created_at`). Os **valores** dos enums de status/
   prioridade ficam em pt-BR (aparecem direto na UI).
 - **Datas:** trafegam como string ISO 8601; exibidas via `formatarData()`.
+- **Dinheiro:** `numeric(12,2)` no banco, `number` (em reais) no TypeScript,
+  exibido com `formatarMoeda()`. O valor digitado pela usuária ("1.700,00")
+  passa por `paraNumero()` (`lib/financeiro/valores.ts`) antes de ser gravado.
+- **Mês de competência:** string `"YYYY-MM"`, manipulada só pelos helpers de
+  `lib/financeiro/meses.ts` — nunca com `new Date()` sobre `"YYYY-MM"`, que
+  introduziria fuso horário e erraria a virada do mês.
 - **IDs:** UUID.
 - **Textos de UI:** português do Brasil, sempre.
 - **Classes Tailwind:** compor com `cn()` (clsx + tailwind-merge).

@@ -8,6 +8,7 @@ supabase/
 ├── migrations/
 │   └── 20260714120000_initial_schema.sql   # schema completo
 ├── seed.sql                                 # usuários de exemplo (opcional)
+├── seed_financeiro.sql                      # carga da planilha 2026 (opcional)
 └── README.md                               # este arquivo
 ```
 
@@ -20,6 +21,10 @@ supabase/
 | `contents`        | Conteúdos — entidade central do pipeline.                    |
 | `content_history` | Auditoria de alterações de campos de `contents`.             |
 | `comments`        | Comentários de colaboração em um conteúdo.                   |
+| `financial_settings`    | Linha única: saldo inicial e mês de partida da série.  |
+| `financial_categories`  | Categorias de receita/despesa (linhas do resumo anual).|
+| `financial_entries`     | Lançamentos do fluxo de caixa (entrada/saída por mês). |
+| `financial_recurrences` | Mensalidades e custos fixos que se repetem todo mês.   |
 
 ### Tipos ENUM
 
@@ -29,6 +34,8 @@ supabase/
   `Aprovação do cliente`, `Ajustes`, `Aprovado`, `Agendado`, `Publicado`,
   `Pausado`, `Cancelado`
 - `content_priority`: `Urgente`, `Alta`, `Média`, `Baixa`
+- `financial_kind`: `Receita`, `Despesa`
+- `financial_status`: `Pago`, `Pendente`
 
 ### Relacionamentos
 
@@ -136,3 +143,34 @@ ajustável por um `admin`).
 > **Papéis:** `planner` (Vitória — planejamento/roteiro), `producer` (Fran —
 > gravação/edição/publicação) e `admin` (gestão). O papel de um usuário pode
 > ser ajustado a qualquer momento na tabela `profiles`.
+
+
+## Módulo financeiro
+
+Migration: `20260908120000_financeiro.sql` (idempotente — pode ser
+reexecutada). Cria as 4 tabelas `financial_*`, os ENUMs, os índices por
+mês de competência, os triggers de `updated_at`, as políticas de RLS
+(mesma regra das demais tabelas: todo usuário autenticado lê e escreve) e
+as 14 categorias padrão da planilha.
+
+Garantias de integridade que o banco impõe (não a tela):
+
+| Regra                                             | Como é garantida                       |
+| ------------------------------------------------- | -------------------------------------- |
+| Gerar as recorrências duas vezes não duplica       | `unique (recurrence_id, reference_month)` |
+| Categoria em uso não pode ser apagada              | FK `on delete restrict`                |
+| Apagar um cliente não apaga o histórico financeiro | FK `on delete set null`                |
+| Valor negativo não entra                           | `check (amount >= 0)`                  |
+
+### Carga inicial (opcional)
+
+`seed_financeiro.sql` importa a planilha "Fluxo de Caixa Imagine Labs 2026":
+227 lançamentos (Abril a Dezembro/2026), 15 clientes e 26 recorrências.
+Rode **depois** da migration. Se já houver lançamentos, o script não faz
+nada e avisa — não há risco de duplicar.
+
+```sql
+-- No SQL Editor do Supabase, cole o conteúdo de:
+--   1. supabase/migrations/20260908120000_financeiro.sql
+--   2. supabase/seed_financeiro.sql   (opcional)
+```

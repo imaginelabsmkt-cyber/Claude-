@@ -51,3 +51,25 @@ export function formatarDataHora(data: string | null): string {
     minute: "2-digit",
   }).format(new Date(data));
 }
+
+/**
+ * Formata um número como moeda brasileira (R$ 1.234,56).
+ * Aceita null/undefined (retorna "R$ 0,00") para simplificar as telas.
+ */
+export function formatarMoeda(valor: number | null | undefined): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(valor ?? 0);
+}
+
+/**
+ * Formata uma fração (0.23) como percentual brasileiro ("23,0%").
+ */
+export function formatarPercentual(fracao: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(Number.isFinite(fracao) ? fracao : 0);
+}

@@ -14,6 +14,11 @@ import type {
   Content,
   ContentPriority,
   ContentStatus,
+  FinancialCategory,
+  FinancialEntry,
+  FinancialKind,
+  FinancialRecurrence,
+  FinancialStatus,
   Profile,
   UserRole,
 } from "./database";
@@ -21,6 +26,18 @@ import type {
 // -------------------------------------------------------------
 // Tipos de apresentação (com relacionamentos resolvidos)
 // -------------------------------------------------------------
+
+/** Lançamento financeiro com categoria e cliente resolvidos. */
+export interface FinancialEntryWithRelations extends FinancialEntry {
+  category: FinancialCategory | null;
+  client: Client | null;
+}
+
+/** Recorrência com categoria e cliente resolvidos. */
+export interface FinancialRecurrenceWithRelations extends FinancialRecurrence {
+  category: FinancialCategory | null;
+  client: Client | null;
+}
 
 /** Conteúdo com relacionamentos resolvidos, para exibição em telas. */
 export interface ContentWithRelations extends Content {
@@ -143,3 +160,32 @@ export const PRIORITY_TONE: Record<ContentPriority, BadgeTone> = {
   Média: "amarelo",
   Baixa: "cinza",
 };
+
+// -------------------------------------------------------------
+// Financeiro — opções e tons de UI
+// -------------------------------------------------------------
+
+export const FINANCIAL_KIND_OPTIONS: FinancialKind[] = ["Receita", "Despesa"];
+
+export const FINANCIAL_STATUS_OPTIONS: FinancialStatus[] = ["Pago", "Pendente"];
+
+export const FINANCIAL_STATUS_TONE: Record<FinancialStatus, BadgeTone> = {
+  Pago: "verde",
+  Pendente: "amarelo",
+};
+
+export const FINANCIAL_KIND_TONE: Record<FinancialKind, BadgeTone> = {
+  Receita: "verde",
+  Despesa: "vermelho",
+};
+
+/** Formas de pagamento (lista fixa da aba "Configurações" da planilha). */
+export const PAYMENT_METHOD_OPTIONS: string[] = [
+  "PIX",
+  "Boleto",
+  "Cartão de Crédito",
+  "Cartão de Débito",
+  "Transferência",
+  "Dinheiro",
+  "Outro",
+];

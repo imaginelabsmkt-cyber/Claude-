@@ -1,8 +1,9 @@
 # Agência Social — Sistema de Gestão de Produção de Conteúdo
 
-Sistema web para gerenciar a produção de conteúdo de uma agência de social
-media, do planejamento à publicação. Usado por duas pessoas com papéis
-distintos:
+Sistema web para gerenciar uma agência de social media de ponta a ponta:
+a **produção de conteúdo** (do planejamento à publicação) e o
+**financeiro** (fluxo de caixa, receitas, despesas e saldo). Usado por duas
+pessoas com papéis distintos:
 
 - **Vitória** — planejamento, pautas, roteiros e organização das postagens.
 - **Fran** — gravações, edições, ajustes e acompanhamento da publicação.
@@ -31,6 +32,8 @@ distintos:
 │   │   ├── fila-edicao/          # Conteúdos em edição (visão do pipeline)
 │   │   ├── postagens/            # Agendamento/publicação
 │   │   ├── minhas-tarefas/       # Tarefas do usuário
+│   │   ├── financeiro/           # Fluxo de caixa (painel, lançamentos,
+│   │   │                         #   fluxo, resumo anual, recorrências)
 │   │   └── configuracoes/        # Perfil e preferências
 │   ├── layout.tsx                # Layout raiz (html/body, fonte, metadata)
 │   ├── page.tsx                  # Redireciona para /dashboard
@@ -40,6 +43,8 @@ distintos:
 │   ├── shared/                   # StatusBadge, EmptyState
 │   └── layout/                   # Sidebar, Topbar, AppShell, PageHeader, NavIcon
 ├── lib/
+│   ├── financeiro/               # Regras puras do financeiro
+│   │                             #   (cálculo, meses, valores) + testes
 │   ├── supabase/                 # client (browser), server, middleware
 │   ├── navigation.ts             # Definição central do menu/rotas
 │   └── utils.ts                  # cn(), formatarData()
@@ -49,12 +54,47 @@ distintos:
 ├── supabase/
 │   ├── migrations/               # Migrations SQL (schema, RLS, triggers)
 │   ├── seed.sql                  # Usuários de exemplo (opcional)
+│   ├── seed_financeiro.sql       # Carga da planilha 2026 (opcional)
 │   └── README.md                 # Como rodar a migration e cadastrar usuários
 ├── middleware.ts                 # Renova sessão Supabase (proteção de rotas na etapa de auth)
 ├── .env.example                  # Modelo de variáveis de ambiente
 ├── PROJECT_CONTEXT.md            # Regras de negócio e convenções
 └── README.md
 ```
+
+## Módulo financeiro
+
+Substitui a planilha "Fluxo de Caixa Imagine Labs 2026" — mesmas contas,
+sem as fórmulas que quebram quando alguém insere uma linha.
+
+| Tela                       | Para quê                                              |
+| -------------------------- | ----------------------------------------------------- |
+| `/financeiro`              | Como está o mês: saldo, resultado, a receber e a pagar |
+| `/financeiro/lancamentos`  | Lançar entradas/saídas e dar baixa no que foi pago     |
+| `/financeiro/fluxo-caixa`  | Conferir o mês linha a linha (formato da planilha)     |
+| `/financeiro/resumo-anual` | O ano inteiro: categoria × mês, com saldo acumulado    |
+| `/financeiro/recorrencias` | Mensalidades e custos fixos que se repetem             |
+| `/financeiro/categorias`   | Categorias e saldo inicial da série                    |
+
+### O que muda em relação à planilha
+
+- **As mensalidades não são redigitadas todo mês.** Cada uma é cadastrada
+  uma vez em *Recorrências*; o botão **"Gerar do plano fixo"** cria os
+  lançamentos do mês. Clicar duas vezes não duplica nada (o banco garante).
+- **O saldo se encadeia sozinho.** O saldo final de um mês é o inicial do
+  seguinte — sem `=Abril!B80` apontando para a célula errada.
+- **"Pago" e "Pendente" passam a valer.** Pendências ficam em *a receber* e
+  *a pagar* e não entram no realizado; o saldo projetado mostra o cenário
+  com tudo confirmado.
+- **Cada receita pode ser ligada a um cliente**, o que dá o faturamento por
+  cliente sem nenhum trabalho extra.
+
+### Carregar o histórico de 2026
+
+O arquivo `supabase/seed_financeiro.sql` traz os 227 lançamentos das abas
+Abril–Dezembro/2026 da planilha, os 15 clientes e as recorrências vigentes.
+Os totais de cada mês conferem com os da planilha original. É opcional e
+seguro: não faz nada se já houver lançamentos cadastrados.
 
 ## Convenções de nomenclatura
 

@@ -307,6 +307,138 @@ export type GoogleSyncInsert = Omit<GoogleSync, "id" | "updated_at"> & {
 };
 
 // -------------------------------------------------------------
+// Módulo financeiro (espelha 20260908120000_financeiro.sql)
+// -------------------------------------------------------------
+
+/** Natureza do lançamento financeiro. */
+export type FinancialKind = "Receita" | "Despesa";
+
+/** Situação do lançamento (coluna "Status" da planilha). */
+export type FinancialStatus = "Pago" | "Pendente";
+
+/** Mês de competência no formato "YYYY-MM". */
+export type MonthString = string;
+
+/** financial_settings — linha única com o saldo inicial da série. */
+export type FinancialSettings = {
+  id: true;
+  opening_balance: number;
+  opening_month: MonthString;
+  updated_at: ISODateString;
+}
+
+/** financial_categories — linhas de agrupamento do resumo anual. */
+export type FinancialCategory = {
+  id: UUID;
+  name: string;
+  kind: FinancialKind;
+  sort_order: number;
+  active: boolean;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+/** financial_recurrences — mensalidades e custos fixos que se repetem. */
+export type FinancialRecurrence = {
+  id: UUID;
+  description: string;
+  kind: FinancialKind;
+  category_id: UUID;
+  client_id: UUID | null;
+  amount: number;
+  /** Dia do mês do vencimento (1 a 31). */
+  due_day: number | null;
+  start_month: MonthString;
+  end_month: MonthString | null;
+  active: boolean;
+  notes: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+/** financial_entries — os lançamentos das abas mensais. */
+export type FinancialEntry = {
+  id: UUID;
+  reference_month: MonthString;
+  kind: FinancialKind;
+  category_id: UUID;
+  client_id: UUID | null;
+  description: string;
+  amount: number;
+  status: FinancialStatus;
+  due_date: DateString | null;
+  paid_date: DateString | null;
+  payment_method: string | null;
+  notes: string | null;
+  /** Preenchido quando o lançamento nasceu de uma recorrência. */
+  recurrence_id: UUID | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+/** Upsert da linha única de configuração (colunas com default opcionais). */
+export type FinancialSettingsInsert = {
+  id?: true;
+  opening_balance?: number;
+  opening_month?: MonthString;
+};
+
+export type FinancialSettingsUpdate = Partial<
+  Omit<FinancialSettings, "id" | "updated_at">
+>;
+
+export type FinancialCategoryInsert = Omit<
+  FinancialCategory,
+  "id" | "created_at" | "updated_at" | "sort_order" | "active"
+> & {
+  id?: UUID;
+  sort_order?: number;
+  active?: boolean;
+};
+
+export type FinancialRecurrenceInsert = Omit<
+  FinancialRecurrence,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "client_id"
+  | "due_day"
+  | "end_month"
+  | "active"
+  | "notes"
+> & {
+  id?: UUID;
+  client_id?: UUID | null;
+  due_day?: number | null;
+  end_month?: MonthString | null;
+  active?: boolean;
+  notes?: string | null;
+};
+
+export type FinancialEntryInsert = Omit<
+  FinancialEntry,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "client_id"
+  | "status"
+  | "due_date"
+  | "paid_date"
+  | "payment_method"
+  | "notes"
+  | "recurrence_id"
+> & {
+  id?: UUID;
+  client_id?: UUID | null;
+  status?: FinancialStatus;
+  due_date?: DateString | null;
+  paid_date?: DateString | null;
+  payment_method?: string | null;
+  notes?: string | null;
+  recurrence_id?: UUID | null;
+};
+
+// -------------------------------------------------------------
 // Tipos de Insert / Update (colunas com default são opcionais)
 // -------------------------------------------------------------
 
@@ -459,6 +591,30 @@ export interface Database {
         Update: Partial<PlanningGoogleSyncInsert>;
         Relationships: [];
       };
+      financial_settings: {
+        Row: FinancialSettings;
+        Insert: FinancialSettingsInsert;
+        Update: FinancialSettingsUpdate;
+        Relationships: [];
+      };
+      financial_categories: {
+        Row: FinancialCategory;
+        Insert: FinancialCategoryInsert;
+        Update: Partial<FinancialCategoryInsert>;
+        Relationships: [];
+      };
+      financial_recurrences: {
+        Row: FinancialRecurrence;
+        Insert: FinancialRecurrenceInsert;
+        Update: Partial<FinancialRecurrenceInsert>;
+        Relationships: [];
+      };
+      financial_entries: {
+        Row: FinancialEntry;
+        Insert: FinancialEntryInsert;
+        Update: Partial<FinancialEntryInsert>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -466,6 +622,8 @@ export interface Database {
       user_role: UserRole;
       content_status: ContentStatus;
       content_priority: ContentPriority;
+      financial_kind: FinancialKind;
+      financial_status: FinancialStatus;
     };
     CompositeTypes: Record<string, never>;
   };

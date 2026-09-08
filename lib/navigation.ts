@@ -22,7 +22,8 @@ export interface ItemNavegacao {
  *  1) Visão geral e o que eu preciso fazer  -> Dashboard, Minhas tarefas
  *  2) Fluxo do conteúdo, na ordem que ele caminha ->
  *     Planejamentos -> Conteúdos -> Gravações -> Fila de edição -> Artes -> Postagens
- *  3) Cadastros e ajustes -> Clientes, Configurações
+ *  3) Dinheiro -> Financeiro
+ *  4) Cadastros e ajustes -> Clientes, Configurações
  */
 export const NAVEGACAO: ItemNavegacao[] = [
   // --- Visão geral / meu dia ---
@@ -74,6 +75,13 @@ export const NAVEGACAO: ItemNavegacao[] = [
     label: "Postagens",
     descricao: "Agendamento e publicação",
     icone: "postagens",
+  },
+  // --- Dinheiro ---
+  {
+    href: "/financeiro",
+    label: "Financeiro",
+    descricao: "Fluxo de caixa, receitas e despesas",
+    icone: "financeiro",
   },
   // --- Cadastros e ajustes ---
   {
