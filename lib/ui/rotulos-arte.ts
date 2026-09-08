@@ -8,6 +8,8 @@
 const STATUS_ARTE: Record<string, string> = {
   // Em arte não há "roteiro" — o texto é a copy/legenda para o layout.
   "Roteiro pronto": "Copy pronta",
+  // Em carrossel/arte não é "gravação" de vídeo — é produção de fotos.
+  "Aguardando gravação": "Aguardando produção de fotos",
   "Fila de edição": "Fila de criação",
   "Em edição": "Em criação",
 };
