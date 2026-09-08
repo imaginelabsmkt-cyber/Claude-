@@ -881,6 +881,7 @@ export interface ContentEditPatch {
   format?: string | null;
   planned_week?: number | null;
   planned_date?: string | null;
+  actual_post_date?: string | null;
   planner_id?: string | null;
   recorder_id?: string | null;
   editor_id?: string | null;
@@ -892,6 +893,7 @@ const ROTULO_CAMPO: Record<keyof ContentEditPatch, string> = {
   format: "Formato",
   planned_week: "Semana prevista",
   planned_date: "Data prevista",
+  actual_post_date: "Data real",
   planner_id: "Responsável (planejamento)",
   recorder_id: "Responsável (gravação)",
   editor_id: "Responsável (edição)",
@@ -932,6 +934,13 @@ export async function atualizarCampoConteudoAction(
     }
     dados.planned_date = d ? d : null;
   }
+  if ("actual_post_date" in patch) {
+    const d = patch.actual_post_date;
+    if (d != null && d !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      return { ok: false, error: "Data inválida." };
+    }
+    dados.actual_post_date = d ? d : null;
+  }
   const CAMPOS_RESP = [
     "planner_id",
     "recorder_id",
@@ -948,15 +957,24 @@ export async function atualizarCampoConteudoAction(
   const { data: antes } = await supabase
     .from("contents")
     .select(
-      "title, format, planned_week, planned_date, planner_id, recorder_id, editor_id, publisher_id",
+      "title, format, planned_week, planned_date, actual_post_date, planner_id, recorder_id, editor_id, publisher_id",
     )
     .eq("id", id)
     .maybeSingle();
   const anterior = (antes ?? {}) as Record<string, unknown>;
 
+  // Data real em outro mês => move o conteúdo pro mês em que REALMENTE saiu.
+  const mesRealMove =
+    typeof dados.actual_post_date === "string" && dados.actual_post_date
+      ? dados.actual_post_date.slice(0, 7)
+      : null;
+
   const { error } = await supabase
     .from("contents")
-    .update(dados)
+    .update({
+      ...dados,
+      ...(mesRealMove ? { reference_month: mesRealMove } : {}),
+    })
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar." };
 

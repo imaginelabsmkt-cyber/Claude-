@@ -193,18 +193,33 @@ function Linha({
         </select>
       </td>
 
-      {/* Data prevista */}
+      {/* Data: quando publicado, é a data REAL; senão, a prevista. */}
       <td className="px-2 py-1.5">
-        <input
-          type="date"
-          aria-label="Data prevista"
-          value={content.planned_date ?? ""}
-          disabled={salvando}
-          onChange={(e) =>
-            salvar(content.id, { planned_date: e.target.value || null })
-          }
-          className={cn(CLASSE_SELECT, "w-[8.5rem] text-gray-600")}
-        />
+        {content.status === "Publicado" ? (
+          <input
+            type="date"
+            aria-label="Data real da postagem"
+            title="Data real da postagem"
+            value={content.actual_post_date ?? ""}
+            disabled={salvando}
+            onChange={(e) =>
+              salvar(content.id, { actual_post_date: e.target.value || null })
+            }
+            className={cn(CLASSE_SELECT, "w-[8.5rem] font-medium text-gray-800")}
+          />
+        ) : (
+          <input
+            type="date"
+            aria-label="Data prevista"
+            title="Data prevista"
+            value={content.planned_date ?? ""}
+            disabled={salvando}
+            onChange={(e) =>
+              salvar(content.id, { planned_date: e.target.value || null })
+            }
+            className={cn(CLASSE_SELECT, "w-[8.5rem] text-gray-600")}
+          />
+        )}
       </td>
 
       {/* Status */}
