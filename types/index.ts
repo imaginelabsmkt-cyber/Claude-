@@ -117,6 +117,31 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   admin: "Administrador",
 };
 
+// ---------------------------------------------------------------
+// Demandas gerais (tarefas do time que não são conteúdo)
+// ---------------------------------------------------------------
+export const DEMAND_STATUS_OPTIONS = ["A fazer", "Fazendo", "Feita"] as const;
+export type DemandStatus = (typeof DEMAND_STATUS_OPTIONS)[number];
+
+export const DEMAND_STATUS_TONE: Record<DemandStatus, string> = {
+  "A fazer": "bg-gray-100 text-gray-600",
+  Fazendo: "bg-amber-100 text-amber-700",
+  Feita: "bg-green-100 text-green-700",
+};
+
+export interface Demand {
+  id: string;
+  title: string;
+  description: string | null;
+  assignee_id: string | null;
+  client_id: string | null;
+  due_date: string | null;
+  status: DemandStatus;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Os rótulos de status/prioridade já são o próprio valor do ENUM (pt-BR),
 // então não há mapa de rótulos — usa-se o valor diretamente.
 

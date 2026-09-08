@@ -5,6 +5,8 @@ import { TaskCard } from "@/components/tarefas/task-card";
 import { getAuthContext } from "@/lib/auth";
 import { listContents, listAllClients } from "@/lib/data/contents";
 import { listPlannings } from "@/lib/data/plannings";
+import { listDemands } from "@/lib/data/demands";
+import { DEMAND_STATUS_TONE } from "@/types";
 import {
   classificarGravacao,
   estaGravado,
@@ -127,14 +129,20 @@ export default async function MinhasTarefasPage() {
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
   const hojeStr = hojeISO(hoje);
 
-  const [ctx, contents, clientes, plannings] = await Promise.all([
+  const [ctx, contents, clientes, plannings, demands] = await Promise.all([
     getAuthContext(),
     listContents({}),
     listAllClients(),
     listPlannings(mesAtual),
+    listDemands(),
   ]);
 
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
+
+  // Demandas gerais atribuídas a mim e ainda não concluídas.
+  const minhasDemandas = demands.filter(
+    (d) => d.assignee_id === ctx.profile?.id && d.status !== "Feita",
+  );
 
   const role = (ctx.profile?.role ?? "admin") as PapelDemanda | "admin";
   const nome = ctx.profile?.name ?? "você";
@@ -187,13 +195,71 @@ export default async function MinhasTarefasPage() {
     <>
       <PageHeader titulo="Minhas tarefas" descricao={descricao} icone="tarefas" tom="indigo" />
 
-      {totalItens === 0 && !mostrarPlanej ? (
+      {totalItens === 0 && !mostrarPlanej && minhasDemandas.length === 0 ? (
         <EmptyState
           titulo="Nada pendente por aqui"
           descricao="Quando houver conteúdos nas suas etapas, eles aparecerão aqui."
         />
       ) : (
         <div className="space-y-10">
+          {minhasDemandas.length > 0 ? (
+            <section>
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                Minhas demandas
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                  {minhasDemandas.length}
+                </span>
+                <Link
+                  href="/demandas"
+                  className="ml-auto text-xs font-medium text-brand-600 hover:underline"
+                >
+                  ver todas →
+                </Link>
+              </h3>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {minhasDemandas.map((d) => {
+                  const cli = d.client_id
+                    ? clientesById.get(d.client_id)
+                    : null;
+                  const atrasada = !!d.due_date && d.due_date < hojeStr;
+                  return (
+                    <Link
+                      key={d.id}
+                      href="/demandas"
+                      className="block rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm hover:border-brand-300"
+                      style={{ borderLeftColor: cli?.color ?? "#9a77ad" }}
+                    >
+                      <p className="text-sm font-semibold text-gray-900">
+                        {d.title}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
+                        <span
+                          className={`rounded-full px-2 py-0.5 font-semibold ${DEMAND_STATUS_TONE[d.status]}`}
+                        >
+                          {d.status}
+                        </span>
+                        {cli ? (
+                          <span className="text-gray-500">{cli.name}</span>
+                        ) : null}
+                        {d.due_date ? (
+                          <span
+                            className={
+                              atrasada
+                                ? "font-semibold text-red-600"
+                                : "text-gray-500"
+                            }
+                          >
+                            {atrasada ? "Atrasada · " : "Até "}
+                            {formatarData(d.due_date)}
+                          </span>
+                        ) : null}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
           {mostrarPlanej ? (
             <section>
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">

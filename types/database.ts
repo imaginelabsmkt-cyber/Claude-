@@ -306,6 +306,32 @@ export type GoogleSyncInsert = Omit<GoogleSync, "id" | "updated_at"> & {
   updated_at?: ISODateString;
 };
 
+// Demandas gerais (tarefas fora do fluxo de conteúdo).
+export type DemandRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  assignee_id: string | null;
+  client_id: string | null;
+  due_date: string | null;
+  status: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+export type DemandInsert = {
+  id?: string;
+  title: string;
+  description?: string | null;
+  assignee_id?: string | null;
+  client_id?: string | null;
+  due_date?: string | null;
+  status?: string;
+  created_by?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
 // -------------------------------------------------------------
 // Tipos de Insert / Update (colunas com default são opcionais)
 // -------------------------------------------------------------
@@ -457,6 +483,12 @@ export interface Database {
         Row: PlanningGoogleSync;
         Insert: PlanningGoogleSyncInsert;
         Update: Partial<PlanningGoogleSyncInsert>;
+        Relationships: [];
+      };
+      demands: {
+        Row: DemandRow;
+        Insert: DemandInsert;
+        Update: Partial<DemandInsert>;
         Relationships: [];
       };
     };

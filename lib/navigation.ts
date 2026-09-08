@@ -38,6 +38,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     descricao: "O que você precisa fazer agora",
     icone: "tarefas",
   },
+  {
+    href: "/demandas",
+    label: "Demandas",
+    descricao: "Tarefas gerais do time (fora do fluxo de conteúdo)",
+    icone: "demandas",
+  },
   // --- Fluxo de produção (na ordem que o conteúdo caminha) ---
   {
     href: "/planejamentos",
