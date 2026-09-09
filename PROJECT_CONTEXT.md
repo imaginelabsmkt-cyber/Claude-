@@ -159,6 +159,22 @@ e vira lançamento de qualquer mês com um clique ("Gerar do plano fixo").
 A unicidade `(recurrence_id, reference_month)` no banco garante que clicar
 duas vezes **não duplica nada** — a proteção é do banco, não da tela.
 
+### Churn de clientes
+
+A carteira muda: cliente entra, cliente sai. O sistema trata isso em dois
+lugares, e **nenhum deles apaga histórico**:
+
+- `clients.active = false` tira o cliente dos formulários do dia a dia, mas
+  os lançamentos antigos continuam no fluxo de caixa e no resumo anual.
+- A recorrência do cliente é **pausada** (`active = false`) ou excluída. Os
+  lançamentos que ela já gerou permanecem — por isso a FK de
+  `financial_entries.recurrence_id` é `on delete set null`.
+
+O erro que a planilha induzia era o oposto: como cada mês era cópia do
+anterior, um cliente que saiu continuava aparecendo nos meses futuros e
+inflava a projeção. Aqui, o mês futuro só existe depois de gerado a partir
+das recorrências vigentes.
+
 ### Páginas do módulo
 
 | Rota                          | Responsabilidade                                   |

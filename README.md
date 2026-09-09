@@ -91,10 +91,22 @@ sem as fórmulas que quebram quando alguém insere uma linha.
 
 ### Carregar o histórico de 2026
 
-O arquivo `supabase/seed_financeiro.sql` traz os 227 lançamentos das abas
-Abril–Dezembro/2026 da planilha, os 15 clientes e as recorrências vigentes.
-Os totais de cada mês conferem com os da planilha original. É opcional e
+O arquivo `supabase/seed_financeiro.sql` traz **149 lançamentos de abril a
+setembro/2026** e os 15 clientes que passaram pela agência no período. Os
+totais de cada mês conferem com os da planilha original. É opcional e
 seguro: não faz nada se já houver lançamentos cadastrados.
+
+O recorte é proposital:
+
+- **Outubro a dezembro não entram.** Na planilha esses meses eram cópia da
+  carteira antiga (14 clientes), e a maioria não renovou. Ficam limpos para
+  serem montados pelo botão *"Gerar do plano fixo"*.
+- **Só os 6 clientes da carteira atual entram como ativos** (Kiku Sushi,
+  Laura Chioquetta, Malukies, Natural Concept, Izabela, Osteo&Fit). Os
+  outros 9 são criados como inativos: o histórico deles é preservado, mas
+  não geram mensalidade.
+- **As recorrências valem a partir de outubro/2026**: as 6 mensalidades
+  vigentes (R$ 11.150/mês) e os 12 custos fixos (R$ 14.186,55/mês).
 
 ## Convenções de nomenclatura
 

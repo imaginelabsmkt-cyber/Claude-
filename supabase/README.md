@@ -164,10 +164,18 @@ Garantias de integridade que o banco impõe (não a tela):
 
 ### Carga inicial (opcional)
 
-`seed_financeiro.sql` importa a planilha "Fluxo de Caixa Imagine Labs 2026":
-227 lançamentos (Abril a Dezembro/2026), 15 clientes e 26 recorrências.
-Rode **depois** da migration. Se já houver lançamentos, o script não faz
-nada e avisa — não há risco de duplicar.
+`seed_financeiro.sql` importa a planilha "Fluxo de Caixa Imagine Labs 2026"
+no recorte acertado com a agência em setembro/2026:
+
+| O quê                | Quanto                                            |
+| -------------------- | ------------------------------------------------- |
+| Lançamentos          | 149 (abril a setembro/2026)                       |
+| Clientes             | 15 — 6 ativos, 9 inativos (não renovaram)         |
+| Recorrências         | 18 — 6 mensalidades + 12 custos fixos, desde 10/26 |
+
+Outubro a dezembro **não** são carregados: na planilha eram cópia da
+carteira antiga. Rode **depois** da migration. Se já houver lançamentos, o
+script não faz nada e avisa — não há risco de duplicar.
 
 ```sql
 -- No SQL Editor do Supabase, cole o conteúdo de:
