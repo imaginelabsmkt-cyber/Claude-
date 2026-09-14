@@ -33,6 +33,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     icone: "dashboard",
   },
   {
+    href: "/buscar",
+    label: "Buscar",
+    descricao: "Ache qualquer cliente ou conteúdo pelo nome",
+    icone: "buscar",
+  },
+  {
     href: "/minhas-tarefas",
     label: "Minhas tarefas",
     descricao: "O que você precisa fazer agora",

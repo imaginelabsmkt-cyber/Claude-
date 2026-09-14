@@ -6,6 +6,7 @@ import type { SVGProps } from "react";
  * dependência externa.
  */
 const CAMINHOS: Record<string, string> = {
+  buscar: "M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z",
   dashboard: "M4 5h6v6H4zM14 5h6v4h-6zM14 13h6v6h-6zM4 15h6v4H4z",
   conteudos: "M8 6h11M8 12h11M8 18h11M3 6h.01M3 12h.01M3 18h.01",
   quadro: "M4 4h5v16H4zM10 4h5v10h-5zM16 4h4v13h-4z",
