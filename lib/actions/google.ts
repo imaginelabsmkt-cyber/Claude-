@@ -21,13 +21,18 @@ const STATUS_EDICAO_REENVIO: ContentStatus[] = [
   "Ajustes",
 ];
 
-/** Remove a conexão do usuário com o Google (e o mapeamento de sincronização). */
+/**
+ * Remove a conexão do usuário com o Google.
+ * IMPORTANTE: NÃO apaga os vínculos de sincronização (google_sync). Se apagasse,
+ * ao reconectar o sistema não reconheceria os eventos já criados e recriaria
+ * tudo do zero — gerando DUPLICATAS na agenda. Mantendo os vínculos, o
+ * reconectar apenas ATUALIZA os eventos existentes.
+ */
 export async function desconectarGoogleAction(): Promise<ActionResult> {
   const userId = await usuarioAtualId();
   if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
 
   const supabase = createClient();
-  await supabase.from("google_sync").delete().eq("user_id", userId);
   const { error } = await supabase
     .from("google_accounts")
     .delete()
