@@ -5,7 +5,8 @@ create table if not exists public.demands (
   id           uuid primary key default gen_random_uuid(),
   title        text not null,
   description  text,
-  assignee_ids uuid[] not null default '{}', -- responsáveis (pode ser mais de uma)
+  category     text,                          -- área: Conteúdo, Google Meu Negócio, Facebook…
+  assignee_ids uuid[] not null default '{}',  -- responsáveis (pode ser mais de uma)
   client_id    uuid references public.clients(id) on delete set null,
   due_date     date,
   status       text not null default 'A fazer', -- 'A fazer' | 'Fazendo' | 'Feita'

@@ -14,6 +14,8 @@ import { DeletePlanningButton } from "@/components/contents/delete-planning-butt
 import { ClientSectionTabs } from "@/components/clients/client-section-tabs";
 import { ClientFilesTab } from "@/components/clients/client-files-tab";
 import { ClientOnboarding } from "@/components/clients/client-onboarding";
+import { DemandsBoard } from "@/components/demandas/demands-board";
+import { listDemands } from "@/lib/data/demands";
 import { ClientReportsTab } from "@/components/clients/client-reports-tab";
 import { ClientDiagnosticsTab } from "@/components/clients/client-diagnostics-tab";
 import { obterCliente } from "@/lib/data/clients";
@@ -71,7 +73,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const cliente = await obterCliente(params.id);
   if (!cliente) notFound();
 
-  const [todos, perfis, arquivos, onboarding, relatorios, diagnosticos] =
+  const [todos, perfis, arquivos, onboarding, relatorios, diagnosticos, demandas] =
     await Promise.all([
       listContents(
         { client_id: cliente.id },
@@ -82,7 +84,9 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
       getOnboarding(cliente.id),
       listClientReports(cliente.id),
       listClientDiagnostics(cliente.id),
+      listDemands(),
     ]);
+  const demandasDoCliente = demandas.filter((d) => d.client_id === cliente.id);
 
   const hoje = new Date();
 
@@ -246,6 +250,27 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                       </Link>
                     </div>
                   }
+                />
+              </div>
+            ),
+          },
+          {
+            id: "acompanhamento",
+            label: "Acompanhamento",
+            icone: "clipboard",
+            badge: demandasDoCliente.filter((d) => d.status !== "Feita").length,
+            conteudo: (
+              <div>
+                <p className="mb-3 text-[11px] text-gray-400">
+                  Todas as demandas deste cliente (conteúdo, Google Meu Negócio,
+                  Facebook, relatórios, estratégia…), por área. Também aparecem
+                  na aba Demandas.
+                </p>
+                <DemandsBoard
+                  demands={demandasDoCliente}
+                  profiles={perfis}
+                  clientes={clienteOpt}
+                  clienteFixo={cliente.id}
                 />
               </div>
             ),

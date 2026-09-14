@@ -124,10 +124,24 @@ export const DEMAND_STATUS_TONE: Record<DemandStatus, string> = {
   Feita: "bg-green-100 text-green-700",
 };
 
+/** Áreas/tipos de demanda, para organizar o acompanhamento por cliente. */
+export const DEMAND_CATEGORIES = [
+  "Conteúdo",
+  "Google Meu Negócio",
+  "Facebook",
+  "Tráfego",
+  "Relatório",
+  "Estratégia",
+  "Preciso do cliente",
+  "Outro",
+] as const;
+export type DemandCategory = (typeof DEMAND_CATEGORIES)[number];
+
 export interface Demand {
   id: string;
   title: string;
   description: string | null;
+  category: string | null;
   assignee_ids: string[];
   client_id: string | null;
   due_date: string | null;
