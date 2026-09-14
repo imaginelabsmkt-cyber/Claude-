@@ -23,6 +23,52 @@ import type { OpcaoCliente } from "@/lib/data/contents";
 const CAMPO =
   "rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-800 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-60";
 
+/** Só o primeiro nome (chip curto). */
+function primeiroNome(nome: string): string {
+  return nome.trim().split(/\s+/)[0];
+}
+
+/**
+ * Seletor de responsáveis: um "chip" por pessoa, que liga/desliga ao clicar.
+ * Permite escolher mais de uma responsável pela mesma demanda.
+ */
+function RespPicker({
+  profiles,
+  selecionados,
+  onToggle,
+  disabled,
+}: {
+  profiles: Profile[];
+  selecionados: string[];
+  onToggle: (id: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {profiles.map((p) => {
+        const on = selecionados.includes(p.id);
+        return (
+          <button
+            key={p.id}
+            type="button"
+            disabled={disabled}
+            onClick={() => onToggle(p.id)}
+            aria-pressed={on}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60",
+              on
+                ? "border-brand-500 bg-brand-600 text-white"
+                : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50",
+            )}
+          >
+            {primeiroNome(p.name)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function DemandsBoard({
   demands,
   profiles,
@@ -37,14 +83,12 @@ export function DemandsBoard({
 
   // ---- form de nova demanda ----
   const [titulo, setTitulo] = useState("");
-  const [resp, setResp] = useState("");
+  const [resps, setResps] = useState<string[]>([]);
   const [cli, setCli] = useState("");
   const [prazo, setPrazo] = useState("");
 
   const nomeCli = (id: string | null) =>
     id ? (clientes.find((c) => c.id === id)?.name ?? null) : null;
-  const nomeResp = (id: string | null) =>
-    id ? (profiles.find((p) => p.id === id)?.name ?? null) : null;
 
   const criar = () => {
     if (!titulo.trim()) {
@@ -54,7 +98,7 @@ export function DemandsBoard({
     iniciar(async () => {
       const r = await criarDemandaAction({
         title: titulo,
-        assignee_id: resp || null,
+        assignee_ids: resps,
         client_id: cli || null,
         due_date: prazo || null,
       });
@@ -64,7 +108,7 @@ export function DemandsBoard({
       }
       toast.sucesso("Demanda criada");
       setTitulo("");
-      setResp("");
+      setResps([]);
       setCli("");
       setPrazo("");
       router.refresh();
@@ -107,19 +151,21 @@ export function DemandsBoard({
               className={cn(CAMPO, "w-full")}
             />
           </div>
-          <select
-            aria-label="Responsável"
-            value={resp}
-            onChange={(e) => setResp(e.target.value)}
-            className={CAMPO}
-          >
-            <option value="">Responsável…</option>
-            {profiles.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-500">Resp.:</span>
+            <RespPicker
+              profiles={profiles}
+              selecionados={resps}
+              disabled={salvando}
+              onToggle={(id) =>
+                setResps((atual) =>
+                  atual.includes(id)
+                    ? atual.filter((x) => x !== id)
+                    : [...atual, id],
+                )
+              }
+            />
+          </div>
           <select
             aria-label="Cliente (opcional)"
             value={cli}
@@ -204,22 +250,18 @@ export function DemandsBoard({
                   )}
                 />
 
-                <select
-                  aria-label="Responsável"
-                  value={d.assignee_id ?? ""}
+                <RespPicker
+                  profiles={profiles}
+                  selecionados={d.assignee_ids ?? []}
                   disabled={salvando}
-                  onChange={(e) =>
-                    salvar(d.id, { assignee_id: e.target.value || null })
-                  }
-                  className="rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs text-gray-700 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none"
-                >
-                  <option value="">Sem responsável</option>
-                  {profiles.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  onToggle={(id) => {
+                    const atual = d.assignee_ids ?? [];
+                    const novo = atual.includes(id)
+                      ? atual.filter((x) => x !== id)
+                      : [...atual, id];
+                    salvar(d.id, { assignee_ids: novo });
+                  }}
+                />
 
                 {d.client_id ? (
                   <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">

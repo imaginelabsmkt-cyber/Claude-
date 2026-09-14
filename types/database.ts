@@ -311,7 +311,7 @@ export type DemandRow = {
   id: string;
   title: string;
   description: string | null;
-  assignee_id: string | null;
+  assignee_ids: string[];
   client_id: string | null;
   due_date: string | null;
   status: string;
@@ -323,7 +323,7 @@ export type DemandInsert = {
   id?: string;
   title: string;
   description?: string | null;
-  assignee_id?: string | null;
+  assignee_ids?: string[];
   client_id?: string | null;
   due_date?: string | null;
   status?: string;

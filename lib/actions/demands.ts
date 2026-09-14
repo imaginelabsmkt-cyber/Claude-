@@ -23,7 +23,7 @@ const DATA_OK = (v: string | null | undefined) =>
 export interface NovaDemanda {
   title: string;
   description?: string | null;
-  assignee_id?: string | null;
+  assignee_ids?: string[];
   client_id?: string | null;
   due_date?: string | null;
 }
@@ -45,7 +45,7 @@ export async function criarDemandaAction(
     .insert({
       title: title.slice(0, 300),
       description: (input.description ?? "").trim() || null,
-      assignee_id: input.assignee_id || null,
+      assignee_ids: (input.assignee_ids ?? []).filter(Boolean),
       client_id: input.client_id || null,
       due_date: input.due_date || null,
       status: "A fazer",
@@ -62,13 +62,13 @@ export async function criarDemandaAction(
 export interface DemandaPatch {
   title?: string;
   description?: string | null;
-  assignee_id?: string | null;
+  assignee_ids?: string[];
   client_id?: string | null;
   due_date?: string | null;
   status?: DemandStatus;
 }
 
-/** Atualiza campos de uma demanda (título, responsável, prazo, status…). */
+/** Atualiza campos de uma demanda (título, responsáveis, prazo, status…). */
 export async function atualizarDemandaAction(
   id: string,
   patch: DemandaPatch,
@@ -86,7 +86,8 @@ export async function atualizarDemandaAction(
   }
   if ("description" in patch)
     dados.description = (patch.description ?? "").trim() || null;
-  if ("assignee_id" in patch) dados.assignee_id = patch.assignee_id || null;
+  if ("assignee_ids" in patch)
+    dados.assignee_ids = (patch.assignee_ids ?? []).filter(Boolean);
   if ("client_id" in patch) dados.client_id = patch.client_id || null;
   if ("due_date" in patch) {
     if (!DATA_OK(patch.due_date)) return { ok: false, error: "Prazo inválido." };

@@ -141,7 +141,10 @@ export default async function MinhasTarefasPage() {
 
   // Demandas gerais atribuídas a mim e ainda não concluídas.
   const minhasDemandas = demands.filter(
-    (d) => d.assignee_id === ctx.profile?.id && d.status !== "Feita",
+    (d) =>
+      !!ctx.profile?.id &&
+      (d.assignee_ids ?? []).includes(ctx.profile.id) &&
+      d.status !== "Feita",
   );
 
   const role = (ctx.profile?.role ?? "admin") as PapelDemanda | "admin";
