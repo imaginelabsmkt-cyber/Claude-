@@ -113,24 +113,16 @@ export default async function DashboardPage({
     GRUPO_EM_APROVACAO.includes(c.status),
   ).length;
 
-  // Cards agrupados por INTENÇÃO, não numa parede única:
-  // 1) Precisa de atenção (o que exige ação agora)
-  const cardsAtencao = [
-    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1&reference_month=todos", destaque: atrasados.length > 0, icone: "alert", tom: "vermelho" as const },
-    { rotulo: "Esperando aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente"), destaque: emAprovacao > 0, icone: "eye", tom: "ambar" as const },
-    { rotulo: "Postar esta semana", valor: postSemana, href: "/postagens?view=semana", destaque: postSemana > 0, icone: "calendar", tom: "indigo" as const },
+  const cards = [
     { rotulo: "Planejamentos a fazer", valor: planejAFazer, href: "/planejamentos", destaque: planejAFazer > 0, icone: "clipboard", tom: "indigo" as const },
-  ];
-  // 2) Andamento da produção (o pipeline caminhando)
-  const cardsAndamento = [
+    { rotulo: "Postagens desta semana", valor: postSemana, href: "/postagens?view=semana", icone: "calendar", tom: "indigo" as const },
+    { rotulo: "Conteúdos atrasados", valor: atrasados.length, href: "/conteudos?atrasado=1&reference_month=todos", destaque: true, icone: "alert", tom: "vermelho" as const },
     { rotulo: "Aguardando gravação", valor: conta("Aguardando gravação"), href: linkStatus("Aguardando gravação"), icone: "video", tom: "ambar" as const },
     { rotulo: "Gravados", valor: conta("Gravado"), href: linkStatus("Gravado"), icone: "film", tom: "azul" as const },
     { rotulo: "Fila de edição", valor: conta("Fila de edição"), href: "/fila-edicao", icone: "scissors", tom: "ambar" as const },
     { rotulo: "Em edição", valor: conta("Em edição"), href: linkStatus("Em edição"), icone: "edit", tom: "ambar" as const },
+    { rotulo: "Em aprovação", valor: emAprovacao, href: linkStatus("Aprovação do cliente"), icone: "eye", tom: "indigo" as const },
     { rotulo: "Prontos para publicar", valor: prontosPublicar, href: linkStatus("Aprovado"), icone: "check-circle", tom: "verde" as const },
-  ];
-  // 3) Números do mês (métricas, não são "a fazer")
-  const cardsMes = [
     { rotulo: "Gravados no mês", valor: gravadosMes, href: "/gravacoes", icone: "film", tom: "azul" as const },
     { rotulo: "Publicados no mês", valor: publicadosMes, href: `/conteudos?status=Publicado&reference_month=${mesAtual}`, icone: "send", tom: "verde" as const },
   ];
@@ -213,18 +205,23 @@ export default async function DashboardPage({
     <>
       <PageHeader titulo="Dashboard" descricao="Visão geral da produção" icone="dashboard" tom="indigo" />
 
-      {/* 1) PRECISA DE ATENÇÃO — o que exige ação agora */}
-      <h2 className="mb-3 text-sm font-semibold text-gray-900">
-        Precisa de atenção
-      </h2>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {cardsAtencao.map((c) => (
+      {/* Cards principais — primeira coisa do dashboard */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        {cards.map((c) => (
           <StatCard key={c.rotulo} {...c} />
         ))}
       </div>
 
-      {/* Detalhe: itens da semana que precisam de olho */}
-      <div className="mt-6">
+      {/* Agora: o que cada uma está fazendo neste momento */}
+      <div className="mt-8">
+        <AgoraPanel contents={contents} perfis={perfis} clientes={clientes} />
+      </div>
+
+      {/* Atenção esta semana */}
+      <div className="mt-8">
+        <h2 className="mb-3 text-sm font-semibold text-gray-900">
+          Atenção esta semana
+        </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {atencao.map((grupo) => (
             <Card key={grupo.titulo}>
@@ -276,35 +273,6 @@ export default async function DashboardPage({
                 )}
               </CardContent>
             </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* 2) ANDAMENTO DA PRODUÇÃO — o pipeline caminhando */}
-      <div className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">
-          Andamento da produção
-        </h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-          {cardsAndamento.map((c) => (
-            <StatCard key={c.rotulo} {...c} />
-          ))}
-        </div>
-      </div>
-
-      {/* Agora: o que cada uma está fazendo neste momento */}
-      <div className="mt-8">
-        <AgoraPanel contents={contents} perfis={perfis} clientes={clientes} />
-      </div>
-
-      {/* 3) NÚMEROS DO MÊS — métricas de produção */}
-      <div className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">
-          Números do mês
-        </h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {cardsMes.map((c) => (
-            <StatCard key={c.rotulo} {...c} />
           ))}
         </div>
       </div>
