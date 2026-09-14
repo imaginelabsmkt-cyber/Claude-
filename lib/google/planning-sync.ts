@@ -9,6 +9,12 @@ import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
+import {
+  marcador,
+  acharEventoPorMarcador,
+  marcadorTarefa,
+  acharTarefaPorMarcador,
+} from "@/lib/google/sync";
 import { PLANNING_ENTREGUE } from "@/types";
 
 const TZ = "America/Boa_Vista";
@@ -129,10 +135,18 @@ export async function sincronizarPlanejamentoGoogle(
     const rot = await rotuloResponsavel(sb, "planner");
 
     // ---- Reunião => evento (calendário "Imagine Reuniões") ----
-    const evExistente = await idSync(sb, planningId, userId, "event");
+    let evExistente = await idSync(sb, planningId, userId, "event");
     const calId = encodeURIComponent(
       await calendarioId(sb, userId, token, "reunioes"),
     );
+    // Sem vínculo local? Procura pelo RG (evita duplicar após perder vínculos).
+    if (!evExistente) {
+      const achado = await acharEventoPorMarcador(calId, token, planningId, "event");
+      if (achado) {
+        evExistente = achado;
+        await salvarSync(sb, planningId, userId, "event", achado);
+      }
+    }
     if (!p.meeting_date) {
       if (evExistente) {
         await fetch(
@@ -148,6 +162,7 @@ export async function sincronizarPlanejamentoGoogle(
       const corpo: Record<string, unknown> = {
         summary: `Reunião de planejamento${rot}: ${rotulo}`,
         attendees: emailPlanner ? [{ email: emailPlanner }] : [],
+        extendedProperties: marcador(planningId, "event"),
       };
       if (p.meeting_time) {
         const fim = fimEvento(p.meeting_date, p.meeting_time);
@@ -227,23 +242,30 @@ export async function sincronizarPlanejamentoGoogle(
         await apagarSync(sb, planningId, userId, "task");
       }
     } else {
+      // Sem vínculo local? Procura pelo RG a tarefa que já existe (evita duplicar).
+      let tk = tkExistente;
+      if (!tk) {
+        tk = await acharTarefaPorMarcador(token, planningId);
+        if (tk) await salvarSync(sb, planningId, userId, "task", tk);
+      }
       const corpo = {
         title: `Entregar planejamento${rot}: ${rotulo}`,
+        notes: marcadorTarefa(planningId),
         due: `${p.delivery_deadline}T00:00:00.000Z`,
       };
       const base = "https://www.googleapis.com/tasks/v1/lists/@default/tasks";
-      const resp = await fetch(tkExistente ? `${base}/${tkExistente}` : base, {
-        method: tkExistente ? "PATCH" : "POST",
+      const resp = await fetch(tk ? `${base}/${tk}` : base, {
+        method: tk ? "PATCH" : "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(corpo),
       });
-      if (resp.ok && !tkExistente) {
+      if (resp.ok && !tk) {
         const json = (await resp.json()) as { id?: string };
         if (json.id) await salvarSync(sb, planningId, userId, "task", json.id);
-      } else if (resp.status === 404 && tkExistente) {
+      } else if (resp.status === 404 && tk) {
         await apagarSync(sb, planningId, userId, "task");
         const novo = await fetch(base, {
           method: "POST",

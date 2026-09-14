@@ -112,6 +112,73 @@ async function apagarSync(
 }
 
 // -------------------------------------------------------------
+// "RG" do evento (idempotência): grava no próprio evento do Google o id do
+// conteúdo + o tipo. Assim, MESMO que os vínculos locais (google_sync) se
+// percam, ao ressincronizar o sistema ACHA o evento que já existe e o atualiza,
+// em vez de criar outro — acabando com as duplicatas.
+// -------------------------------------------------------------
+export function marcador(id: string, kind: SyncKind): Record<string, unknown> {
+  return { private: { favieId: id, favieKind: kind } };
+}
+
+/**
+ * Procura no calendário um evento já criado pelo sistema para este conteúdo
+ * (pelo RG). Devolve o id do evento, ou null. `calId` deve vir já encodado.
+ */
+export async function acharEventoPorMarcador(
+  calId: string,
+  token: string,
+  id: string,
+  kind: SyncKind,
+): Promise<string | null> {
+  try {
+    const url =
+      `https://www.googleapis.com/calendar/v3/calendars/${calId}/events` +
+      `?privateExtendedProperty=${encodeURIComponent(`favieId=${id}`)}` +
+      `&privateExtendedProperty=${encodeURIComponent(`favieKind=${kind}`)}` +
+      `&showDeleted=false&maxResults=5`;
+    const r = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!r.ok) return null;
+    const j = (await r.json()) as {
+      items?: { id: string; status?: string }[];
+    };
+    const achado = (j.items ?? []).find((e) => e.status !== "cancelled");
+    return achado?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** RG para TAREFAS do Google (não têm "propriedades"): vai no fim das notas. */
+export function marcadorTarefa(id: string): string {
+  return `[favie:${id}]`;
+}
+/** Procura uma tarefa (ativa) já criada pelo sistema para este conteúdo. */
+export async function acharTarefaPorMarcador(
+  token: string,
+  id: string,
+): Promise<string | null> {
+  try {
+    const r = await fetch(
+      "https://www.googleapis.com/tasks/v1/lists/@default/tasks?showHidden=true&maxResults=100",
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!r.ok) return null;
+    const j = (await r.json()) as {
+      items?: { id: string; notes?: string; status?: string }[];
+    };
+    const achado = (j.items ?? []).find(
+      (t) => (t.notes ?? "").includes(marcadorTarefa(id)) && t.status !== "completed",
+    );
+    return achado?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// -------------------------------------------------------------
 // Helpers de data/hora (servidor roda em America/Boa_Vista)
 // -------------------------------------------------------------
 function diaSeguinte(iso: string): string {
@@ -205,7 +272,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       return;
     }
 
-    const existente = await idSync(sb, contentId, userId, "event");
+    let existente = await idSync(sb, contentId, userId, "event");
     // Nome do cliente (para aparecer no evento: com quem vai gravar).
     const { data: cli } = await sb
       .from("clients")
@@ -217,6 +284,14 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     const calId = encodeURIComponent(
       await calendarioId(sb, userId, token, "producao"),
     );
+    // Sem vínculo local? Procura pelo RG (evita duplicar após perder vínculos).
+    if (!existente) {
+      const achado = await acharEventoPorMarcador(calId, token, contentId, "event");
+      if (achado) {
+        existente = achado;
+        await salvarSync(sb, contentId, userId, "event", achado);
+      }
+    }
 
     // Evento de LOTE (compartilhado por vários conteúdos): mudanças individuais
     // não devem mexer no evento único — só desvinculam este conteúdo.
@@ -262,6 +337,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       // Sem convidados: o evento fica só no calendário compartilhado. Convidar
       // criava convite que sumia da visão quando "recusado".
       attendees: [],
+      extendedProperties: marcador(contentId, "event"),
     };
     if (c.recording_time) {
       const fim = fimEvento(c.recording_date, c.recording_time);
@@ -368,6 +444,7 @@ export async function sincronizarGravacaoEmLote(
       description: descLinhas.join("\n"),
       location: base0.recording_location ?? null,
       attendees: [], // sem convidados (ver sincronizarGravacao)
+      extendedProperties: marcador(base0.id, "event"),
     };
     if (hora) {
       const fim = somarMinutos(data, hora, cs.length * 60); // 1h por vídeo
@@ -391,7 +468,11 @@ export async function sincronizarGravacaoEmLote(
     const q = "?sendUpdates=none";
 
     // Reaproveita o evento já vinculado ao primeiro conteúdo (reagendamento).
-    const existente = await idSync(sb, base0.id, userId, "event");
+    let existente = await idSync(sb, base0.id, userId, "event");
+    // Sem vínculo local? Procura pelo RG (evita duplicar após perder vínculos).
+    if (!existente) {
+      existente = await acharEventoPorMarcador(calId, token, base0.id, "event");
+    }
     const resp = await fetch(existente ? `${base}/${existente}${q}` : `${base}${q}`, {
       method: existente ? "PATCH" : "POST",
       headers: {
@@ -444,7 +525,7 @@ export async function sincronizarEdicao(
     const token = await tokenDoUsuario(sb, userId);
     if (!token) return;
 
-    const existente = await idSync(sb, contentId, userId, "task");
+    let existente = await idSync(sb, contentId, userId, "task");
 
     const { data: c } = await sb
       .from("contents")
@@ -495,6 +576,12 @@ export async function sincronizarEdicao(
     const resp2 = await rotuloResponsavel(sb, arte ? "planner" : "producer");
     const verbo = arte ? "Arte" : "Editar";
 
+    // Sem vínculo local? Procura pelo RG a tarefa que já existe (evita duplicar).
+    if (!existente) {
+      existente = await acharTarefaPorMarcador(token, contentId);
+      if (existente) await salvarSync(sb, contentId, userId, "task", existente);
+    }
+
     // Dia da tarefa: se a Fran escolheu QUANDO vai editar (editing_date), a
     // tarefa cai nesse dia no Google (ela ajusta a hora lá). Senão, cai no
     // prazo de entrega (48h antes / ajuste manual).
@@ -505,6 +592,7 @@ export async function sincronizarEdicao(
       c.recording_date;
     const corpo: Record<string, unknown> = {
       title: `${verbo}${resp2}: ${c.title}`,
+      notes: marcadorTarefa(contentId),
     };
     if (due) corpo.due = `${due}T00:00:00.000Z`;
 
@@ -573,10 +661,19 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
       .maybeSingle();
     const nomeCli = cliPost?.name ?? null;
 
-    const existente = await idSync(sb, contentId, userId, "post");
+    let existente = await idSync(sb, contentId, userId, "post");
     const calId = encodeURIComponent(
       await calendarioId(sb, userId, token, "postagens"),
     );
+    // Sem vínculo local? Procura pelo RG o evento que já existe (evita duplicar
+    // quando os vínculos se perderam).
+    if (!existente) {
+      const achado = await acharEventoPorMarcador(calId, token, contentId, "post");
+      if (achado) {
+        existente = achado;
+        await salvarSync(sb, contentId, userId, "post", achado);
+      }
+    }
 
     // Sem data prevista, cancelado, OU é capa (capa não é postagem) => remove o
     // evento de postagem, se houver.
@@ -596,6 +693,7 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
       description: nomeCli ? `Cliente: ${nomeCli}` : null,
       start: { date: c.planned_date },
       end: { date: diaSeguinte(c.planned_date) },
+      extendedProperties: marcador(contentId, "post"),
     };
     const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
     const url = existente ? `${base}/${existente}` : base;
@@ -655,11 +753,22 @@ export async function sincronizarSessaoEdicao(contentId: string): Promise<void> 
       .maybeSingle();
     if (!c) return;
 
-    const existente = await idSync(sb, contentId, userId, "edit_event");
+    let existente = await idSync(sb, contentId, userId, "edit_event");
     const calId = encodeURIComponent(
       await calendarioId(sb, userId, token, "producao"),
     );
-
+    if (!existente) {
+      const achado = await acharEventoPorMarcador(
+        calId,
+        token,
+        contentId,
+        "edit_event",
+      );
+      if (achado) {
+        existente = achado;
+        await salvarSync(sb, contentId, userId, "edit_event", achado);
+      }
+    }
     // Sem dia de edição => remove o bloco, se houver.
     if (!c.editing_date) {
       if (existente) {
@@ -684,6 +793,7 @@ export async function sincronizarSessaoEdicao(contentId: string): Promise<void> 
       summary: `Editar${resp1}${nomeCli ? ` · ${nomeCli}` : ""}: ${c.title}`,
       description: nomeCli ? `Cliente: ${nomeCli}` : null,
       attendees: [], // sem convidados (ver sincronizarGravacao)
+      extendedProperties: marcador(contentId, "edit_event"),
     };
     if (c.editing_time) {
       const fim = somarMinutos(c.editing_date, c.editing_time, 120); // 2h padrão
