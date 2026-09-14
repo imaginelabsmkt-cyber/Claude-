@@ -16,11 +16,12 @@ interface PageProps {
 
 /** Listagem de clientes com busca e filtro de status. */
 export default async function ClientesPage({ searchParams }: PageProps) {
-  const status = (searchParams.status as FiltroStatusCliente) ?? "todos";
+  // Por padrão mostra SÓ os ativos (os inativos ficam "guardados" no filtro).
+  const status = (searchParams.status as FiltroStatusCliente) ?? "ativos";
   const q = searchParams.q ?? "";
   const clientes = await listarClientes({ q, status });
 
-  const temFiltro = Boolean(q) || status !== "todos";
+  const temFiltro = Boolean(q) || status !== "ativos";
 
   return (
     <>

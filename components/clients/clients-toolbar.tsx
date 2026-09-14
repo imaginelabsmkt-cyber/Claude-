@@ -18,7 +18,8 @@ export function ClientsToolbar() {
   const searchParams = useSearchParams();
 
   const [q, setQ] = useState(searchParams.get("q") ?? "");
-  const status = (searchParams.get("status") as FiltroStatusCliente) ?? "todos";
+  // Padrão = "ativos" (inativos ficam guardados no filtro).
+  const status = (searchParams.get("status") as FiltroStatusCliente) ?? "ativos";
 
   function aplicar(proximos: { q?: string; status?: string }) {
     const params = new URLSearchParams(searchParams.toString());
@@ -27,7 +28,8 @@ export function ClientsToolbar() {
       else params.delete("q");
     }
     if (proximos.status !== undefined) {
-      if (proximos.status && proximos.status !== "todos") {
+      // "ativos" é o padrão, então não precisa ficar na URL.
+      if (proximos.status && proximos.status !== "ativos") {
         params.set("status", proximos.status);
       } else {
         params.delete("status");
@@ -61,9 +63,9 @@ export function ClientsToolbar() {
         value={status}
         onChange={(e) => aplicar({ status: e.target.value })}
       >
-        <option value="todos">Todos</option>
         <option value="ativos">Somente ativos</option>
-        <option value="inativos">Somente inativos</option>
+        <option value="inativos">Inativos (guardados)</option>
+        <option value="todos">Todos</option>
       </Select>
     </div>
   );
