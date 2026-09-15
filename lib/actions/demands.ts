@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { DEMAND_STATUS_OPTIONS, type DemandStatus } from "@/types";
+import {
+  sincronizarDemanda,
+  removerTarefaDemanda,
+} from "@/lib/google/demands-sync";
 
 export interface ActionResult {
   ok: boolean;
@@ -57,6 +61,7 @@ export async function criarDemandaAction(
     .maybeSingle();
 
   if (error) return { ok: false, error: "Não foi possível criar a demanda." };
+  if (data?.id) await sincronizarDemanda(data.id); // vira tarefa no Google
   revalidar();
   return { ok: true, id: data?.id };
 }
@@ -111,6 +116,7 @@ export async function atualizarDemandaAction(
   const supabase = createClient();
   const { error } = await supabase.from("demands").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar." };
+  await sincronizarDemanda(id); // reflete no Google Tarefas
   revalidar();
   return { ok: true, id };
 }
@@ -121,8 +127,15 @@ export async function excluirDemandaAction(id: string): Promise<ActionResult> {
     return { ok: false, error: "Sessão expirada. Entre novamente." };
   }
   const supabase = createClient();
+  // Pega o id da tarefa no Google ANTES de apagar a linha, para removê-la depois.
+  const { data: antes } = await supabase
+    .from("demands")
+    .select("google_task_id")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase.from("demands").delete().eq("id", id);
   if (error) return { ok: false, error: "Não foi possível excluir." };
+  await removerTarefaDemanda(antes?.google_task_id ?? null);
   revalidar();
   return { ok: true, id };
 }

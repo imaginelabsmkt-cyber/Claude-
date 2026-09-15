@@ -317,6 +317,7 @@ export type DemandRow = {
   due_date: string | null;
   status: string;
   created_by: string | null;
+  google_task_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -330,6 +331,7 @@ export type DemandInsert = {
   due_date?: string | null;
   status?: string;
   created_by?: string | null;
+  google_task_id?: string | null;
   created_at?: string;
   updated_at?: string;
 };
