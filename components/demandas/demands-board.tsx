@@ -207,20 +207,19 @@ export function DemandsBoard({
 
         {/* Área só aparece por linha na visão geral (no cliente vira grupo). */}
         {!clienteFixo ? (
-          <select
+          <input
             aria-label="Área"
-            value={d.category ?? ""}
+            list="areas-demanda"
+            key={`${d.id}-cat-${d.category ?? ""}`}
+            defaultValue={d.category ?? ""}
             disabled={salvando}
-            onChange={(e) => salvar(d.id, { category: e.target.value || null })}
-            className="rounded-md border border-transparent bg-transparent px-1 py-1 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none"
-          >
-            <option value="">Sem área</option>
-            {DEMAND_CATEGORIES.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
+            placeholder="Área"
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v !== (d.category ?? "")) salvar(d.id, { category: v || null });
+            }}
+            className="w-28 rounded-md border border-transparent bg-transparent px-1 py-1 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none"
+          />
         ) : null}
 
         <RespPicker
@@ -310,19 +309,19 @@ export function DemandsBoard({
               className={cn(CAMPO, "w-full")}
             />
           </div>
-          <select
+          <input
             aria-label="Área"
+            list="areas-demanda"
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            className={CAMPO}
-          >
-            <option value="">Área…</option>
+            placeholder="Área (escolha ou digite)"
+            className={cn(CAMPO, "w-44")}
+          />
+          <datalist id="areas-demanda">
             {DEMAND_CATEGORIES.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
+              <option key={a} value={a} />
             ))}
-          </select>
+          </datalist>
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-gray-500">Resp.:</span>
             <RespPicker
