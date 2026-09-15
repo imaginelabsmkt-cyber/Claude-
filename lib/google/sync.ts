@@ -12,7 +12,7 @@ import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
-import { prazoEntregaEfetivo, hojeISO } from "@/lib/rules/contents";
+import { prazoEntregaEfetivo } from "@/lib/rules/contents";
 import type { ContentStatus } from "@/types";
 
 const TZ = "America/Boa_Vista";
@@ -41,7 +41,7 @@ type SB = ReturnType<typeof createClient>;
  * (task), evento de postagem (post) ou bloco da sessão de edição na agenda
  * (edit_event — quando a Fran agenda quando vai editar).
  */
-type SyncKind = "event" | "task" | "post" | "edit_event" | "done_event";
+type SyncKind = "event" | "task" | "post" | "edit_event";
 
 /** Access token do usuário (a partir do refresh token guardado). Null se não conectado. */
 async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
@@ -514,88 +514,6 @@ export async function sincronizarGravacaoEmLote(
 // -------------------------------------------------------------
 // TAREFA (edição)
 // -------------------------------------------------------------
-/**
- * Registra na Agenda que a edição/arte deste conteúdo FICOU PRONTA — um evento
- * de dia inteiro na agenda de Produção, no dia em que foi concluído. Fica de
- * histórico permanente: ao contrário da TAREFA concluída (que o Google esconde
- * e "some" da agenda), o EVENTO permanece visível para se saber o que foi feito
- * e quando, e alimentar o relatório de execução semanal.
- *
- * Idempotente: se o registro já existir, só atualiza o título (preserva a data
- * original do feito). Só CRIA um novo quando `criarSeNovo` — isto é, quando é o
- * momento real da conclusão (havia uma tarefa de edição ativa sendo concluída);
- * assim uma edição de título num conteúdo já aprovado não gera registro errado.
- */
-async function registrarEdicaoConcluida(
-  sb: SB,
-  userId: string,
-  token: string,
-  contentId: string,
-  titulo: string,
-  arte: boolean,
-  criarSeNovo: boolean,
-): Promise<void> {
-  try {
-    const calId = encodeURIComponent(
-      await calendarioId(sb, userId, token, "producao"),
-    );
-    let existente = await idSync(sb, contentId, userId, "done_event");
-    if (!existente) {
-      const achado = await acharEventoPorMarcador(
-        calId,
-        token,
-        contentId,
-        "done_event",
-      );
-      if (achado) {
-        existente = achado;
-        await salvarSync(sb, contentId, userId, "done_event", achado);
-      }
-    }
-
-    const verbo = arte ? "Arte pronta" : "Editado";
-    const summary = `✅ ${verbo}: ${titulo}`;
-    const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
-
-    if (existente) {
-      // Já registrado: só atualiza o título; a data do feito não muda.
-      await fetch(`${base}/${existente}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ summary }),
-      });
-      return;
-    }
-
-    if (!criarSeNovo) return; // não é o momento da conclusão — não cria nada
-
-    const hoje = hojeISO();
-    const corpo = {
-      summary,
-      start: { date: hoje },
-      end: { date: diaSeguinte(hoje) },
-      extendedProperties: marcador(contentId, "done_event"),
-    };
-    const resp = await fetch(base, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(corpo),
-    });
-    if (resp.ok) {
-      const j = (await resp.json()) as { id?: string };
-      if (j.id) await salvarSync(sb, contentId, userId, "done_event", j.id);
-    }
-  } catch (e) {
-    console.error("registrarEdicaoConcluida:", e);
-  }
-}
-
 export async function sincronizarEdicao(
   contentId: string,
   novoStatus: ContentStatus,
@@ -627,10 +545,14 @@ export async function sincronizarEdicao(
     // CONCLUÍDA no Google — fica de registro de que editou naquele dia. Se foi
     // cancelado/pausado/voltou pra trás, aí sim remove a tarefa.
     if (!emEdicao || !c) {
-      const concluiu = !!c && STATUS_EDICAO_CONCLUIDA.includes(novoStatus);
+      // Saiu da edição. NUNCA apagamos a tarefa automaticamente — ela é o
+      // registro do trabalho e deve continuar visível no Google.
       if (existente) {
-        const url = `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${existente}`;
+        const concluiu = !!c && STATUS_EDICAO_CONCLUIDA.includes(novoStatus);
         if (concluiu) {
+          // Avançou (revisão em diante): marca a tarefa como CONCLUÍDA. Fica
+          // visível como histórico (a Fran deixa "mostrar concluídas" ligado).
+          const url = `https://www.googleapis.com/tasks/v1/lists/@default/tasks/${existente}`;
           await fetch(url, {
             method: "PATCH",
             headers: {
@@ -639,29 +561,12 @@ export async function sincronizarEdicao(
             },
             body: JSON.stringify({ status: "completed" }),
           });
-        } else {
-          await fetch(url, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          // Solta o vínculo: a concluída fica de histórico; se a edição
+          // recomeçar (Ajustes), o sistema cria uma nova tarefa.
+          await apagarSync(sb, contentId, userId, "task");
         }
-        // Solta o vínculo: a tarefa concluída fica parada no Google como
-        // histórico; se a edição recomeçar (Ajustes), cria uma nova.
-        await apagarSync(sb, contentId, userId, "task");
-      }
-      // Concluiu a edição/arte => deixa um registro VISÍVEL e permanente na
-      // agenda (a tarefa concluída some da vista; o evento fica). Cria só quando
-      // é o momento real da conclusão (havia tarefa ativa: `existente`).
-      if (concluiu && c) {
-        await registrarEdicaoConcluida(
-          sb,
-          userId,
-          token,
-          contentId,
-          c.title,
-          ehArte(c.format),
-          !!existente,
-        );
+        // Se voltou pra trás / pausou / cancelou: deixa a tarefa como está
+        // (não apaga, não conclui) — ela reaparece/atualiza se voltar a editar.
       }
       return;
     }
@@ -990,18 +895,6 @@ export async function removerGoogleDoConteudo(contentId: string): Promise<void> 
       );
       await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/${calProd}/events/${blocoEdicao}`,
-        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
-      );
-    }
-    // Registro de "editado/arte pronta" — só é removido quando o conteúdo é
-    // apagado de vez (não some numa mudança de status; aí é histórico).
-    const feito = await idSync(sb, contentId, userId, "done_event");
-    if (feito) {
-      const calProd = encodeURIComponent(
-        await calendarioId(sb, userId, token, "producao"),
-      );
-      await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/${calProd}/events/${feito}`,
         { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
       );
     }
