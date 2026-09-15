@@ -95,14 +95,19 @@ export async function importarConteudosAction(input: {
     client_id: clientId,
     title: (it.titulo ?? "Conteúdo sem título").slice(0, 200),
     format: it.formato,
-    status: "Roteiro pronto" as const,
+    // O roteiro já vem pronto no documento. Vídeo (precisa gravação) entra
+    // direto como "Aguardando gravação" — não precisa de check manual para ir
+    // pra gravação. Arte/carrossel segue no fluxo de criação ("Roteiro pronto").
+    status: (it.precisaGravacao ? "Aguardando gravação" : "Roteiro pronto") as
+      | "Aguardando gravação"
+      | "Roteiro pronto",
     priority: "Média" as const,
     reference_month: referenceMonth,
     planned_week: it.semana,
     planned_date: it.dataPrevista,
     actual_post_date: null,
-    // Gravação é marcada individualmente pela Fran (não vem automática do import).
-    requires_recording: false,
+    // Vídeo já precisa de gravação (aparece na aba Gravações direto).
+    requires_recording: it.precisaGravacao,
     recording_date: null,
     recording_location: recortar(it.local, 300),
     outfit: recortar(it.vestimenta, 300),

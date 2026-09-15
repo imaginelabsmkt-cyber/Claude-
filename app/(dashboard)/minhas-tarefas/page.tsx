@@ -42,12 +42,6 @@ function gruposPlanner(contents: Content[]): Grupo[] {
       itens: meus.filter((c) => c.status === "Planejamento" && !!c.script_url),
     },
     {
-      titulo: "Roteiros a finalizar",
-      itens: meus.filter(
-        (c) => c.status === "Roteiro pronto" && !ehArte(c.format),
-      ),
-    },
-    {
       titulo: "Artes a criar",
       itens: meus.filter(
         (c) => ehArte(c.format) && CRIACAO_ARTE.includes(c.status),
