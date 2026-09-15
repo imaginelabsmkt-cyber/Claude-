@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { definirStatusConteudoAction } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
@@ -22,13 +22,25 @@ export function QuickStatus({ id, status, className, format }: QuickStatusProps)
   const arte = ehArte(format);
   const router = useRouter();
   const [processando, iniciar] = useTransition();
+  // Valor exibido na hora (otimista) enquanto o servidor confirma. Assim a
+  // setinha muda no clique, sem esperar o refresh da página.
+  const [otimista, setOtimista] = useState<ContentStatus | null>(null);
+  const exibido = otimista ?? status;
+
+  // Quando o status real chega (após o refresh), descarta o palpite otimista.
+  useEffect(() => setOtimista(null), [status]);
 
   function alterar(novo: ContentStatus) {
-    if (novo === status) return;
+    if (novo === exibido) return;
+    setOtimista(novo); // feedback imediato
     iniciar(async () => {
       const r = await definirStatusConteudoAction(id, novo);
-      if (!r.ok) toast.erro(r.error ?? "Não foi possível alterar o status.");
-      else toast.sucesso("Status atualizado");
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível alterar o status.");
+        setOtimista(null); // reverte para o valor real
+        return;
+      }
+      toast.sucesso("Status atualizado");
       router.refresh();
     });
   }
@@ -36,7 +48,7 @@ export function QuickStatus({ id, status, className, format }: QuickStatusProps)
   return (
     <select
       aria-label="Alterar status"
-      value={status}
+      value={exibido}
       disabled={processando}
       onChange={(e) => alterar(e.target.value as ContentStatus)}
       onClick={(e) => e.stopPropagation()}

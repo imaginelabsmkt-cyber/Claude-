@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
+import { aposResposta } from "@/lib/after";
 import { PLANNING_STATUS_OPTIONS } from "@/types";
 import type { PlanningInsert } from "@/types";
 import type { ActionResult } from "@/lib/actions/contents";
@@ -91,7 +92,10 @@ export async function salvarPlanningAction(
       .eq("client_id", clientId)
       .eq("reference_month", referenceMonth)
       .maybeSingle();
-    if (p?.id) await sincronizarPlanejamentoGoogle(p.id);
+    if (p?.id) {
+      const planId = p.id;
+      aposResposta(() => sincronizarPlanejamentoGoogle(planId));
+    }
   }
 
   revalidatePath("/planejamentos");

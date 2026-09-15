@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/ui/toast";
 import { cn } from "@/lib/utils";
@@ -82,6 +82,15 @@ export function DemandsBoard({
   const router = useRouter();
   const [salvando, iniciar] = useTransition();
 
+  // Palpites otimistas por demanda (status, área…): a UI muda no clique, sem
+  // esperar o refresh. Descartados quando os dados reais chegam (nova prop).
+  const [otim, setOtim] = useState<Record<string, Partial<Demand>>>({});
+  useEffect(() => setOtim({}), [demands]);
+  const aplicadas = useMemo(
+    () => demands.map((d) => (otim[d.id] ? { ...d, ...otim[d.id] } : d)),
+    [demands, otim],
+  );
+
   // ---- form de nova demanda ----
   const [titulo, setTitulo] = useState("");
   const [area, setArea] = useState("");
@@ -119,12 +128,21 @@ export function DemandsBoard({
     });
   };
 
-  const salvar = (id: string, patch: DemandaPatch) =>
+  const salvar = (id: string, patch: DemandaPatch) => {
+    setOtim((o) => ({ ...o, [id]: { ...o[id], ...(patch as Partial<Demand>) } }));
     iniciar(async () => {
       const r = await atualizarDemandaAction(id, patch);
-      if (!r.ok) toast.erro(r.error ?? "Não foi possível salvar.");
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível salvar.");
+        setOtim((o) => {
+          const { [id]: _, ...resto } = o;
+          return resto; // reverte o palpite
+        });
+        return;
+      }
       router.refresh();
     });
+  };
 
   const excluir = (id: string) =>
     iniciar(async () => {
@@ -137,8 +155,8 @@ export function DemandsBoard({
   const hoje = hojeISO();
 
   const visiveis = clienteFixo
-    ? demands.filter((d) => d.client_id === clienteFixo)
-    : demands;
+    ? aplicadas.filter((d) => d.client_id === clienteFixo)
+    : aplicadas;
 
   // Agrupa por ÁREA só quando estamos dentro de um cliente (acompanhamento).
   const grupos = useMemo(() => {

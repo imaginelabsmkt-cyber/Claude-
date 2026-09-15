@@ -24,6 +24,7 @@ import {
 } from "@/lib/google/sync";
 import { criarCapaDoVideo } from "@/lib/content/covers";
 import { formatarData } from "@/lib/utils";
+import { aposResposta } from "@/lib/after";
 
 export interface ActionResult {
   ok: boolean;
@@ -180,9 +181,12 @@ export async function atualizarConteudoAction(
   }
 
   // Reflete no Google (título/prazo/data podem ter mudado no formulário).
-  await sincronizarGravacao(id);
-  await sincronizarPostagem(id);
-  if (novo.status) await sincronizarEdicao(id, novo.status as ContentStatus);
+  // Em segundo plano, para o salvar responder na hora.
+  aposResposta(async () => {
+    await sincronizarGravacao(id);
+    await sincronizarPostagem(id);
+    if (novo.status) await sincronizarEdicao(id, novo.status as ContentStatus);
+  });
 
   revalidarConteudos(id);
   return { ok: true, id };
@@ -268,8 +272,11 @@ export async function definirStatusConteudoAction(
   ]);
 
   // Edição = TAREFA no Google (não evento). Gravação/postagem = evento.
-  await sincronizarEdicao(id, status);
-  await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
+  // Em segundo plano, para a setinha de status responder na hora.
+  aposResposta(async () => {
+    await sincronizarEdicao(id, status);
+    await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
+  });
 
   // Vídeo entrou em edição => já cria a demanda de capa nas Artes (para a
   // Vitória trabalhar em paralelo). Também na revisão, por segurança: a função
@@ -341,7 +348,7 @@ export async function marcarComoGravadoAction(
     { field: "Status", old: antigo?.status ?? null, new: "Gravado" },
   ]);
 
-  await sincronizarGravacao(id);
+  aposResposta(() => sincronizarGravacao(id));
 
   revalidarConteudos(id);
   return { ok: true, id };
@@ -368,7 +375,7 @@ export async function alterarDataGravacaoAction(
   const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
 
-  await sincronizarGravacao(id);
+  aposResposta(() => sincronizarGravacao(id));
 
   revalidarConteudos(id);
   return { ok: true, id };
@@ -401,7 +408,8 @@ export async function agendarSessaoEdicaoAction(
   // Edição = TAREFA no Google. O dia escolhido vira o prazo da tarefa (não um
   // evento na Agenda).
   if (atual?.status) {
-    await sincronizarEdicao(id, atual.status as ContentStatus);
+    const st = atual.status as ContentStatus;
+    aposResposta(() => sincronizarEdicao(id, st));
   }
 
   revalidarConteudos(id);
@@ -446,7 +454,7 @@ export async function agendarGravacoesEmLoteAction(
   if (error) return { ok: false, error: "Não foi possível agendar." };
 
   // Um evento SÓ no Google para todos os vídeos do lote (1h por vídeo).
-  await sincronizarGravacaoEmLote(ids);
+  aposResposta(() => sincronizarGravacaoEmLote(ids));
 
   revalidarConteudos();
   return { ok: true, quantidade: ids.length };
@@ -470,7 +478,7 @@ export async function limparAgendamentoGravacaoAction(
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível desmarcar." };
 
-  await sincronizarGravacao(id); // sem data => remove o evento no Google
+  aposResposta(() => sincronizarGravacao(id)); // sem data => remove o evento no Google
   revalidarConteudos(id);
   return { ok: true, id };
 }
@@ -497,7 +505,7 @@ export async function adicionarFilaEdicaoAction(
     { field: "Status", old: antigo?.status ?? null, new: "Fila de edição" },
   ]);
 
-  await sincronizarEdicao(id, "Fila de edição");
+  aposResposta(() => sincronizarEdicao(id, "Fila de edição"));
 
   revalidarConteudos(id);
   return { ok: true, id };
@@ -589,7 +597,7 @@ export async function alterarDataPostagemAction(
     },
   ]);
 
-  await sincronizarPostagem(id); // data de postagem => calendário "Imagine Postagens"
+  aposResposta(() => sincronizarPostagem(id)); // data de postagem => calendário de Postagens
 
   revalidarConteudos(id);
   return { ok: true, id };
@@ -864,7 +872,7 @@ export async function atualizarProducaoConteudoAction(
     "recording_location" in patch ||
     "participants" in patch
   ) {
-    await sincronizarGravacao(id);
+    aposResposta(() => sincronizarGravacao(id));
   }
 
   revalidarConteudos(id);
@@ -1018,16 +1026,22 @@ export async function atualizarCampoConteudoAction(
 
   // Título mudou => reflete no Google (evento, tarefa e postagem), para não
   // ficar preso ao título antigo. Data de postagem mudou => atualiza postagem.
+  // Em segundo plano, para a edição inline salvar na hora.
   const mudouTitulo = "title" in patch;
-  if (mudouTitulo) await sincronizarGravacao(id);
-  if (mudouTitulo || "planned_date" in patch) await sincronizarPostagem(id);
-  if (mudouTitulo) {
-    const { data: st } = await supabase
-      .from("contents")
-      .select("status")
-      .eq("id", id)
-      .maybeSingle();
-    if (st?.status) await sincronizarEdicao(id, st.status as ContentStatus);
+  const mudouData = "planned_date" in patch;
+  if (mudouTitulo || mudouData) {
+    aposResposta(async () => {
+      if (mudouTitulo) await sincronizarGravacao(id);
+      if (mudouTitulo || mudouData) await sincronizarPostagem(id);
+      if (mudouTitulo) {
+        const { data: st } = await supabase
+          .from("contents")
+          .select("status")
+          .eq("id", id)
+          .maybeSingle();
+        if (st?.status) await sincronizarEdicao(id, st.status as ContentStatus);
+      }
+    });
   }
 
   revalidarConteudos(id);
