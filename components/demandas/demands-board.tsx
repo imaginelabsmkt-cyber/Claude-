@@ -8,7 +8,7 @@ import { hojeISO } from "@/lib/rules/contents";
 import {
   criarDemandaAction,
   atualizarDemandaAction,
-  excluirDemandaAction,
+  arquivarDemandaAction,
   type DemandaPatch,
 } from "@/lib/actions/demands";
 import {
@@ -128,9 +128,9 @@ export function DemandsBoard({
 
   const excluir = (id: string) =>
     iniciar(async () => {
-      const r = await excluirDemandaAction(id);
-      if (!r.ok) toast.erro(r.error ?? "Não foi possível excluir.");
-      else toast.sucesso("Demanda excluída");
+      const r = await arquivarDemandaAction(id);
+      if (!r.ok) toast.erro(r.error ?? "Não foi possível arquivar.");
+      else toast.sucesso("Demanda arquivada");
       router.refresh();
     });
 
@@ -274,13 +274,13 @@ export function DemandsBoard({
 
         <button
           type="button"
-          aria-label="Excluir demanda"
-          title="Excluir"
+          aria-label="Arquivar demanda"
+          title="Arquivar (sai da lista, fica no relatório)"
           disabled={salvando}
           onClick={() => excluir(d.id)}
-          className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-600"
+          className="rounded p-1 text-gray-300 hover:bg-gray-100 hover:text-gray-700"
         >
-          🗑
+          🗄️
         </button>
       </div>
     );

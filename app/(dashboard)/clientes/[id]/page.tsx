@@ -15,7 +15,8 @@ import { ClientSectionTabs } from "@/components/clients/client-section-tabs";
 import { ClientFilesTab } from "@/components/clients/client-files-tab";
 import { ClientOnboarding } from "@/components/clients/client-onboarding";
 import { DemandsBoard } from "@/components/demandas/demands-board";
-import { listDemands } from "@/lib/data/demands";
+import { ClientWeeklyReport } from "@/components/clients/client-weekly-report";
+import { listDemands, listDemandsFeitasCliente } from "@/lib/data/demands";
 import { ClientReportsTab } from "@/components/clients/client-reports-tab";
 import { ClientDiagnosticsTab } from "@/components/clients/client-diagnostics-tab";
 import { obterCliente } from "@/lib/data/clients";
@@ -87,6 +88,17 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
       listDemands(),
     ]);
   const demandasDoCliente = demandas.filter((d) => d.client_id === cliente.id);
+
+  // Demandas concluídas do cliente nos últimos ~90 dias (inclui arquivadas),
+  // para o relatório semanal do que foi feito.
+  const hojeRef = new Date();
+  const noventaAtras = new Date(hojeRef);
+  noventaAtras.setDate(noventaAtras.getDate() - 90);
+  const feitasCliente = await listDemandsFeitasCliente(
+    cliente.id,
+    hojeISO(noventaAtras),
+    hojeISO(hojeRef),
+  );
 
   const hoje = new Date();
 
@@ -266,6 +278,10 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                   Facebook, relatórios, estratégia…), por área. Também aparecem
                   na aba Demandas.
                 </p>
+                <ClientWeeklyReport
+                  clienteNome={cliente.name}
+                  feitas={feitasCliente}
+                />
                 <DemandsBoard
                   demands={demandasDoCliente}
                   profiles={perfis}

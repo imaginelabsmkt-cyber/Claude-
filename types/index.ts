@@ -147,6 +147,7 @@ export interface Demand {
   due_date: string | null;
   status: DemandStatus;
   created_by: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }

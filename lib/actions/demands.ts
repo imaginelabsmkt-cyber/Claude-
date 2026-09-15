@@ -118,15 +118,21 @@ export async function atualizarDemandaAction(
   return { ok: true, id };
 }
 
-/** Exclui uma demanda. */
-export async function excluirDemandaAction(id: string): Promise<ActionResult> {
+/**
+ * Arquiva uma demanda (soft-delete): some da lista ativa, mas fica guardada
+ * no sistema para o relatório do que foi feito por cliente. A tarefa no Google
+ * também permanece, de registro.
+ */
+export async function arquivarDemandaAction(id: string): Promise<ActionResult> {
   if (!(await usuarioAtualId())) {
     return { ok: false, error: "Sessão expirada. Entre novamente." };
   }
   const supabase = createClient();
-  // NÃO apaga a tarefa no Google: ela fica lá como registro do que foi feito.
-  const { error } = await supabase.from("demands").delete().eq("id", id);
-  if (error) return { ok: false, error: "Não foi possível excluir." };
+  const { error } = await supabase
+    .from("demands")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível arquivar." };
   revalidar();
   return { ok: true, id };
 }

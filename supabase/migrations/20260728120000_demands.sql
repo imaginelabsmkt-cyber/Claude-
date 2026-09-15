@@ -12,6 +12,7 @@ create table if not exists public.demands (
   status       text not null default 'A fazer', -- 'A fazer' | 'Fazendo' | 'Feita'
   created_by   uuid references public.profiles(id) on delete set null,
   google_task_id text,                          -- id da tarefa no Google Tarefas
+  archived_at  timestamptz,                      -- arquivada (some da lista, fica de registro)
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );

@@ -318,6 +318,7 @@ export type DemandRow = {
   status: string;
   created_by: string | null;
   google_task_id: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -332,6 +333,7 @@ export type DemandInsert = {
   status?: string;
   created_by?: string | null;
   google_task_id?: string | null;
+  archived_at?: string | null;
   created_at?: string;
   updated_at?: string;
 };
