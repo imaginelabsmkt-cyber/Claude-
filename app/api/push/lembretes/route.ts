@@ -48,12 +48,13 @@ async function executar(req: Request): Promise<NextResponse> {
   daqui2.setDate(daqui2.getDate() + 2);
   const limitePerto = hojeISO(daqui2); // "perto de vencer" = até 2 dias
 
-  // Quem é do Planejamento (Vitória) — recebe também o atraso de conteúdos.
-  const { data: planners } = await admin
+  // Coordenação (Planejamento/Vitória + Admin/você) — recebe também o atraso
+  // de conteúdos da agência.
+  const { data: coord } = await admin
     .from("profiles")
     .select("id")
-    .eq("role", "planner");
-  const idsPlanner = new Set((planners ?? []).map((p) => p.id));
+    .in("role", ["planner", "admin"]);
+  const idsCoordenacao = new Set((coord ?? []).map((p) => p.id));
 
   // Gravações de hoje (da agência).
   const { data: gravacoes } = await admin
@@ -101,14 +102,14 @@ async function executar(req: Request): Promise<NextResponse> {
       (d) => (d.due_date ?? "") > hoje && (d.due_date ?? "") <= limitePerto,
     ).length;
 
-    const ehPlanner = idsPlanner.has(uid);
+    const ehCoord = idsCoordenacao.has(uid);
     const partes: string[] = [];
 
     // Atrasos primeiro (o mais urgente).
     if (atrasadas > 0) {
       partes.push(`⚠️ ${atrasadas} demanda${atrasadas > 1 ? "s" : ""} atrasada${atrasadas > 1 ? "s" : ""}`);
     }
-    if (ehPlanner && conteudosAtrasados > 0) {
+    if (ehCoord && conteudosAtrasados > 0) {
       partes.push(`⚠️ ${conteudosAtrasados} conteúdo${conteudosAtrasados > 1 ? "s" : ""} atrasado${conteudosAtrasados > 1 ? "s" : ""}`);
     }
     if (venceHoje > 0) {
@@ -117,7 +118,7 @@ async function executar(req: Request): Promise<NextResponse> {
     if (perto > 0) {
       partes.push(`🔜 ${perto} perto de vencer`);
     }
-    if (ehPlanner && conteudosPerto > 0) {
+    if (ehCoord && conteudosPerto > 0) {
       partes.push(`🔜 ${conteudosPerto} conteúdo${conteudosPerto > 1 ? "s" : ""} pra entregar`);
     }
     if (gravacoesHoje.length > 0) {
@@ -125,7 +126,7 @@ async function executar(req: Request): Promise<NextResponse> {
     }
     if (partes.length === 0) continue; // nada pra avisar
 
-    const temAtraso = atrasadas > 0 || (ehPlanner && conteudosAtrasados > 0);
+    const temAtraso = atrasadas > 0 || (ehCoord && conteudosAtrasados > 0);
     const n = await enviarPushParaUsuario(admin, uid, {
       title: temAtraso ? "⚠️ Atenção: prazos" : "Bom dia! Agenda de hoje",
       body: partes.join(" · "),

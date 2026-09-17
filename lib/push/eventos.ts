@@ -24,17 +24,23 @@ async function enviarExcluindoAtor(
   await enviarPushParaUsuarios(sb, alvo, payload);
 }
 
-/** Ids dos perfis de um papel (ex.: "planner" = Vitória). */
-async function idsPorPapel(papel: string): Promise<string[]> {
+/**
+ * Ids da coordenação: Planejamento (Vitória) + Admin (você). São quem
+ * acompanha tudo e recebe as notificações dos eventos.
+ */
+async function idsCoordenacao(): Promise<string[]> {
   const sb = createClient();
-  const { data } = await sb.from("profiles").select("id").eq("role", papel);
+  const { data } = await sb
+    .from("profiles")
+    .select("id")
+    .in("role", ["planner", "admin"]);
   return (data ?? []).map((p) => p.id);
 }
 
-/** Notifica o(s) Planejamento (Vitória). */
+/** Notifica a coordenação (Vitória + admin). */
 export async function notificarPlanner(payload: PushPayload): Promise<void> {
   try {
-    await enviarExcluindoAtor(await idsPorPapel("planner"), payload);
+    await enviarExcluindoAtor(await idsCoordenacao(), payload);
   } catch {
     /* melhor esforço */
   }
@@ -52,14 +58,14 @@ export async function notificarUsuarios(
   }
 }
 
-/** Notifica o Planejamento (Vitória) + os usuários dados, sem repetir. */
+/** Notifica a coordenação (Vitória + admin) + os usuários dados, sem repetir. */
 export async function notificarPlannerEUsuarios(
   ids: string[],
   payload: PushPayload,
 ): Promise<void> {
   try {
-    const planners = await idsPorPapel("planner");
-    await enviarExcluindoAtor([...planners, ...ids], payload);
+    const coord = await idsCoordenacao();
+    await enviarExcluindoAtor([...coord, ...ids], payload);
   } catch {
     /* melhor esforço */
   }
