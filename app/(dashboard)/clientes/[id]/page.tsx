@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { VoltarLink } from "@/components/shared/voltar-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -156,12 +157,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
 
   return (
     <>
-      <Link
-        href="/clientes"
-        className="mb-4 inline-block text-sm text-brand-700 hover:underline"
-      >
-        ← Voltar para clientes
-      </Link>
+      <VoltarLink fallback="/clientes" fallbackLabel="Voltar para clientes" />
 
       <PageHeader
         titulo={cliente.name}

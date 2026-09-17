@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/layout/page-header";
+import { VoltarLink } from "@/components/shared/voltar-link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { QuickStatus } from "@/components/contents/quick-status";
@@ -85,12 +85,7 @@ export default async function ConteudoPage({ params }: PageProps) {
 
   return (
     <>
-      <Link
-        href="/conteudos"
-        className="mb-4 inline-block text-sm text-brand-700 hover:underline"
-      >
-        ← Voltar para conteúdos
-      </Link>
+      <VoltarLink fallback="/conteudos" fallbackLabel="Voltar para conteúdos" />
 
       <PageHeader
         titulo={conteudo.title}
