@@ -6,8 +6,20 @@ import { Button } from "@/components/ui/button";
 import { agendarGravacoesEmLoteAction } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
+import { formatarData } from "@/lib/utils";
 import type { Content } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
+
+/** Uma linha de detalhe (rótulo + valor) do roteiro, só se houver valor. */
+function Detalhe({ rotulo, valor }: { rotulo: string; valor: string | null }) {
+  if (!valor) return null;
+  return (
+    <p className="text-xs leading-relaxed text-gray-600">
+      <span className="font-semibold text-gray-500">{rotulo}: </span>
+      {valor}
+    </p>
+  );
+}
 
 interface Props {
   clientes: OpcaoCliente[];
@@ -26,6 +38,7 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
   const [data, setData] = useState("");
   const [hora, setHora] = useState("");
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
+  const [expandido, setExpandido] = useState<Set<string>>(new Set());
   const [processando, iniciar] = useTransition();
 
   // Só clientes que têm vídeos a agendar.
@@ -48,9 +61,19 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
     });
   }
 
+  function alternarDetalhe(id: string) {
+    setExpandido((atual) => {
+      const novo = new Set(atual);
+      if (novo.has(id)) novo.delete(id);
+      else novo.add(id);
+      return novo;
+    });
+  }
+
   function trocarCliente(id: string) {
     setClientId(id);
     setSelecionados(new Set()); // limpa seleção ao trocar de cliente
+    setExpandido(new Set());
   }
 
   function agendar() {
@@ -153,25 +176,101 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
                   {doCliente.map((c) => {
                     const est = estiloFormato(c.format);
                     const marcado = selecionados.has(c.id);
+                    const aberto = expandido.has(c.id);
                     return (
                       <li key={c.id}>
-                        <label className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50">
-                          <input
-                            type="checkbox"
-                            checked={marcado}
-                            onChange={() => alternar(c.id)}
-                            className="h-4 w-4 rounded border-gray-300"
-                          />
-                          <span className="flex-1 truncate text-sm text-gray-800">
-                            {c.title}
-                          </span>
+                        <div className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50">
+                          <label className="flex flex-1 cursor-pointer items-center gap-3 overflow-hidden">
+                            <input
+                              type="checkbox"
+                              checked={marcado}
+                              onChange={() => alternar(c.id)}
+                              className="h-4 w-4 shrink-0 rounded border-gray-300"
+                            />
+                            <span className="flex-1 truncate text-sm text-gray-800">
+                              {c.title}
+                            </span>
+                          </label>
                           <span
-                            className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
+                            className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
                             style={{ backgroundColor: est.fundo, color: est.texto }}
                           >
                             {est.curto}
                           </span>
-                        </label>
+                          <button
+                            type="button"
+                            onClick={() => alternarDetalhe(c.id)}
+                            aria-expanded={aberto}
+                            className="shrink-0 rounded-md border border-gray-200 px-2 py-0.5 text-[11px] font-medium text-brand-700 hover:bg-brand-50"
+                          >
+                            {aberto ? "ocultar" : "detalhes"}
+                          </button>
+                        </div>
+
+                        {aberto ? (
+                          <div className="space-y-1.5 border-t border-gray-100 bg-gray-50/60 px-3 py-2.5">
+                            <Detalhe
+                              rotulo="Data prevista"
+                              valor={
+                                c.planned_date ? formatarData(c.planned_date) : null
+                              }
+                            />
+                            <Detalhe rotulo="Local" valor={c.recording_location} />
+                            <Detalhe
+                              rotulo="Participantes"
+                              valor={
+                                c.participants.length
+                                  ? c.participants.join(", ")
+                                  : null
+                              }
+                            />
+                            <Detalhe rotulo="Roupa" valor={c.outfit} />
+                            <Detalhe
+                              rotulo="Materiais"
+                              valor={
+                                c.required_materials.length
+                                  ? c.required_materials.join(", ")
+                                  : null
+                              }
+                            />
+                            {c.reference_url ? (
+                              <p className="text-xs">
+                                <span className="font-semibold text-gray-500">
+                                  Referência:{" "}
+                                </span>
+                                <a
+                                  href={c.reference_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-brand-700 underline"
+                                >
+                                  abrir link
+                                </a>
+                              </p>
+                            ) : null}
+                            {c.script ? (
+                              <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                  Roteiro
+                                </p>
+                                <p className="mt-0.5 max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-gray-200 bg-white p-2 text-xs leading-relaxed text-gray-700">
+                                  {c.script}
+                                </p>
+                              </div>
+                            ) : null}
+                            {!c.recording_location &&
+                            !c.participants.length &&
+                            !c.outfit &&
+                            !c.required_materials.length &&
+                            !c.reference_url &&
+                            !c.script &&
+                            !c.planned_date ? (
+                              <p className="text-xs text-gray-400">
+                                Sem detalhes preenchidos para este vídeo.
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </li>
                     );
                   })}
