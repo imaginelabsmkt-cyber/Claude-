@@ -6,6 +6,10 @@ import { usuarioAtualId } from "@/lib/auth";
 import { DEMAND_STATUS_OPTIONS, type DemandStatus } from "@/types";
 import { sincronizarDemanda } from "@/lib/google/demands-sync";
 import { aposResposta } from "@/lib/after";
+import {
+  notificarPlannerEUsuarios,
+  notificarUsuarios,
+} from "@/lib/push/eventos";
 
 export interface ActionResult {
   ok: boolean;
@@ -61,7 +65,17 @@ export async function criarDemandaAction(
   if (error) return { ok: false, error: "Não foi possível criar a demanda." };
   if (data?.id) {
     const novoId = data.id;
-    aposResposta(() => sincronizarDemanda(novoId)); // vira tarefa no Google
+    const responsaveis = (input.assignee_ids ?? []).filter(Boolean);
+    aposResposta(async () => {
+      await sincronizarDemanda(novoId); // vira tarefa no Google
+      // Avisa a Vitória (planejamento) e os responsáveis.
+      await notificarPlannerEUsuarios(responsaveis, {
+        title: "🆕 Nova demanda",
+        body: `${title}${input.category ? ` · ${input.category}` : ""}`,
+        url: "/demandas",
+        tag: `demanda-${novoId}`,
+      });
+    });
   }
   revalidar();
   return { ok: true, id: data?.id };
@@ -115,9 +129,36 @@ export async function atualizarDemandaAction(
   }
 
   const supabase = createClient();
+
+  // Se mudou os responsáveis, descobre quem é NOVO (para avisar só eles).
+  let novosResponsaveis: string[] = [];
+  let tituloDemanda = "";
+  if ("assignee_ids" in patch) {
+    const { data: antes } = await supabase
+      .from("demands")
+      .select("assignee_ids, title")
+      .eq("id", id)
+      .maybeSingle();
+    const antigos = new Set(antes?.assignee_ids ?? []);
+    tituloDemanda = antes?.title ?? "";
+    novosResponsaveis = (dados.assignee_ids as string[] | undefined ?? []).filter(
+      (uid) => !antigos.has(uid),
+    );
+  }
+
   const { error } = await supabase.from("demands").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível salvar." };
-  aposResposta(() => sincronizarDemanda(id)); // reflete no Google Tarefas
+  aposResposta(async () => {
+    await sincronizarDemanda(id); // reflete no Google Tarefas
+    if (novosResponsaveis.length > 0) {
+      await notificarUsuarios(novosResponsaveis, {
+        title: "📌 Demanda atribuída a você",
+        body: tituloDemanda || "Você recebeu uma nova demanda.",
+        url: "/minhas-tarefas",
+        tag: `demanda-${id}`,
+      });
+    }
+  });
   revalidar();
   return { ok: true, id };
 }

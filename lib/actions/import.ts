@@ -8,6 +8,8 @@ import {
   parsePlanejamento,
   type ItemPlanejamento,
 } from "@/lib/import/planning-parser";
+import { aposResposta } from "@/lib/after";
+import { notificarPlanner } from "@/lib/push/eventos";
 
 export interface AnaliseResult {
   ok: boolean;
@@ -177,6 +179,24 @@ export async function importarConteudosAction(input: {
 
   revalidatePath("/conteudos");
   revalidatePath(`/clientes/${clientId}`);
+
+  // Avisa a Vitória (planejamento) que chegou planejamento novo.
+  if (paraInserir.length > 0) {
+    const { data: cli } = await supabase
+      .from("clients")
+      .select("name")
+      .eq("id", clientId)
+      .maybeSingle();
+    aposResposta(() =>
+      notificarPlanner({
+        title: "📋 Planejamento importado",
+        body: `${paraInserir.length} conteúdo${paraInserir.length > 1 ? "s" : ""}${cli?.name ? ` · ${cli.name}` : ""}`,
+        url: `/clientes/${clientId}`,
+        tag: `import-${clientId}`,
+      }),
+    );
+  }
+
   return {
     ok: true,
     quantidade: itens.length,

@@ -25,6 +25,7 @@ import {
 import { criarCapaDoVideo } from "@/lib/content/covers";
 import { formatarData } from "@/lib/utils";
 import { aposResposta } from "@/lib/after";
+import { notificarPlanner } from "@/lib/push/eventos";
 
 export interface ActionResult {
   ok: boolean;
@@ -204,7 +205,7 @@ export async function definirStatusConteudoAction(
   const { data: antigo } = await supabase
     .from("contents")
     .select(
-      "status, actual_post_date, recording_date, format, requires_recording, reference_month",
+      "status, actual_post_date, recording_date, format, requires_recording, reference_month, title",
     )
     .eq("id", id)
     .maybeSingle();
@@ -273,9 +274,34 @@ export async function definirStatusConteudoAction(
 
   // Edição = TAREFA no Google (não evento). Gravação/postagem = evento.
   // Em segundo plano, para a setinha de status responder na hora.
+  const tituloConteudo = antigo?.title ?? "Conteúdo";
   aposResposta(async () => {
     await sincronizarEdicao(id, status);
     await sincronizarPostagem(id); // cancelar/republicar reflete no calendário
+
+    // Avisa a Vitória (planejamento) nos momentos-chave do conteúdo.
+    if (status === "Aprovado") {
+      await notificarPlanner({
+        title: "✅ Cliente aprovou",
+        body: tituloConteudo,
+        url: `/conteudos/${id}`,
+        tag: `conteudo-${id}`,
+      });
+    } else if (status === "Ajustes") {
+      await notificarPlanner({
+        title: "🔁 Cliente pediu ajustes",
+        body: tituloConteudo,
+        url: `/conteudos/${id}`,
+        tag: `conteudo-${id}`,
+      });
+    } else if (status === "Em edição") {
+      await notificarPlanner({
+        title: "🎨 Capa pra criar",
+        body: `${tituloConteudo} entrou em edição`,
+        url: "/artes",
+        tag: `conteudo-${id}`,
+      });
+    }
   });
 
   // Vídeo entrou em edição => já cria a demanda de capa nas Artes (para a
@@ -454,7 +480,17 @@ export async function agendarGravacoesEmLoteAction(
   if (error) return { ok: false, error: "Não foi possível agendar." };
 
   // Um evento SÓ no Google para todos os vídeos do lote (1h por vídeo).
-  aposResposta(() => sincronizarGravacaoEmLote(ids));
+  const qtd = ids.length;
+  const quando = formatarData(data);
+  aposResposta(async () => {
+    await sincronizarGravacaoEmLote(ids);
+    await notificarPlanner({
+      title: "🎬 Gravações agendadas",
+      body: `${qtd} vídeo${qtd > 1 ? "s" : ""} em ${quando}${hora ? ` às ${hora}` : ""}`,
+      url: "/gravacoes",
+      tag: "gravacoes-lote",
+    });
+  });
 
   revalidarConteudos();
   return { ok: true, quantidade: ids.length };
@@ -701,6 +737,16 @@ export async function criarArteRapidaAction(input: {
   if (error || !data) {
     return { ok: false, error: "Não foi possível criar a arte." };
   }
+
+  const arteId = data.id;
+  aposResposta(() =>
+    notificarPlanner({
+      title: "🎨 Nova arte",
+      body: title.trim(),
+      url: `/conteudos/${arteId}`,
+      tag: `conteudo-${arteId}`,
+    }),
+  );
 
   revalidarConteudos(undefined, clientId);
   return { ok: true, id: data.id };
