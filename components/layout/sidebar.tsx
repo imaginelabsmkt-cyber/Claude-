@@ -44,6 +44,7 @@ export function Sidebar({
       ) : null}
 
       <aside
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex w-64 transform flex-col border-r border-gray-200 bg-white transition-transform lg:translate-x-0",
           aberta ? "translate-x-0" : "-translate-x-full",

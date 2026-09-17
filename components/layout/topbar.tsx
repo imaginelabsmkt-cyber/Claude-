@@ -12,11 +12,14 @@ interface TopbarProps {
  */
 export function Topbar({ nomeUsuario, aoAbrirMenu }: TopbarProps) {
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-4 backdrop-blur lg:px-6">
+    <header
+      className="sticky top-0 z-20 flex min-h-[4rem] items-center justify-between border-b border-gray-200 bg-white/80 px-4 backdrop-blur lg:px-6"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       <button
         type="button"
         onClick={aoAbrirMenu}
-        className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden"
+        className="-ml-1 rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 active:bg-gray-200 lg:hidden"
         aria-label="Abrir menu"
       >
         <svg

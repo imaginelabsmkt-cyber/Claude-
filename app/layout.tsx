@@ -6,9 +6,12 @@ export const metadata: Metadata = {
   description:
     "Sistema de gestão de produção de conteúdo para agência de social media.",
   // Abre em modo app quando adicionado à tela inicial do iPhone.
+  // "default": o conteúdo começa ABAIXO da barra de status (relógio/bateria),
+  // então o botão de menu no topo não fica escondido sob o relógio e dá pra
+  // tocar normalmente. (black-translucent jogava o app pra baixo do relógio.)
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "favie",
   },
 };
