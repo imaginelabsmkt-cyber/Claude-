@@ -41,7 +41,10 @@ export default async function PostagensPage({ searchParams }: PageProps) {
     listAllClients(),
   ]);
 
-  const comData = contents.filter((c) => c.planned_date);
+  // Cancelado não aparece no calendário/lista de postagens.
+  const comData = contents.filter(
+    (c) => c.planned_date && c.status !== "Cancelado",
+  );
   const contagem = new Map<string, number>();
   for (const c of comData) {
     if (c.planned_date)

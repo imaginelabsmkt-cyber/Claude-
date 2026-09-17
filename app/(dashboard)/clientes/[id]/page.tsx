@@ -129,7 +129,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   });
 
   const itensCalendario: ItemCalendario[] = todos
-    .filter((c) => c.planned_date)
+    .filter((c) => c.planned_date && c.status !== "Cancelado")
     .map((c) => ({
       id: c.id,
       title: c.title,
