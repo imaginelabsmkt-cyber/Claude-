@@ -410,6 +410,25 @@ export type CommentInsert = Omit<Comment, "id" | "created_at"> & {
 // Tipo Database (formato compatível com @supabase/supabase-js)
 // -------------------------------------------------------------
 
+export type PushSubscriptionRow = {
+  id: UUID;
+  user_id: UUID;
+  endpoint: string;
+  subscription: Record<string, unknown>;
+  user_agent: string | null;
+  created_at: string;
+  updated_at: string;
+};
+export type PushSubscriptionInsert = {
+  id?: UUID;
+  user_id: UUID;
+  endpoint: string;
+  subscription: Record<string, unknown>;
+  user_agent?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -495,6 +514,12 @@ export interface Database {
         Row: DemandRow;
         Insert: DemandInsert;
         Update: Partial<DemandInsert>;
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: PushSubscriptionRow;
+        Insert: PushSubscriptionInsert;
+        Update: Partial<PushSubscriptionInsert>;
         Relationships: [];
       };
     };

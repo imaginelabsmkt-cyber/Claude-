@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileForm } from "@/components/config/profile-form";
 import { GoogleConnection } from "@/components/config/google-connection";
+import { PushToggle } from "@/components/notificacoes/push-toggle";
 import { getAuthContext, displayName } from "@/lib/auth";
 import { obterConexaoGoogle } from "@/lib/data/google";
 import { signOutAction } from "@/lib/actions/auth";
@@ -47,6 +48,17 @@ export default async function ConfiguracoesPage({ searchParams }: PageProps) {
                 email={google.email}
                 aviso={searchParams.google}
               />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          <h2 className="mb-3 text-sm font-semibold text-gray-900">
+            Notificações
+          </h2>
+          <Card>
+            <CardContent>
+              <PushToggle />
             </CardContent>
           </Card>
         </div>
