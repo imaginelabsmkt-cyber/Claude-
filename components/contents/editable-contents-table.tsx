@@ -114,7 +114,7 @@ function CelulaTitulo({
         onClick={() => setEditando(true)}
         aria-label="Editar título"
         title="Editar título"
-        className="shrink-0 rounded p-0.5 text-gray-300 hover:bg-gray-100 hover:text-brand-600 group-hover:text-gray-400"
+        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded p-0.5 text-gray-300 hover:bg-gray-100 hover:text-brand-600 group-hover:text-gray-400"
       >
         ✎
       </button>

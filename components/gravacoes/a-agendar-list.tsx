@@ -47,7 +47,7 @@ export function AAgendarList({ rows }: { rows: AAgendarRow[] }) {
               style={{ backgroundColor: r.cor ?? "#e5e7eb" }}
               aria-hidden="true"
             />
-            <span className="max-w-[8rem] shrink-0 truncate text-xs font-medium text-gray-500">
+            <span className="max-w-[5.5rem] shrink-0 truncate text-xs font-medium text-gray-500 sm:max-w-[8rem]">
               {r.clienteNome}
             </span>
             <Link
@@ -63,9 +63,9 @@ export function AAgendarList({ rows }: { rows: AAgendarRow[] }) {
               type="button"
               disabled={processando}
               onClick={() => remover(r.id)}
-              className="shrink-0 rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+              className="shrink-0 rounded-md border border-gray-300 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
             >
-              Não precisa gravar
+              Não grava
             </button>
           </div>
         ))}

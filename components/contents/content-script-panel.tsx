@@ -121,7 +121,7 @@ function BotaoCopiar({ texto, rotulo }: { texto: string; rotulo: string }) {
           setCopiado(false);
         }
       }}
-      className="inline-flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50"
+      className="inline-flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-50"
     >
       {copiado ? "✓ Copiado!" : `📋 ${rotulo}`}
     </button>
@@ -143,7 +143,7 @@ function BotaoSec({
   const base =
     variante === "primario"
       ? "rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-      : "rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60";
+      : "rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60";
   return (
     <button type="button" onClick={onClick} disabled={disabled} className={base}>
       {children}
@@ -218,7 +218,7 @@ function TabelaRoteiro({
         <table className="w-full table-fixed border-collapse text-left text-sm">
           <thead>
             <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
-              <th className="w-40 border-r border-brand-100 px-3 py-2">
+              <th className="w-24 border-r border-brand-100 px-3 py-2 sm:w-40">
                 {colEsquerda}
               </th>
               <th className="px-3 py-2">{colDireita}</th>
@@ -617,7 +617,7 @@ function TabelaEdicao({
       <table className="w-full table-fixed border-collapse text-left">
         <thead>
           <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
-            <th className="w-40 border-r border-brand-100 px-2 py-2">
+            <th className="w-24 border-r border-brand-100 px-2 py-2 sm:w-40">
               {colEsquerda}
             </th>
             <th className="px-2 py-2">{colDireita}</th>

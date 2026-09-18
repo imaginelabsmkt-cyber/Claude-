@@ -63,7 +63,7 @@ export function GravadosList({ rows }: { rows: GravadoRow[] }) {
                 style={{ backgroundColor: r.cor ?? "#e5e7eb" }}
                 aria-hidden="true"
               />
-              <span className="max-w-[8rem] shrink-0 truncate text-xs font-medium text-gray-500">
+              <span className="max-w-[5.5rem] shrink-0 truncate text-xs font-medium text-gray-500 sm:max-w-[8rem]">
                 {r.clienteNome}
               </span>
               <Link
@@ -79,9 +79,9 @@ export function GravadosList({ rows }: { rows: GravadoRow[] }) {
                 type="button"
                 disabled={processando}
                 onClick={() => paraFila(r.id)}
-                className="shrink-0 rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                className="shrink-0 rounded-md border border-gray-300 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
               >
-                → Fila de edição
+                → Fila
               </button>
             </div>
           ))}

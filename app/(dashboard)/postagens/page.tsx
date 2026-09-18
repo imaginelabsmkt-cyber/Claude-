@@ -129,22 +129,24 @@ export default async function PostagensPage({ searchParams }: PageProps) {
 
     return (
       <>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-2">
           <Link
             href={hrefSemana(-7)}
-            className="rounded-lg border border-gray-300 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"
+            aria-label="Semana anterior"
+            className="whitespace-nowrap rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
           >
-            ← Semana anterior
+            ← <span className="hidden sm:inline">Semana anterior</span>
           </Link>
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-center text-sm font-medium text-gray-700">
             {inicio.getDate()}/{inicio.getMonth() + 1} —{" "}
             {addDays(inicio, 6).getDate()}/{addDays(inicio, 6).getMonth() + 1}
           </span>
           <Link
             href={hrefSemana(7)}
-            className="rounded-lg border border-gray-300 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"
+            aria-label="Próxima semana"
+            className="whitespace-nowrap rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
           >
-            Próxima semana →
+            <span className="hidden sm:inline">Próxima semana</span> →
           </Link>
         </div>
 

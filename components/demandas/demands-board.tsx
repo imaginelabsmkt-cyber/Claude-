@@ -52,7 +52,7 @@ function RespPicker({
             onClick={() => onToggle(p.id)}
             aria-pressed={on}
             className={cn(
-              "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60",
+              "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60",
               on
                 ? "border-brand-500 bg-brand-600 text-white"
                 : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50",
@@ -199,14 +199,18 @@ export function DemandsBoard({
           title={feita ? "Reabrir" : "Marcar como feita"}
           disabled={salvando}
           onClick={() => salvar(d.id, { status: feita ? "A fazer" : "Feita" })}
-          className={cn(
-            "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-white transition-colors",
-            feita
-              ? "border-green-600 bg-green-600"
-              : "border-gray-300 hover:border-green-500",
-          )}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
         >
-          {feita ? "✓" : ""}
+          <span
+            className={cn(
+              "flex h-5 w-5 items-center justify-center rounded-full border text-white transition-colors",
+              feita
+                ? "border-green-600 bg-green-600"
+                : "border-gray-300 hover:border-green-500",
+            )}
+          >
+            {feita ? "✓" : ""}
+          </span>
         </button>
 
         <input
@@ -218,88 +222,92 @@ export function DemandsBoard({
             if (v && v !== d.title) salvar(d.id, { title: v });
           }}
           className={cn(
-            "min-w-[160px] flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 text-sm hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500",
+            "min-w-[160px] flex-1 rounded border border-transparent bg-transparent px-1 py-1.5 text-sm hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500",
             feita ? "text-gray-400 line-through" : "text-gray-900",
           )}
         />
 
-        {/* Área só aparece por linha na visão geral (no cliente vira grupo). */}
-        {!clienteFixo ? (
-          <input
-            aria-label="Área"
-            list="areas-demanda"
-            key={`${d.id}-cat-${d.category ?? ""}`}
-            defaultValue={d.category ?? ""}
+        {/* Metadados: descem pra própria linha no celular, ficam inline no PC. */}
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          {/* Área só aparece por linha na visão geral (no cliente vira grupo). */}
+          {!clienteFixo ? (
+            <input
+              aria-label="Área"
+              list="areas-demanda"
+              key={`${d.id}-cat-${d.category ?? ""}`}
+              defaultValue={d.category ?? ""}
+              disabled={salvando}
+              placeholder="Área"
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v !== (d.category ?? ""))
+                  salvar(d.id, { category: v || null });
+              }}
+              className="w-28 rounded-md border border-gray-200 bg-transparent px-2 py-1.5 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none"
+            />
+          ) : null}
+
+          <RespPicker
+            profiles={profiles}
+            selecionados={d.assignee_ids ?? []}
             disabled={salvando}
-            placeholder="Área"
-            onBlur={(e) => {
-              const v = e.target.value.trim();
-              if (v !== (d.category ?? "")) salvar(d.id, { category: v || null });
+            onToggle={(id) => {
+              const atual = d.assignee_ids ?? [];
+              const novo = atual.includes(id)
+                ? atual.filter((x) => x !== id)
+                : [...atual, id];
+              salvar(d.id, { assignee_ids: novo });
             }}
-            className="w-28 rounded-md border border-transparent bg-transparent px-1 py-1 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none"
           />
-        ) : null}
 
-        <RespPicker
-          profiles={profiles}
-          selecionados={d.assignee_ids ?? []}
-          disabled={salvando}
-          onToggle={(id) => {
-            const atual = d.assignee_ids ?? [];
-            const novo = atual.includes(id)
-              ? atual.filter((x) => x !== id)
-              : [...atual, id];
-            salvar(d.id, { assignee_ids: novo });
-          }}
-        />
+          {!clienteFixo && d.client_id ? (
+            <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] text-gray-600">
+              {nomeCli(d.client_id) ?? "Cliente"}
+            </span>
+          ) : null}
 
-        {!clienteFixo && d.client_id ? (
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
-            {nomeCli(d.client_id) ?? "Cliente"}
-          </span>
-        ) : null}
+          <input
+            type="date"
+            aria-label="Prazo"
+            value={d.due_date ?? ""}
+            disabled={salvando}
+            onChange={(e) => salvar(d.id, { due_date: e.target.value || null })}
+            className={cn(
+              "rounded-md border border-gray-200 bg-transparent px-2 py-1.5 text-xs hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none",
+              atrasada ? "font-semibold text-red-600" : "text-gray-600",
+            )}
+          />
 
-        <input
-          type="date"
-          aria-label="Prazo"
-          value={d.due_date ?? ""}
-          disabled={salvando}
-          onChange={(e) => salvar(d.id, { due_date: e.target.value || null })}
-          className={cn(
-            "rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none",
-            atrasada ? "font-semibold text-red-600" : "text-gray-600",
-          )}
-        />
+          <select
+            aria-label="Status"
+            value={d.status}
+            disabled={salvando}
+            onChange={(e) =>
+              salvar(d.id, { status: e.target.value as DemandStatus })
+            }
+            className={cn(
+              "rounded-full px-2.5 py-1.5 text-xs font-semibold outline-none",
+              DEMAND_STATUS_TONE[d.status],
+            )}
+          >
+            {DEMAND_STATUS_OPTIONS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
 
-        <select
-          aria-label="Status"
-          value={d.status}
-          disabled={salvando}
-          onChange={(e) =>
-            salvar(d.id, { status: e.target.value as DemandStatus })
-          }
-          className={cn(
-            "rounded-full px-2.5 py-1 text-xs font-semibold outline-none",
-            DEMAND_STATUS_TONE[d.status],
-          )}
-        >
-          {DEMAND_STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-
-        <button
-          type="button"
-          aria-label="Arquivar demanda"
-          title="Arquivar (sai da lista, fica no relatório)"
-          disabled={salvando}
-          onClick={() => excluir(d.id)}
-          className="rounded p-1 text-gray-300 hover:bg-gray-100 hover:text-gray-700"
-        >
-          🗄️
-        </button>
+          <button
+            type="button"
+            aria-label="Arquivar demanda"
+            title="Arquivar (sai da lista, fica no relatório)"
+            disabled={salvando}
+            onClick={() => excluir(d.id)}
+            className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded text-gray-300 hover:bg-gray-100 hover:text-gray-700 sm:ml-0"
+          >
+            🗄️
+          </button>
+        </div>
       </div>
     );
   };
@@ -333,7 +341,7 @@ export function DemandsBoard({
             value={area}
             onChange={(e) => setArea(e.target.value)}
             placeholder="Área (escolha ou digite)"
-            className={cn(CAMPO, "w-44")}
+            className={cn(CAMPO, "w-full sm:w-44")}
           />
           <datalist id="areas-demanda">
             {DEMAND_CATEGORIES.map((a) => (
@@ -360,7 +368,7 @@ export function DemandsBoard({
               aria-label="Cliente (opcional)"
               value={cli}
               onChange={(e) => setCli(e.target.value)}
-              className={CAMPO}
+              className={cn(CAMPO, "w-full sm:w-auto")}
             >
               <option value="">Sem cliente</option>
               {clientes.map((c) => (
@@ -375,13 +383,13 @@ export function DemandsBoard({
             aria-label="Prazo"
             value={prazo}
             onChange={(e) => setPrazo(e.target.value)}
-            className={CAMPO}
+            className={cn(CAMPO, "w-full sm:w-auto")}
           />
           <button
             type="button"
             onClick={criar}
             disabled={salvando}
-            className="rounded-md bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+            className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 sm:w-auto"
           >
             Adicionar
           </button>
