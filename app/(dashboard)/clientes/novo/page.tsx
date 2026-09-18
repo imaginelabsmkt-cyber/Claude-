@@ -4,31 +4,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ClientForm } from "@/components/clients/client-form";
 
 /** Página de criação de cliente. */
-export default function NovoClientePage({
-  searchParams,
-}: {
-  searchParams: { interno?: string };
-}) {
-  const interno = searchParams.interno === "1";
+export default function NovoClientePage() {
   return (
     <>
       <PageHeader
-        titulo={interno ? "Novo conteúdo interno" : "Novo cliente"}
-        descricao={
-          interno
-            ? "Um espaço para o conteúdo da própria favie"
-            : "Cadastre um novo cliente da agência"
-        }
+        titulo="Novo cliente"
+        descricao="Cadastre um novo cliente da agência"
       />
       <Link
-        href={interno ? "/nosso-conteudo" : "/clientes"}
+        href="/clientes"
         className="mb-4 inline-block text-sm text-brand-700 hover:underline"
       >
-        ← Voltar
+        ← Voltar para clientes
       </Link>
       <Card>
         <CardContent>
-          <ClientForm internoInicial={interno} />
+          <ClientForm />
         </CardContent>
       </Card>
     </>

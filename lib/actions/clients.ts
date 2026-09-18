@@ -29,7 +29,6 @@ function normalizar(values: ClienteFormValues) {
     monthly_goal: meta ? Number(meta) : null,
     notes: limpar(values.notes),
     active: values.active,
-    is_internal: values.is_internal ?? false,
   };
 }
 
