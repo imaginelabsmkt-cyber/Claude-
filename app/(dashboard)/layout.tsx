@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   const nome = displayName(ctx);
   const role = ctx.profile?.role ?? null;
   const papel = ctx.profile ? ROLE_LABELS[ctx.profile.role] : undefined;
-  const google = await obterConexaoGoogle();
+  const google = await obterConexaoGoogle(ctx.user.id);
 
   return (
     <>

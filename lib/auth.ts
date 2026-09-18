@@ -15,9 +15,13 @@ export interface AuthContext {
 export async function getAuthContext(): Promise<AuthContext> {
   const supabase = createClient();
 
+  // getSession() lê a sessão dos cookies LOCALMENTE (sem round-trip de rede).
+  // O middleware já valida o token no servidor a cada requisição, então aqui
+  // não precisamos de outra ida à rede — isso deixa cada refresh mais rápido.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   if (!user) {
     return { user: null, profile: null };
@@ -48,8 +52,10 @@ export function displayName(ctx: AuthContext): string {
  */
 export async function usuarioAtualId(): Promise<string | null> {
   const supabase = createClient();
+  // Local (cookies), sem round-trip de rede — as escritas ainda passam pelo
+  // RLS/JWT no banco, e o middleware já valida a sessão a cada requisição.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user?.id ?? null;
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
 }
