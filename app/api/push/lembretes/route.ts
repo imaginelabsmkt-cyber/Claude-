@@ -12,8 +12,12 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * Cron diário: envia a cada pessoa (com notificação ativa) um resumo do dia —
- * gravações de hoje e demandas com prazo até hoje. Disparado pela Vercel Cron.
+ * Cron dos lembretes. Disparado pela Vercel Cron em 2 horários (para não
+ * chegar tudo de uma vez), via ?bloco=:
+ *   - "agenda" (manhã): o que é de hoje — vence hoje, gravações de hoje.
+ *   - "prazos" (tarde): pendências — atrasados (demandas/vídeos/artes) e o que
+ *     está perto de vencer.
+ * Sem bloco (ou "todos"), envia tudo (útil pra teste manual).
  * Protegido por CRON_SECRET quando configurado.
  */
 async function executar(req: Request): Promise<NextResponse> {
@@ -24,6 +28,10 @@ async function executar(req: Request): Promise<NextResponse> {
       return NextResponse.json({ ok: false, error: "não autorizado" }, { status: 401 });
     }
   }
+
+  const bloco = new URL(req.url).searchParams.get("bloco") ?? "todos";
+  const fazAgenda = bloco === "agenda" || bloco === "todos";
+  const fazPrazos = bloco === "prazos" || bloco === "todos";
 
   if (!pushDisponivel()) {
     return NextResponse.json({ ok: false, error: "push não configurado" });
@@ -132,8 +140,9 @@ async function executar(req: Request): Promise<NextResponse> {
       tag: string;
     }[] = [];
 
+    // ----- Bloco PRAZOS (tarde): pendências -----
     // Atrasados — cada tipo é uma notificação.
-    if (dAtras > 0) {
+    if (fazPrazos && dAtras > 0) {
       avisos.push({
         title: "⚠️ Demandas atrasadas",
         body: `${dAtras} ${plural(dAtras, "demanda passou", "demandas passaram")} do prazo.`,
@@ -141,7 +150,7 @@ async function executar(req: Request): Promise<NextResponse> {
         tag: "lembrete-demandas-atrasadas",
       });
     }
-    if (ehCoord && videosAtrasados > 0) {
+    if (fazPrazos && ehCoord && videosAtrasados > 0) {
       avisos.push({
         title: "🎬 Vídeos atrasados",
         body: `${videosAtrasados} ${plural(videosAtrasados, "vídeo passou", "vídeos passaram")} do prazo.`,
@@ -149,7 +158,7 @@ async function executar(req: Request): Promise<NextResponse> {
         tag: "lembrete-videos-atrasados",
       });
     }
-    if (ehCoord && artesAtrasadas > 0) {
+    if (fazPrazos && ehCoord && artesAtrasadas > 0) {
       avisos.push({
         title: "🎨 Artes atrasadas",
         body: `${artesAtrasadas} ${plural(artesAtrasadas, "arte passou", "artes passaram")} do prazo.`,
@@ -158,19 +167,9 @@ async function executar(req: Request): Promise<NextResponse> {
       });
     }
 
-    // Vencem hoje (demandas).
-    if (dHoje > 0) {
-      avisos.push({
-        title: "⏰ Vence hoje",
-        body: `${dHoje} ${plural(dHoje, "demanda", "demandas")} com prazo hoje.`,
-        url: "/demandas",
-        tag: "lembrete-hoje",
-      });
-    }
-
     // Perto de vencer (próximos 2 dias).
     const pertoConteudo = ehCoord ? conteudosPerto : 0;
-    if (dPerto + pertoConteudo > 0) {
+    if (fazPrazos && dPerto + pertoConteudo > 0) {
       const partes: string[] = [];
       if (dPerto > 0)
         partes.push(`${dPerto} ${plural(dPerto, "demanda", "demandas")}`);
@@ -186,8 +185,16 @@ async function executar(req: Request): Promise<NextResponse> {
       });
     }
 
-    // Gravações de hoje.
-    if (gravacoesHoje.length > 0) {
+    // ----- Bloco AGENDA (manhã): o dia de hoje -----
+    if (fazAgenda && dHoje > 0) {
+      avisos.push({
+        title: "⏰ Vence hoje",
+        body: `${dHoje} ${plural(dHoje, "demanda", "demandas")} com prazo hoje.`,
+        url: "/demandas",
+        tag: "lembrete-hoje",
+      });
+    }
+    if (fazAgenda && gravacoesHoje.length > 0) {
       const q = gravacoesHoje.length;
       avisos.push({
         title: "🎥 Gravações hoje",
