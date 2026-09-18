@@ -25,15 +25,15 @@ async function enviarExcluindoAtor(
 }
 
 /**
- * Ids da coordenação: Planejamento (Vitória) + Admin (você). São quem
- * acompanha tudo e recebe as notificações dos eventos.
+ * Ids de quem acompanha TUDO: Planejamento (Vitória) + Produção (Fran) +
+ * Admin. A Fran e a Vitória pediram para ser notificadas de tudo.
  */
 async function idsCoordenacao(): Promise<string[]> {
   const sb = createClient();
   const { data } = await sb
     .from("profiles")
     .select("id")
-    .in("role", ["planner", "admin"]);
+    .in("role", ["planner", "admin", "producer"]);
   return (data ?? []).map((p) => p.id);
 }
 

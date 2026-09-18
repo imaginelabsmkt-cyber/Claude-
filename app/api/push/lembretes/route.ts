@@ -56,12 +56,12 @@ async function executar(req: Request): Promise<NextResponse> {
   daqui2.setDate(daqui2.getDate() + 2);
   const limitePerto = hojeISO(daqui2); // "perto de vencer" = até 2 dias
 
-  // Coordenação (Planejamento/Vitória + Admin/você) — recebe também o atraso
-  // de conteúdos da agência.
+  // Quem acompanha TUDO (Vitória + Fran + Admin) — recebe também o atraso de
+  // conteúdos da agência, com a visão geral.
   const { data: coord } = await admin
     .from("profiles")
     .select("id")
-    .in("role", ["planner", "admin"]);
+    .in("role", ["planner", "admin", "producer"]);
   const idsCoordenacao = new Set((coord ?? []).map((p) => p.id));
 
   // Gravações de hoje (da agência).
