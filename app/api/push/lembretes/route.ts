@@ -78,32 +78,50 @@ async function executar(req: Request): Promise<NextResponse> {
     .not("due_date", "is", null)
     .lte("due_date", limitePerto);
 
-  // Conteúdos atrasados / perto de entregar (para o Planejamento).
+  // Conteúdos atrasados / perto de entregar (para a coordenação), separando
+  // VÍDEOS de ARTES.
   const { data: conteudos } = await admin
     .from("contents")
     .select(
-      "status, planned_date, recording_deadline, editing_deadline, is_fixed_date",
+      "status, format, planned_date, recording_deadline, editing_deadline, is_fixed_date",
     );
-  const conteudosAtrasados = (conteudos ?? []).filter((c) =>
+  const atrasadosLista = (conteudos ?? []).filter((c) =>
     estaAtrasado(c, hojeData),
-  ).length;
+  );
+  const videosAtrasados = atrasadosLista.filter((c) => !ehArte(c.format)).length;
+  const artesAtrasadas = atrasadosLista.filter((c) => ehArte(c.format)).length;
   const conteudosPerto = (conteudos ?? []).filter((c) =>
     entregaEmAlerta(c, hojeData),
   ).length;
 
   const plural = (n: number, s: string, p: string) => (n > 1 ? p : s);
 
+  // Totais da AGÊNCIA (a coordenação — você + Vitória — vê tudo).
+  const demAll = demandas ?? [];
+  const totalAtrasadas = demAll.filter((d) => (d.due_date ?? "") < hoje).length;
+  const totalHoje = demAll.filter((d) => d.due_date === hoje).length;
+  const totalPerto = demAll.filter(
+    (d) => (d.due_date ?? "") > hoje && (d.due_date ?? "") <= limitePerto,
+  ).length;
+
   let enviados = 0;
   for (const uid of userIds) {
-    const minhas = (demandas ?? []).filter((d) =>
-      (d.assignee_ids ?? []).includes(uid),
-    );
-    const atrasadas = minhas.filter((d) => (d.due_date ?? "") < hoje).length;
-    const venceHoje = minhas.filter((d) => d.due_date === hoje).length;
-    const perto = minhas.filter(
-      (d) => (d.due_date ?? "") > hoje && (d.due_date ?? "") <= limitePerto,
-    ).length;
     const ehCoord = idsCoordenacao.has(uid);
+    const minhas = demAll.filter((d) => (d.assignee_ids ?? []).includes(uid));
+
+    // Coordenação enxerga a agência inteira; os demais, só o que é deles.
+    const dAtras = ehCoord
+      ? totalAtrasadas
+      : minhas.filter((d) => (d.due_date ?? "") < hoje).length;
+    const dHoje = ehCoord
+      ? totalHoje
+      : minhas.filter((d) => d.due_date === hoje).length;
+    const dPerto = ehCoord
+      ? totalPerto
+      : minhas.filter(
+          (d) =>
+            (d.due_date ?? "") > hoje && (d.due_date ?? "") <= limitePerto,
+        ).length;
 
     // Cada assunto é uma notificação separada (organizada por tipo). O `tag`
     // fixo por tipo faz o aviso de hoje SUBSTITUIR o de ontem (não acumula).
@@ -114,40 +132,48 @@ async function executar(req: Request): Promise<NextResponse> {
       tag: string;
     }[] = [];
 
-    // 1) Atrasados (demandas + conteúdos, se for coordenação).
-    const atrasadosConteudo = ehCoord ? conteudosAtrasados : 0;
-    if (atrasadas + atrasadosConteudo > 0) {
-      const partes: string[] = [];
-      if (atrasadas > 0)
-        partes.push(`${atrasadas} ${plural(atrasadas, "demanda", "demandas")}`);
-      if (atrasadosConteudo > 0)
-        partes.push(
-          `${atrasadosConteudo} ${plural(atrasadosConteudo, "conteúdo", "conteúdos")}`,
-        );
+    // Atrasados — cada tipo é uma notificação.
+    if (dAtras > 0) {
       avisos.push({
-        title: "⚠️ Atrasados",
-        body: partes.join(" e ") + " passaram do prazo.",
-        url: "/minhas-tarefas",
-        tag: "lembrete-atrasados",
+        title: "⚠️ Demandas atrasadas",
+        body: `${dAtras} ${plural(dAtras, "demanda passou", "demandas passaram")} do prazo.`,
+        url: "/demandas",
+        tag: "lembrete-demandas-atrasadas",
+      });
+    }
+    if (ehCoord && videosAtrasados > 0) {
+      avisos.push({
+        title: "🎬 Vídeos atrasados",
+        body: `${videosAtrasados} ${plural(videosAtrasados, "vídeo passou", "vídeos passaram")} do prazo.`,
+        url: "/conteudos",
+        tag: "lembrete-videos-atrasados",
+      });
+    }
+    if (ehCoord && artesAtrasadas > 0) {
+      avisos.push({
+        title: "🎨 Artes atrasadas",
+        body: `${artesAtrasadas} ${plural(artesAtrasadas, "arte passou", "artes passaram")} do prazo.`,
+        url: "/artes",
+        tag: "lembrete-artes-atrasadas",
       });
     }
 
-    // 2) Vencem hoje.
-    if (venceHoje > 0) {
+    // Vencem hoje (demandas).
+    if (dHoje > 0) {
       avisos.push({
         title: "⏰ Vence hoje",
-        body: `${venceHoje} ${plural(venceHoje, "demanda", "demandas")} com prazo hoje.`,
-        url: "/minhas-tarefas",
+        body: `${dHoje} ${plural(dHoje, "demanda", "demandas")} com prazo hoje.`,
+        url: "/demandas",
         tag: "lembrete-hoje",
       });
     }
 
-    // 3) Perto de vencer (próximos 2 dias).
+    // Perto de vencer (próximos 2 dias).
     const pertoConteudo = ehCoord ? conteudosPerto : 0;
-    if (perto + pertoConteudo > 0) {
+    if (dPerto + pertoConteudo > 0) {
       const partes: string[] = [];
-      if (perto > 0)
-        partes.push(`${perto} ${plural(perto, "demanda", "demandas")}`);
+      if (dPerto > 0)
+        partes.push(`${dPerto} ${plural(dPerto, "demanda", "demandas")}`);
       if (pertoConteudo > 0)
         partes.push(
           `${pertoConteudo} ${plural(pertoConteudo, "conteúdo", "conteúdos")}`,
@@ -160,7 +186,7 @@ async function executar(req: Request): Promise<NextResponse> {
       });
     }
 
-    // 4) Gravações de hoje.
+    // Gravações de hoje.
     if (gravacoesHoje.length > 0) {
       const q = gravacoesHoje.length;
       avisos.push({

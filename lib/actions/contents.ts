@@ -410,12 +410,14 @@ export async function alterarDataGravacaoAction(
   const quandoGrav = formatarData(data);
   aposResposta(async () => {
     await sincronizarGravacao(id);
-    await notificarProducer({
+    const aviso = {
       title: "🎬 Gravação remarcada",
       body: `${tituloGrav} → ${quandoGrav}${hora ? ` às ${hora}` : ""}`,
       url: "/gravacoes",
       tag: `grav-${id}`,
-    });
+    };
+    await notificarProducer(aviso); // Fran
+    await notificarPlanner(aviso); // coordenação (Vitória + você)
   });
 
   revalidarConteudos(id);
@@ -946,12 +948,14 @@ export async function atualizarProducaoConteudoAction(
           .select("title")
           .eq("id", id)
           .maybeSingle();
-        await notificarProducer({
+        const aviso = {
           title: "🎬 Gravação marcada",
           body: `${c?.title ?? "Vídeo"} → ${formatarData(patch.recording_date!)}`,
           url: "/gravacoes",
           tag: `grav-${id}`,
-        });
+        };
+        await notificarProducer(aviso); // Fran
+        await notificarPlanner(aviso); // coordenação (Vitória + você)
       }
     });
   }
