@@ -7,6 +7,10 @@ export type FiltroStatusCliente = "todos" | "ativos" | "inativos";
 export interface ListarClientesParams {
   q?: string;
   status?: FiltroStatusCliente;
+  /** Inclui os clientes internos (favie). Padrão: false (só clientes reais). */
+  incluirInternos?: boolean;
+  /** Retorna SOMENTE os internos (para "Nosso conteúdo"). */
+  apenasInternos?: boolean;
 }
 
 /** Cliente enriquecido com a quantidade de conteúdos cadastrados. */
@@ -32,6 +36,9 @@ export async function listarClientes(
   }
   if (params.status === "ativos") query = query.eq("active", true);
   if (params.status === "inativos") query = query.eq("active", false);
+  // Clientes internos (favie) só aparecem em "Nosso conteúdo".
+  if (params.apenasInternos) query = query.eq("is_internal", true);
+  else if (!params.incluirInternos) query = query.eq("is_internal", false);
 
   const { data: clientes, error } = await query;
   if (error || !clientes) return [];

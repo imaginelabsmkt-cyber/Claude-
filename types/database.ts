@@ -68,6 +68,8 @@ export type Client = {
   /** Meta de conteúdos por mês (opcional; combo contratado). */
   monthly_goal: number | null;
   notes: string | null;
+  /** Conteúdo interno da agência (favie), separado dos clientes reais. */
+  is_internal: boolean;
   created_at: ISODateString;
   updated_at: ISODateString;
 }
@@ -360,6 +362,7 @@ export type ClientInsert = Omit<Client, "id" | "created_at" | "updated_at"> & {
   active?: boolean;
   niche?: string | null;
   monthly_goal?: number | null;
+  is_internal?: boolean;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
 

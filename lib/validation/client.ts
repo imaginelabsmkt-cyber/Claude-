@@ -34,6 +34,7 @@ export const clienteFormSchema = z.object({
     .or(z.literal(""))
     .optional(),
   active: z.boolean(),
+  is_internal: z.boolean().optional(),
 });
 
 export type ClienteFormValues = z.infer<typeof clienteFormSchema>;
@@ -46,4 +47,5 @@ export const CLIENTE_FORM_PADRAO: ClienteFormValues = {
   monthly_goal: "",
   notes: "",
   active: true,
+  is_internal: false,
 };

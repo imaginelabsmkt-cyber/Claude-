@@ -21,6 +21,8 @@ import type { Client } from "@/types";
 interface ClientFormProps {
   /** Quando informado, o formulário está em modo de edição. */
   cliente?: Client;
+  /** Pré-marca "conteúdo interno" ao criar (vindo de "Nosso conteúdo"). */
+  internoInicial?: boolean;
 }
 
 /**
@@ -29,7 +31,7 @@ interface ClientFormProps {
  * de sucesso/erro. No modo edição, o status (ativo) é gerido na página do
  * cliente com confirmação — por isso não aparece aqui.
  */
-export function ClientForm({ cliente }: ClientFormProps) {
+export function ClientForm({ cliente, internoInicial }: ClientFormProps) {
   const router = useRouter();
   const edicao = Boolean(cliente);
 
@@ -43,8 +45,9 @@ export function ClientForm({ cliente }: ClientFormProps) {
             cliente.monthly_goal != null ? String(cliente.monthly_goal) : "",
           notes: cliente.notes ?? "",
           active: cliente.active,
+          is_internal: cliente.is_internal,
         }
-      : CLIENTE_FORM_PADRAO,
+      : { ...CLIENTE_FORM_PADRAO, is_internal: internoInicial ?? false },
   );
   const [erros, setErros] = useState<Record<string, string>>({});
   const [mensagem, setMensagem] = useState<
@@ -206,6 +209,16 @@ export function ClientForm({ cliente }: ClientFormProps) {
           Cliente ativo
         </label>
       ) : null}
+
+      <label className="flex items-center gap-2 text-sm text-gray-700">
+        <input
+          type="checkbox"
+          checked={values.is_internal ?? false}
+          onChange={(e) => atualizar("is_internal", e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+        />
+        Conteúdo interno (nosso — favie), fora dos clientes
+      </label>
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={salvando}>
