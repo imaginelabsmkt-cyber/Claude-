@@ -698,12 +698,22 @@ function RoteiroEditavel({
   const [doc, setDoc] = useState<TabelaDocEstado>(() =>
     parseTabelaDoc(roteiroLinhas),
   );
+  // Conteúdo salvo mostrado NA HORA (otimista), antes do refresh terminar.
+  const [override, setOverride] = useState<{
+    linhas: string[];
+    blocos: Bloco[];
+  } | null>(null);
   const [salvando, iniciar] = useTransition();
 
   useEffect(() => {
     setLinhas(parseParaEdicao(roteiroLinhas));
     setDoc(parseTabelaDoc(roteiroLinhas));
+    setOverride(null); // dados reais chegaram: descarta o otimista
   }, [roteiroLinhas]);
+
+  // Valores exibidos: otimista quando acabou de salvar, senão os do servidor.
+  const roteiroAtual = override?.linhas ?? roteiroLinhas;
+  const blocosAtual = override?.blocos ?? blocos;
 
   const titulo = arte ? "Layout das artes" : "Roteiro";
   const colEsquerda = arte ? "Elemento" : "OFF / Lettering";
@@ -711,7 +721,7 @@ function RoteiroEditavel({
   // Roteiro veio como TABELA fiel do documento (colunas separadas por
   // COL_DELIM). Editável na própria estrutura de 2 colunas da Vitória.
   const temTabelaDoc =
-    !arte && roteiroLinhas.some((l) => l.includes(COL_DELIM));
+    !arte && roteiroAtual.some((l) => l.includes(COL_DELIM));
 
   // Remonta o texto completo preservando LEGENDA e STORIES.
   const remontar = (roteiro: string): string => {
@@ -732,6 +742,12 @@ function RoteiroEditavel({
         toast.erro(r.error ?? "Não foi possível salvar.");
         return;
       }
+      // Mostra o conteúdo salvo NA HORA (não espera o refresh).
+      const novasLinhas = roteiro
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      setOverride({ linhas: novasLinhas, blocos: interpretar(novasLinhas) });
       toast.sucesso(arte ? "Layout salvo" : "Roteiro salvo");
       setEditando(false);
       router.refresh();
@@ -766,7 +782,7 @@ function RoteiroEditavel({
     setDoc((d) => ({ ...d, rows: [...d.rows, { left: "", right: "" }] }));
 
   // Texto do roteiro pronto para copiar (as colunas viram " | ").
-  const textoRoteiroCopiavel = roteiroLinhas
+  const textoRoteiroCopiavel = roteiroAtual
     .map((l) => l.split(COL_DELIM).join("  |  "))
     .join("\n")
     .trim();
@@ -821,15 +837,15 @@ function RoteiroEditavel({
           />
         )
       ) : temTabelaDoc ? (
-        <TabelaDoc linhas={roteiroLinhas} />
+        <TabelaDoc linhas={roteiroAtual} />
       ) : arte ? (
         <TabelaRoteiro
-          linhas={parseParaEdicao(roteiroLinhas)}
+          linhas={parseParaEdicao(roteiroAtual)}
           colEsquerda={colEsquerda}
           colDireita={colDireita}
         />
       ) : (
-        <TabelaReconstruida linhas={roteiroLinhas} />
+        <TabelaReconstruida linhas={roteiroAtual} />
       )}
 
       {/* Overlay de tela cheia (gravação / criação) */}
@@ -879,13 +895,13 @@ function RoteiroEditavel({
               </div>
             ) : temTabelaDoc ? (
               <div className="mx-auto max-w-5xl p-4">
-                <TabelaDoc linhas={roteiroLinhas} grande />
+                <TabelaDoc linhas={roteiroAtual} grande />
               </div>
             ) : arte ? (
-              <LeituraGrande blocos={blocos} />
+              <LeituraGrande blocos={blocosAtual} />
             ) : (
               <div className="mx-auto max-w-5xl p-4">
-                <TabelaReconstruida linhas={roteiroLinhas} grande />
+                <TabelaReconstruida linhas={roteiroAtual} grande />
               </div>
             )}
           </div>
@@ -906,9 +922,16 @@ function LegendaEditavel({
   const router = useRouter();
   const [editando, setEditando] = useState(false);
   const [rascunho, setRascunho] = useState(textoInicial);
+  // Legenda salva mostrada na hora (otimista), antes do refresh terminar.
+  const [salvo, setSalvo] = useState<string | null>(null);
   const [salvando, iniciar] = useTransition();
 
-  useEffect(() => setRascunho(textoInicial), [textoInicial]);
+  useEffect(() => {
+    setRascunho(textoInicial);
+    setSalvo(null);
+  }, [textoInicial]);
+
+  const textoAtual = salvo ?? textoInicial;
 
   const salvar = () =>
     iniciar(async () => {
@@ -917,6 +940,7 @@ function LegendaEditavel({
         toast.erro(r.error ?? "Não foi possível salvar a legenda.");
         return;
       }
+      setSalvo(rascunho); // mostra o salvo na hora
       toast.sucesso("Legenda salva");
       setEditando(false);
       router.refresh();
@@ -943,7 +967,7 @@ function LegendaEditavel({
         ) : (
           <div className="flex items-center gap-2">
             <BotaoSec onClick={() => setEditando(true)}>✎ Editar</BotaoSec>
-            <BotaoCopiar texto={textoInicial} rotulo="Copiar legenda" />
+            <BotaoCopiar texto={textoAtual} rotulo="Copiar legenda" />
           </div>
         )}
       </div>
@@ -957,7 +981,7 @@ function LegendaEditavel({
           />
         ) : (
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
-            {textoInicial}
+            {textoAtual}
           </p>
         )}
       </div>

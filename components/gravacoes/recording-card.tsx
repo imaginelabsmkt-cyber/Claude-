@@ -56,21 +56,36 @@ export function RecordingCard({
   const [data, setData] = useState(content.recording_date ?? "");
   const [hora, setHora] = useState(content.recording_time ?? "");
   const [erro, setErro] = useState<string | null>(null);
+  // Some da vista NA HORA quando a ação tira o card desta seção (marcar
+  // gravado, desmarcar, ir pra fila…). O refresh depois confirma no servidor.
+  const [oculto, setOculto] = useState(false);
 
   const gravado = content.status === "Gravado";
 
-  function executar(fn: () => Promise<{ ok: boolean; error?: string }>) {
+  /**
+   * @param moveCard quando true, o card sai desta seção — some na hora
+   *   (feedback instantâneo) e volta se a ação falhar.
+   */
+  function executar(
+    fn: () => Promise<{ ok: boolean; error?: string }>,
+    moveCard = false,
+  ) {
     setErro(null);
+    if (moveCard) setOculto(true);
     iniciar(async () => {
       const r = await fn();
       if (!r.ok) {
         setErro(r.error ?? "Falha na operação.");
+        setOculto(false); // desfaz o sumiço otimista
         return;
       }
       setEditandoData(false);
       router.refresh();
     });
   }
+
+  // Sumiu otimisticamente: colapsa o card (o refresh recoloca na seção certa).
+  if (oculto) return null;
 
   return (
     <div
@@ -173,7 +188,9 @@ export function RecordingCard({
             <Button
               tamanho="sm"
               disabled={processando}
-              onClick={() => executar(() => marcarComoGravadoAction(content.id))}
+              onClick={() =>
+                executar(() => marcarComoGravadoAction(content.id), true)
+              }
             >
               Marcar como gravado
             </Button>
@@ -183,7 +200,9 @@ export function RecordingCard({
             <Button
               tamanho="sm"
               disabled={processando}
-              onClick={() => executar(() => adicionarFilaEdicaoAction(content.id))}
+              onClick={() =>
+                executar(() => adicionarFilaEdicaoAction(content.id), true)
+              }
             >
               Adicionar à fila de edição
             </Button>
@@ -204,7 +223,10 @@ export function RecordingCard({
               variante="fantasma"
               disabled={processando}
               onClick={() =>
-                executar(() => limparAgendamentoGravacaoAction(content.id))
+                executar(
+                  () => limparAgendamentoGravacaoAction(content.id),
+                  true,
+                )
               }
             >
               Desmarcar
@@ -231,10 +253,12 @@ export function RecordingCard({
               variante="fantasma"
               disabled={processando}
               onClick={() =>
-                executar(() =>
-                  atualizarProducaoConteudoAction(content.id, {
-                    requires_recording: false,
-                  }),
+                executar(
+                  () =>
+                    atualizarProducaoConteudoAction(content.id, {
+                      requires_recording: false,
+                    }),
+                  true,
                 )
               }
             >
