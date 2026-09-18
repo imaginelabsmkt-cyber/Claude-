@@ -316,8 +316,26 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       return;
     }
 
-    // Evento de lote existente: não relabela com um vídeo só. Deixa como está.
-    if (compartilhado) return;
+    // Evento de LOTE (compartilhado por vários vídeos): ao mudar ESTE vídeo
+    // (ex.: nova data de produção), ele "sai" do evento do lote e ganha um
+    // evento próprio, refletindo a mudança. O evento do lote continua valendo
+    // para os outros vídeos, com a lista/duração atualizadas.
+    if (compartilhado && existente) {
+      const eventoLote = existente;
+      await apagarSync(sb, contentId, userId, "event"); // sai do lote
+      existente = null; // força criar um evento individual abaixo
+
+      const { data: restantes } = await sb
+        .from("google_sync")
+        .select("content_id")
+        .eq("user_id", userId)
+        .eq("kind", "event")
+        .eq("external_id", eventoLote);
+      const idsRestantes = (restantes ?? []).map((r) => r.content_id);
+      if (idsRestantes.length > 0) {
+        await sincronizarGravacaoEmLote(idsRestantes); // atualiza o evento do lote
+      }
+    }
 
     const participantes = (c.participants ?? []).join(", ");
     // Gravação/produção (e produção de fotos das artes) é da Fran (producer).
