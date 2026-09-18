@@ -25,7 +25,7 @@ import {
 import { criarCapaDoVideo } from "@/lib/content/covers";
 import { formatarData } from "@/lib/utils";
 import { aposResposta } from "@/lib/after";
-import { notificarPlanner } from "@/lib/push/eventos";
+import { notificarPlanner, notificarProducer } from "@/lib/push/eventos";
 
 export interface ActionResult {
   ok: boolean;
@@ -398,10 +398,25 @@ export async function alterarDataGravacaoAction(
   };
   // Só mexe na hora quando o parâmetro é passado (undefined = não alterar).
   if (hora !== undefined) dados.recording_time = hora || null;
+  const { data: cAntes } = await supabase
+    .from("contents")
+    .select("title")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
 
-  aposResposta(() => sincronizarGravacao(id));
+  const tituloGrav = cAntes?.title ?? "Vídeo";
+  const quandoGrav = formatarData(data);
+  aposResposta(async () => {
+    await sincronizarGravacao(id);
+    await notificarProducer({
+      title: "🎬 Gravação remarcada",
+      body: `${tituloGrav} → ${quandoGrav}${hora ? ` às ${hora}` : ""}`,
+      url: "/gravacoes",
+      tag: `grav-${id}`,
+    });
+  });
 
   revalidarConteudos(id);
   return { ok: true, id };
@@ -484,12 +499,14 @@ export async function agendarGravacoesEmLoteAction(
   const quando = formatarData(data);
   aposResposta(async () => {
     await sincronizarGravacaoEmLote(ids);
-    await notificarPlanner({
+    const aviso = {
       title: "🎬 Gravações agendadas",
       body: `${qtd} vídeo${qtd > 1 ? "s" : ""} em ${quando}${hora ? ` às ${hora}` : ""}`,
       url: "/gravacoes",
       tag: "gravacoes-lote",
-    });
+    };
+    await notificarPlanner(aviso);
+    await notificarProducer(aviso); // Fran (produção)
   });
 
   revalidarConteudos();
@@ -918,7 +935,25 @@ export async function atualizarProducaoConteudoAction(
     "recording_location" in patch ||
     "participants" in patch
   ) {
-    aposResposta(() => sincronizarGravacao(id));
+    const marcouData =
+      "recording_date" in patch && !!patch.recording_date;
+    aposResposta(async () => {
+      await sincronizarGravacao(id);
+      // Definiu/alterou a data de gravação => avisa a Fran (produção).
+      if (marcouData) {
+        const { data: c } = await supabase
+          .from("contents")
+          .select("title")
+          .eq("id", id)
+          .maybeSingle();
+        await notificarProducer({
+          title: "🎬 Gravação marcada",
+          body: `${c?.title ?? "Vídeo"} → ${formatarData(patch.recording_date!)}`,
+          url: "/gravacoes",
+          tag: `grav-${id}`,
+        });
+      }
+    });
   }
 
   revalidarConteudos(id);

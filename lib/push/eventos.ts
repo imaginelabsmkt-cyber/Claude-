@@ -46,6 +46,22 @@ export async function notificarPlanner(payload: PushPayload): Promise<void> {
   }
 }
 
+/** Ids dos perfis de um papel específico. */
+async function idsPorPapel(papel: string): Promise<string[]> {
+  const sb = createClient();
+  const { data } = await sb.from("profiles").select("id").eq("role", papel);
+  return (data ?? []).map((p) => p.id);
+}
+
+/** Notifica a Produção (Fran) — eventos de gravação. */
+export async function notificarProducer(payload: PushPayload): Promise<void> {
+  try {
+    await enviarExcluindoAtor(await idsPorPapel("producer"), payload);
+  } catch {
+    /* melhor esforço */
+  }
+}
+
 /** Notifica usuários específicos (ex.: responsáveis por uma demanda). */
 export async function notificarUsuarios(
   ids: string[],

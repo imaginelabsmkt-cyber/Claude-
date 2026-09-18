@@ -91,6 +91,8 @@ async function executar(req: Request): Promise<NextResponse> {
     entregaEmAlerta(c, hojeData),
   ).length;
 
+  const plural = (n: number, s: string, p: string) => (n > 1 ? p : s);
+
   let enviados = 0;
   for (const uid of userIds) {
     const minhas = (demandas ?? []).filter((d) =>
@@ -101,39 +103,77 @@ async function executar(req: Request): Promise<NextResponse> {
     const perto = minhas.filter(
       (d) => (d.due_date ?? "") > hoje && (d.due_date ?? "") <= limitePerto,
     ).length;
-
     const ehCoord = idsCoordenacao.has(uid);
-    const partes: string[] = [];
 
-    // Atrasos primeiro (o mais urgente).
-    if (atrasadas > 0) {
-      partes.push(`⚠️ ${atrasadas} demanda${atrasadas > 1 ? "s" : ""} atrasada${atrasadas > 1 ? "s" : ""}`);
+    // Cada assunto é uma notificação separada (organizada por tipo). O `tag`
+    // fixo por tipo faz o aviso de hoje SUBSTITUIR o de ontem (não acumula).
+    const avisos: {
+      title: string;
+      body: string;
+      url: string;
+      tag: string;
+    }[] = [];
+
+    // 1) Atrasados (demandas + conteúdos, se for coordenação).
+    const atrasadosConteudo = ehCoord ? conteudosAtrasados : 0;
+    if (atrasadas + atrasadosConteudo > 0) {
+      const partes: string[] = [];
+      if (atrasadas > 0)
+        partes.push(`${atrasadas} ${plural(atrasadas, "demanda", "demandas")}`);
+      if (atrasadosConteudo > 0)
+        partes.push(
+          `${atrasadosConteudo} ${plural(atrasadosConteudo, "conteúdo", "conteúdos")}`,
+        );
+      avisos.push({
+        title: "⚠️ Atrasados",
+        body: partes.join(" e ") + " passaram do prazo.",
+        url: "/minhas-tarefas",
+        tag: "lembrete-atrasados",
+      });
     }
-    if (ehCoord && conteudosAtrasados > 0) {
-      partes.push(`⚠️ ${conteudosAtrasados} conteúdo${conteudosAtrasados > 1 ? "s" : ""} atrasado${conteudosAtrasados > 1 ? "s" : ""}`);
-    }
+
+    // 2) Vencem hoje.
     if (venceHoje > 0) {
-      partes.push(`⏰ ${venceHoje} vence${venceHoje > 1 ? "m" : ""} hoje`);
+      avisos.push({
+        title: "⏰ Vence hoje",
+        body: `${venceHoje} ${plural(venceHoje, "demanda", "demandas")} com prazo hoje.`,
+        url: "/minhas-tarefas",
+        tag: "lembrete-hoje",
+      });
     }
-    if (perto > 0) {
-      partes.push(`🔜 ${perto} perto de vencer`);
-    }
-    if (ehCoord && conteudosPerto > 0) {
-      partes.push(`🔜 ${conteudosPerto} conteúdo${conteudosPerto > 1 ? "s" : ""} pra entregar`);
-    }
-    if (gravacoesHoje.length > 0) {
-      partes.push(`🎥 ${gravacoesHoje.length} gravação${gravacoesHoje.length > 1 ? "ões" : ""} hoje`);
-    }
-    if (partes.length === 0) continue; // nada pra avisar
 
-    const temAtraso = atrasadas > 0 || (ehCoord && conteudosAtrasados > 0);
-    const n = await enviarPushParaUsuario(admin, uid, {
-      title: temAtraso ? "⚠️ Atenção: prazos" : "Bom dia! Agenda de hoje",
-      body: partes.join(" · "),
-      url: gravacoesHoje.length > 0 ? "/gravacoes" : "/minhas-tarefas",
-      tag: "lembrete-diario",
-    });
-    enviados += n;
+    // 3) Perto de vencer (próximos 2 dias).
+    const pertoConteudo = ehCoord ? conteudosPerto : 0;
+    if (perto + pertoConteudo > 0) {
+      const partes: string[] = [];
+      if (perto > 0)
+        partes.push(`${perto} ${plural(perto, "demanda", "demandas")}`);
+      if (pertoConteudo > 0)
+        partes.push(
+          `${pertoConteudo} ${plural(pertoConteudo, "conteúdo", "conteúdos")}`,
+        );
+      avisos.push({
+        title: "🔜 Perto de vencer",
+        body: partes.join(" e ") + " nos próximos dias.",
+        url: "/minhas-tarefas",
+        tag: "lembrete-perto",
+      });
+    }
+
+    // 4) Gravações de hoje.
+    if (gravacoesHoje.length > 0) {
+      const q = gravacoesHoje.length;
+      avisos.push({
+        title: "🎥 Gravações hoje",
+        body: `${q} ${plural(q, "gravação marcada", "gravações marcadas")} para hoje.`,
+        url: "/gravacoes",
+        tag: "lembrete-gravacoes",
+      });
+    }
+
+    for (const aviso of avisos) {
+      enviados += await enviarPushParaUsuario(admin, uid, aviso);
+    }
   }
 
   return NextResponse.json({ ok: true, enviados });
