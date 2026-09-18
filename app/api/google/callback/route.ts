@@ -45,6 +45,7 @@ export async function GET(request: Request) {
       email,
       refresh_token: tokens.refresh_token,
       scope: tokens.scope ?? null,
+      revoked_at: null, // reconectou => limpa o aviso de "desconectado"
       updated_at: new Date().toISOString(),
     });
     if (error) return erro("erro");

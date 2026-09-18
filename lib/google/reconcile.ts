@@ -10,6 +10,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
+import { marcarGoogleRevogado } from "@/lib/google/conta";
 import { criarCapaDoVideo } from "@/lib/content/covers";
 import { registrarHistorico } from "@/lib/history";
 import type { ContentStatus } from "@/types";
@@ -36,16 +37,17 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
       .update({ updated_at: new Date().toISOString() })
       .eq("user_id", userId)
       .lt("updated_at", limite)
-      .select("refresh_token");
-    const refresh = marcado?.[0]?.refresh_token;
-    if (!refresh) return; // não conectado, ou já rodou há < INTERVALO_MS
+      .select("refresh_token, revoked_at");
+    const conta = marcado?.[0];
+    // não conectado, conexão caída, ou já rodou há < INTERVALO_MS
+    if (!conta?.refresh_token || conta.revoked_at) return;
 
     let token: string | null = null;
     try {
-      token = await renovarAccessToken(refresh);
+      token = await renovarAccessToken(conta.refresh_token);
     } catch (e) {
       if (e instanceof GoogleRevogadoError) {
-        await sb.from("google_accounts").delete().eq("user_id", userId);
+        await marcarGoogleRevogado(sb, userId);
       }
       return;
     }

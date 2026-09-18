@@ -11,6 +11,8 @@ interface AppShellProps {
   nomeUsuario?: string;
   papelUsuario?: string;
   papel?: UserRole | null;
+  /** Google conectou antes mas caiu: mostra o aviso pra reconectar. */
+  googleRevogado?: boolean;
 }
 
 /**
@@ -22,6 +24,7 @@ export function AppShell({
   nomeUsuario,
   papelUsuario,
   papel,
+  googleRevogado,
 }: AppShellProps) {
   const [menuAberto, setMenuAberto] = useState(false);
 
@@ -41,6 +44,15 @@ export function AppShell({
           nomeUsuario={nomeUsuario}
           aoAbrirMenu={() => setMenuAberto(true)}
         />
+        {googleRevogado ? (
+          <a
+            href="/api/google/connect"
+            className="flex items-center justify-center gap-2 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-white hover:bg-amber-600"
+          >
+            ⚠️ O Google Agenda desconectou — a sincronização parou. Toque para
+            reconectar.
+          </a>
+        ) : null}
         <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">{children}</main>
       </div>
     </div>

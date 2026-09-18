@@ -278,16 +278,23 @@ export type GoogleAccount = {
   cal_reunioes: string | null;
   cal_producao: string | null;
   cal_postagens: string | null;
+  revoked_at: string | null;
   connected_at: ISODateString;
   updated_at: ISODateString;
 }
 export type GoogleAccountInsert = Omit<
   GoogleAccount,
-  "connected_at" | "updated_at" | "cal_reunioes" | "cal_producao" | "cal_postagens"
+  | "connected_at"
+  | "updated_at"
+  | "cal_reunioes"
+  | "cal_producao"
+  | "cal_postagens"
+  | "revoked_at"
 > & {
   cal_reunioes?: string | null;
   cal_producao?: string | null;
   cal_postagens?: string | null;
+  revoked_at?: string | null;
   connected_at?: ISODateString;
   updated_at?: ISODateString;
 };

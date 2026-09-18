@@ -10,6 +10,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
+import { marcarGoogleRevogado } from "@/lib/google/conta";
 import { marcadorTarefa, acharTarefaPorMarcador } from "@/lib/google/sync";
 
 const BASE = "https://www.googleapis.com/tasks/v1/lists/@default/tasks";
@@ -20,15 +21,15 @@ async function tokenAtual(
 ): Promise<string | null> {
   const { data } = await sb
     .from("google_accounts")
-    .select("refresh_token")
+    .select("refresh_token, revoked_at")
     .eq("user_id", userId)
     .maybeSingle();
-  if (!data?.refresh_token) return null;
+  if (!data?.refresh_token || data.revoked_at) return null;
   try {
     return await renovarAccessToken(data.refresh_token);
   } catch (e) {
     if (e instanceof GoogleRevogadoError) {
-      await sb.from("google_accounts").delete().eq("user_id", userId);
+      await marcarGoogleRevogado(sb, userId);
     }
     return null;
   }
