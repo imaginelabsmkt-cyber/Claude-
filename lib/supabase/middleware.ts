@@ -5,7 +5,10 @@ import { NextResponse, type NextRequest } from "next/server";
 const ROTAS_PUBLICAS = [
   "/login",
   "/sw.js", // service worker das notificações (precisa ser servido como JS)
-  "/api/push/lembretes", // cron das notificações (protegido por CRON_SECRET)
+  // Crons das notificações (protegidos por CRON_SECRET).
+  "/api/push/lembretes",
+  "/api/push/agenda",
+  "/api/push/prazos",
 ];
 
 /**

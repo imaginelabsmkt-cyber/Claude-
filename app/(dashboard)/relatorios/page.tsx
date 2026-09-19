@@ -8,7 +8,7 @@ import {
 import { listarClientes } from "@/lib/data/clients";
 import { listContents } from "@/lib/data/contents";
 import { listDemandsFeitas } from "@/lib/data/demands";
-import { hojeISO } from "@/lib/rules/contents";
+import { hojeISO, estaGravado, ehArte } from "@/lib/rules/contents";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +45,18 @@ export default async function RelatoriosPage() {
       data: c.actual_post_date ?? c.planned_date ?? null,
     }));
 
+  const gravados: RelContent[] = contentsRaw
+    .filter(
+      (c) =>
+        !!c.recording_date && !ehArte(c.format) && estaGravado(c.status),
+    )
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      client_id: c.client_id,
+      data: c.recording_date,
+    }));
+
   const demandas: RelDemanda[] = demandasRaw.map((d) => ({
     id: d.id,
     title: d.title,
@@ -64,6 +76,7 @@ export default async function RelatoriosPage() {
       <RelatoriosSemanais
         clientes={clientes}
         contents={publicados}
+        gravados={gravados}
         demandas={demandas}
       />
     </>

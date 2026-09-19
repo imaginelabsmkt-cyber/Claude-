@@ -50,10 +50,12 @@ export interface RelCliente {
 export function RelatoriosSemanais({
   clientes,
   contents,
+  gravados,
   demandas,
 }: {
   clientes: RelCliente[];
   contents: RelContent[];
+  gravados: RelContent[];
   demandas: RelDemanda[];
 }) {
   const [offset, setOffset] = useState(0); // 0 = semana atual
@@ -75,15 +77,23 @@ export function RelatoriosSemanais({
         const publicados = contents.filter(
           (ct) => ct.client_id === c.id && noPeriodo(ct.data),
         );
+        const produzidos = gravados.filter(
+          (ct) => ct.client_id === c.id && noPeriodo(ct.data),
+        );
         const feitas = demandas.filter(
           (d) => d.client_id === c.id && noPeriodo(d.dia),
         );
-        return { cliente: c, publicados, feitas };
+        return { cliente: c, publicados, produzidos, feitas };
       })
-      .filter((r) => r.publicados.length > 0 || r.feitas.length > 0);
+      .filter(
+        (r) =>
+          r.publicados.length > 0 ||
+          r.produzidos.length > 0 ||
+          r.feitas.length > 0,
+      );
 
     return { ini: iniISO, fim: fimISO, porCliente };
-  }, [offset, clientes, contents, demandas]);
+  }, [offset, clientes, contents, gravados, demandas]);
 
   const textoRelatorio = (r: (typeof porCliente)[number]): string => {
     const linhas = [
@@ -94,6 +104,11 @@ export function RelatoriosSemanais({
     if (r.publicados.length > 0) {
       linhas.push("Publicados:");
       for (const p of r.publicados) linhas.push(`  • ${p.title}`);
+      linhas.push("");
+    }
+    if (r.produzidos.length > 0) {
+      linhas.push("Gravados/produzidos:");
+      for (const p of r.produzidos) linhas.push(`  • ${p.title}`);
       linhas.push("");
     }
     if (r.feitas.length > 0) {
@@ -181,6 +196,21 @@ export function RelatoriosSemanais({
                   </p>
                   <ul className="mt-0.5 space-y-0.5">
                     {r.publicados.map((p) => (
+                      <li key={p.id} className="text-sm text-gray-700">
+                        • {p.title}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {r.produzidos.length > 0 ? (
+                <div className="mb-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                    🎬 Gravados/produzidos ({r.produzidos.length})
+                  </p>
+                  <ul className="mt-0.5 space-y-0.5">
+                    {r.produzidos.map((p) => (
                       <li key={p.id} className="text-sm text-gray-700">
                         • {p.title}
                       </li>
