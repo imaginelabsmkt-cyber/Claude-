@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { toast } from "@/lib/ui/toast";
@@ -20,6 +20,7 @@ export function ClientOnboarding({
   const [salvando, iniciar] = useTransition();
   const [colarAberto, setColarAberto] = useState(false);
   const [textoColado, setTextoColado] = useState("");
+  const arquivoRef = useRef<HTMLInputElement>(null);
 
   // Aplica os campos organizados SEM sobrescrever o que já foi digitado.
   const aplicarCampos = (campos: Record<string, string>) => {
@@ -66,15 +67,39 @@ export function ClientOnboarding({
       router.refresh();
     });
 
-  const organizarTexto = () => {
-    const campos = organizarTextoLocal(textoColado);
+  const organizarDeTexto = (texto: string): boolean => {
+    const campos = organizarTextoLocal(texto);
     if (Object.keys(campos).length === 0) {
       toast.erro("Não consegui identificar nada. Tente separar por tópicos.");
-      return;
+      return false;
     }
     aplicarCampos(campos);
-    setTextoColado("");
-    setColarAberto(false);
+    return true;
+  };
+
+  const organizarTexto = () => {
+    if (organizarDeTexto(textoColado)) {
+      setTextoColado("");
+      setColarAberto(false);
+    }
+  };
+
+  const aoEscolherArquivo = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const arquivo = e.target.files?.[0];
+    e.target.value = ""; // permite reescolher o mesmo arquivo depois
+    if (!arquivo) return;
+    if (arquivo.size > 2 * 1024 * 1024) {
+      toast.erro("Arquivo muito grande. Envie o CSV/planilha de um cliente.");
+      return;
+    }
+    try {
+      const texto = await arquivo.text();
+      if (organizarDeTexto(texto)) setColarAberto(false);
+    } catch {
+      toast.erro("Não foi possível ler o arquivo.");
+    }
   };
 
   return (
@@ -97,6 +122,21 @@ export function ClientOnboarding({
               <Icon nome="sparkles" className="h-4 w-4" />
               Colar e organizar
             </button>
+            <button
+              type="button"
+              onClick={() => arquivoRef.current?.click()}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 bg-white px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+            >
+              <Icon nome="upload" className="h-4 w-4" />
+              Enviar CSV do Forms
+            </button>
+            <input
+              ref={arquivoRef}
+              type="file"
+              accept=".csv,.tsv,.txt,text/csv,text/plain"
+              onChange={aoEscolherArquivo}
+              className="hidden"
+            />
           </div>
         </div>
 
