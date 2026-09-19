@@ -12,6 +12,7 @@ import {
   listAllClients,
   listProfiles,
 } from "@/lib/data/contents";
+import { listarIdsInternos } from "@/lib/data/clients";
 import { listPlannings } from "@/lib/data/plannings";
 import {
   estaAtrasado,
@@ -55,6 +56,9 @@ export default async function DashboardPage({
     listProfiles(),
   ]);
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
+  // A favie (interno) não entra nos rankings/rollups por cliente.
+  const idsInternos = new Set(await listarIdsInternos());
+  const clientesReais = clientes.filter((c) => !idsInternos.has(c.id));
 
   // Planejamentos a fazer: reunião já aconteceu e ainda não foi entregue.
   const planejAFazer = plannings.filter(
@@ -147,7 +151,7 @@ export default async function DashboardPage({
     .slice(0, 8);
 
   // Resumo por cliente
-  const resumoClientes = clientes
+  const resumoClientes = clientesReais
     .map((cl) => {
       // Capa não é conteúdo; resumo é do MÊS EFETIVO selecionado (pendente cai
       // no mês atual; publicado, no mês real; cancelado, congelado).
@@ -170,7 +174,7 @@ export default async function DashboardPage({
   const porStatus = STATUS_OPTIONS.map((s) => ({ label: s, value: conta(s) })).filter(
     (d) => d.value > 0,
   );
-  const publicadosPorCliente = clientes
+  const publicadosPorCliente = clientesReais
     .map((cl) => ({
       label: cl.name,
       value: contents.filter(
@@ -179,7 +183,7 @@ export default async function DashboardPage({
       cor: cl.color ?? "#6a2336",
     }))
     .filter((d) => d.value > 0);
-  const gravadosPorCliente = clientes
+  const gravadosPorCliente = clientesReais
     .map((cl) => ({
       label: cl.name,
       value: contents.filter(

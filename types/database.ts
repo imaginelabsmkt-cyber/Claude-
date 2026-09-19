@@ -68,9 +68,41 @@ export type Client = {
   /** Meta de conteúdos por mês (opcional; combo contratado). */
   monthly_goal: number | null;
   notes: string | null;
+  /** Conteúdo interno da agência (favie), fora dos clientes. Auto-provisionado. */
+  is_internal: boolean;
   created_at: ISODateString;
   updated_at: ISODateString;
 }
+
+/** content_ideas — banco de ideias (conteúdo próprio da favie) */
+export type ContentIdea = {
+  id: UUID;
+  client_id: UUID;
+  title: string;
+  format: string | null;
+  pillar: string | null;
+  notes: string | null;
+  status: string; // "Ideia" | "Escolhida"
+  promoted_content_id: UUID | null;
+  created_by: UUID | null;
+  archived_at: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+export type ContentIdeaInsert = {
+  id?: UUID;
+  client_id: UUID;
+  title: string;
+  format?: string | null;
+  pillar?: string | null;
+  notes?: string | null;
+  status?: string;
+  promoted_content_id?: UUID | null;
+  created_by?: UUID | null;
+  archived_at?: string | null;
+  created_at?: ISODateString;
+  updated_at?: ISODateString;
+};
 
 /** contents — entidade central */
 export type Content = {
@@ -355,11 +387,15 @@ export type ProfileInsert = Omit<Profile, "created_at" | "updated_at"> & {
 };
 export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at" | "updated_at">>;
 
-export type ClientInsert = Omit<Client, "id" | "created_at" | "updated_at"> & {
+export type ClientInsert = Omit<
+  Client,
+  "id" | "created_at" | "updated_at" | "is_internal"
+> & {
   id?: UUID;
   active?: boolean;
   niche?: string | null;
   monthly_goal?: number | null;
+  is_internal?: boolean;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
 
@@ -527,6 +563,12 @@ export interface Database {
         Row: PushSubscriptionRow;
         Insert: PushSubscriptionInsert;
         Update: Partial<PushSubscriptionInsert>;
+        Relationships: [];
+      };
+      content_ideas: {
+        Row: ContentIdea;
+        Insert: ContentIdeaInsert;
+        Update: Partial<ContentIdeaInsert>;
         Relationships: [];
       };
     };
