@@ -9,6 +9,13 @@ const NOMES_MES = [
   "jul", "ago", "set", "out", "nov", "dez",
 ];
 
+/** Item de conteúdo no relatório (publicado ou gravado). */
+export interface ItemRelatorio {
+  id: string;
+  title: string;
+  data: string | null; // YYYY-MM-DD
+}
+
 function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -21,49 +28,60 @@ function inicioSemana(d: Date): Date {
   return x;
 }
 function fmtDia(isoStr: string): string {
-  const [a, m, dd] = isoStr.split("-").map(Number);
+  const [, m, dd] = isoStr.split("-").map(Number);
   return `${String(dd).padStart(2, "0")}/${NOMES_MES[m - 1] ?? m}`;
 }
 
 /**
- * Relatório semanal por cliente: o que foi CONCLUÍDO (demandas Feitas) na
- * semana, agrupado por área. Navega entre semanas e copia um resumo pronto
- * para enviar ao cliente.
+ * Relatório semanal do cliente: o que foi ENTREGUE na semana, publicados +
+ * gravados/produzidos + demandas concluídas (por área). Navega entre semanas e
+ * copia um resumo pronto para enviar ao cliente.
  */
 export function ClientWeeklyReport({
   clienteNome,
+  publicados = [],
+  gravados = [],
   feitas,
 }: {
   clienteNome: string;
+  publicados?: ItemRelatorio[];
+  gravados?: ItemRelatorio[];
   /** Demandas concluídas (Feita), inclusive arquivadas, data em updated_at. */
   feitas: Demand[];
 }) {
   const [offset, setOffset] = useState(0); // 0 = semana atual, -1 = anterior…
 
-  const { ini, fim, doPeriodo } = useMemo(() => {
+  const { ini, fim, pub, grav, dem, grupos, temAlgo } = useMemo(() => {
     const base = new Date();
     base.setDate(base.getDate() + offset * 7);
-    const ini = inicioSemana(base);
-    const fim = new Date(ini);
-    fim.setDate(fim.getDate() + 6);
-    const iniISO = iso(ini);
-    const fimISO = iso(fim);
-    const doPeriodo = feitas.filter((d) => {
-      const dia = (d.updated_at ?? "").slice(0, 10);
-      return dia >= iniISO && dia <= fimISO;
-    });
-    return { ini: iniISO, fim: fimISO, doPeriodo };
-  }, [offset, feitas]);
+    const i = inicioSemana(base);
+    const f = new Date(i);
+    f.setDate(f.getDate() + 6);
+    const iniISO = iso(i);
+    const fimISO = iso(f);
+    const naSemana = (d: string | null) => !!d && d >= iniISO && d <= fimISO;
 
-  // Agrupa por área.
-  const grupos = useMemo(() => {
+    const pub = publicados.filter((p) => naSemana(p.data));
+    const grav = gravados.filter((p) => naSemana(p.data));
+    const dem = feitas.filter((d) => naSemana((d.updated_at ?? "").slice(0, 10)));
+
     const mapa = new Map<string, Demand[]>();
-    for (const d of doPeriodo) {
+    for (const d of dem) {
       const k = d.category?.trim() || "Geral";
       mapa.set(k, [...(mapa.get(k) ?? []), d]);
     }
-    return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [doPeriodo]);
+    const grupos = [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+    return {
+      ini: iniISO,
+      fim: fimISO,
+      pub,
+      grav,
+      dem,
+      grupos,
+      temAlgo: pub.length + grav.length + dem.length > 0,
+    };
+  }, [offset, publicados, gravados, feitas]);
 
   const copiar = () => {
     const linhas = [
@@ -71,26 +89,61 @@ export function ClientWeeklyReport({
       `Semana de ${fmtDia(ini)} a ${fmtDia(fim)}`,
       "",
     ];
-    if (doPeriodo.length === 0) {
-      linhas.push("Nenhuma entrega concluída nesta semana.");
+    if (!temAlgo) {
+      linhas.push("Nenhuma entrega nesta semana.");
     } else {
-      for (const [area, itens] of grupos) {
-        linhas.push(`• ${area}`);
-        for (const d of itens) linhas.push(`   - ${d.title}`);
+      if (pub.length > 0) {
+        linhas.push("Publicados:");
+        for (const p of pub) linhas.push(`  • ${p.title}`);
+        linhas.push("");
+      }
+      if (grav.length > 0) {
+        linhas.push("Gravados/produzidos:");
+        for (const p of grav) linhas.push(`  • ${p.title}`);
+        linhas.push("");
+      }
+      if (dem.length > 0) {
+        linhas.push("Outras entregas:");
+        for (const [area, itens] of grupos) {
+          linhas.push(`  ${area}:`);
+          for (const d of itens) linhas.push(`    • ${d.title}`);
+        }
       }
     }
     navigator.clipboard
-      .writeText(linhas.join("\n"))
+      .writeText(linhas.join("\n").trim())
       .then(() => toast.sucesso("Relatório copiado!"))
       .catch(() => toast.erro("Não foi possível copiar."));
   };
+
+  const Secao = ({
+    titulo,
+    itens,
+  }: {
+    titulo: string;
+    itens: ItemRelatorio[];
+  }) =>
+    itens.length === 0 ? null : (
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          {titulo} ({itens.length})
+        </p>
+        <ul className="mt-0.5 space-y-0.5">
+          {itens.map((p) => (
+            <li key={p.id} className="text-sm text-gray-700">
+              • {p.title}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
 
   return (
     <div className="mb-4 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-900">
-            ✅ Feito na semana
+            Relatório da semana
           </span>
           <button
             type="button"
@@ -106,9 +159,10 @@ export function ClientWeeklyReport({
           </span>
           <button
             type="button"
-            onClick={() => setOffset((o) => o + 1)}
+            onClick={() => setOffset((o) => Math.min(o + 1, 0))}
+            disabled={offset >= 0}
             aria-label="Próxima semana"
-            className="rounded-md border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-40"
           >
             →
           </button>
@@ -122,31 +176,42 @@ export function ClientWeeklyReport({
         </button>
       </div>
 
-      {doPeriodo.length === 0 ? (
+      {!temAlgo ? (
         <p className="text-xs text-gray-400">
-          Nada concluído nesta semana ainda. O que você marcar como “Feita”
-          aparece aqui.
+          Nada entregue nesta semana ainda. Conteúdos publicados/gravados e
+          demandas concluídas aparecem aqui.
         </p>
       ) : (
         <div className="space-y-2">
-          {grupos.map(([area, itens]) => (
-            <div key={area}>
+          <Secao titulo="📤 Publicados" itens={pub} />
+          <Secao titulo="🎬 Gravados/produzidos" itens={grav} />
+          {dem.length > 0 ? (
+            <div>
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                {area}
+                ✅ Outras entregas ({dem.length})
               </p>
-              <ul className="mt-0.5 space-y-0.5">
-                {itens.map((d) => (
-                  <li key={d.id} className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="text-green-600">✓</span>
-                    <span>{d.title}</span>
-                    <span className="text-[11px] text-gray-400">
-                      {fmtDia((d.updated_at ?? "").slice(0, 10))}
-                    </span>
-                  </li>
+              <div className="mt-0.5 space-y-1.5">
+                {grupos.map(([area, itens]) => (
+                  <div key={area}>
+                    <p className="text-[11px] font-medium text-gray-500">
+                      {area}
+                    </p>
+                    <ul className="space-y-0.5">
+                      {itens.map((d) => (
+                        <li
+                          key={d.id}
+                          className="flex items-center gap-2 text-sm text-gray-700"
+                        >
+                          <span className="text-green-600">✓</span>
+                          <span>{d.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-          ))}
+          ) : null}
         </div>
       )}
     </div>

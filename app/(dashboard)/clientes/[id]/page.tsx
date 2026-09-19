@@ -28,7 +28,14 @@ import {
   listClientReports,
   listClientDiagnostics,
 } from "@/lib/data/client-onboarding";
-import { resumoProducao, inicioDaSemana, hojeISO } from "@/lib/rules/contents";
+import {
+  resumoProducao,
+  inicioDaSemana,
+  hojeISO,
+  estaGravado,
+  ehArte,
+  ehCapa,
+} from "@/lib/rules/contents";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -276,6 +283,25 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                 </p>
                 <ClientWeeklyReport
                   clienteNome={cliente.name}
+                  publicados={todos
+                    .filter((c) => c.status === "Publicado" && !ehCapa(c))
+                    .map((c) => ({
+                      id: c.id,
+                      title: c.title,
+                      data: c.actual_post_date ?? c.planned_date ?? null,
+                    }))}
+                  gravados={todos
+                    .filter(
+                      (c) =>
+                        !!c.recording_date &&
+                        !ehArte(c.format) &&
+                        estaGravado(c.status),
+                    )
+                    .map((c) => ({
+                      id: c.id,
+                      title: c.title,
+                      data: c.recording_date,
+                    }))}
                   feitas={feitasCliente}
                 />
                 <DemandsBoard
