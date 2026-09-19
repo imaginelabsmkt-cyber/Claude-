@@ -1,5 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enviarPushParaUsuario, pushDisponivel } from "@/lib/push/send";
 import {
@@ -10,6 +12,44 @@ import {
 } from "@/lib/rules/contents";
 
 export type BlocoLembrete = "agenda" | "prazos" | "todos";
+
+/**
+ * Auto-publica os conteúdos "Agendado" cuja data prevista já chegou: como já
+ * estavam agendados, vão ao ar naquele dia. Marca "Publicado", preenche a data
+ * real (= prevista) e move para o mês real. Devolve o que foi publicado.
+ */
+async function autoPublicarAgendados(
+  admin: SupabaseClient<Database>,
+  hoje: string,
+): Promise<{ id: string; title: string }[]> {
+  const { data: rows } = await admin
+    .from("contents")
+    .select("id, title, planned_date")
+    .eq("status", "Agendado")
+    .not("planned_date", "is", null)
+    .lte("planned_date", hoje);
+  const lista = rows ?? [];
+  for (const c of lista) {
+    const pd = c.planned_date as string;
+    await admin
+      .from("contents")
+      .update({
+        status: "Publicado",
+        actual_post_date: pd,
+        reference_month: pd.slice(0, 7),
+      })
+      .eq("id", c.id)
+      .eq("status", "Agendado"); // trava contra corrida
+    await admin.from("content_history").insert({
+      content_id: c.id,
+      user_id: null,
+      field_changed: "Status",
+      old_value: "Agendado",
+      new_value: "Publicado (automático)",
+    });
+  }
+  return lista.map((c) => ({ id: c.id, title: c.title }));
+}
 
 /**
  * Núcleo dos lembretes push. Dividido em blocos para não chegar tudo de uma
@@ -41,24 +81,33 @@ export async function executarLembretes(
   const fazAgenda = bloco === "agenda" || bloco === "todos";
   const fazPrazos = bloco === "prazos" || bloco === "todos";
 
-  if (!pushDisponivel()) {
-    return NextResponse.json({ ok: false, error: "push não configurado" });
-  }
   const admin = createAdminClient();
   if (!admin) {
     return NextResponse.json({ ok: false, error: "service role ausente" });
   }
 
+  const hoje = hojeISO();
+  const diaSemana = new Date(`${hoje}T12:00:00Z`).getUTCDay(); // 5 = sexta
+
+  // Auto-publicar os agendados cuja data chegou (roda no bloco da manhã).
+  const publicadosAuto = fazAgenda
+    ? await autoPublicarAgendados(admin, hoje)
+    : [];
+
+  if (!pushDisponivel()) {
+    return NextResponse.json({ ok: true, publicados: publicadosAuto.length });
+  }
   const { data: subs } = await admin
     .from("push_subscriptions")
     .select("user_id");
   const userIds = [...new Set((subs ?? []).map((s) => s.user_id))];
   if (userIds.length === 0) {
-    return NextResponse.json({ ok: true, enviados: 0 });
+    return NextResponse.json({
+      ok: true,
+      enviados: 0,
+      publicados: publicadosAuto.length,
+    });
   }
-
-  const hoje = hojeISO();
-  const diaSemana = new Date(`${hoje}T12:00:00Z`).getUTCDay(); // 5 = sexta
   const hojeData = new Date(`${hoje}T12:00:00-04:00`);
   const daqui2 = new Date(hojeData);
   daqui2.setDate(daqui2.getDate() + 2);
@@ -199,6 +248,19 @@ export async function executarLembretes(
     }
   }
 
+  // Avisa a coordenação sobre o que foi publicado automaticamente (pra conferir).
+  if (fazAgenda && publicadosAuto.length > 0) {
+    const q = publicadosAuto.length;
+    for (const uid of idsCoordenacao) {
+      enviados += await enviarPushParaUsuario(admin, uid, {
+        title: "✅ Publicados automaticamente",
+        body: `${q} post${q > 1 ? "s" : ""} que estava${q > 1 ? "m" : ""} agendad${q > 1 ? "os" : "o"} viraram publicados. Confira se está tudo certo.`,
+        url: "/postagens",
+        tag: "auto-publicados",
+      });
+    }
+  }
+
   // Sexta à tarde: relatórios da semana prontos (para a coordenação).
   if (fazPrazos && diaSemana === 5) {
     for (const uid of idsCoordenacao) {
@@ -211,5 +273,10 @@ export async function executarLembretes(
     }
   }
 
-  return NextResponse.json({ ok: true, enviados, bloco });
+  return NextResponse.json({
+    ok: true,
+    enviados,
+    bloco,
+    publicados: publicadosAuto.length,
+  });
 }
