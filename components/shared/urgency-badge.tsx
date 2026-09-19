@@ -11,7 +11,7 @@ const TOM: Record<NivelUrgencia, "vermelho" | "amarelo" | "cinza"> = {
 
 /**
  * Selo de urgência automática (por prazo). Não mostra nada quando "tranquilo"
- * — para não poluir os conteúdos sem pressa.
+ *, para não poluir os conteúdos sem pressa.
  */
 export function UrgencyBadge({ urgencia }: { urgencia: Urgencia }) {
   if (urgencia.nivel === "tranquilo" || !urgencia.rotulo) return null;

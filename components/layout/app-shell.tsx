@@ -49,7 +49,7 @@ export function AppShell({
             href="/api/google/connect"
             className="flex items-center justify-center gap-2 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-white hover:bg-amber-600"
           >
-            ⚠️ O Google Agenda desconectou — a sincronização parou. Toque para
+            ⚠️ O Google Agenda desconectou, a sincronização parou. Toque para
             reconectar.
           </a>
         ) : null}

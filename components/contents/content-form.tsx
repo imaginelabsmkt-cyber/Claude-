@@ -451,7 +451,7 @@ export function ContentForm({
                 value={values[campo]}
                 onChange={(e) => set(campo, e.target.value)}
               >
-                <option value="">—</option>
+                <option value="">·</option>
                 {perfis.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}

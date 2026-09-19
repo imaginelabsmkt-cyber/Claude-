@@ -13,7 +13,7 @@ interface QuickStatusProps {
   id: string;
   status: ContentStatus;
   className?: string;
-  /** Formato do conteúdo — para exibir rótulos de arte quando for arte. */
+  /** Formato do conteúdo, para exibir rótulos de arte quando for arte. */
   format?: string | null;
 }
 

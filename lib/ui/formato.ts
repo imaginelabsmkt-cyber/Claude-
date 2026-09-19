@@ -1,5 +1,5 @@
 /**
- * Estilo visual por formato de conteúdo — usado no calendário e nas listas
+ * Estilo visual por formato de conteúdo, usado no calendário e nas listas
  * para que dê para "bater o olho" e saber o que é (Reel, Carrossel, etc.),
  * inclusive num print enviado para o cliente.
  */

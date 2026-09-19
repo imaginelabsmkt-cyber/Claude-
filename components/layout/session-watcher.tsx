@@ -22,7 +22,7 @@ export function SessionWatcher() {
     } = supabase.auth.onAuthStateChange((evento) => {
       // Só redireciona quando o usuário REALMENTE saiu. No celular, ao trocar
       // de app e voltar, o Supabase dispara eventos (TOKEN_REFRESHED, etc.) que
-      // podem vir sem sessão por um instante — reagir a isso jogava a pessoa pro
+      // podem vir sem sessão por um instante, reagir a isso jogava a pessoa pro
       // login sem motivo ("clico e volta"). O middleware cobre sessão expirada
       // na próxima navegação.
       if (evento === "SIGNED_OUT") {

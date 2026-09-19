@@ -4,7 +4,7 @@
  * para "Revisão interna" automaticamente.
  *
  * Como o Google Tarefas não tem webhook e a Vercel Hobby não permite cron
- * frequente, isto roda quando o usuário abre o app — com um "freio" de 2 min
+ * frequente, isto roda quando o usuário abre o app, com um "freio" de 2 min
  * (via updated_at) para não consultar o Google a cada clique.
  */
 import { createClient } from "@/lib/supabase/server";
@@ -29,7 +29,7 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
     const sb = createClient();
 
     // Freio ATÔMICO: só uma execução por vez a cada INTERVALO_MS. O UPDATE
-    // condicional (updated_at antigo) evita corrida entre abas/prefetch —
+    // condicional (updated_at antigo) evita corrida entre abas/prefetch ·
     // apenas quem alterar a linha segue adiante.
     const limite = new Date(Date.now() - INTERVALO_MS).toISOString();
     const { data: marcado } = await sb

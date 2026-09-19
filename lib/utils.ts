@@ -11,12 +11,12 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Formata uma data ISO para o padrão brasileiro (dd/mm/aaaa).
- * Retorna "—" quando a data é nula.
+ * Retorna "·" quando a data é nula.
  */
 export function formatarData(data: string | null): string {
-  if (!data) return "—";
+  if (!data) return "·";
   // Datas "YYYY-MM-DD" devem ser lidas como LOCAIS (senão new Date() assume
-  // meia-noite UTC e, em fusos negativos, exibe o dia anterior — além de
+  // meia-noite UTC e, em fusos negativos, exibe o dia anterior, além de
   // causar mismatch de hidratação em componentes client).
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
   const d = m
@@ -39,10 +39,10 @@ export function escaparLike(termo: string): string {
 
 /**
  * Formata data e hora no padrão brasileiro (dd/mm/aaaa às HH:mm).
- * Retorna "—" quando a data é nula.
+ * Retorna "·" quando a data é nula.
  */
 export function formatarDataHora(data: string | null): string {
-  if (!data) return "—";
+  if (!data) return "·";
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",

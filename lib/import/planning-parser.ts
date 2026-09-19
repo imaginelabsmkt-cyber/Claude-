@@ -33,7 +33,7 @@ export interface ItemPlanejamento {
   participantes: string[];
   link: string | null;
   observacoes: string | null;
-  /** Corpo do conteúdo (cenas/falas/stories) — o roteiro completo. */
+  /** Corpo do conteúdo (cenas/falas/stories), o roteiro completo. */
   roteiro: string | null;
   /** Legenda do post. */
   legenda: string | null;
@@ -151,7 +151,7 @@ export function parsePlanejamento(
       fechar();
       const resto = mConteudo[1] ?? "";
       // Detecta o formato só pela PRIMEIRA palavra (o formato vem no início:
-      // "CONTEÚDO 1: Reel ...") — evita que uma palavra no meio do título
+      // "CONTEÚDO 1: Reel ..."), evita que uma palavra no meio do título
       // (ex.: "Reel sobre vídeo") seja confundida com o formato.
       const primeira = resto.trim().split(/\s+/)[0] ?? "";
       const formato = detectarFormato(primeira) ?? "Reel";
@@ -202,7 +202,7 @@ export function parsePlanejamento(
       continue;
     }
     // Referência: aceita rótulos com texto extra antes do separador, ex.:
-    // "REFERÊNCIA (INSTAGRAM / TIKTOK):" — pega a URL da linha se houver.
+    // "REFERÊNCIA (INSTAGRAM / TIKTOK):", pega a URL da linha se houver.
     if (/^(REFER[ÊE]NCIA|LINK|REF)\b/i.test(semSep) && /[:\-–]/.test(semSep)) {
       const url = semSep.match(/https?:\/\/\S+/);
       atual.link = url ? url[0] : valorDepois(semSep) || null;

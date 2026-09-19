@@ -25,7 +25,7 @@ export function HistoryTimeline({ itens, nomePorId }: HistoryTimelineProps) {
           <p className="text-sm text-gray-800">
             <span className="font-medium">{h.field_changed}</span>{" "}
             <span className="text-gray-500">
-              de “{h.old_value ?? "—"}” para “{h.new_value ?? "—"}”
+              de “{h.old_value ?? "·"}” para “{h.new_value ?? "·"}”
             </span>
           </p>
           <p className="mt-0.5 text-xs text-gray-500">

@@ -146,7 +146,7 @@ export function GlobalSearch({
                         {c.title}
                       </span>
                       <span className="hidden shrink-0 text-xs text-gray-500 sm:inline">
-                        {cli?.name ?? "—"}
+                        {cli?.name ?? "·"}
                       </span>
                       <StatusContentBadge
                         status={c.status}

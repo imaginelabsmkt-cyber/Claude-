@@ -2,7 +2,7 @@ import type { UserRole } from "@/types";
 
 /**
  * Definição central da navegação da aplicação.
- * Fonte única de verdade para a Sidebar e para os títulos das páginas —
+ * Fonte única de verdade para a Sidebar e para os títulos das páginas ·
  * evita rotas/rótulos duplicados espalhados pelo código.
  *
  * `papeis` controla quais perfis enxergam o item (RBAC de UI).
@@ -90,7 +90,7 @@ export const NAVEGACAO: ItemNavegacao[] = [
   {
     href: "/favie",
     label: "favie",
-    descricao: "Nosso conteúdo — ideias e produção da própria favie",
+    descricao: "Ideias e produção da própria favie",
     icone: "quadro",
   },
   // --- Cadastros e ajustes ---

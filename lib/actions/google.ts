@@ -25,7 +25,7 @@ const STATUS_EDICAO_REENVIO: ContentStatus[] = [
  * Remove a conexão do usuário com o Google.
  * IMPORTANTE: NÃO apaga os vínculos de sincronização (google_sync). Se apagasse,
  * ao reconectar o sistema não reconheceria os eventos já criados e recriaria
- * tudo do zero — gerando DUPLICATAS na agenda. Mantendo os vínculos, o
+ * tudo do zero, gerando DUPLICATAS na agenda. Mantendo os vínculos, o
  * reconectar apenas ATUALIZA os eventos existentes.
  */
 export async function desconectarGoogleAction(): Promise<ActionResult> {
@@ -45,7 +45,7 @@ export async function desconectarGoogleAction(): Promise<ActionResult> {
 
 /**
  * Reenvia TUDO ao Google SEM APAGAR nada: só atualiza (ou cria o que está
- * faltando) o que o app controla, usando os vínculos de sincronização — então
+ * faltando) o que o app controla, usando os vínculos de sincronização, então
  * NUNCA remove eventos criados à mão pela pessoa. Reuniões => Imagine Reuniões,
  * gravações/fotos => Imagine Produção, postagens => Imagine Postagens.
  * Idempotente: pode clicar quantas vezes quiser. Inclui também as gravações que
@@ -97,7 +97,7 @@ export async function reenviarTudoGoogleAction(): Promise<
 
   const grupos = new Map<string, string[]>();
   for (const c of conts) {
-    // Toda gravação com data vira evento — inclusive as que JÁ aconteceram
+    // Toda gravação com data vira evento, inclusive as que JÁ aconteceram
     // (ficam de registro na agenda). Sem data, não há o que registrar.
     if (!c.recording_date) continue;
     const chave = `${c.client_id}|${c.recording_date}|${c.recording_time ?? ""}`;
@@ -108,7 +108,7 @@ export async function reenviarTudoGoogleAction(): Promise<
     else await sincronizarGravacao(ids[0]);
   }
 
-  // 5) Recria as EDIÇÕES como TAREFA (to-do) no Google — nunca como evento.
+  // 5) Recria as EDIÇÕES como TAREFA (to-do) no Google, nunca como evento.
   for (const c of conts) {
     if (!STATUS_EDICAO_REENVIO.includes(c.status as ContentStatus)) continue;
     await sincronizarEdicao(c.id, c.status as ContentStatus);

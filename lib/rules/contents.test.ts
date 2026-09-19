@@ -161,9 +161,9 @@ describe("responsavelAtual", () => {
   });
 
   it("pausado/cancelado -> sem responsável", () => {
-    expect(responsavelAtual(makeContent({ status: "Pausado" }), ctx)).toBe("—");
+    expect(responsavelAtual(makeContent({ status: "Pausado" }), ctx)).toBe("·");
     expect(responsavelAtual(makeContent({ status: "Cancelado" }), ctx)).toBe(
-      "—",
+      "·",
     );
   });
 });
@@ -372,7 +372,7 @@ describe("motivoPrioridade", () => {
 
   it("postagem próxima quando a data prevista está dentro da janela", () => {
     // 17/07 posta em 3 dias; entrega (48h antes) = 15/07, ainda no futuro,
-    // então não está atrasado — só "postagem próxima".
+    // então não está atrasado, só "postagem próxima".
     const c = makeContent({
       status: "Planejamento",
       priority: "Baixa",

@@ -84,7 +84,7 @@ function Cartao({
           style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
           aria-hidden="true"
         />
-        <span className="truncate">{cliente?.name ?? "—"}</span>
+        <span className="truncate">{cliente?.name ?? "·"}</span>
       </div>
       <Link
         href={`/conteudos/${content.id}`}
@@ -93,7 +93,7 @@ function Cartao({
         {content.title}
       </Link>
       <div className="mt-1 flex flex-wrap items-center gap-1">
-        <span className="text-[11px] text-gray-500">{content.format ?? "—"}</span>
+        <span className="text-[11px] text-gray-500">{content.format ?? "·"}</span>
       </div>
       {content.actual_post_date &&
       content.actual_post_date !== content.planned_date ? (
@@ -200,7 +200,7 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
           <circle cx="7" cy="15" r="1.4" />
           <circle cx="13" cy="15" r="1.4" />
         </svg>
-        Arraste pelo ícone para mudar a data da postagem — atualiza no sistema e
+        Arraste pelo ícone para mudar a data da postagem, atualiza no sistema e
         no Google Agenda.
       </p>
       <div className="overflow-x-auto">

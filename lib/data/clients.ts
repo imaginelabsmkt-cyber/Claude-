@@ -87,7 +87,7 @@ export async function obterCliente(id: string): Promise<Client | null> {
 
 /**
  * Garante que existe o "cliente" interno da favie (conteúdo próprio) e o
- * devolve. Provisionado automaticamente na primeira vez — a pessoa nunca
+ * devolve. Provisionado automaticamente na primeira vez, a pessoa nunca
  * cadastra isso. A favie fica escondida da lista de Clientes e das métricas.
  */
 export async function garantirClienteFavie(): Promise<Client | null> {

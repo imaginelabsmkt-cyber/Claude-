@@ -43,7 +43,7 @@ export async function registrarHistorico(
   }
 }
 
-const fmtData = (v: string | null) => (v ? formatarData(v) : "—");
+const fmtData = (v: string | null) => (v ? formatarData(v) : "·");
 
 /**
  * Compara o conteúdo antigo com os novos valores e retorna as mudanças
@@ -56,7 +56,7 @@ export function diffConteudo(
   nomePorId: Map<string, string>,
 ): CampoAlterado[] {
   const nome = (id: string | null | undefined) =>
-    id ? (nomePorId.get(id) ?? "—") : "—";
+    id ? (nomePorId.get(id) ?? "·") : "·";
 
   const mudancas: CampoAlterado[] = [
     { field: "Status", old: antigo.status, new: novo.status ?? antigo.status },
@@ -64,8 +64,8 @@ export function diffConteudo(
     { field: "Data prevista", old: fmtData(antigo.planned_date), new: fmtData(novo.planned_date ?? null) },
     {
       field: "Semana prevista",
-      old: antigo.planned_week != null ? String(antigo.planned_week) : "—",
-      new: novo.planned_week != null ? String(novo.planned_week) : "—",
+      old: antigo.planned_week != null ? String(antigo.planned_week) : "·",
+      new: novo.planned_week != null ? String(novo.planned_week) : "·",
     },
     { field: "Responsável (planejamento)", old: nome(antigo.planner_id), new: nome(novo.planner_id) },
     { field: "Responsável (gravação)", old: nome(antigo.recorder_id), new: nome(novo.recorder_id) },

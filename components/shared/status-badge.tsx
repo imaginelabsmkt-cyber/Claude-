@@ -23,7 +23,7 @@ export function StatusContentBadge({
 
 /**
  * Badge de prioridade. "Média" é o padrão, então NÃO mostra nada (evita poluir
- * todos os conteúdos). Só destaca quando é Alta ou Baixa — o que importa ver.
+ * todos os conteúdos). Só destaca quando é Alta ou Baixa, o que importa ver.
  */
 export function PriorityBadge({ priority }: { priority: ContentPriority }) {
   if (priority === "Média") return null;

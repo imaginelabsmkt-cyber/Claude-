@@ -37,7 +37,7 @@ export async function adicionarComentarioAction(
 }
 
 /**
- * Exclui um comentário — apenas se pertencer ao usuário autenticado.
+ * Exclui um comentário, apenas se pertencer ao usuário autenticado.
  * A cláusula user_id garante que ninguém exclua comentário de outra pessoa.
  */
 export async function excluirComentarioAction(

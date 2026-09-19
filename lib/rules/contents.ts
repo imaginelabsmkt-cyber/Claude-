@@ -5,7 +5,7 @@ import type { Content, ContentStatus } from "@/types";
  * CAMADA CENTRAL DE REGRAS DE NEGÓCIO DOS CONTEÚDOS
  * =============================================================
  * Fonte ÚNICA das regras derivadas de um conteúdo. Componentes NÃO devem
- * reimplementar estas regras — sempre importar daqui.
+ * reimplementar estas regras, sempre importar daqui.
  *
  * Calcula: próxima ação, responsável atual, prazo principal, se está
  * atrasado e o motivo da prioridade. Coberto por testes em
@@ -208,10 +208,10 @@ export function responsavelAtual(
   const producer = ctx.producer?.name ?? "Produção";
 
   // Pausado / Cancelado: sem responsável, independente do tipo.
-  if (content.status === "Pausado" || content.status === "Cancelado") return "—";
+  if (content.status === "Pausado" || content.status === "Cancelado") return "·";
 
   // ARTE / DESIGN (Carrossel, Post estático): a criação inteira é da Vitória
-  // (planner) — layout, design e capa. Só a produção de fotos (quando há) é
+  // (planner), layout, design e capa. Só a produção de fotos (quando há) é
   // sua, mas o dono da demanda continua sendo a Vitória.
   if (ehArte(content.format)) {
     switch (content.status) {
@@ -248,7 +248,7 @@ export function responsavelAtual(
     case "Publicado":
       return ctx.publisherName ?? producer;
     default:
-      return "—";
+      return "·";
   }
 }
 
@@ -449,7 +449,7 @@ export function estaAtrasado(
 }
 
 // -------------------------------------------------------------
-// Urgência automática (por prazo) — o mais apertado entre o prazo da ETAPA
+// Urgência automática (por prazo), o mais apertado entre o prazo da ETAPA
 // atual e a DATA DE POSTAGEM. "Urgente" manual sempre no topo (reforço).
 // -------------------------------------------------------------
 export type NivelUrgencia =
@@ -542,7 +542,7 @@ export function compararUrgencia(a: Urgencia, b: Urgencia): number {
 
 // -------------------------------------------------------------
 // Mês EFETIVO do conteúdo (para o acompanhamento por mês).
-// Depende do status, não de um campo fixo — porque "ainda não postado"
+// Depende do status, não de um campo fixo, porque "ainda não postado"
 // pertence ao mês ATUAL (rola sozinho com o tempo):
 //   - Publicado  => mês em que REALMENTE saiu (data real da postagem).
 //   - Cancelado  => congelado no mês dele (reference_month).
@@ -577,7 +577,7 @@ export function mesEfetivo(
 /**
  * Entrega em alerta: entrou na janela de 48h antes da postagem (prazo de
  * entrega atingido/vencido), a postagem ainda NÃO chegou e o conteúdo ainda
- * não está pronto. NÃO é "atrasado" — é sinal de "alta prioridade para
+ * não está pronto. NÃO é "atrasado", é sinal de "alta prioridade para
  * entregar agora". Publicado/Pausado/Cancelado nunca entram.
  */
 export function entregaEmAlerta(

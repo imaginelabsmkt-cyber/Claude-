@@ -123,7 +123,7 @@ function CelulaTitulo({
 }
 
 // Controle "fantasma": aparece como texto e só ganha moldura ao passar o
-// mouse / focar — evita a "parede de caixas" que polui a leitura.
+// mouse / focar, evita a "parede de caixas" que polui a leitura.
 const CLASSE_SELECT =
   "w-full max-w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-500 disabled:opacity-60";
 
@@ -184,7 +184,7 @@ function Linha({
           className={cn(CLASSE_SELECT, "font-medium")}
           style={{ color: est.texto }}
         >
-          <option value="">—</option>
+          <option value="">·</option>
           {FORMAT_OPTIONS.map((f) => (
             <option key={f} value={f}>
               {f}
@@ -231,7 +231,7 @@ function Linha({
         />
       </td>
 
-      {/* Responsável — automático conforme a etapa (só leitura) */}
+      {/* Responsável, automático conforme a etapa (só leitura) */}
       {compacto ? null : (
         <td className="px-2 py-1.5">
           <span className="px-1.5 text-xs font-medium text-gray-700">

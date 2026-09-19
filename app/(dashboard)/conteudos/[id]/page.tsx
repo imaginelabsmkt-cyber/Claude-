@@ -112,7 +112,7 @@ export default async function ConteudoPage({ params }: PageProps) {
           <Item rotulo="Prioridade">
             <QuickPriority id={conteudo.id} priority={conteudo.priority} />
           </Item>
-          <Item rotulo="Formato">{conteudo.format ?? "—"}</Item>
+          <Item rotulo="Formato">{conteudo.format ?? "·"}</Item>
           <Item rotulo="Próxima ação">{proximaAcao(conteudo.status)}</Item>
           <Item rotulo="Responsável atual">{responsavel}</Item>
           <Item rotulo="Prazo principal">
@@ -141,13 +141,13 @@ export default async function ConteudoPage({ params }: PageProps) {
         />
       ) : (
         <>
-      {/* Planejamento — mostra só o que está preenchido (sem campos vazios) */}
+      {/* Planejamento, mostra só o que está preenchido (sem campos vazios) */}
       <div className="mt-6">
         <h2 className="mb-2 text-sm font-semibold text-gray-900">Planejamento</h2>
         <Card>
           <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             <Item rotulo="Mês de referência">
-              {conteudo.reference_month ?? "—"}
+              {conteudo.reference_month ?? "·"}
             </Item>
             <PlanejamentoDatas
               contentId={conteudo.id}
@@ -210,7 +210,7 @@ export default async function ConteudoPage({ params }: PageProps) {
         format={conteudo.format}
       />
 
-      {/* Postagem — último passo, depois do roteiro */}
+      {/* Postagem, último passo, depois do roteiro */}
       <PostagemStage content={conteudo} />
         </>
       )}

@@ -25,7 +25,7 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
   const mesAtual = hojeISO(new Date()).slice(0, 7);
   const mesSel = searchParams.reference_month ?? mesAtual;
   // O mês NÃO é filtrado no banco: usamos o "mês efetivo" (que depende do
-  // status — pendente cai no mês atual; publicado, no mês real; cancelado,
+  // status, pendente cai no mês atual; publicado, no mês real; cancelado,
   // congelado). Os demais filtros continuam no banco.
   const filtros: FiltrosConteudo = { ...searchParams, reference_month: undefined };
 

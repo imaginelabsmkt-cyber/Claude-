@@ -95,7 +95,7 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
           </div>
           <p className="text-xs text-gray-500">
             “Reenviar tudo” atualiza (ou cria o que faltar) reuniões, postagens,
-            gravações — inclusive as já realizadas — e edições, nos calendários
+            gravações, inclusive as já realizadas, e edições, nos calendários
             certos. <strong>Não apaga</strong> os eventos que você criou à mão.
             Use se algo não apareceu na agenda.
           </p>

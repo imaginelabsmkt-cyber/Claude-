@@ -18,7 +18,7 @@ interface ContentsToolbarProps {
   meses: string[];
   /** Mês efetivo selecionado ("YYYY-MM" ou "todos"). */
   mesSelecionado?: string;
-  /** Mês atual ("YYYY-MM") — garantido na lista mesmo sem conteúdo ainda. */
+  /** Mês atual ("YYYY-MM"), garantido na lista mesmo sem conteúdo ainda. */
   mesAtual?: string;
 }
 

@@ -14,8 +14,8 @@ export const dynamic = "force-dynamic";
 /**
  * Cron dos lembretes. Disparado pela Vercel Cron em 2 horários (para não
  * chegar tudo de uma vez), via ?bloco=:
- *   - "agenda" (manhã): o que é de hoje — vence hoje, gravações de hoje.
- *   - "prazos" (tarde): pendências — atrasados (demandas/vídeos/artes) e o que
+ *   - "agenda" (manhã): o que é de hoje, vence hoje, gravações de hoje.
+ *   - "prazos" (tarde): pendências, atrasados (demandas/vídeos/artes) e o que
  *     está perto de vencer.
  * Sem bloco (ou "todos"), envia tudo (útil pra teste manual).
  * Protegido por CRON_SECRET quando configurado.
@@ -56,7 +56,7 @@ async function executar(req: Request): Promise<NextResponse> {
   daqui2.setDate(daqui2.getDate() + 2);
   const limitePerto = hojeISO(daqui2); // "perto de vencer" = até 2 dias
 
-  // Quem acompanha TUDO (Vitória + Fran + Admin) — recebe também o atraso de
+  // Quem acompanha TUDO (Vitória + Fran + Admin), recebe também o atraso de
   // conteúdos da agência, com a visão geral.
   const { data: coord } = await admin
     .from("profiles")
@@ -104,7 +104,7 @@ async function executar(req: Request): Promise<NextResponse> {
 
   const plural = (n: number, s: string, p: string) => (n > 1 ? p : s);
 
-  // Totais da AGÊNCIA (a coordenação — você + Vitória — vê tudo).
+  // Totais da AGÊNCIA (a coordenação, você + Vitória, vê tudo).
   const demAll = demandas ?? [];
   const totalAtrasadas = demAll.filter((d) => (d.due_date ?? "") < hoje).length;
   const totalHoje = demAll.filter((d) => d.due_date === hoje).length;
@@ -141,7 +141,7 @@ async function executar(req: Request): Promise<NextResponse> {
     }[] = [];
 
     // ----- Bloco PRAZOS (tarde): pendências -----
-    // Atrasados — cada tipo é uma notificação.
+    // Atrasados, cada tipo é uma notificação.
     if (fazPrazos && dAtras > 0) {
       avisos.push({
         title: "⚠️ Demandas atrasadas",

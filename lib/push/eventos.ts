@@ -4,7 +4,7 @@ import { usuarioAtualId } from "@/lib/auth";
 import { enviarPushParaUsuarios, type PushPayload } from "@/lib/push/send";
 
 /**
- * Notificações "na hora" (event-driven). Melhor esforço: nunca lançam — devem
+ * Notificações "na hora" (event-driven). Melhor esforço: nunca lançam, devem
  * ser chamadas dentro de `aposResposta` para não travar a ação.
  *
  * Regra: nunca notifica quem fez a ação (você não é avisada do que você mesma
@@ -53,7 +53,7 @@ async function idsPorPapel(papel: string): Promise<string[]> {
   return (data ?? []).map((p) => p.id);
 }
 
-/** Notifica a Produção (Fran) — eventos de gravação. */
+/** Notifica a Produção (Fran), eventos de gravação. */
 export async function notificarProducer(payload: PushPayload): Promise<void> {
   try {
     await enviarExcluindoAtor(await idsPorPapel("producer"), payload);

@@ -209,7 +209,7 @@ export default async function DashboardPage({
     <>
       <PageHeader titulo="Dashboard" descricao="Visão geral da produção" icone="dashboard" tom="indigo" />
 
-      {/* Cards principais — primeira coisa do dashboard */}
+      {/* Cards principais, primeira coisa do dashboard */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         {cards.map((c) => (
           <StatCard key={c.rotulo} {...c} />
@@ -256,7 +256,7 @@ export default async function DashboardPage({
                               aria-hidden="true"
                             />
                             <span className="truncate hover:underline">
-                              {cl?.name ?? "—"}
+                              {cl?.name ?? "·"}
                             </span>
                           </Link>
                           <Link
@@ -281,7 +281,7 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      {/* Produção por cliente — mês selecionável */}
+      {/* Produção por cliente, mês selecionável */}
       <div className="mt-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-gray-900">
@@ -357,7 +357,7 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      {/* Conteúdos por status — visão geral (não é do mês) */}
+      {/* Conteúdos por status, visão geral (não é do mês) */}
       <div className="mt-8">
         <Card>
           <CardContent>
@@ -369,7 +369,7 @@ export default async function DashboardPage({
         </Card>
       </div>
 
-      {/* Próximas postagens (só leitura — clique para abrir) */}
+      {/* Próximas postagens (só leitura, clique para abrir) */}
       <div className="mt-8">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-900">
@@ -415,7 +415,7 @@ export default async function DashboardPage({
                         style={{ backgroundColor: cl?.color ?? "#e5e7eb" }}
                         aria-hidden="true"
                       />
-                      <span className="hover:underline">{cl?.name ?? "—"}</span>
+                      <span className="hover:underline">{cl?.name ?? "·"}</span>
                     </Link>
                     <StatusContentBadge status={c.status} arte={ehArte(c.format)} />
                   </div>
@@ -426,10 +426,10 @@ export default async function DashboardPage({
         )}
       </div>
 
-      {/* Resumo por cliente — do mês selecionado (mesmo seletor da produção) */}
+      {/* Resumo por cliente, do mês selecionado (mesmo seletor da produção) */}
       <div className="mt-8">
         <h2 className="mb-3 text-sm font-semibold capitalize text-gray-900">
-          Resumo por cliente — {tituloMesSel}
+          Resumo por cliente, {tituloMesSel}
         </h2>
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">

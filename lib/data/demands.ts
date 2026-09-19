@@ -25,7 +25,7 @@ export async function listDemands(): Promise<Demand[]> {
 }
 
 /**
- * Demandas de um cliente CONCLUÍDAS (Feita) dentro de um período — inclui as
+ * Demandas de um cliente CONCLUÍDAS (Feita) dentro de um período, inclui as
  * arquivadas, pois servem de registro do que foi feito (relatório semanal).
  * `de`/`ate` são datas ISO (YYYY-MM-DD); filtra pela data de conclusão
  * (updated_at).

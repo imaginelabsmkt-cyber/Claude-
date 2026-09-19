@@ -81,7 +81,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
                 )}
               </div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                <span>Nicho: {c.niche ?? "—"}</span>
+                <span>Nicho: {c.niche ?? "·"}</span>
                 <span>Conteúdos: {c.contentsCount}</span>
                 <span>Atualizado: {formatarData(c.updated_at)}</span>
               </div>
@@ -126,7 +126,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {c.niche ?? "—"}
+                      {c.niche ?? "·"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">{c.contentsCount}</td>
                     <td className="px-4 py-3 text-gray-600">

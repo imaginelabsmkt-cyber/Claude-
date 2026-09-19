@@ -1,6 +1,6 @@
 /**
  * Helpers de OAuth do Google (fluxo "authorization code" com refresh token).
- * Sem SDK — só fetch nos endpoints oficiais. As credenciais vêm de variáveis
+ * Sem SDK, só fetch nos endpoints oficiais. As credenciais vêm de variáveis
  * de ambiente configuradas na Vercel:
  *   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
  * A redirect URI é derivada da origem da requisição (deve estar registrada

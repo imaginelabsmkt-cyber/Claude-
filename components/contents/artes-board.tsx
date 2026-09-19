@@ -94,7 +94,7 @@ function Card({ content, cliente }: { content: Content; cliente?: OpcaoCliente }
           style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
           aria-hidden="true"
         />
-        <span className="truncate">{cliente?.name ?? "—"}</span>
+        <span className="truncate">{cliente?.name ?? "·"}</span>
       </div>
       <Link
         href={`/conteudos/${content.id}`}

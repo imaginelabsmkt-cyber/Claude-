@@ -169,7 +169,7 @@ export function PushToggle() {
       <p className="text-sm text-gray-600">
         {inscrito
           ? "Notificações ativas neste aparelho. Você recebe avisos de gravações, prazos e demandas."
-          : "Ative para receber avisos de gravações, prazos e demandas direto no aparelho — mesmo com o favie fechado."}
+          : "Ative para receber avisos de gravações, prazos e demandas direto no aparelho, mesmo com o favie fechado."}
       </p>
       <div className="flex flex-wrap gap-2">
         {inscrito ? (

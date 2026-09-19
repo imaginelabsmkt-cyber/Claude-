@@ -115,7 +115,7 @@ describe("parsePlanejamento", () => {
   });
 });
 
-describe("parsePlanejamento — formato Kiku", () => {
+describe("parsePlanejamento, formato Kiku", () => {
   // Kiku: sem marcador "SEMANA" e data escrita "DATA POSTAGEM:" (sem "DA").
   const AMOSTRA_KIKU = `
 PLANEJAMENTO KIKU

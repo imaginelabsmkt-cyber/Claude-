@@ -105,7 +105,7 @@ export async function salvarPlanningAction(
 /**
  * Reenvia ao Google TODOS os planejamentos do mês (reunião => evento na agenda
  * "Imagine Reuniões"; prazo => tarefa). Limpa os vínculos antigos para recriar
- * no calendário certo — útil quando as reuniões não apareceram na agenda nova.
+ * no calendário certo, útil quando as reuniões não apareceram na agenda nova.
  */
 export async function reenviarPlanejamentosGoogleAction(
   referenceMonth: string,

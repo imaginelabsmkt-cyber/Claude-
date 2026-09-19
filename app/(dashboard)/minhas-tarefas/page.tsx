@@ -146,7 +146,7 @@ export default async function MinhasTarefasPage() {
 
   // Planejamentos a FAZER (planner): reunião já aconteceu e ainda não entregou.
   // Ordenados por prazo de entrega (fila de prioridade: quem entrega antes vem
-  // primeiro). A reunião em si não aparece — só a demanda de criar o plano.
+  // primeiro). A reunião em si não aparece, só a demanda de criar o plano.
   const planejamentosAFazer: Planning[] =
     role === "producer"
       ? []
@@ -326,7 +326,7 @@ export default async function MinhasTarefasPage() {
                         <TaskCard
                           key={c.id}
                           content={c}
-                          clienteNome={clientesById.get(c.client_id)?.name ?? "—"}
+                          clienteNome={clientesById.get(c.client_id)?.name ?? "·"}
                           cor={clientesById.get(c.client_id)?.color}
                         />
                       ))}

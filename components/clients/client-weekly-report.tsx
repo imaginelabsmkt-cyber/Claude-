@@ -35,7 +35,7 @@ export function ClientWeeklyReport({
   feitas,
 }: {
   clienteNome: string;
-  /** Demandas concluídas (Feita), inclusive arquivadas — data em updated_at. */
+  /** Demandas concluídas (Feita), inclusive arquivadas, data em updated_at. */
   feitas: Demand[];
 }) {
   const [offset, setOffset] = useState(0); // 0 = semana atual, -1 = anterior…
@@ -67,7 +67,7 @@ export function ClientWeeklyReport({
 
   const copiar = () => {
     const linhas = [
-      `Relatório — ${clienteNome}`,
+      `Relatório, ${clienteNome}`,
       `Semana de ${fmtDia(ini)} a ${fmtDia(fim)}`,
       "",
     ];
@@ -101,7 +101,7 @@ export function ClientWeeklyReport({
             ←
           </button>
           <span className="text-xs font-medium text-gray-600">
-            {fmtDia(ini)} – {fmtDia(fim)}
+            {fmtDia(ini)} a {fmtDia(fim)}
             {offset === 0 ? " (atual)" : ""}
           </span>
           <button

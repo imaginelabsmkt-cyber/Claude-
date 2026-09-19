@@ -19,7 +19,7 @@ interface ContentActionsProps {
   redirecionarAoExcluir?: string;
   /** Tamanho compacto (para cards). */
   compacto?: boolean;
-  /** Mostra apenas o menu ⋮ (sem o botão principal) — útil por linha. */
+  /** Mostra apenas o menu ⋮ (sem o botão principal), útil por linha. */
   soMenu?: boolean;
 }
 

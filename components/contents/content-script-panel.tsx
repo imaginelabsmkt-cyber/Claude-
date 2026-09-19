@@ -200,7 +200,7 @@ function TabelaRoteiro({
               {visiveis.map((l, i) => (
                 <tr key={i} className="border-t border-gray-100">
                   <td className="break-words px-3 py-2 leading-relaxed text-gray-800">
-                    {l.conteudo || "—"}
+                    {l.conteudo || "·"}
                   </td>
                 </tr>
               ))}
@@ -231,7 +231,7 @@ function TabelaRoteiro({
                   {l.rotulo || ""}
                 </td>
                 <td className="break-words px-3 py-2 leading-relaxed text-gray-800">
-                  {l.conteudo || "—"}
+                  {l.conteudo || "·"}
                 </td>
               </tr>
             ))}
@@ -322,10 +322,10 @@ function TabelaReconstruida({
             {visiveis.map((r, i) => (
               <tr key={i} className="border-t border-gray-100 align-top">
                 <td className="whitespace-pre-wrap break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
-                  {r.left || "—"}
+                  {r.left || "·"}
                 </td>
                 <td className="whitespace-pre-wrap break-words px-3 py-2 italic leading-relaxed text-gray-500">
-                  {r.right || "—"}
+                  {r.right || "·"}
                 </td>
               </tr>
             ))}
@@ -388,10 +388,10 @@ function TabelaDoc({ linhas, grande = false }: { linhas: string[]; grande?: bool
             {visiveis.map((r, i) => (
               <tr key={i} className="border-t border-gray-100 align-top">
                 <td className="whitespace-pre-wrap break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
-                  {r[0] || "—"}
+                  {r[0] || "·"}
                 </td>
                 <td className="whitespace-pre-wrap break-words px-3 py-2 italic leading-relaxed text-gray-500">
-                  {r[1] || "—"}
+                  {r[1] || "·"}
                 </td>
               </tr>
             ))}
@@ -631,7 +631,7 @@ function TabelaEdicao({
                 <input
                   value={l.rotulo}
                   onChange={(e) => onCampo(i, "rotulo", e.target.value)}
-                  placeholder="—"
+                  placeholder="·"
                   className="w-full rounded border border-transparent px-1.5 py-1 text-xs font-semibold uppercase text-brand-700 outline-none hover:border-gray-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                 />
               </td>
@@ -1019,10 +1019,10 @@ export function ContentScriptPanel({
 
   return (
     <div className="mt-6 space-y-6">
-      {/* Legenda — sempre visível, pronta para copiar e editável */}
+      {/* Legenda, sempre visível, pronta para copiar e editável */}
       {legendaTexto ? <LegendaEditavel id={id} textoInicial={legendaTexto} /> : null}
 
-      {/* Roteiro / Layout das artes — tabela, editável e com tela cheia */}
+      {/* Roteiro / Layout das artes, tabela, editável e com tela cheia */}
       {blocos.length > 0 ? (
         <RoteiroEditavel
           id={id}

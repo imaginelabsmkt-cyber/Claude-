@@ -24,7 +24,7 @@ interface RecordingCardProps {
   cor?: string | null;
 }
 
-/** Campo compacto: NÃO renderiza nada quando está vazio (sem poluir com "—"). */
+/** Campo compacto: NÃO renderiza nada quando está vazio (sem poluir com "·"). */
 function Campo({
   rotulo,
   valor,
@@ -32,7 +32,7 @@ function Campo({
   rotulo: string;
   valor: string | null | undefined;
 }) {
-  if (!valor || valor === "—") return null;
+  if (!valor || valor === "·") return null;
   return (
     <div>
       <span className="text-[10px] uppercase tracking-wide text-gray-400">
@@ -63,7 +63,7 @@ export function RecordingCard({
   const gravado = content.status === "Gravado";
 
   /**
-   * @param moveCard quando true, o card sai desta seção — some na hora
+   * @param moveCard quando true, o card sai desta seção, some na hora
    *   (feedback instantâneo) e volta se a ação falhar.
    */
   function executar(

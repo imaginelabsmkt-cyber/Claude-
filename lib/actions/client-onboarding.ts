@@ -20,7 +20,7 @@ export interface SalvarResult {
 
 /**
  * Salva (upsert) o DNA/onboarding do cliente. Recebe o mapa completo
- * campo->valor. Só o texto do formulário — nada de arquivos.
+ * campo->valor. Só o texto do formulário, nada de arquivos.
  */
 export async function salvarOnboardingAction(
   clientId: string,
@@ -60,7 +60,7 @@ export interface PreencherIAResult {
 
 /**
  * Preenche o DNA do cliente com IA, lendo o diagnóstico mais recente dele.
- * Não salva sozinho — devolve os campos para a Fran revisar e salvar.
+ * Não salva sozinho, devolve os campos para a Fran revisar e salvar.
  */
 export async function preencherOnboardComIAAction(
   clientId: string,
@@ -101,7 +101,7 @@ export async function preencherOnboardComIAAction(
 /**
  * Preenche o DNA do cliente a partir de um TEXTO colado (respostas do
  * formulário do cliente, briefing, bio, áudio transcrito, conversa…). A IA
- * organiza nos campos certos. Não salva sozinho — devolve para revisar.
+ * organiza nos campos certos. Não salva sozinho, devolve para revisar.
  */
 export async function preencherOnboardDeTextoAction(
   clientId: string,

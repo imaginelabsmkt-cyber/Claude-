@@ -22,7 +22,7 @@ import type { OpcaoCliente } from "@/lib/data/contents";
 interface EditQueueProps {
   itens: Content[];
   clientes: OpcaoCliente[];
-  /** Data de hoje (ISO) — para a contagem de prazo, vinda do servidor. */
+  /** Data de hoje (ISO), para a contagem de prazo, vinda do servidor. */
   hoje: string;
 }
 
@@ -144,7 +144,7 @@ function ItemFila({
               style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
               aria-hidden="true"
             />
-            <span className="truncate">{cliente?.name ?? "—"}</span>
+            <span className="truncate">{cliente?.name ?? "·"}</span>
             {prazoLabel ? (
               <span className={`shrink-0 font-semibold ${prazoLabel.cor}`}>
                 · ⏰ {prazoLabel.txt}
@@ -211,8 +211,8 @@ const STATUS_EDITANDO: ContentStatus[] = ["Em edição", "Ajustes"];
 
 /**
  * Fila de edição em duas áreas:
- *  1. "Editando agora" — o que está EM EDIÇÃO / AJUSTES (trabalho ativo).
- *  2. "Na fila" — o que ainda vai editar, agrupado por URGÊNCIA
+ *  1. "Editando agora", o que está EM EDIÇÃO / AJUSTES (trabalho ativo).
+ *  2. "Na fila", o que ainda vai editar, agrupado por URGÊNCIA
  *     (Atrasado/Hoje, Esta semana, Próximas).
  * Cada card mostra formato, cliente e a contagem de prazo, e tem o controle
  * "Editar em" (bloco na Agenda).

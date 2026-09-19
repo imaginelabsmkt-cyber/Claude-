@@ -14,7 +14,7 @@ const STATUS_FILA: ContentStatus[] = [
   "Ajustes",
 ];
 
-/** Fila de edição — foco na Fran, com ordenação automática e manual. */
+/** Fila de edição, foco na Fran, com ordenação automática e manual. */
 export default async function FilaEdicaoPage() {
   const [todos, clientes] = await Promise.all([
     listContents({}),

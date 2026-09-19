@@ -7,7 +7,7 @@ type SB = SupabaseClient<Database>;
 
 /**
  * Marca a conexão do Google como CAÍDA (token revogado/expirado) em vez de
- * apagar a conta — assim o sistema lembra que a pessoa precisa reconectar e
+ * apagar a conta, assim o sistema lembra que a pessoa precisa reconectar e
  * mostra o aviso. Notifica a pessoa uma única vez (não repete a cada tentativa
  * de sincronizar). Melhor esforço.
  */
@@ -35,6 +35,6 @@ export async function marcarGoogleRevogado(
       tag: "google-desconectou",
     });
   } catch {
-    /* melhor esforço — nunca quebra a sincronização */
+    /* melhor esforço, nunca quebra a sincronização */
   }
 }

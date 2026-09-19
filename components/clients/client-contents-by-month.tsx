@@ -30,7 +30,7 @@ function rotuloMes(iso: string): string {
 
 /**
  * Conteúdos do cliente divididos por MÊS (usa mesEfetivo, a mesma regra do
- * Dashboard/Conteúdos). Conteúdo ainda não publicado pertence ao mês atual —
+ * Dashboard/Conteúdos). Conteúdo ainda não publicado pertence ao mês atual ·
  * então o que não foi feito "rola" para o mês seguinte conforme o tempo passa,
  * em vez de sumir. Também dá para ver "Todos".
  */

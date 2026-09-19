@@ -138,7 +138,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
             ← <span className="hidden sm:inline">Semana anterior</span>
           </Link>
           <span className="text-center text-sm font-medium text-gray-700">
-            {inicio.getDate()}/{inicio.getMonth() + 1} —{" "}
+            {inicio.getDate()}/{inicio.getMonth() + 1} a{" "}
             {addDays(inicio, 6).getDate()}/{addDays(inicio, 6).getMonth() + 1}
           </span>
           <Link
@@ -240,7 +240,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
                     key={c.id}
                     content={c}
                     clienteNome={
-                      clientes.find((cl) => cl.id === c.client_id)?.name ?? "—"
+                      clientes.find((cl) => cl.id === c.client_id)?.name ?? "·"
                     }
                     cor={clientes.find((cl) => cl.id === c.client_id)?.color}
                   />
@@ -278,7 +278,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
                 key={c.id}
                 content={c}
                 clienteNome={
-                  clientes.find((cl) => cl.id === c.client_id)?.name ?? "—"
+                  clientes.find((cl) => cl.id === c.client_id)?.name ?? "·"
                 }
                 cor={clientes.find((cl) => cl.id === c.client_id)?.color}
               />

@@ -5,7 +5,7 @@ import { listProfiles, listClientOptions } from "@/lib/data/contents";
 
 export const dynamic = "force-dynamic";
 
-/** Demandas gerais do time — tarefas fora do fluxo de conteúdo. */
+/** Demandas gerais do time, tarefas fora do fluxo de conteúdo. */
 export default async function DemandasPage() {
   const [demands, profiles, clientes] = await Promise.all([
     listDemands(),

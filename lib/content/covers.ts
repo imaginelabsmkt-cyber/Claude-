@@ -6,7 +6,7 @@
  *   "precisa de fotos" na arte da capa => vira demanda de foto da Fran).
  *
  * A capa é um conteúdo de formato "Post estático" (aparece no quadro de Artes),
- * vinculado ao vídeo por cover_source_id — o que evita duplicar a capa.
+ * vinculado ao vídeo por cover_source_id, o que evita duplicar a capa.
  */
 import { createClient } from "@/lib/supabase/server";
 import { ehArte } from "@/lib/rules/contents";

@@ -4,7 +4,7 @@
  * Definido em código (não no banco) para poder evoluir sem migração: os
  * valores ficam num JSONB (client_onboarding.data) chaveados por `id`.
  * Quando a Fran mandar o formulário oficial, é só ajustar as seções/campos
- * aqui — nada muda no banco.
+ * aqui, nada muda no banco.
  */
 
 export interface CampoOnboarding {

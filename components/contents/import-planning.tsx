@@ -185,7 +185,7 @@ export function ImportPlanning({ clientes }: ImportPlanningProps) {
                       )
                     }
                   >
-                    <option value="">—</option>
+                    <option value="">·</option>
                     {WEEK_OPTIONS.map((w) => (
                       <option key={w} value={String(w)}>
                         {w}

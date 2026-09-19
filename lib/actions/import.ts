@@ -19,7 +19,7 @@ export interface AnaliseResult {
 
 /**
  * Lê o .docx do planejamento e devolve os conteúdos detectados (prévia).
- * NÃO grava nada — só interpreta.
+ * NÃO grava nada, só interpreta.
  */
 export async function analisarPlanejamentoAction(
   formData: FormData,
@@ -98,7 +98,7 @@ export async function importarConteudosAction(input: {
     title: (it.titulo ?? "Conteúdo sem título").slice(0, 200),
     format: it.formato,
     // O roteiro já vem pronto no documento. Vídeo (precisa gravação) entra
-    // direto como "Aguardando gravação" — não precisa de check manual para ir
+    // direto como "Aguardando gravação", não precisa de check manual para ir
     // pra gravação. Arte/carrossel segue no fluxo de criação ("Roteiro pronto").
     status: (it.precisaGravacao ? "Aguardando gravação" : "Roteiro pronto") as
       | "Aguardando gravação"

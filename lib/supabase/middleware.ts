@@ -55,7 +55,7 @@ export async function atualizarSessao(request: NextRequest) {
 
   // getUser() valida o token e renova a sessão. Com TEMPO-LIMITE: se o Supabase
   // demorar (ex.: projeto "dormindo"), o middleware NÃO pendura o site inteiro
-  // com um 504 — degrada em segurança e deixa passar (a página revalida a
+  // com um 504, degrada em segurança e deixa passar (a página revalida a
   // sessão do seu jeito).
   const rota = request.nextUrl.pathname;
   const ehPublica = ROTAS_PUBLICAS.includes(rota);

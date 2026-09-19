@@ -21,7 +21,7 @@ export interface OpcoesListagem {
   incluirClientesInativos?: boolean;
   /**
    * Esconde as CAPAS (arte vinculada a um vídeo por cover_source_id). Capa não
-   * é conteúdo — mora na aba Artes e nas tarefas da Vitória. Usado na aba
+   * é conteúdo, mora na aba Artes e nas tarefas da Vitória. Usado na aba
    * Conteúdos.
    */
   excluirCapas?: boolean;
@@ -63,7 +63,7 @@ export async function listContents(
   }
 
   // Capas não aparecem na lista de Conteúdos. Detecta pelo vínculo interno
-  // (cover_source_id) E pelo título "Capa: ..." — algumas capas vêm da
+  // (cover_source_id) E pelo título "Capa: ...", algumas capas vêm da
   // importação/criação manual sem o vínculo.
   if (opcoes.excluirCapas) {
     query = query.is("cover_source_id", null).not("title", "ilike", "Capa:%");
@@ -107,7 +107,7 @@ export async function listClientOptions(): Promise<OpcaoCliente[]> {
   return data ?? [];
 }
 
-/** Todos os clientes (id, nome, cor) — inclusive inativos, para exibição. */
+/** Todos os clientes (id, nome, cor), inclusive inativos, para exibição. */
 export async function listAllClients(): Promise<OpcaoCliente[]> {
   const supabase = createClient();
   const { data } = await supabase

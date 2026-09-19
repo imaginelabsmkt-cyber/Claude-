@@ -12,7 +12,7 @@ import {
 } from "@/lib/actions/ideas";
 import { FORMAT_OPTIONS, type ContentIdea } from "@/types";
 
-/** Pilares sugeridos (texto livre — pode digitar outro). */
+/** Pilares sugeridos (texto livre, pode digitar outro). */
 const PILARES = [
   "Bastidores",
   "Cases",
@@ -140,7 +140,7 @@ export function IdeasBoard({
       {/* Lista de ideias */}
       {ideias.length === 0 ? (
         <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-          Nenhuma ideia por aqui ainda. Jogue a primeira acima — quando surgir,
+          Nenhuma ideia por aqui ainda. Jogue a primeira acima. Quando surgir,
           é só anotar. 💡
         </p>
       ) : (

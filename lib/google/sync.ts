@@ -4,7 +4,7 @@
  * - Edição (trabalho interno) => TAREFA (com o quadradinho de concluir).
  *
  * Tudo é "melhor esforço": se o Google falhar, a ação principal do sistema
- * NÃO quebra — apenas não sincroniza (e loga no servidor).
+ * NÃO quebra, apenas não sincroniza (e loga no servidor).
  * Empurra para a conta do usuário que está fazendo a ação (se conectado).
  */
 import { createClient } from "@/lib/supabase/server";
@@ -40,7 +40,7 @@ type SB = ReturnType<typeof createClient>;
 /**
  * Tipo de item sincronizado: evento de gravação (event), tarefa de edição
  * (task), evento de postagem (post) ou bloco da sessão de edição na agenda
- * (edit_event — quando a Fran agenda quando vai editar).
+ * (edit_event, quando a Fran agenda quando vai editar).
  */
 type SyncKind = "event" | "task" | "post" | "edit_event";
 
@@ -116,7 +116,7 @@ async function apagarSync(
 // "RG" do evento (idempotência): grava no próprio evento do Google o id do
 // conteúdo + o tipo. Assim, MESMO que os vínculos locais (google_sync) se
 // percam, ao ressincronizar o sistema ACHA o evento que já existe e o atualiza,
-// em vez de criar outro — acabando com as duplicatas.
+// em vez de criar outro, acabando com as duplicatas.
 // -------------------------------------------------------------
 export function marcador(id: string, kind: SyncKind): Record<string, unknown> {
   return { private: { favieId: id, favieKind: kind } };
@@ -256,7 +256,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
       .maybeSingle();
     if (!c) return;
 
-    // Capa (arte vinculada a um vídeo) NUNCA vira evento — capa é sempre TAREFA.
+    // Capa (arte vinculada a um vídeo) NUNCA vira evento, capa é sempre TAREFA.
     // Se havia um evento antigo de capa, remove-o.
     if (c.cover_source_id) {
       const antigo = await idSync(sb, contentId, userId, "event");
@@ -295,7 +295,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
     }
 
     // Evento de LOTE (compartilhado por vários conteúdos): mudanças individuais
-    // não devem mexer no evento único — só desvinculam este conteúdo.
+    // não devem mexer no evento único, só desvinculam este conteúdo.
     const compartilhado = existente
       ? (await contarEventosSync(sb, userId, existente)) > 1
       : false;
@@ -415,7 +415,7 @@ export async function sincronizarGravacao(contentId: string): Promise<void> {
 }
 
 // -------------------------------------------------------------
-// EVENTO (gravação em LOTE) — um evento só para vários vídeos
+// EVENTO (gravação em LOTE), um evento só para vários vídeos
 // -------------------------------------------------------------
 /**
  * Cria UM evento para vários vídeos do mesmo cliente (gravados juntos).
@@ -561,10 +561,10 @@ export async function sincronizarEdicao(
       (novoStatus === "Gravado" && !!c?.editing_date);
 
     // Saiu da edição. Se AVANÇOU (revisão em diante), marca a tarefa como
-    // CONCLUÍDA no Google — fica de registro de que editou naquele dia. Se foi
+    // CONCLUÍDA no Google, fica de registro de que editou naquele dia. Se foi
     // cancelado/pausado/voltou pra trás, aí sim remove a tarefa.
     if (!emEdicao || !c) {
-      // Saiu da edição. NUNCA apagamos a tarefa automaticamente — ela é o
+      // Saiu da edição. NUNCA apagamos a tarefa automaticamente, ela é o
       // registro do trabalho e deve continuar visível no Google.
       if (existente) {
         const concluiu = !!c && STATUS_EDICAO_CONCLUIDA.includes(novoStatus);
@@ -585,7 +585,7 @@ export async function sincronizarEdicao(
           await apagarSync(sb, contentId, userId, "task");
         }
         // Se voltou pra trás / pausou / cancelou: deixa a tarefa como está
-        // (não apaga, não conclui) — ela reaparece/atualiza se voltar a editar.
+        // (não apaga, não conclui), ela reaparece/atualiza se voltar a editar.
       }
       return;
     }
@@ -657,7 +657,7 @@ export async function sincronizarEdicao(
 }
 
 // -------------------------------------------------------------
-// EVENTO (postagem) — calendário "Imagine Postagens"
+// EVENTO (postagem), calendário "Imagine Postagens"
 // -------------------------------------------------------------
 export async function sincronizarPostagem(contentId: string): Promise<void> {
   try {
@@ -755,7 +755,7 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
 }
 
 // -------------------------------------------------------------
-// EVENTO (sessão de edição) — bloco na agenda "Imagine Produção"
+// EVENTO (sessão de edição), bloco na agenda "Imagine Produção"
 // Quando a Fran agenda QUANDO vai editar um vídeo, vira um bloco na agenda.
 // -------------------------------------------------------------
 export async function sincronizarSessaoEdicao(contentId: string): Promise<void> {

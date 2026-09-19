@@ -15,12 +15,12 @@ interface PageProps {
   searchParams: { google?: string };
 }
 
-/** Configurações — perfil do usuário, integrações e sessão. */
+/** Configurações, perfil do usuário, integrações e sessão. */
 export default async function ConfiguracoesPage({ searchParams }: PageProps) {
   const ctx = await getAuthContext();
   const nome = displayName(ctx);
-  const email = ctx.user?.email ?? "—";
-  const papel = ctx.profile ? ROLE_LABELS[ctx.profile.role] : "—";
+  const email = ctx.user?.email ?? "·";
+  const papel = ctx.profile ? ROLE_LABELS[ctx.profile.role] : "·";
   const google = await obterConexaoGoogle();
 
   return (

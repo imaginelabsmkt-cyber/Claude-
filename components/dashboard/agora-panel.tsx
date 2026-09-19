@@ -200,7 +200,7 @@ export function AgoraPanel({
                             href={`/clientes/${item.content.client_id}`}
                             className="block truncate text-[11px] text-gray-400 hover:text-brand-700 hover:underline"
                           >
-                            {cl?.name ?? "—"}
+                            {cl?.name ?? "·"}
                           </Link>
                         </span>
                         <span

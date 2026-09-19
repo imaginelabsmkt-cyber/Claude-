@@ -26,7 +26,7 @@ interface PageProps {
   searchParams: FiltrosConteudo & { atrasado?: string };
 }
 
-/** Página de Gravações — foco na Fran. */
+/** Página de Gravações, foco na Fran. */
 export default async function GravacoesPage({ searchParams }: PageProps) {
   const [todos, todosSemFiltro, clientes, clientOptions, meses] =
     await Promise.all([
@@ -51,7 +51,7 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
   // Candidatos a agendar em lote: ainda sem data e ANTES da etapa "Gravado".
   // (Não exige "precisa de gravação": muitos vídeos ainda não foram marcados,
   // e é justamente aqui que se agenda. Já na Fila de edição/edição em diante é
-  // porque já foi gravado — esses não aparecem.) Exclui arte (não é gravação
+  // porque já foi gravado, esses não aparecem.) Exclui arte (não é gravação
   // de vídeo), Pausado e Cancelado.
   const candidatos = todosSemFiltro.filter(
     (c) =>
@@ -80,7 +80,7 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
   semana.sort(porData);
   proxima.sort(porData);
 
-  const nomeCli = (c: Content) => clientesById.get(c.client_id)?.name ?? "—";
+  const nomeCli = (c: Content) => clientesById.get(c.client_id)?.name ?? "·";
   const corCli = (c: Content) => clientesById.get(c.client_id)?.color;
 
   const Cards = ({ titulo, lista }: { titulo: string; lista: Content[] }) => (

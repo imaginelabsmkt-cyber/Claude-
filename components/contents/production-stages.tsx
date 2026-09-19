@@ -272,7 +272,7 @@ export function ProductionStages({ content }: { content: Content }) {
     <div className="mt-6 space-y-3">
       <h2 className="text-sm font-semibold text-gray-900">Produção por etapa</h2>
 
-      {/* REFERÊNCIA — em destaque, usada na gravação e na edição */}
+      {/* REFERÊNCIA, em destaque, usada na gravação e na edição */}
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
         <div className="mb-1.5 flex items-center justify-between gap-2">
           <span className="flex items-center gap-1.5 text-sm font-semibold text-amber-900">
@@ -303,7 +303,7 @@ export function ProductionStages({ content }: { content: Content }) {
 
       {arte ? (
         <>
-          {/* PRODUÇÃO DE FOTOS (arte) — só quando precisa */}
+          {/* PRODUÇÃO DE FOTOS (arte), só quando precisa */}
           <Painel
             titulo="Produção de fotos"
             emoji="📸"

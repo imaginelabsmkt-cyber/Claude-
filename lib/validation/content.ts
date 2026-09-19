@@ -53,7 +53,7 @@ export const contentFormSchema = z.object({
     .min(1, "Semana entre 1 e 6")
     .max(6, "Semana entre 1 e 6"),
 
-  // Opcionais — texto
+  // Opcionais, texto
   description: textoOpcional(),
   content_pillar: textoOpcional(120),
   objective: textoOpcional(200),
@@ -65,7 +65,7 @@ export const contentFormSchema = z.object({
   script: z.string().trim().max(20000).optional(),
   caption: z.string().trim().max(5000).optional(),
 
-  // Opcionais — datas
+  // Opcionais, datas
   planned_date: dataOpcional,
   actual_post_date: dataOpcional,
   recording_date: dataOpcional,
@@ -73,19 +73,19 @@ export const contentFormSchema = z.object({
   recording_deadline: dataOpcional,
   editing_deadline: dataOpcional,
 
-  // Opcionais — links
+  // Opcionais, links
   script_url: urlOpcional,
   raw_files_url: urlOpcional,
   edited_file_url: urlOpcional,
   published_url: urlOpcional,
 
-  // Opcionais — responsáveis
+  // Opcionais, responsáveis
   planner_id: uuidOpcional,
   recorder_id: uuidOpcional,
   editor_id: uuidOpcional,
   publisher_id: uuidOpcional,
 
-  // Opcionais — controle
+  // Opcionais, controle
   revision_count: z.coerce.number().int().min(0).default(0),
   requires_recording: z.boolean(),
   is_fixed_date: z.boolean(),

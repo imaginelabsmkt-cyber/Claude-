@@ -6,7 +6,7 @@
  *  - postagens => "Postagens"
  * O ID de cada calendário é resolvido SEMPRE pelo nome (fonte da verdade):
  * assim, se a pessoa renomear a agenda no Google, o sistema continua usando a
- * MESMA agenda — e nunca cria duplicata. O ID resolvido fica em cache
+ * MESMA agenda, e nunca cria duplicata. O ID resolvido fica em cache
  * (google_accounts.cal_*) só como reserva para quando o Google estiver fora.
  */
 import { createClient } from "@/lib/supabase/server";
@@ -88,7 +88,7 @@ export async function calendarioId(
     return encontrada;
   }
 
-  // 2) Não achou pelo nome — usa o cache como reserva (ex.: Google fora do ar).
+  // 2) Não achou pelo nome, usa o cache como reserva (ex.: Google fora do ar).
   const { data } = await sb
     .from("google_accounts")
     .select(coluna)

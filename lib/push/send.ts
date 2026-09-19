@@ -42,7 +42,7 @@ export interface PushPayload {
 /**
  * Envia uma notificação push para todos os dispositivos dos usuários dados.
  * Remove as inscrições que o navegador já descartou (410/404). Melhor esforço:
- * nunca lança — devolve quantas notificações saíram.
+ * nunca lança, devolve quantas notificações saíram.
  */
 export async function enviarPushParaUsuarios(
   sb: SB,

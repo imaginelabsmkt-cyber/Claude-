@@ -142,7 +142,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short" }).format(
       d,
     );
-  const tituloSemana = `${fmtDia(inicioSemana)} – ${fmtDia(fim)}`;
+  const tituloSemana = `${fmtDia(inicioSemana)} a ${fmtDia(fim)}`;
   const tituloMes = new Intl.DateTimeFormat("pt-BR", {
     month: "long",
     year: "numeric",

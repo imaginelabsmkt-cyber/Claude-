@@ -157,7 +157,7 @@ export async function sincronizarPlanejamentoGoogle(
         await apagarSync(sb, planningId, userId, "event");
       }
     } else {
-      // Reunião de planejamento convida a Vitória (planner). Só ela — não
+      // Reunião de planejamento convida a Vitória (planner). Só ela, não
       // convidamos a Fran (producer) para não encher a agenda dela.
       const emailPlanner = await emailPorPapel(sb, "planner");
       const corpo: Record<string, unknown> = {

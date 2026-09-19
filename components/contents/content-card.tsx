@@ -55,7 +55,7 @@ export function ContentCard({ content, cor, clienteNome }: ContentCardProps) {
             {clienteNome}
           </Link>
         ) : null}
-        <span>{content.format ?? "—"}</span>
+        <span>{content.format ?? "·"}</span>
         {content.planned_week ? <span>Semana {content.planned_week}</span> : null}
         <span>Prev.: {formatarData(content.planned_date)}</span>
         {content.actual_post_date ? (

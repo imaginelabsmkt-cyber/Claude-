@@ -27,7 +27,7 @@ interface ClientFormProps {
  * Formulário reutilizável de cliente (criação e edição).
  * Validação com Zod (cliente + servidor), estados de loading e mensagens
  * de sucesso/erro. No modo edição, o status (ativo) é gerido na página do
- * cliente com confirmação — por isso não aparece aqui.
+ * cliente com confirmação, por isso não aparece aqui.
  */
 export function ClientForm({ cliente }: ClientFormProps) {
   const router = useRouter();

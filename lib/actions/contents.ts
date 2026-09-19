@@ -210,7 +210,7 @@ export async function definirStatusConteudoAction(
     .eq("id", id)
     .maybeSingle();
 
-  // Ao sair do conjunto da fila de edição, zera a posição manual — senão a
+  // Ao sair do conjunto da fila de edição, zera a posição manual, senão a
   // posição fica "presa" e pode duplicar/embaralhar a ordem se o item voltar.
   const NA_FILA: ContentStatus[] = [
     "Gravado",
@@ -229,7 +229,7 @@ export async function definirStatusConteudoAction(
 
   // Ao publicar, carimba a DATA REAL da postagem como hoje (se ainda vazia).
   // A pessoa pode ajustar depois se saiu em outro dia. A "data prevista"
-  // (planned_date) é preservada — serve de registro do que foi planejado.
+  // (planned_date) é preservada, serve de registro do que foi planejado.
   if (status === "Publicado" && !antigo?.actual_post_date) {
     dados.actual_post_date = hojeISO();
   }
@@ -253,7 +253,7 @@ export async function definirStatusConteudoAction(
   }
 
   // Ao mudar o status pela setinha direto para "Gravado" ou além, carimba a
-  // DATA DE GRAVAÇÃO como hoje (se vazia) — só para VÍDEO que precisa gravar
+  // DATA DE GRAVAÇÃO como hoje (se vazia), só para VÍDEO que precisa gravar
   // (não para arte). Assim a contagem de "gravados no mês" não perde vídeos.
   if (
     antigo &&
@@ -345,7 +345,7 @@ export async function definirPrioridadeConteudoAction(
 }
 
 // -------------------------------------------------------------
-// Ações de gravação (página de Gravações — Fran)
+// Ações de gravação (página de Gravações, Fran)
 // -------------------------------------------------------------
 
 /** Marca o conteúdo como Gravado. Mantém a data já agendada (só usa hoje se não houver). */
@@ -602,7 +602,7 @@ export async function reordenarFilaEdicaoAction(
       await registrarHistorico(orderedIds[i], [
         {
           field: "Posição na fila",
-          old: anterior != null ? String(anterior) : "—",
+          old: anterior != null ? String(anterior) : "·",
           new: String(i + 1),
         },
       ]);
@@ -647,8 +647,8 @@ export async function alterarDataPostagemAction(
   await registrarHistorico(id, [
     {
       field: "Data prevista",
-      old: anterior ? formatarData(anterior) : "—",
-      new: novaData ? formatarData(novaData) : "—",
+      old: anterior ? formatarData(anterior) : "·",
+      new: novaData ? formatarData(novaData) : "·",
     },
   ]);
 
@@ -869,7 +869,7 @@ export async function atualizarProducaoConteudoAction(
     dados.requires_recording = Boolean(patch.requires_recording);
   }
   // Definiu uma data de gravação nesta ficha? Então o conteúdo passa a
-  // "precisar de gravação" automaticamente — assim ele aparece TANTO na aba
+  // "precisar de gravação" automaticamente, assim ele aparece TANTO na aba
   // Gravações QUANTO na agenda do Google (a menos que você diga o contrário).
   if (
     "recording_date" in patch &&
@@ -915,8 +915,8 @@ export async function atualizarProducaoConteudoAction(
   if (error) return { ok: false, error: "Não foi possível salvar." };
 
   const textoDe = (valor: unknown): string => {
-    if (Array.isArray(valor)) return valor.join(", ") || "—";
-    if (valor == null || valor === "") return "—";
+    if (Array.isArray(valor)) return valor.join(", ") || "·";
+    if (valor == null || valor === "") return "·";
     if (typeof valor === "boolean") return valor ? "Sim" : "Não";
     return String(valor);
   };
@@ -924,7 +924,7 @@ export async function atualizarProducaoConteudoAction(
     .map((k) => {
       const anterior = antes
         ? textoDe((antes as unknown as Record<string, unknown>)[k])
-        : "—";
+        : "·";
       return { field: ROTULO_ETAPA[k], old: anterior, new: textoDe(dados[k]) };
     })
     .filter((r) => r.old !== r.new);
@@ -1088,7 +1088,7 @@ export async function atualizarCampoConteudoAction(
     for (const p of perfis ?? []) nomePorId.set(p.id, p.name);
   }
   const nomeDe = (v: unknown) =>
-    typeof v === "string" ? (nomePorId.get(v) ?? "—") : "—";
+    typeof v === "string" ? (nomePorId.get(v) ?? "·") : "·";
 
   const chavesAlteradas = Object.keys(dados) as (keyof ContentEditPatch)[];
   const registros = chavesAlteradas
@@ -1097,12 +1097,12 @@ export async function atualizarCampoConteudoAction(
       const old = ehResp
         ? nomeDe(anterior[k])
         : anterior[k] == null
-          ? "—"
+          ? "·"
           : String(anterior[k]);
       const nova = ehResp
         ? nomeDe(dados[k])
         : dados[k] == null
-          ? "—"
+          ? "·"
           : String(dados[k]);
       return { field: ROTULO_CAMPO[k], old, new: nova };
     })

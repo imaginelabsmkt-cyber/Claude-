@@ -18,7 +18,7 @@ export interface SearchContent {
 
 /**
  * Índice leve para a busca global: só os campos necessários de clientes e
- * conteúdos (capas ficam de fora — não são conteúdo). A filtragem em si é
+ * conteúdos (capas ficam de fora, não são conteúdo). A filtragem em si é
  * feita no cliente, conforme a pessoa digita.
  */
 export async function listSearchIndex(): Promise<{

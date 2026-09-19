@@ -12,7 +12,7 @@ import { listContents, listProfiles } from "@/lib/data/contents";
 export const dynamic = "force-dynamic";
 
 /**
- * Espaço da favie: o conteúdo próprio da agência. Duas portas —
+ * Espaço da favie: o conteúdo próprio da agência. Duas portas ·
  * 💡 Ideias (captura rápida, nasce com formato e pilar) e 📋 Produção (o
  * mesmo fluxo dos clientes). Fica separado dos clientes e fora das métricas.
  */
@@ -46,7 +46,7 @@ export default async function FaviePage() {
     <>
       <PageHeader
         titulo="favie"
-        descricao="Nosso conteúdo — ideias e produção da própria favie"
+        descricao="Ideias e produção da própria favie"
         icone="quadro"
         tom="verde"
       />

@@ -40,7 +40,7 @@ export function ClientOnboarding({
       toast.sucesso(
         mudou > 0
           ? `IA preencheu ${mudou} campo(s). Revise e salve.`
-          : "Nada novo a preencher — já estava tudo lá.",
+          : "Nada novo a preencher, já estava tudo lá.",
       );
       return novo;
     });

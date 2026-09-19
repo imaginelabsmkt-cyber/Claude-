@@ -100,7 +100,7 @@ function Coluna({ dia, itens }: { dia: DiaSemana; itens: ItemCalendario[] }) {
       </div>
       <div className="flex flex-1 flex-col gap-1.5 p-1.5">
         {itens.length === 0 ? (
-          <span className="mt-2 text-center text-[11px] text-gray-300">—</span>
+          <span className="mt-2 text-center text-[11px] text-gray-300">·</span>
         ) : (
           itens.map((it) => <Chip key={it.id} item={it} />)
         )}
