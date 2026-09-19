@@ -4,12 +4,9 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { toast } from "@/lib/ui/toast";
-import {
-  salvarOnboardingAction,
-  preencherOnboardComIAAction,
-  preencherOnboardDeTextoAction,
-} from "@/lib/actions/client-onboarding";
+import { salvarOnboardingAction } from "@/lib/actions/client-onboarding";
 import { ONBOARDING_SECOES } from "@/lib/onboarding/schema";
+import { organizarTextoLocal } from "@/lib/onboarding/organizar-local";
 
 export function ClientOnboarding({
   clientId,
@@ -21,12 +18,10 @@ export function ClientOnboarding({
   const router = useRouter();
   const [valores, setValores] = useState<Record<string, string>>(inicial);
   const [salvando, iniciar] = useTransition();
-  const [preenchendo, iniciarPreencher] = useTransition();
   const [colarAberto, setColarAberto] = useState(false);
   const [textoColado, setTextoColado] = useState("");
-  const [organizando, iniciarOrganizar] = useTransition();
 
-  // Aplica os campos vindos da IA SEM sobrescrever o que já foi digitado.
+  // Aplica os campos organizados SEM sobrescrever o que já foi digitado.
   const aplicarCampos = (campos: Record<string, string>) => {
     setValores((atual) => {
       const novo = { ...atual };
@@ -39,7 +34,7 @@ export function ClientOnboarding({
       }
       toast.sucesso(
         mudou > 0
-          ? `IA preencheu ${mudou} campo(s). Revise e salve.`
+          ? `${mudou} campo(s) organizado(s). Revise e salve.`
           : "Nada novo a preencher, já estava tudo lá.",
       );
       return novo;
@@ -71,27 +66,16 @@ export function ClientOnboarding({
       router.refresh();
     });
 
-  const preencherComIA = () =>
-    iniciarPreencher(async () => {
-      const r = await preencherOnboardComIAAction(clientId);
-      if (!r.ok || !r.campos) {
-        toast.erro(r.error ?? "Não foi possível preencher com IA.");
-        return;
-      }
-      aplicarCampos(r.campos);
-    });
-
-  const organizarTextoComIA = () =>
-    iniciarOrganizar(async () => {
-      const r = await preencherOnboardDeTextoAction(clientId, textoColado);
-      if (!r.ok || !r.campos) {
-        toast.erro(r.error ?? "Não foi possível organizar o texto.");
-        return;
-      }
-      aplicarCampos(r.campos);
-      setTextoColado("");
-      setColarAberto(false);
-    });
+  const organizarTexto = () => {
+    const campos = organizarTextoLocal(textoColado);
+    if (Object.keys(campos).length === 0) {
+      toast.erro("Não consegui identificar nada. Tente separar por tópicos.");
+      return;
+    }
+    aplicarCampos(campos);
+    setTextoColado("");
+    setColarAberto(false);
+  };
 
   return (
     <div className="space-y-5">
@@ -99,9 +83,10 @@ export function ClientOnboarding({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="max-w-lg text-xs text-gray-600">
             O DNA do cliente, sempre à mão. Você não precisa digitar do zero:{" "}
-            <strong>cole as respostas do cliente</strong> (ou um briefing, bio,
-            áudio transcrito…) e a IA organiza nos campos. Depois é só revisar e
-            salvar.
+            <strong>cole as respostas do formulário de onboarding</strong>{" "}
+            (inclusive a planilha/CSV do Google Forms), um briefing, bio ou áudio
+            transcrito, e o sistema separa nos campos certos. Depois é só revisar
+            e salvar. Senhas e acessos do formulário nunca são importados.
           </p>
           <div className="flex shrink-0 flex-wrap gap-2">
             <button
@@ -110,15 +95,7 @@ export function ClientOnboarding({
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
             >
               <Icon nome="sparkles" className="h-4 w-4" />
-              Colar e organizar com IA
-            </button>
-            <button
-              type="button"
-              onClick={preencherComIA}
-              disabled={preenchendo}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 bg-white px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-60"
-            >
-              {preenchendo ? "Lendo o diagnóstico…" : "Usar o diagnóstico"}
+              Colar e organizar
             </button>
           </div>
         </div>
@@ -129,7 +106,7 @@ export function ClientOnboarding({
               value={textoColado}
               onChange={(e) => setTextoColado(e.target.value)}
               rows={6}
-              placeholder="Cole aqui as respostas do formulário do cliente, o briefing, a bio do Instagram, a transcrição de um áudio… qualquer coisa. A IA lê e preenche os campos certos."
+              placeholder="Cole aqui as respostas do formulário (a planilha/CSV do Google Forms serve), o briefing, a bio do Instagram, a transcrição de um áudio… O sistema separa nos campos certos. Dica: com títulos (ex.: 'Público-alvo:', 'Tom de voz:') o encaixe fica ainda melhor."
               className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm leading-relaxed text-gray-800 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
             />
             <div className="mt-2 flex items-center justify-end gap-2">
@@ -139,19 +116,18 @@ export function ClientOnboarding({
                   setColarAberto(false);
                   setTextoColado("");
                 }}
-                disabled={organizando}
-                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                onClick={organizarTextoComIA}
-                disabled={organizando || textoColado.trim().length < 15}
+                onClick={organizarTexto}
+                disabled={textoColado.trim().length < 15}
                 className="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
               >
                 <Icon nome="sparkles" className="h-4 w-4" />
-                {organizando ? "Organizando…" : "Organizar com IA"}
+                Organizar nos campos
               </button>
             </div>
           </div>
