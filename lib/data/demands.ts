@@ -25,6 +25,26 @@ export async function listDemands(): Promise<Demand[]> {
 }
 
 /**
+ * TODAS as demandas concluídas (Feita) num período (todos os clientes),
+ * inclusive arquivadas. Para o relatório semanal. Filtra por data de conclusão
+ * (updated_at).
+ */
+export async function listDemandsFeitas(
+  de: string,
+  ate: string,
+): Promise<Demand[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("demands")
+    .select("*")
+    .eq("status", "Feita")
+    .gte("updated_at", `${de}T00:00:00`)
+    .lte("updated_at", `${ate}T23:59:59`)
+    .order("updated_at", { ascending: false });
+  return (data as Demand[] | null) ?? [];
+}
+
+/**
  * Demandas de um cliente CONCLUÍDAS (Feita) dentro de um período, inclui as
  * arquivadas, pois servem de registro do que foi feito (relatório semanal).
  * `de`/`ate` são datas ISO (YYYY-MM-DD); filtra pela data de conclusão

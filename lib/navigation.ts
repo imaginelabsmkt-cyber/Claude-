@@ -93,6 +93,12 @@ export const NAVEGACAO: ItemNavegacao[] = [
     descricao: "Ideias e produção da própria favie",
     icone: "quadro",
   },
+  {
+    href: "/relatorios",
+    label: "Relatórios",
+    descricao: "O que foi entregue na semana, por cliente",
+    icone: "relatorios",
+  },
   // --- Cadastros e ajustes ---
   {
     href: "/clientes",

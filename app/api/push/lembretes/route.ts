@@ -51,6 +51,7 @@ async function executar(req: Request): Promise<NextResponse> {
   }
 
   const hoje = hojeISO();
+  const diaSemana = new Date(`${hoje}T12:00:00Z`).getUTCDay(); // 5 = sexta
   const hojeData = new Date(`${hoje}T12:00:00-04:00`);
   const daqui2 = new Date(hojeData);
   daqui2.setDate(daqui2.getDate() + 2);
@@ -206,6 +207,19 @@ async function executar(req: Request): Promise<NextResponse> {
 
     for (const aviso of avisos) {
       enviados += await enviarPushParaUsuario(admin, uid, aviso);
+    }
+  }
+
+  // Sexta à tarde: avisa a coordenação que os relatórios da semana estão
+  // prontos para revisar e enviar aos clientes.
+  if (fazPrazos && diaSemana === 5) {
+    for (const uid of idsCoordenacao) {
+      enviados += await enviarPushParaUsuario(admin, uid, {
+        title: "📊 Relatórios da semana",
+        body: "Prontos para revisar e enviar aos clientes.",
+        url: "/relatorios",
+        tag: "relatorio-semanal",
+      });
     }
   }
 
