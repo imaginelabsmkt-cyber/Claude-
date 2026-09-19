@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   FORMAT_OPTIONS,
   PRIORITY_OPTIONS,
@@ -63,6 +64,7 @@ export function ContentsToolbar({
   }
 
   const valor = (chave: string) => searchParams.get(chave) ?? "";
+  const atrasadoAtivo = valor("atrasado") === "1";
 
   return (
     <div className="mb-4 space-y-3">
@@ -165,6 +167,35 @@ export function ContentsToolbar({
             </option>
           ))}
         </Select>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-pressed={atrasadoAtivo}
+          onClick={() =>
+            atrasadoAtivo
+              ? aplicar({ atrasado: "" })
+              : aplicar({ atrasado: "1", reference_month: "todos" })
+          }
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+            atrasadoAtivo
+              ? "border-red-500 bg-red-600 text-white"
+              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50",
+          )}
+        >
+          ⚠️ Só atrasados
+        </button>
+        {atrasadoAtivo ? (
+          <button
+            type="button"
+            onClick={() => aplicar({ atrasado: "" })}
+            className="text-xs text-gray-500 underline hover:text-gray-700"
+          >
+            limpar
+          </button>
+        ) : null}
       </div>
     </div>
   );
