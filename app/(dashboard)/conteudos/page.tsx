@@ -54,9 +54,6 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
         tom="indigo"
         acao={
           <div className="flex flex-wrap gap-2">
-            <Link href="/conteudos/importar">
-              <Button variante="secundaria">Importar planejamento</Button>
-            </Link>
             <Link href="/conteudos/novo">
               <Button>Novo conteúdo</Button>
             </Link>

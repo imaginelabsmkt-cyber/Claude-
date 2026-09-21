@@ -82,7 +82,7 @@ export default async function FaviePage() {
                     O conteúdo da favie que já está em produção. Funciona igual
                     aos clientes: edite na linha, clique para abrir.
                   </span>
-                  <Link href="/conteudos/importar">
+                  <Link href="/planejamentos/importar">
                     <Button variante="secundaria">Importar planejamento</Button>
                   </Link>
                 </div>
@@ -93,7 +93,7 @@ export default async function FaviePage() {
                   vazioDescricao="Nada em produção ainda. Traga uma ideia da aba Ideias ou importe um planejamento."
                   acaoVazio={
                     <div className="flex flex-wrap justify-center gap-2">
-                      <Link href="/conteudos/importar">
+                      <Link href="/planejamentos/importar">
                         <Button variante="secundaria">
                           Importar planejamento
                         </Button>

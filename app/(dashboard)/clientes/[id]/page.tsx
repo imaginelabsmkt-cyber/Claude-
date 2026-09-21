@@ -255,7 +255,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                   vazioDescricao="Este cliente ainda não tem conteúdos cadastrados."
                   acaoVazio={
                     <div className="flex flex-wrap justify-center gap-2">
-                      <Link href="/conteudos/importar">
+                      <Link href="/planejamentos/importar">
                         <Button variante="secundaria">
                           Importar planejamento
                         </Button>

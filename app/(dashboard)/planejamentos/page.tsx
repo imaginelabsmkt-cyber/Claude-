@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import {
   PlanningsTable,
   type LinhaPlanejamento,
@@ -101,6 +102,11 @@ export default async function PlanejamentosPage({ searchParams }: PageProps) {
         descricao="Reunião, criação e entrega do planejamento de cada cliente."
         icone="planejamentos"
         tom="rosa"
+        acao={
+          <Link href="/planejamentos/importar">
+            <Button variante="secundaria">Importar planejamento</Button>
+          </Link>
+        }
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
