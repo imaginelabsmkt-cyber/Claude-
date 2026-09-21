@@ -25,6 +25,8 @@ supabase/
 | `financial_categories`  | Categorias de receita/despesa (linhas do resumo anual).|
 | `financial_entries`     | Lançamentos do fluxo de caixa (entrada/saída por mês). |
 | `financial_recurrences` | Mensalidades e custos fixos que se repetem todo mês.   |
+| `commercial_leads`      | Oportunidades do funil comercial.                      |
+| `commercial_proposals`  | Propostas enviadas a uma oportunidade.                 |
 
 ### Tipos ENUM
 
@@ -36,6 +38,9 @@ supabase/
 - `content_priority`: `Urgente`, `Alta`, `Média`, `Baixa`
 - `financial_kind`: `Receita`, `Despesa`
 - `financial_status`: `Pago`, `Pendente`
+- `lead_stage`: `Contato feito`, `Diagnóstico`, `Proposta enviada`,
+  `Negociação`, `Fechado`, `Perdido`
+- `proposal_status`: `Rascunho`, `Enviada`, `Aceita`, `Recusada`
 
 ### Relacionamentos
 
@@ -182,3 +187,16 @@ script não faz nada e avisa — não há risco de duplicar.
 --   1. supabase/migrations/20260908120000_financeiro.sql
 --   2. supabase/seed_financeiro.sql   (opcional)
 ```
+
+
+## Comercial
+
+Migration: `20260921120000_comercial.sql` (idempotente). Cria
+`commercial_leads` e `commercial_proposals`, os ENUMs, os índices, as
+políticas de RLS e um trigger que carimba `stage_changed_at` **apenas**
+quando a etapa muda — é o relógio do "parado há N dias", e ele vale mesmo
+se a etapa for alterada fora da tela do funil.
+
+Não há tabela de contratos, de propósito: um contrato é cliente + valor
+mensal + vigência, e isso já é uma linha de `financial_recurrences`. Ver
+a seção 5.4 do PROJECT_CONTEXT.

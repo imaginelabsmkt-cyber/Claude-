@@ -19,6 +19,10 @@ import type {
   FinancialKind,
   FinancialRecurrence,
   FinancialStatus,
+  Lead,
+  LeadStage,
+  Proposal,
+  ProposalStatus,
   Profile,
   UserRole,
 } from "./database";
@@ -36,6 +40,12 @@ export interface FinancialEntryWithRelations extends FinancialEntry {
 /** Recorrência com categoria e cliente resolvidos. */
 export interface FinancialRecurrenceWithRelations extends FinancialRecurrence {
   category: FinancialCategory | null;
+  client: Client | null;
+}
+
+/** Oportunidade com as propostas e o cliente resolvidos. */
+export interface LeadWithRelations extends Lead {
+  proposals: Proposal[];
   client: Client | null;
 }
 
@@ -187,5 +197,52 @@ export const PAYMENT_METHOD_OPTIONS: string[] = [
   "Cartão de Débito",
   "Transferência",
   "Dinheiro",
+  "Outro",
+];
+
+// -------------------------------------------------------------
+// Comercial — opções e tons de UI
+// -------------------------------------------------------------
+
+/** Etapas na ordem do funil (as duas últimas encerram). */
+export const LEAD_STAGE_OPTIONS: LeadStage[] = [
+  "Contato feito",
+  "Diagnóstico",
+  "Proposta enviada",
+  "Negociação",
+  "Fechado",
+  "Perdido",
+];
+
+/** Etapas que aparecem como coluna no quadro do funil. */
+export const LEAD_STAGES_ABERTAS: LeadStage[] = [
+  "Contato feito",
+  "Diagnóstico",
+  "Proposta enviada",
+  "Negociação",
+];
+
+export const PROPOSAL_STATUS_OPTIONS: ProposalStatus[] = [
+  "Rascunho",
+  "Enviada",
+  "Aceita",
+  "Recusada",
+];
+
+export const PROPOSAL_STATUS_TONE: Record<ProposalStatus, BadgeTone> = {
+  Rascunho: "cinza",
+  Enviada: "azul",
+  Aceita: "verde",
+  Recusada: "vermelho",
+};
+
+/** Como o lead chegou até a agência (lista para o select). */
+export const LEAD_SOURCE_OPTIONS: string[] = [
+  "Indicação",
+  "Instagram",
+  "Site",
+  "Prospecção ativa",
+  "Evento",
+  "Cliente antigo",
   "Outro",
 ];

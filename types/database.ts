@@ -439,6 +439,109 @@ export type FinancialEntryInsert = Omit<
 };
 
 // -------------------------------------------------------------
+// Comercial (espelha 20260921120000_comercial.sql)
+// -------------------------------------------------------------
+
+/** Etapas do funil. "Fechado" e "Perdido" encerram a oportunidade. */
+export type LeadStage =
+  | "Contato feito"
+  | "Diagnóstico"
+  | "Proposta enviada"
+  | "Negociação"
+  | "Fechado"
+  | "Perdido";
+
+export type ProposalStatus = "Rascunho" | "Enviada" | "Aceita" | "Recusada";
+
+/** commercial_leads — uma oportunidade no funil. */
+export type Lead = {
+  id: UUID;
+  name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  source: string | null;
+  stage: LeadStage;
+  estimated_monthly: number;
+  notes: string | null;
+  /** Preenchido quando o lead é ganho: o cliente que nasceu dele. */
+  client_id: UUID | null;
+  lost_reason: string | null;
+  /** Quando entrou na etapa atual — alimenta o "parado há N dias". */
+  stage_changed_at: ISODateString;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+/** commercial_proposals — uma proposta enviada a uma oportunidade. */
+export type Proposal = {
+  id: UUID;
+  lead_id: UUID;
+  status: ProposalStatus;
+  monthly_amount: number;
+  setup_amount: number;
+  scope: string | null;
+  /** Conteúdos por mês — vira a meta do cliente quando aceita. */
+  monthly_goal: number | null;
+  sent_at: DateString | null;
+  valid_until: DateString | null;
+  notes: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+export type LeadInsert = Omit<
+  Lead,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "stage_changed_at"
+  | "stage"
+  | "estimated_monthly"
+  | "contact_name"
+  | "contact_email"
+  | "contact_phone"
+  | "source"
+  | "notes"
+  | "client_id"
+  | "lost_reason"
+> & {
+  id?: UUID;
+  stage?: LeadStage;
+  estimated_monthly?: number;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  source?: string | null;
+  notes?: string | null;
+  client_id?: UUID | null;
+  lost_reason?: string | null;
+};
+
+export type ProposalInsert = Omit<
+  Proposal,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "status"
+  | "setup_amount"
+  | "scope"
+  | "monthly_goal"
+  | "sent_at"
+  | "valid_until"
+  | "notes"
+> & {
+  id?: UUID;
+  status?: ProposalStatus;
+  setup_amount?: number;
+  scope?: string | null;
+  monthly_goal?: number | null;
+  sent_at?: DateString | null;
+  valid_until?: DateString | null;
+  notes?: string | null;
+};
+
+// -------------------------------------------------------------
 // Tipos de Insert / Update (colunas com default são opcionais)
 // -------------------------------------------------------------
 
@@ -448,11 +551,16 @@ export type ProfileInsert = Omit<Profile, "created_at" | "updated_at"> & {
 };
 export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at" | "updated_at">>;
 
-export type ClientInsert = Omit<Client, "id" | "created_at" | "updated_at"> & {
+export type ClientInsert = Omit<
+  Client,
+  "id" | "created_at" | "updated_at" | "active" | "color" | "niche" | "monthly_goal" | "notes"
+> & {
   id?: UUID;
   active?: boolean;
+  color?: string | null;
   niche?: string | null;
   monthly_goal?: number | null;
+  notes?: string | null;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
 
@@ -615,6 +723,18 @@ export interface Database {
         Update: Partial<FinancialEntryInsert>;
         Relationships: [];
       };
+      commercial_leads: {
+        Row: Lead;
+        Insert: LeadInsert;
+        Update: Partial<LeadInsert>;
+        Relationships: [];
+      };
+      commercial_proposals: {
+        Row: Proposal;
+        Insert: ProposalInsert;
+        Update: Partial<ProposalInsert>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -624,6 +744,8 @@ export interface Database {
       content_priority: ContentPriority;
       financial_kind: FinancialKind;
       financial_status: FinancialStatus;
+      lead_stage: LeadStage;
+      proposal_status: ProposalStatus;
     };
     CompositeTypes: Record<string, never>;
   };

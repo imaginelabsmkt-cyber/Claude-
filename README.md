@@ -75,7 +75,7 @@ cada uma com a sua cor — e **a cor diz de onde o dado vem**:
 | Área | Cor | Tela |
 | --- | --- | --- |
 | Início | grafite | O que tem prazo hoje, de todas as áreas juntas |
-| Comercial | vinho | Carteira de clientes e quanto ela cobre do custo fixo |
+| Comercial | vinho | Carteira de clientes, funil de oportunidades e propostas |
 | Financeiro | petróleo | Fluxo de caixa (detalhado abaixo) |
 | Pessoas | lilás | Pró-labore e freelas |
 | Contábil | azul | DAS, contabilidade e obrigações com prazo |
@@ -87,6 +87,23 @@ desse jogo: significa sempre "venceu ou está vencendo".
 
 Pessoas, Contábil e Administrativo não guardam dados próprios: são recortes
 das categorias do financeiro. Um número só para a empresa inteira.
+
+### O funil fecha o ciclo
+
+Em **Comercial → Funil**, as oportunidades andam por arrasto: contato feito →
+diagnóstico → proposta enviada → negociação. Cada uma mostra há quantos dias
+está parada, e fica vermelha quando passa do prazo da etapa.
+
+Ganhar não é arrasto — é um botão que pede os dados do contrato e então, de
+uma vez só:
+
+- cria o **cliente** (que já serve ao sistema de demandas);
+- cadastra a **mensalidade** no financeiro, com vigência;
+- lança a **entrada/setup**, se a proposta cobrava.
+
+Daí em diante o "Gerar do plano fixo" cria aquela mensalidade todo mês
+sozinho, e a data de fim da vigência vira o alerta de renovação no Início.
+Nada é redigitado.
 
 ## Módulo financeiro
 

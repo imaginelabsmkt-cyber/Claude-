@@ -250,6 +250,52 @@ Comercial idem: a carteira (`lib/data/comercial.ts`) nasce de `clients` +
 `financial_recurrences` + `financial_entries`. Só o **funil de leads e as
 propostas** vão precisar de tabelas novas.
 
+## 5.4 Comercial — o funil e o fechamento
+
+Duas tabelas novas, e só duas: `commercial_leads` (as oportunidades) e
+`commercial_proposals` (as propostas de cada uma).
+
+**Etapas do funil** (enum `lead_stage`):
+
+```
+Contato feito -> Diagnóstico -> Proposta enviada -> Negociação -> Fechado
+                                                                  \-> Perdido
+```
+
+Arrastar no quadro move entre as quatro etapas ABERTAS. **Ganhar e perder
+não são arrasto**: ganhar pede os dados do contrato e perder pede o motivo.
+
+### O fechamento é o ponto em que comercial vira financeiro
+
+`fecharNegocioAction` (`lib/actions/comercial.ts`) cria, de uma vez:
+
+1. o **cliente** em `clients` — que já vale para o sistema de demandas;
+2. a **mensalidade** em `financial_recurrences`, com `start_month` e
+   `end_month` (a vigência);
+3. o lançamento de **entrada/setup**, se a proposta cobrava.
+
+A partir daí o "Gerar do plano fixo" do financeiro passa a criar aquela
+mensalidade todo mês sozinho, e o `end_month` vira o alerta de renovação
+no Início.
+
+A regra que decide o que nasce é **pura e testada**: `dadosDoFechamento`
+em `lib/comercial/funil.ts`. A action só grava o que ela devolve.
+
+### Por que NÃO existe tabela de contratos
+
+Um contrato é cliente + valor mensal + vigência — que é exatamente uma
+linha de `financial_recurrences`. Criar uma tabela de contratos seria
+manter dois valores para a mesma mensalidade, e um dia eles divergem.
+"Contrato vence em X dias" sai do `end_month` da recorrência.
+
+Mesma lógica de 5.3: o dado vive num lugar só.
+
+### Cliente que volta
+
+Fechar um negócio com um nome que já existe em `clients` **reaproveita e
+reativa** o cliente, em vez de duplicar. Ganhar de volta quem saiu é
+comum — e o histórico financeiro dele continua inteiro.
+
 ## 6. Convenções de código
 
 - **Rotas/arquivos:** `kebab-case`.

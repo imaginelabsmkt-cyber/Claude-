@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
+import { ComercialTabs } from "@/components/comercial/comercial-tabs";
 import { Stat } from "@/components/interno/stat";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { obterCarteira } from "@/lib/data/comercial";
+import { listarLeads, obterCarteira } from "@/lib/data/comercial";
+import { valorDoFunil } from "@/lib/comercial/funil";
+import { LEAD_STAGES_ABERTAS } from "@/types";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
 import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
@@ -23,7 +26,11 @@ export default async function ComercialPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
-  const carteira = await obterCarteira(mes);
+  const [carteira, leads] = await Promise.all([
+    obterCarteira(mes),
+    listarLeads(LEAD_STAGES_ABERTAS),
+  ]);
+  const noFunil = valorDoFunil(leads);
   const cobertura = carteira.custoFixo
     ? carteira.recorrente / carteira.custoFixo
     : 0;
@@ -36,6 +43,8 @@ export default async function ComercialPage({ searchParams }: PageProps) {
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
+
+      <ComercialTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
@@ -146,14 +155,29 @@ export default async function ComercialPage({ searchParams }: PageProps) {
         </>
       ) : null}
 
-      <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
-        O funil de leads e as propostas entram na próxima etapa. Quando existirem,
-        fechar uma proposta vai criar o cliente, o contrato e a mensalidade de uma vez —
-        sem redigitar em lugar nenhum.{" "}
-        <Link href="/interno/financeiro/recorrencias" className="font-medium underline">
-          As mensalidades de hoje ficam nas recorrências.
-        </Link>
-      </p>
+      <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h2 className="text-sm font-semibold text-gray-900">
+            No funil: {formatarMoeda(noFunil)} por mês
+          </h2>
+          <span className="text-xs text-gray-500">
+            em {leads.length} oportunidade(s) aberta(s)
+          </span>
+          <Link
+            href="/interno/comercial/funil"
+            className="ml-auto text-sm font-medium text-area hover:underline"
+          >
+            Abrir o funil →
+          </Link>
+        </div>
+        {falta > 0 ? (
+          <p className="mt-1.5 text-xs text-gray-600">
+            {noFunil >= falta
+              ? `Se tudo que está aberto fechar, o custo fixo fica coberto com ${formatarMoeda(noFunil - falta)} de sobra.`
+              : `Mesmo fechando tudo, ainda faltariam ${formatarMoeda(falta - noFunil)} por mês.`}
+          </p>
+        ) : null}
+      </div>
     </>
   );
 }

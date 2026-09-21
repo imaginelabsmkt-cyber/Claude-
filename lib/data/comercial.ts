@@ -1,7 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { somar } from "@/lib/financeiro/calculo";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
-import type { FinancialEntry } from "@/types";
+import type {
+  FinancialEntry,
+  Lead,
+  LeadStage,
+  LeadWithRelations,
+  Proposal,
+} from "@/types";
 
 /** Um cliente visto pelo lado comercial. */
 export interface ClienteCarteira {
@@ -122,4 +128,73 @@ export async function obterCarteira(mes: string): Promise<Carteira> {
       : 0,
     perdidoPorMes: somar(inativos.map((c) => c.ultimoValor)),
   };
+}
+
+
+// -------------------------------------------------------------
+// Funil
+// -------------------------------------------------------------
+
+const SELECT_LEAD = `
+  *,
+  proposals:commercial_proposals(*),
+  client:clients(*)
+`;
+
+/** Converte os numéricos do Postgres (que chegam como string) em number. */
+function normalizarLead(l: LeadWithRelations): LeadWithRelations {
+  return {
+    ...l,
+    estimated_monthly: Number(l.estimated_monthly),
+    proposals: (l.proposals ?? []).map((p: Proposal) => ({
+      ...p,
+      monthly_amount: Number(p.monthly_amount),
+      setup_amount: Number(p.setup_amount),
+    })),
+  };
+}
+
+/** Lista as oportunidades, opcionalmente só as de certas etapas. */
+export async function listarLeads(
+  etapas?: LeadStage[],
+): Promise<LeadWithRelations[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("commercial_leads")
+    .select(SELECT_LEAD)
+    .order("estimated_monthly", { ascending: false });
+
+  if (etapas && etapas.length > 0) query = query.in("stage", etapas);
+
+  const { data } = await query;
+  return ((data ?? []) as unknown as LeadWithRelations[]).map(normalizarLead);
+}
+
+/** Obtém uma oportunidade com propostas e cliente resolvidos. */
+export async function obterLead(id: string): Promise<LeadWithRelations | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("commercial_leads")
+    .select(SELECT_LEAD)
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return null;
+  return normalizarLead(data as unknown as LeadWithRelations);
+}
+
+/** Últimos negócios ganhos e perdidos, para o histórico do funil. */
+export async function listarEncerrados(
+  limite = 8,
+): Promise<Pick<Lead, "id" | "name" | "stage" | "estimated_monthly" | "lost_reason" | "updated_at">[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("commercial_leads")
+    .select("id, name, stage, estimated_monthly, lost_reason, updated_at")
+    .in("stage", ["Fechado", "Perdido"])
+    .order("updated_at", { ascending: false })
+    .limit(limite);
+  return (data ?? []).map((l) => ({
+    ...l,
+    estimated_monthly: Number(l.estimated_monthly),
+  }));
 }
