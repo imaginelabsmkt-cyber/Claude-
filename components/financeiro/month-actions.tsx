@@ -62,7 +62,7 @@ export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) 
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Link href={`/financeiro/lancamentos/novo?mes=${mes}`}>
+      <Link href={`/interno/financeiro/lancamentos/novo?mes=${mes}`}>
         <Button>Novo lançamento</Button>
       </Link>
 

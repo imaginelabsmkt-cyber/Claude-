@@ -5,12 +5,12 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 /** Abas do módulo financeiro (mantêm o mês selecionado na URL). */
 const ABAS = [
-  { href: "/financeiro", label: "Painel do mês" },
-  { href: "/financeiro/lancamentos", label: "Lançamentos" },
-  { href: "/financeiro/fluxo-caixa", label: "Fluxo de caixa" },
-  { href: "/financeiro/resumo-anual", label: "Resumo anual" },
-  { href: "/financeiro/recorrencias", label: "Recorrências" },
-  { href: "/financeiro/categorias", label: "Categorias" },
+  { href: "/interno/financeiro", label: "Painel do mês" },
+  { href: "/interno/financeiro/lancamentos", label: "Lançamentos" },
+  { href: "/interno/financeiro/fluxo-caixa", label: "Fluxo de caixa" },
+  { href: "/interno/financeiro/resumo-anual", label: "Resumo anual" },
+  { href: "/interno/financeiro/recorrencias", label: "Recorrências" },
+  { href: "/interno/financeiro/categorias", label: "Categorias" },
 ];
 
 /**
@@ -26,8 +26,8 @@ export function FinanceTabs() {
     <div className="mb-6 flex items-center gap-5 overflow-x-auto border-b border-gray-200">
       {ABAS.map((aba) => {
         const ativa =
-          aba.href === "/financeiro"
-            ? pathname === "/financeiro"
+          aba.href === "/interno/financeiro"
+            ? pathname === "/interno/financeiro"
             : pathname.startsWith(aba.href);
         const href = mes ? `${aba.href}?mes=${mes}` : aba.href;
         return (

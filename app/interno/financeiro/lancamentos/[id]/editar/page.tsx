@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PageHeader } from "@/components/layout/page-header";
+import { AreaHeader } from "@/components/interno/area-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { EntryForm } from "@/components/financeiro/entry-form";
 import {
@@ -27,11 +27,9 @@ export default async function EditarLancamentoPage({ params }: PageProps) {
 
   return (
     <>
-      <PageHeader
+      <AreaHeader
         titulo="Editar lançamento"
-        descricao={`${lancamento.description} · ${rotuloMes(lancamento.reference_month)}`}
-        icone="financeiro"
-        tom="verde"
+        contexto={rotuloMes(lancamento.reference_month)}
       />
       <Card>
         <CardContent>

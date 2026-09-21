@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/layout/page-header";
+import { AreaHeader } from "@/components/interno/area-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
@@ -120,11 +120,9 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <PageHeader
+      <AreaHeader
         titulo="Fluxo de caixa"
-        descricao={`Mês a mês, linha a linha — ${rotuloMes(mes)}`}
-        icone="financeiro"
-        tom="verde"
+        contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
 

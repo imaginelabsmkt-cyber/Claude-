@@ -96,7 +96,7 @@ export function EntriesTable({ lancamentos }: EntriesTableProps) {
               >
                 {l.status === "Pago" ? "Reabrir" : "Marcar pago"}
               </Button>
-              <Link href={`/financeiro/lancamentos/${l.id}/editar`}>
+              <Link href={`/interno/financeiro/lancamentos/${l.id}/editar`}>
                 <Button tamanho="sm" variante="secundaria">
                   Editar
                 </Button>
@@ -126,7 +126,7 @@ export function EntriesTable({ lancamentos }: EntriesTableProps) {
                 <tr key={l.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <Link
-                      href={`/financeiro/lancamentos/${l.id}/editar`}
+                      href={`/interno/financeiro/lancamentos/${l.id}/editar`}
                       className="font-medium text-gray-900 hover:text-brand-700"
                     >
                       {l.description}

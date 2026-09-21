@@ -43,11 +43,11 @@ function limpar(v?: string | null): string | null {
 
 /** Revalida todas as telas que leem os mesmos números. */
 function revalidarFinanceiro() {
-  revalidatePath("/financeiro");
-  revalidatePath("/financeiro/lancamentos");
-  revalidatePath("/financeiro/fluxo-caixa");
-  revalidatePath("/financeiro/resumo-anual");
-  revalidatePath("/financeiro/recorrencias");
+  revalidatePath("/interno/financeiro");
+  revalidatePath("/interno/financeiro/lancamentos");
+  revalidatePath("/interno/financeiro/fluxo-caixa");
+  revalidatePath("/interno/financeiro/resumo-anual");
+  revalidatePath("/interno/financeiro/recorrencias");
 }
 
 // -------------------------------------------------------------
@@ -426,7 +426,7 @@ export async function criarCategoriaAction(
   }
 
   revalidarFinanceiro();
-  revalidatePath("/financeiro/categorias");
+  revalidatePath("/interno/financeiro/categorias");
   return { ok: true, id: data.id };
 }
 
@@ -442,7 +442,7 @@ export async function definirAtivaCategoriaAction(
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível atualizar a categoria." };
   revalidarFinanceiro();
-  revalidatePath("/financeiro/categorias");
+  revalidatePath("/interno/financeiro/categorias");
   return { ok: true, id };
 }
 
@@ -469,6 +469,6 @@ export async function salvarConfiguracaoFinanceiraAction(
   if (error) return { ok: false, error: "Não foi possível salvar a configuração." };
 
   revalidarFinanceiro();
-  revalidatePath("/financeiro/categorias");
+  revalidatePath("/interno/financeiro/categorias");
   return { ok: true };
 }

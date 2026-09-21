@@ -1,9 +1,14 @@
 # Agência Social — Sistema de Gestão de Produção de Conteúdo
 
-Sistema web para gerenciar uma agência de social media de ponta a ponta:
-a **produção de conteúdo** (do planejamento à publicação) e o
-**financeiro** (fluxo de caixa, receitas, despesas e saldo). Usado por duas
-pessoas com papéis distintos:
+Dois sistemas para tocar uma agência de social media, com um login só:
+
+- **Demandas** — a produção de conteúdo dos clientes, do planejamento à
+  publicação.
+- **Interno** (`/interno`) — a administração da empresa: comercial,
+  financeiro, pessoas, contábil e administrativo.
+
+A tela inicial pergunta em qual você quer entrar. Usado por duas pessoas
+com papéis distintos:
 
 - **Vitória** — planejamento, pautas, roteiros e organização das postagens.
 - **Fran** — gravações, edições, ajustes e acompanhamento da publicação.
@@ -62,6 +67,27 @@ pessoas com papéis distintos:
 └── README.md
 ```
 
+## Sistema interno (`/interno`)
+
+A administração da empresa, separada da produção de conteúdo. Cinco áreas,
+cada uma com a sua cor — e **a cor diz de onde o dado vem**:
+
+| Área | Cor | Tela |
+| --- | --- | --- |
+| Início | grafite | O que tem prazo hoje, de todas as áreas juntas |
+| Comercial | vinho | Carteira de clientes e quanto ela cobre do custo fixo |
+| Financeiro | petróleo | Fluxo de caixa (detalhado abaixo) |
+| Pessoas | lilás | Pró-labore e freelas |
+| Contábil | azul | DAS, contabilidade e obrigações com prazo |
+| Administrativo | ocre | Assinaturas, ferramentas e equipamentos |
+
+Na tela **Início**, cada linha carrega a tarja e a etiqueta da área de onde
+veio — você reconhece a origem antes de ler o texto. O vermelho fica fora
+desse jogo: significa sempre "venceu ou está vencendo".
+
+Pessoas, Contábil e Administrativo não guardam dados próprios: são recortes
+das categorias do financeiro. Um número só para a empresa inteira.
+
 ## Módulo financeiro
 
 Substitui a planilha "Fluxo de Caixa Imagine Labs 2026" — mesmas contas,
@@ -69,12 +95,12 @@ sem as fórmulas que quebram quando alguém insere uma linha.
 
 | Tela                       | Para quê                                              |
 | -------------------------- | ----------------------------------------------------- |
-| `/financeiro`              | Como está o mês: saldo, resultado, a receber e a pagar |
-| `/financeiro/lancamentos`  | Lançar entradas/saídas e dar baixa no que foi pago     |
-| `/financeiro/fluxo-caixa`  | Conferir o mês linha a linha (formato da planilha)     |
-| `/financeiro/resumo-anual` | O ano inteiro: categoria × mês, com saldo acumulado    |
-| `/financeiro/recorrencias` | Mensalidades e custos fixos que se repetem             |
-| `/financeiro/categorias`   | Categorias e saldo inicial da série                    |
+| `/interno/financeiro`      | Como está o mês: saldo, resultado, a receber e a pagar |
+| `/interno/financeiro/lancamentos` | Lançar entradas/saídas e dar baixa no que foi pago     |
+| `/interno/financeiro/fluxo-caixa` | Conferir o mês linha a linha (formato da planilha)     |
+| `/interno/financeiro/resumo-anual` | O ano inteiro: categoria × mês, com saldo acumulado    |
+| `/interno/financeiro/recorrencias` | Mensalidades e custos fixos que se repetem             |
+| `/interno/financeiro/categorias` | Categorias e saldo inicial da série                    |
 
 ### O que muda em relação à planilha
 

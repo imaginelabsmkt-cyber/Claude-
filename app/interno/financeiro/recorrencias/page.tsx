@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/layout/page-header";
+import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { RecurrencesPanel } from "@/components/financeiro/recurrences-panel";
 import {
@@ -30,12 +30,7 @@ export default async function RecorrenciasPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <PageHeader
-        titulo="Recorrências"
-        descricao="Mensalidades e custos fixos que se repetem todo mês"
-        icone="financeiro"
-        tom="verde"
-      />
+      <AreaHeader titulo="Recorrências" contexto="Plano fixo do mês" />
 
       <FinanceTabs />
 

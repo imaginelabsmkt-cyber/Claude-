@@ -26,6 +26,19 @@ const config: Config = {
           300: "#bea0cc",
           500: "#9a77ad",
         },
+        // Sistema interno: a cor da ÁREA em que a tela está. O valor vem
+        // de `--area`, trocado por `[data-area]` (ver globals.css), então
+        // `text-area` / `bg-area-soft` / `border-area` seguem a área sozinhos.
+        area: {
+          DEFAULT: "var(--area)",
+          soft: "var(--area-soft)",
+        },
+        // Alerta do sistema interno — nunca é cor de área. Significa
+        // sempre "venceu ou está vencendo".
+        alerta: {
+          DEFAULT: "var(--alerta)",
+          soft: "var(--alerta-soft)",
+        },
         // Creme da marca — acento quente para destaques pontuais.
         creme: {
           100: "#fff1c7",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/layout/page-header";
+import { AreaHeader } from "@/components/interno/area-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
@@ -79,11 +79,9 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <PageHeader
+      <AreaHeader
         titulo="Financeiro"
-        descricao={`Fluxo de caixa de ${rotuloMes(mes)}`}
-        icone="financeiro"
-        tom="verde"
+        contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
 
@@ -157,7 +155,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
             )}
             {painel.aReceber.length > 8 ? (
               <Link
-                href={`/financeiro/lancamentos?mes=${mes}&tipo=Receita&status=Pendente`}
+                href={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Receita&status=Pendente`}
                 className="mt-3 inline-block text-sm font-medium text-brand-700 hover:underline"
               >
                 Ver todos os {painel.aReceber.length} lançamentos
@@ -195,7 +193,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
             )}
             {painel.aPagar.length > 8 ? (
               <Link
-                href={`/financeiro/lancamentos?mes=${mes}&tipo=Despesa&status=Pendente`}
+                href={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Despesa&status=Pendente`}
                 className="mt-3 inline-block text-sm font-medium text-brand-700 hover:underline"
               >
                 Ver todos os {painel.aPagar.length} lançamentos

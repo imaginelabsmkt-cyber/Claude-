@@ -31,3 +31,49 @@ textarea:focus-visible,
 :focus:not(:focus-visible) {
   outline: none;
 }
+
+/* =============================================================
+   SISTEMA INTERNO — cor por área
+   -------------------------------------------------------------
+   A cor diz DE ONDE a informação vem. O shell põe `data-area` no
+   wrapper da página e tudo que usa as classes `area` / `area-soft`
+   do Tailwind se tinge sozinho.
+
+   Também dá para tingir um pedaço isolado (uma linha de lista que
+   veio de outra área) pondo `data-area` nele — é o que a tela
+   Início faz.
+
+   O VERMELHO de alerta (--alerta) fica fora deste jogo: ele nunca
+   é cor de área, e quer dizer sempre a mesma coisa — venceu ou
+   está vencendo. Por isso também não existe verde de "tudo certo":
+   verde já é o Financeiro. O que está em dia não recebe cor.
+   ============================================================= */
+:root {
+  --alerta: #c0281f;
+  --alerta-soft: #fbe1de;
+}
+
+[data-area="inicio"] {
+  --area: #3f3a3c;
+  --area-soft: #eae6e7;
+}
+[data-area="comercial"] {
+  --area: #7a2740;
+  --area-soft: #f8e5ea;
+}
+[data-area="financeiro"] {
+  --area: #0f5d52;
+  --area-soft: #dcefe9;
+}
+[data-area="pessoas"] {
+  --area: #6f4a9b;
+  --area-soft: #ece3f7;
+}
+[data-area="contabil"] {
+  --area: #1d5a9e;
+  --area-soft: #dde9f7;
+}
+[data-area="administrativo"] {
+  --area: #8a5a16;
+  --area-soft: #f8ecd7;
+}

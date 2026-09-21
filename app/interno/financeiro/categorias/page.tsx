@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/layout/page-header";
+import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { SettingsPanel } from "@/components/financeiro/settings-panel";
 import { listarCategorias, obterConfiguracaoFinanceira } from "@/lib/data/financeiro";
@@ -14,12 +14,7 @@ export default async function CategoriasFinanceiroPage() {
 
   return (
     <>
-      <PageHeader
-        titulo="Categorias e saldo inicial"
-        descricao="Como o dinheiro é classificado e de onde a série começa"
-        icone="financeiro"
-        tom="verde"
-      />
+      <AreaHeader titulo="Categorias e saldo inicial" contexto="Configuração" />
 
       <FinanceTabs />
 

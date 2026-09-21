@@ -109,7 +109,7 @@ export function EntryForm({ mes, categorias, clientes, lancamento }: EntryFormPr
         return;
       }
 
-      router.push(`/financeiro/lancamentos?mes=${parsed.data.reference_month}`);
+      router.push(`/interno/financeiro/lancamentos?mes=${parsed.data.reference_month}`);
       router.refresh();
     });
   }

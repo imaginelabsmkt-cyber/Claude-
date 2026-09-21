@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/layout/page-header";
+import { AreaHeader } from "@/components/interno/area-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Card } from "@/components/ui/card";
 import { EntriesTable } from "@/components/financeiro/entries-table";
@@ -71,11 +71,9 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <PageHeader
+      <AreaHeader
         titulo="Lançamentos"
-        descricao={`Entradas e saídas de ${rotuloMes(mes)}`}
-        icone="financeiro"
-        tom="verde"
+        contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
 

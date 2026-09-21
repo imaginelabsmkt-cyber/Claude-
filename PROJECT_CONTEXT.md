@@ -12,11 +12,22 @@ Gerenciar todo o ciclo de produção de conteúdo de uma agência de social
 media — do planejamento à publicação —, de forma que duas pessoas
 consigam coordenar o trabalho sem depender de planilhas soltas.
 
-O sistema tem **dois domínios independentes**, ligados apenas por `clients`:
+São **dois sistemas separados**, com uma base de código e um login só,
+ligados apenas pela tabela `clients`:
 
-1. **Produção** — o pipeline do conteúdo (pautas, gravação, edição, postagem).
-2. **Financeiro** — o fluxo de caixa da agência (receitas, despesas, saldo),
-   que substitui a planilha "Fluxo de Caixa Imagine Labs 2026".
+1. **Demandas** (`/dashboard`, `/conteudos`, ...) — a produção de conteúdo
+   dos clientes, do planejamento à publicação. Menu em `lib/navigation.ts`.
+2. **Interno** (`/interno/...`) — a administração da empresa: comercial,
+   financeiro, pessoas, contábil e administrativo. Áreas em
+   `lib/interno/areas.ts`.
+
+A rota `/` é a **porta de entrada**: pergunta em qual dos dois entrar.
+Cada lado tem menu, cores e shell próprios — quem usa sente dois sistemas;
+por baixo é um cadastro de cliente só e um deploy só.
+
+> **Nunca** misture os dois menus. Conteúdos, gravações, edição e postagens
+> são de Demandas e não aparecem no Interno; dinheiro, obrigações e
+> contratos são do Interno e não aparecem em Demandas.
 
 ## 2. Usuários e papéis
 
@@ -105,8 +116,10 @@ profiles   1 ── N content_history / comments (on delete set null)
 | `/fila-edicao`    | Fila de edição  | `contents` (status de edição)                    |
 | `/postagens`      | Postagens       | `contents` (status Agendado/Publicado)           |
 | `/minhas-tarefas` | Minhas tarefas  | `contents` (filtrado pelos campos de responsável)|
-| `/financeiro`     | Financeiro      | `financial_*` (ver seção 5.1)                    |
 | `/configuracoes`  | Configurações   | `profiles` + preferências                        |
+
+> O financeiro saiu desta lista: ele agora é `/interno/financeiro`, dentro
+> do sistema interno (seções 5.1 a 5.3).
 
 Cada página tem **uma responsabilidade**. Nenhuma duplica a função de outra:
 o CRUD de conteúdo vive só em `/conteudos`; as demais páginas de pipeline são
@@ -189,6 +202,53 @@ das recorrências vigentes.
 Vale a mesma regra do pipeline: **cada página tem uma responsabilidade**.
 O CRUD do lançamento vive só em `/financeiro/lancamentos`; as demais telas
 são recortes de leitura sobre o mesmo dado.
+
+## 5.2 Sistema interno — cor por área
+
+Cada área tem uma cor, e **a cor tem função: ela diz de onde o dado vem**.
+
+| Área            | Cor             | Responde                          |
+| --------------- | --------------- | --------------------------------- |
+| Início          | grafite `#3f3a3c` | Por onde eu começo hoje?        |
+| Comercial       | vinho `#7a2740`   | De onde vem o próximo cliente?  |
+| Financeiro      | petróleo `#0f5d52`| Quanto sobra no fim do mês?     |
+| Pessoas         | lilás `#6f4a9b`   | Quanto custa a equipe?          |
+| Contábil        | azul `#1d5a9e`    | O que tem prazo com o governo?  |
+| Administrativo  | ocre `#8a5a16`    | O que a empresa assina e paga?  |
+
+**Como funciona na prática.** O shell (`InternoShell`) põe `data-area` no
+wrapper da página; o CSS (`app/globals.css`) troca `--area` e `--area-soft`;
+as classes `text-area`, `bg-area-soft` e `border-area` do Tailwind seguem
+sozinhas. Para tingir um pedaço isolado — uma linha que veio de outra área —
+basta pôr `data-area` nele (é o que `OrigemItem` faz na tela Início).
+
+**Duas regras que não se quebram:**
+
+- O **vermelho** (`--alerta`, classes `text-alerta` / `bg-alerta-soft`)
+  nunca é cor de área. Quer dizer sempre a mesma coisa: venceu ou está
+  vencendo.
+- **Não existe verde de "tudo certo"** — verde já é o Financeiro. O que
+  está em dia não recebe cor; o que chama atenção é a exceção.
+
+## 5.3 As áreas são recortes do financeiro, não tabelas novas
+
+Pessoas, Contábil e Administrativo **não têm tabela própria**. São recortes
+das categorias financeiras, mapeados em `lib/interno/classificacao.ts`:
+
+```
+Pró-labore (sócias), Freelancers          -> pessoas
+Contabilidade / MEI, DAS                  -> contabil
+Assinaturas e ferramentas, Equipamentos   -> administrativo
+Mensalidades, Projetos avulsos, Produtos  -> comercial
+```
+
+É a mesma regra anti-duplicação do pipeline de conteúdo: o dado vive num
+lugar só. Mudou no financeiro, mudou em todas as telas — e a soma das três
+áreas de despesa fecha exatamente com o custo fixo da empresa.
+
+Comercial idem: a carteira (`lib/data/comercial.ts`) nasce de `clients` +
+`financial_recurrences` + `financial_entries`. Só o **funil de leads e as
+propostas** vão precisar de tabelas novas.
 
 ## 6. Convenções de código
 

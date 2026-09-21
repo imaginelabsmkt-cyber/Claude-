@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/layout/page-header";
+import { AreaHeader } from "@/components/interno/area-header";
 import { Card } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { obterResumoAnual, type LinhaResumoAnual } from "@/lib/data/financeiro";
@@ -84,21 +84,19 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <PageHeader
+      <AreaHeader
         titulo={`Resumo anual ${ano}`}
-        descricao="Consolidação automática de todos os meses"
-        icone="financeiro"
-        tom="verde"
+        contexto="Todos os meses"
         acao={
           <div className="flex gap-2">
             <Link
-              href={`/financeiro/resumo-anual?ano=${ano - 1}`}
+              href={`/interno/financeiro/resumo-anual?ano=${ano - 1}`}
               className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               {ano - 1}
             </Link>
             <Link
-              href={`/financeiro/resumo-anual?ano=${ano + 1}`}
+              href={`/interno/financeiro/resumo-anual?ano=${ano + 1}`}
               className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               {ano + 1}
@@ -170,7 +168,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
                 </th>
                 {resumo.meses.map((mes) => (
                   <th key={mes} scope="col" className="px-3 py-3 text-right font-medium">
-                    <Link href={`/financeiro?mes=${mes}`} className="hover:text-brand-700">
+                    <Link href={`/interno/financeiro?mes=${mes}`} className="hover:text-brand-700">
                       {rotuloMesCurto(mes)}
                     </Link>
                   </th>
