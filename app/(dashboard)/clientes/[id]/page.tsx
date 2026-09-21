@@ -15,6 +15,7 @@ import { DeletePlanningButton } from "@/components/contents/delete-planning-butt
 import { ClientSectionTabs } from "@/components/clients/client-section-tabs";
 import { ClientFilesTab } from "@/components/clients/client-files-tab";
 import { ClientOnboarding } from "@/components/clients/client-onboarding";
+import { ClientPortalShare } from "@/components/clients/client-portal-share";
 import { DemandsBoard } from "@/components/demandas/demands-board";
 import { ClientWeeklyReport } from "@/components/clients/client-weekly-report";
 import { listDemands, listDemandsFeitasCliente } from "@/lib/data/demands";
@@ -220,6 +221,15 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
           mes={mes}
           quantidade={doMes.length}
           rotuloMes={tituloMes}
+        />
+      </div>
+
+      {/* Painel do cliente (link secreto) */}
+      <div className="mt-4">
+        <ClientPortalShare
+          clientId={cliente.id}
+          tokenInicial={cliente.portal_token}
+          ativoInicial={cliente.portal_enabled}
         />
       </div>
 

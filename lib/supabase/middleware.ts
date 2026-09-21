@@ -61,7 +61,9 @@ export async function atualizarSessao(request: NextRequest) {
   // com um 504, degrada em segurança e deixa passar (a página revalida a
   // sessão do seu jeito).
   const rota = request.nextUrl.pathname;
-  const ehPublica = ROTAS_PUBLICAS.includes(rota);
+  // Painel do cliente: acesso por link secreto (/portal/<token>), sem login.
+  const ehPortal = rota === "/portal" || rota.startsWith("/portal/");
+  const ehPublica = ROTAS_PUBLICAS.includes(rota) || ehPortal;
 
   let user: { id: string } | null = null;
   try {

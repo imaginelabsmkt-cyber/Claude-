@@ -70,6 +70,10 @@ export type Client = {
   notes: string | null;
   /** Conteúdo interno da agência (favie), fora dos clientes. Auto-provisionado. */
   is_internal: boolean;
+  /** Token secreto do link do painel do cliente (/portal/<token>). */
+  portal_token: string | null;
+  /** Se o painel do cliente está ativo. */
+  portal_enabled: boolean;
   created_at: ISODateString;
   updated_at: ISODateString;
 }
@@ -264,6 +268,20 @@ export type ClientDiagnosticInsert = Omit<
   id?: UUID;
 };
 
+/** content_feedback — retorno do cliente (aprovar/ajuste/comentar) no portal. */
+export type ContentFeedback = {
+  id: UUID;
+  content_id: UUID;
+  client_id: UUID;
+  /** 'aprovado' | 'ajuste' | null (só comentário). */
+  decision: string | null;
+  message: string | null;
+  created_at: ISODateString;
+};
+export type ContentFeedbackInsert = Omit<ContentFeedback, "id" | "created_at"> & {
+  id?: UUID;
+};
+
 /** plannings — gestão da criação do planejamento mensal por cliente */
 export type Planning = {
   id: UUID;
@@ -394,13 +412,20 @@ export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at" | "updated
 
 export type ClientInsert = Omit<
   Client,
-  "id" | "created_at" | "updated_at" | "is_internal"
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "is_internal"
+  | "portal_token"
+  | "portal_enabled"
 > & {
   id?: UUID;
   active?: boolean;
   niche?: string | null;
   monthly_goal?: number | null;
   is_internal?: boolean;
+  portal_token?: string | null;
+  portal_enabled?: boolean;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
 
@@ -532,6 +557,12 @@ export interface Database {
         Row: ClientDiagnostic;
         Insert: ClientDiagnosticInsert;
         Update: Partial<ClientDiagnosticInsert>;
+        Relationships: [];
+      };
+      content_feedback: {
+        Row: ContentFeedback;
+        Insert: ContentFeedbackInsert;
+        Update: Partial<ContentFeedbackInsert>;
         Relationships: [];
       };
       plannings: {
