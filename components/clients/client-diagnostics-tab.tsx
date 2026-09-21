@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/lib/ui/toast";
@@ -8,7 +8,18 @@ import { formatarData } from "@/lib/utils";
 import { Icon } from "@/components/ui/icon";
 import type { ClientDiagnostic } from "@/types";
 
-const LIMITE_MB = 3;
+const BUCKET = "client-files";
+const LIMITE_HTML_MB = 3;
+const LIMITE_ARQUIVO_MB = 25;
+
+/** Remove caracteres problemáticos do nome para compor o caminho no Storage. */
+function nomeSeguro(nome: string): string {
+  return nome
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .slice(-80);
+}
 
 export function ClientDiagnosticsTab({
   clientId,
@@ -25,13 +36,35 @@ export function ClientDiagnosticsTab({
   );
   const [enviando, setEnviando] = useState(false);
   const [telaCheia, setTelaCheia] = useState(false);
+  const [urlArquivo, setUrlArquivo] = useState<string | null>(null);
 
   const selecionado =
     diagnosticos.find((d) => d.id === ativo) ?? diagnosticos[0] ?? null;
 
-  const salvar = async (title: string, html: string) => {
-    if (html.length > LIMITE_MB * 1024 * 1024) {
-      toast.erro(`O diagnóstico passa de ${LIMITE_MB} MB.`);
+  // Diagnóstico em arquivo (PDF etc.): gera URL assinada para exibir no iframe.
+  useEffect(() => {
+    let vivo = true;
+    setUrlArquivo(null);
+    if (!selecionado?.path) return;
+    supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(selecionado.path, 60 * 60)
+      .then(({ data, error }) => {
+        if (!vivo) return;
+        if (error || !data?.signedUrl) {
+          toast.erro("Não foi possível abrir o arquivo do diagnóstico.");
+          return;
+        }
+        setUrlArquivo(data.signedUrl);
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [selecionado?.id, selecionado?.path, supabase]);
+
+  const salvarHTML = async (title: string, html: string) => {
+    if (html.length > LIMITE_HTML_MB * 1024 * 1024) {
+      toast.erro(`O diagnóstico passa de ${LIMITE_HTML_MB} MB.`);
       return;
     }
     if (!/<html|<body|<!doctype|<div|<section/i.test(html)) {
@@ -44,6 +77,8 @@ export function ClientDiagnosticsTab({
       client_id: clientId,
       title: title.trim() || "Diagnóstico",
       html,
+      path: null,
+      mime_type: null,
       uploaded_by: auth.user?.id ?? null,
     });
     setEnviando(false);
@@ -55,14 +90,57 @@ export function ClientDiagnosticsTab({
     router.refresh();
   };
 
+  const salvarArquivo = async (title: string, file: File) => {
+    if (file.size > LIMITE_ARQUIVO_MB * 1024 * 1024) {
+      toast.erro(`O arquivo passa de ${LIMITE_ARQUIVO_MB} MB.`);
+      return;
+    }
+    setEnviando(true);
+    const { data: auth } = await supabase.auth.getUser();
+    const path = `${clientId}/diagnosticos/${crypto.randomUUID()}-${nomeSeguro(file.name)}`;
+    const { error: upErr } = await supabase.storage
+      .from(BUCKET)
+      .upload(path, file, { upsert: false, contentType: file.type || undefined });
+    if (upErr) {
+      setEnviando(false);
+      const msg = /bucket|not found/i.test(upErr.message)
+        ? "Armazenamento ainda não ativado. Rode a migração client_files no Supabase."
+        : "Não foi possível enviar o arquivo.";
+      toast.erro(msg);
+      return;
+    }
+    const { error: insErr } = await supabase.from("client_diagnostics").insert({
+      client_id: clientId,
+      title: title.trim() || "Diagnóstico",
+      html: null,
+      path,
+      mime_type: file.type || "application/pdf",
+      uploaded_by: auth.user?.id ?? null,
+    });
+    setEnviando(false);
+    if (insErr) {
+      await supabase.storage.from(BUCKET).remove([path]);
+      toast.erro("Não foi possível salvar o diagnóstico.");
+      return;
+    }
+    toast.sucesso("Diagnóstico salvo");
+    router.refresh();
+  };
+
   const aoEscolherArquivo = async (file: File) => {
-    const texto = await file.text();
-    const titulo = file.name.replace(/\.html?$/i, "");
-    await salvar(titulo, texto);
+    const ehHTML =
+      file.type === "text/html" || /\.html?$/i.test(file.name);
+    const titulo = file.name.replace(/\.(html?|pdf|png|jpe?g|webp)$/i, "");
+    if (ehHTML) {
+      await salvarHTML(titulo, await file.text());
+    } else {
+      await salvarArquivo(titulo, file);
+    }
   };
 
   const remover = async (d: ClientDiagnostic) => {
     if (!window.confirm(`Remover "${d.title ?? "diagnóstico"}"?`)) return;
+    if (d.path) await supabase.storage.from(BUCKET).remove([d.path]);
     const { error } = await supabase
       .from("client_diagnostics")
       .delete()
@@ -76,6 +154,10 @@ export function ClientDiagnosticsTab({
     router.refresh();
   };
 
+  const abrirEmNovaAba = () => {
+    if (urlArquivo) window.open(urlArquivo, "_blank");
+  };
+
   return (
     <div>
       {/* Enviar diagnóstico */}
@@ -86,7 +168,7 @@ export function ClientDiagnosticsTab({
           </h3>
           <p className="mt-0.5 text-xs text-gray-500">
             A análise profunda (Instagram, concorrência, plano). Anexe o
-            arquivo do diagnóstico (.html) que ele aparece bonitão aqui.
+            arquivo (PDF ou HTML) que ele aparece bonitão aqui.
           </p>
         </div>
         <button
@@ -101,7 +183,7 @@ export function ClientDiagnosticsTab({
         <input
           ref={inputRef}
           type="file"
-          accept=".html,.htm,text/html"
+          accept=".pdf,.html,.htm,application/pdf,text/html"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -113,8 +195,8 @@ export function ClientDiagnosticsTab({
 
       {diagnosticos.length === 0 ? (
         <p className="mt-6 text-center text-sm text-gray-500">
-          Nenhum diagnóstico ainda. Anexe o HTML do diagnóstico para guardá-lo
-          aqui, sempre à mão.
+          Nenhum diagnóstico ainda. Anexe o PDF (ou HTML) do diagnóstico para
+          guardá-lo aqui, sempre à mão.
         </p>
       ) : (
         <>
@@ -149,13 +231,24 @@ export function ClientDiagnosticsTab({
                   </span>
                 </p>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTelaCheia(true)}
-                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                  >
-                    ⛶ Tela cheia
-                  </button>
+                  {selecionado.path ? (
+                    <button
+                      type="button"
+                      onClick={abrirEmNovaAba}
+                      disabled={!urlArquivo}
+                      className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      ↗ Abrir
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setTelaCheia(true)}
+                      className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                      ⛶ Tela cheia
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => remover(selecionado)}
@@ -165,19 +258,33 @@ export function ClientDiagnosticsTab({
                   </button>
                 </div>
               </div>
-              <iframe
-                title={selecionado.title ?? "Diagnóstico"}
-                srcDoc={selecionado.html}
-                sandbox="allow-scripts"
-                className="h-[72vh] w-full rounded-xl border border-gray-200 bg-white shadow-sm"
-              />
+              {selecionado.path ? (
+                urlArquivo ? (
+                  <iframe
+                    title={selecionado.title ?? "Diagnóstico"}
+                    src={urlArquivo}
+                    className="h-[72vh] w-full rounded-xl border border-gray-200 bg-white shadow-sm"
+                  />
+                ) : (
+                  <div className="flex h-[72vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-400">
+                    Abrindo o arquivo…
+                  </div>
+                )
+              ) : (
+                <iframe
+                  title={selecionado.title ?? "Diagnóstico"}
+                  srcDoc={selecionado.html ?? ""}
+                  sandbox="allow-scripts"
+                  className="h-[72vh] w-full rounded-xl border border-gray-200 bg-white shadow-sm"
+                />
+              )}
             </div>
           ) : null}
         </>
       )}
 
-      {/* Tela cheia */}
-      {telaCheia && selecionado ? (
+      {/* Tela cheia (HTML) */}
+      {telaCheia && selecionado && !selecionado.path ? (
         <div className="fixed inset-0 z-50 flex flex-col bg-white">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <h2 className="text-base font-bold text-gray-900">
@@ -193,7 +300,7 @@ export function ClientDiagnosticsTab({
           </div>
           <iframe
             title={selecionado.title ?? "Diagnóstico"}
-            srcDoc={selecionado.html}
+            srcDoc={selecionado.html ?? ""}
             sandbox="allow-scripts"
             className="flex-1 w-full"
           />

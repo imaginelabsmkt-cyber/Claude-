@@ -243,12 +243,17 @@ export type ClientReportInsert = Omit<
   analysis?: string | null;
 };
 
-/** client_diagnostics — diagnóstico visual (HTML) do cliente. */
+/** client_diagnostics — diagnóstico do cliente (HTML inline ou arquivo PDF). */
 export type ClientDiagnostic = {
   id: UUID;
   client_id: UUID;
   title: string | null;
-  html: string;
+  /** HTML inline (diagnóstico visual). Nulo quando é um arquivo no Storage. */
+  html: string | null;
+  /** Caminho no Storage (bucket client-files) quando é PDF/arquivo. */
+  path: string | null;
+  /** Tipo do arquivo no Storage (ex.: application/pdf). */
+  mime_type: string | null;
   created_at: ISODateString;
   uploaded_by: UUID | null;
 }
