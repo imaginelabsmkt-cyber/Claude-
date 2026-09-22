@@ -21,6 +21,7 @@
 
 export type AreaId =
   | "inicio"
+  | "relatorio"
   | "comercial"
   | "financeiro"
   | "pessoas"
@@ -47,6 +48,14 @@ export const AREAS: Area[] = [
     href: "/interno",
     contexto: "Cruzamento",
     pergunta: "Por onde eu começo hoje?",
+    cor: "#3f3a3c",
+  },
+  {
+    id: "relatorio",
+    label: "Relatório do mês",
+    href: "/interno/relatorio",
+    contexto: "Fechamento",
+    pergunta: "Como foi o mês que passou?",
     cor: "#3f3a3c",
   },
   {

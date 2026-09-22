@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { BuscaComando } from "@/components/interno/busca-comando";
 import { InternoSidebar } from "@/components/interno/interno-sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { areaDaRota } from "@/lib/interno/areas";
@@ -40,7 +41,7 @@ export function InternoShell({ children, nomeUsuario }: InternoShellProps) {
               <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
             </svg>
           </button>
-          <span className="text-sm font-medium text-gray-400 lg:hidden">favie interno</span>
+          <BuscaComando />
           <span className="ml-auto text-sm text-gray-500">{nomeUsuario}</span>
         </header>
 

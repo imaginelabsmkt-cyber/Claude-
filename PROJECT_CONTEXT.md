@@ -387,6 +387,62 @@ a vigência é o `end_month` dela. `renovacoesProximas`
 
 O aviso entra na mesma lista do Início, com a cor do comercial.
 
+## 5.7 Busca, rentabilidade e relatório
+
+### Busca global (⌘K)
+
+`BuscaComando` abre com ⌘K (Ctrl+K no Windows) de qualquer tela do
+interno e procura em seis lugares ao mesmo tempo: clientes, lançamentos,
+oportunidades, pessoas, obrigações e documentos.
+
+Cada resultado carrega a **cor da área de onde veio** — o mesmo código de
+cor do resto do sistema (5.2).
+
+Duas decisões que importam:
+
+- A busca é **server action** (`lib/actions/busca.ts`), não consulta do
+  navegador: o cliente nunca recebe o que o RLS não deixaria passar.
+- Uma `ref` guarda o último termo buscado, para que a resposta atrasada
+  de uma busca antiga não sobrescreva o resultado da atual. Sem isso,
+  digitar rápido faz a lista "voltar no tempo".
+
+É `ilike` simples, sem índice de texto: para uma base do tamanho da
+agência é suficiente, e não exige extensão nenhuma no Postgres.
+
+### Rentabilidade por cliente
+
+`lib/financeiro/rentabilidade.ts` responde "esse cliente se paga?"
+separando dois custos que costumam ser confundidos:
+
+| | O que é | De onde sai |
+| - | ------- | ----------- |
+| **Direto** | freela e tráfego daquele cliente | `financial_entries.client_id` |
+| **Indireto** | pró-labore, ferramentas, impostos | despesa sem `client_id` |
+
+A **margem direta é fato**. O **resultado com rateio é estimativa**: o
+indireto é dividido na proporção da receita de cada cliente — quem
+fatura mais absorve mais. É o rateio mais comum e o único honesto sem
+apontar horas trabalhadas.
+
+Só conta o que foi **pago**: receita prometida não paga cliente nenhum.
+
+Receita paga sem `client_id` entra no total mas não em nenhuma linha, o
+que distorce o rateio — por isso a tela avisa quando isso acontece.
+
+> Optei por rentabilidade **por cliente** em vez de custo por conteúdo.
+> Atribuir custo a cada conteúdo exigiria apontar horas por peça, o que
+> ninguém sustenta na prática; e a pergunta real ("vale a pena atender
+> esse cliente?") se responde no nível do cliente.
+
+### Relatório do mês
+
+`/interno/relatorio` fecha o mês numa página: dinheiro, carteira, para
+onde foi o dinheiro, quem mais rendeu e o que entra no mês seguinte.
+Compara com o mês anterior.
+
+A folha de impressão (`@media print` em `globals.css`) esconde menu e
+botões, então Ctrl+P sai limpo em papel ou PDF — sem biblioteca de PDF.
+
 ## 6. Convenções de código
 
 - **Rotas/arquivos:** `kebab-case`.

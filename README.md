@@ -75,6 +75,7 @@ cada uma com a sua cor — e **a cor diz de onde o dado vem**:
 | Área | Cor | Tela |
 | --- | --- | --- |
 | Início | grafite | O que tem prazo hoje, de todas as áreas juntas |
+| Relatório do mês | grafite | O fechamento numa página, pronto para imprimir |
 | Comercial | vinho | Carteira de clientes, funil de oportunidades e propostas |
 | Financeiro | petróleo | Fluxo de caixa (detalhado abaixo) |
 | Pessoas | lilás | Quem é a equipe, quanto cada um custa |
@@ -87,6 +88,26 @@ desse jogo: significa sempre "venceu ou está vencendo".
 
 Pessoas, Contábil e Administrativo não guardam dados próprios: são recortes
 das categorias do financeiro. Um número só para a empresa inteira.
+
+### Busca, rentabilidade e fechamento
+
+**⌘K acha qualquer coisa.** De qualquer tela, o atalho abre a busca e
+procura em clientes, lançamentos, oportunidades, pessoas, obrigações e
+documentos ao mesmo tempo. Cada resultado vem com a cor da área de onde
+veio.
+
+**Rentabilidade por cliente** responde "esse cliente se paga?". Separa o
+custo direto (o freela e o tráfego lançados com aquele cliente) do
+indireto (pró-labore, ferramentas, impostos), e divide o indireto entre
+os clientes na proporção do que cada um fatura. A margem direta é fato; o
+rateio é estimativa — a tela diz isso com todas as letras.
+
+Para o custo direto aparecer, basta escolher o cliente ao lançar a
+despesa do freela ou do tráfego.
+
+**Relatório do mês** fecha o mês numa página só: dinheiro, carteira, para
+onde foi, quem mais rendeu e o que entra no mês seguinte, comparado com o
+mês anterior. Ctrl+P imprime sem o menu — vira PDF para o contador.
 
 ### Pessoas e renovações
 

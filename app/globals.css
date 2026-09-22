@@ -53,7 +53,8 @@ textarea:focus-visible,
   --alerta-soft: #fbe1de;
 }
 
-[data-area="inicio"] {
+[data-area="inicio"],
+[data-area="relatorio"] {
   --area: #3f3a3c;
   --area-soft: #eae6e7;
 }
@@ -76,4 +77,36 @@ textarea:focus-visible,
 [data-area="administrativo"] {
   --area: #8a5a16;
   --area-soft: #f8ecd7;
+}
+
+/* =============================================================
+   IMPRESSÃO — o relatório do mês é feito para virar papel ou PDF.
+   Some o que é navegação e sobra o conteúdo, em fundo branco.
+   ============================================================= */
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+
+  /* O conteúdo ocupa a folha inteira, sem o recuo do menu. */
+  body {
+    background: #fff;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .lg\:pl-60 {
+    padding-left: 0 !important;
+  }
+
+  /* Cartão vira bloco limpo: sem sombra, com fio fino. */
+  section,
+  .rounded-xl {
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
 }
