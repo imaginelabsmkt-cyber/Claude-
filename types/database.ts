@@ -288,6 +288,8 @@ export type ClientWeeklyNote = {
   client_id: UUID;
   week_start: string; // 'YYYY-MM-DD' (segunda-feira)
   note: string | null;
+  file_path: string | null;
+  file_name: string | null;
   created_by: UUID | null;
   created_at: ISODateString;
   updated_at: ISODateString;
@@ -297,6 +299,8 @@ export type ClientWeeklyNoteInsert = {
   client_id: UUID;
   week_start: string;
   note?: string | null;
+  file_path?: string | null;
+  file_name?: string | null;
   created_by?: UUID | null;
   updated_at?: ISODateString;
 };

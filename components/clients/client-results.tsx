@@ -31,12 +31,11 @@ function fmtQuando(iso: string | null): string {
 /** Sugestões de métricas de tráfego pago/anúncios (a equipe pode trocar). */
 const SUGESTOES = [
   "Investimento",
-  "Alcance",
+  "Pessoas alcançadas",
   "Impressões",
-  "Cliques no link",
-  "CTR",
-  "Resultados (leads/conversas)",
-  "Custo por resultado",
+  "Visitas à página",
+  "Conversas iniciadas",
+  "Viraram consulta/agendamento",
 ];
 
 export function ClientResults({

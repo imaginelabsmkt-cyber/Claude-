@@ -96,6 +96,7 @@ export interface DadosPortal {
   resumoMes: ResumoMes;
   resultado: ResultadoPortal;
   recadoSemana: string | null; // relatório da semana escrito pela equipe
+  recadoArquivo: { url: string; name: string } | null; // relatório em arquivo
   postsSemana: PortalPost[];
   gravacoesSemana: PortalGravacao[];
   emProducao: PortalPost[];
