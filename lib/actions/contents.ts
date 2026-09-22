@@ -22,7 +22,11 @@ import {
   sincronizarPostagem,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
-import { criarCapaDoVideo, publicarCapaDoVideo } from "@/lib/content/covers";
+import {
+  criarCapaDoVideo,
+  publicarCapaDoVideo,
+  cancelarCapaDoVideo,
+} from "@/lib/content/covers";
 import { formatarData } from "@/lib/utils";
 import { aposResposta } from "@/lib/after";
 import { notificarPlanner, notificarProducer } from "@/lib/push/eventos";
@@ -275,6 +279,10 @@ export async function definirStatusConteudoAction(
       id,
       dados.actual_post_date ?? antigo?.actual_post_date ?? hojeISO(),
     );
+  }
+  // Vídeo cancelado => a capa não é mais necessária: cancela junto.
+  if (status === "Cancelado" && !ehArte(antigo?.format)) {
+    await cancelarCapaDoVideo(supabase, id);
   }
 
   await registrarHistorico(id, [

@@ -112,3 +112,24 @@ export async function publicarCapaDoVideo(
     console.error("publicarCapaDoVideo:", e);
   }
 }
+
+/**
+ * Quando o vídeo é cancelado, a capa dele deixa de ser necessária: cancela a
+ * capa também (some das Artes), a menos que já esteja publicada ou cancelada.
+ * Melhor esforço.
+ */
+export async function cancelarCapaDoVideo(
+  sb: SB,
+  videoId: string,
+): Promise<void> {
+  try {
+    await sb
+      .from("contents")
+      .update({ status: "Cancelado" })
+      .eq("cover_source_id", videoId)
+      .neq("status", "Publicado")
+      .neq("status", "Cancelado");
+  } catch (e) {
+    console.error("cancelarCapaDoVideo:", e);
+  }
+}
