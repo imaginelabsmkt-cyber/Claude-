@@ -67,6 +67,7 @@ function normalizarLancamento(values: LancamentoFormValues): FinancialEntryInser
     kind: values.kind,
     category_id: values.category_id,
     client_id: limpar(values.client_id),
+    team_member_id: limpar(values.team_member_id),
     description: values.description.trim(),
     amount: paraNumero(values.amount) ?? 0,
     status: values.status,
@@ -376,6 +377,8 @@ export async function gerarLancamentosDoMesAction(
     payment_method: null,
     notes: r.notes,
     recurrence_id: r.id,
+    // O pró-labore gerado já nasce com o dono certo.
+    team_member_id: r.team_member_id,
   }));
 
   const { error: erroInsert } = await supabase.from("financial_entries").insert(novos);

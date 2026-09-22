@@ -7,6 +7,7 @@ import {
   listarClientesFinanceiro,
   obterLancamento,
 } from "@/lib/data/financeiro";
+import { listarPessoasAtivas } from "@/lib/data/pessoas";
 import { rotuloMes } from "@/lib/financeiro/meses";
 
 export const dynamic = "force-dynamic";
@@ -17,10 +18,11 @@ interface PageProps {
 
 /** Edição de um lançamento existente. */
 export default async function EditarLancamentoPage({ params }: PageProps) {
-  const [lancamento, categorias, clientes] = await Promise.all([
+  const [lancamento, categorias, clientes, pessoas] = await Promise.all([
     obterLancamento(params.id),
     listarCategorias(),
     listarClientesFinanceiro(),
+    listarPessoasAtivas(),
   ]);
 
   if (!lancamento) notFound();
@@ -37,6 +39,7 @@ export default async function EditarLancamentoPage({ params }: PageProps) {
             mes={lancamento.reference_month}
             categorias={categorias}
             clientes={clientes}
+            pessoas={pessoas}
             lancamento={lancamento}
           />
         </CardContent>

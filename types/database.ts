@@ -355,6 +355,8 @@ export type FinancialRecurrence = {
   end_month: MonthString | null;
   active: boolean;
   notes: string | null;
+  /** A quem esta recorrência se refere (pró-labore). */
+  team_member_id: UUID | null;
   created_at: ISODateString;
   updated_at: ISODateString;
 }
@@ -375,6 +377,8 @@ export type FinancialEntry = {
   notes: string | null;
   /** Preenchido quando o lançamento nasceu de uma recorrência. */
   recurrence_id: UUID | null;
+  /** A quem este pagamento se refere (pró-labore, freela). */
+  team_member_id: UUID | null;
   created_at: ISODateString;
   updated_at: ISODateString;
 }
@@ -409,7 +413,9 @@ export type FinancialRecurrenceInsert = Omit<
   | "end_month"
   | "active"
   | "notes"
+  | "team_member_id"
 > & {
+  team_member_id?: UUID | null;
   id?: UUID;
   client_id?: UUID | null;
   due_day?: number | null;
@@ -430,9 +436,11 @@ export type FinancialEntryInsert = Omit<
   | "payment_method"
   | "notes"
   | "recurrence_id"
+  | "team_member_id"
 > & {
   id?: UUID;
   client_id?: UUID | null;
+  team_member_id?: UUID | null;
   status?: FinancialStatus;
   due_date?: DateString | null;
   paid_date?: DateString | null;
@@ -661,6 +669,59 @@ export type ObligationCompletionInsert = Omit<
 };
 
 // -------------------------------------------------------------
+// Pessoas (20260923120000_pessoas.sql)
+// -------------------------------------------------------------
+
+/** Vínculo da pessoa com a agência. */
+export type TeamKind = "Sócia" | "Freelancer" | "Prestador";
+
+/**
+ * team_members — quem RECEBE dinheiro da agência.
+ * Diferente de `Profile`, que é quem FAZ LOGIN; `profile_id` liga as
+ * duas quando é a mesma pessoa.
+ */
+export type TeamMember = {
+  id: UUID;
+  name: string;
+  kind: TeamKind;
+  role: string | null;
+  profile_id: UUID | null;
+  /** Pró-labore mensal ou diária/cachê de referência. */
+  default_rate: number | null;
+  contact: string | null;
+  payment_info: string | null;
+  notes: string | null;
+  active: boolean;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+export type TeamMemberInsert = Omit<
+  TeamMember,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "kind"
+  | "role"
+  | "profile_id"
+  | "default_rate"
+  | "contact"
+  | "payment_info"
+  | "notes"
+  | "active"
+> & {
+  id?: UUID;
+  kind?: TeamKind;
+  role?: string | null;
+  profile_id?: UUID | null;
+  default_rate?: number | null;
+  contact?: string | null;
+  payment_info?: string | null;
+  notes?: string | null;
+  active?: boolean;
+};
+
+// -------------------------------------------------------------
 // Tipos de Insert / Update (colunas com default são opcionais)
 // -------------------------------------------------------------
 
@@ -872,6 +933,12 @@ export interface Database {
         Update: Partial<ObligationCompletionInsert>;
         Relationships: [];
       };
+      team_members: {
+        Row: TeamMember;
+        Insert: TeamMemberInsert;
+        Update: Partial<TeamMemberInsert>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -884,6 +951,7 @@ export interface Database {
       lead_stage: LeadStage;
       proposal_status: ProposalStatus;
       obligation_cadence: ObligationCadence;
+      team_kind: TeamKind;
     };
     CompositeTypes: Record<string, never>;
   };

@@ -8,6 +8,11 @@ import {
 import { areaDaCategoria, categoriasDaArea } from "@/lib/interno/classificacao";
 import { listarObrigacoesUrgentes } from "@/lib/data/empresa";
 import {
+  renovacoesProximas,
+  textoRenovacao,
+  type ContratoVigente,
+} from "@/lib/comercial/funil";
+import {
   rotuloPeriodo,
   textoPrazo as textoPrazoObrigacao,
 } from "@/lib/empresa/obrigacoes";
@@ -117,7 +122,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       listarObrigacoesUrgentes(),
       supabase
         .from("financial_recurrences")
-        .select("kind, amount, start_month, end_month")
+        .select("id, description, client_id, kind, amount, start_month, end_month, active")
         .eq("active", true),
       supabase
         .from("clients")
@@ -145,7 +150,36 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       dias: o.aberto!.dias,
     }));
 
-  const compromissos = [...comoCompromissos(lancamentos), ...daObrigacao].sort(
+  // Contrato chegando ao fim é aviso do comercial: a mensalidade continua
+  // sendo gerada, mas sem vigência que a sustente. Sai do `end_month` da
+  // recorrência — não existe tabela de contratos.
+  const contratos: ContratoVigente[] = vigentes
+    .filter((r) => r.kind === "Receita")
+    .map((r) => ({
+      id: r.id,
+      description: r.description,
+      clientId: r.client_id,
+      amount: Number(r.amount),
+      endMonth: r.end_month,
+      active: r.active,
+    }));
+
+  const daRenovacao: Compromisso[] = renovacoesProximas(contratos).map((r) => ({
+    id: `renovacao-${r.id}`,
+    origem: "comercial" as const,
+    titulo: r.description.replace(/^Mensalidade /, "Renovar contrato — "),
+    descricao: `contrato vai até ${r.endMonth}`,
+    valor: r.amount,
+    prazo: textoRenovacao(r),
+    atrasado: r.dias <= 7,
+    dias: r.dias,
+  }));
+
+  const compromissos = [
+    ...comoCompromissos(lancamentos),
+    ...daObrigacao,
+    ...daRenovacao,
+  ].sort(
     (a, b) => {
       if (a.dias === null) return 1;
       if (b.dias === null) return -1;

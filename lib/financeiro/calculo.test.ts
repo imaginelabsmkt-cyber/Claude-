@@ -36,6 +36,7 @@ function lancamento(over: Partial<FinancialEntry> = {}): FinancialEntry {
     payment_method: null,
     notes: null,
     recurrence_id: null,
+    team_member_id: null,
     created_at: "2026-04-01T12:00:00Z",
     updated_at: "2026-04-01T12:00:00Z",
     ...over,

@@ -19,13 +19,21 @@ import {
   type LancamentoFormValues,
 } from "@/lib/validation/financeiro";
 import { PAYMENT_METHOD_OPTIONS } from "@/types";
-import type { Client, FinancialCategory, FinancialEntry } from "@/types";
+import { categoriasDaArea } from "@/lib/interno/classificacao";
+import type {
+  Client,
+  FinancialCategory,
+  FinancialEntry,
+  TeamMember,
+} from "@/types";
 
 interface EntryFormProps {
   /** Mês de competência sugerido para um lançamento novo. */
   mes: string;
   categorias: FinancialCategory[];
   clientes: Pick<Client, "id" | "name" | "active">[];
+  /** Equipe ativa — o campo só aparece em categoria de pessoas. */
+  pessoas?: Pick<TeamMember, "id" | "name" | "kind">[];
   /** Quando informado, o formulário está em modo de edição. */
   lancamento?: FinancialEntry;
 }
@@ -35,7 +43,13 @@ interface EntryFormProps {
  * As categorias disponíveis acompanham o tipo escolhido (receita/despesa),
  * para não existir "despesa em categoria de receita".
  */
-export function EntryForm({ mes, categorias, clientes, lancamento }: EntryFormProps) {
+export function EntryForm({
+  mes,
+  categorias,
+  clientes,
+  pessoas = [],
+  lancamento,
+}: EntryFormProps) {
   const router = useRouter();
   const edicao = Boolean(lancamento);
 
@@ -46,6 +60,7 @@ export function EntryForm({ mes, categorias, clientes, lancamento }: EntryFormPr
           kind: lancamento.kind,
           category_id: lancamento.category_id,
           client_id: lancamento.client_id ?? "",
+          team_member_id: lancamento.team_member_id ?? "",
           description: lancamento.description,
           amount: paraCampo(Number(lancamento.amount)),
           status: lancamento.status,
@@ -66,6 +81,14 @@ export function EntryForm({ mes, categorias, clientes, lancamento }: EntryFormPr
     () => categorias.filter((c) => c.kind === values.kind && c.active),
     [categorias, values.kind],
   );
+
+  // Pró-labore e freelancers são pagamentos a pessoas: só nessas
+  // categorias faz sentido perguntar a quem o lançamento se refere.
+  const ehDePessoas = useMemo(() => {
+    const nomes = categoriasDaArea("pessoas");
+    const escolhida = categorias.find((c) => c.id === values.category_id);
+    return Boolean(escolhida && nomes.includes(escolhida.name));
+  }, [categorias, values.category_id]);
 
   function atualizar<K extends keyof LancamentoFormValues>(
     campo: K,
@@ -220,6 +243,27 @@ export function EntryForm({ mes, categorias, clientes, lancamento }: EntryFormPr
             Vincular o cliente alimenta o faturamento por cliente.
           </p>
         </div>
+
+        {ehDePessoas && pessoas.length > 0 ? (
+          <div>
+            <Label htmlFor="team_member_id">Para quem</Label>
+            <Select
+              id="team_member_id"
+              value={values.team_member_id ?? ""}
+              onChange={(e) => atualizar("team_member_id", e.target.value)}
+            >
+              <option value="">— não informado —</option>
+              {pessoas.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.kind})
+                </option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-gray-500">
+              Faz o pagamento aparecer na tela de Pessoas.
+            </p>
+          </div>
+        ) : null}
 
         <div>
           <Label htmlFor="status">Situação *</Label>

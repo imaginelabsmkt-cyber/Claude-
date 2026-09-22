@@ -32,6 +32,8 @@ export const lancamentoFormSchema = z.object({
   kind: z.enum(["Receita", "Despesa"], { message: "Escolha receita ou despesa" }),
   category_id: z.string().uuid("Escolha uma categoria"),
   client_id: z.string().uuid().or(z.literal("")).optional(),
+  /** A quem o pagamento se refere (pró-labore, freela). */
+  team_member_id: z.string().uuid().or(z.literal("")).optional(),
   description: z
     .string()
     .trim()
@@ -54,6 +56,7 @@ export function lancamentoPadrao(mes: string): LancamentoFormValues {
     kind: "Receita",
     category_id: "",
     client_id: "",
+    team_member_id: "",
     description: "",
     amount: "",
     status: "Pendente",

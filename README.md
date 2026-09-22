@@ -77,7 +77,7 @@ cada uma com a sua cor — e **a cor diz de onde o dado vem**:
 | Início | grafite | O que tem prazo hoje, de todas as áreas juntas |
 | Comercial | vinho | Carteira de clientes, funil de oportunidades e propostas |
 | Financeiro | petróleo | Fluxo de caixa (detalhado abaixo) |
-| Pessoas | lilás | Pró-labore e freelas |
+| Pessoas | lilás | Quem é a equipe, quanto cada um custa |
 | Contábil | azul | DAS, contabilidade e prazos com o governo |
 | Administrativo | ocre | Ferramentas, contratos e documentos da empresa |
 
@@ -87,6 +87,22 @@ desse jogo: significa sempre "venceu ou está vencendo".
 
 Pessoas, Contábil e Administrativo não guardam dados próprios: são recortes
 das categorias do financeiro. Um número só para a empresa inteira.
+
+### Pessoas e renovações
+
+**Pessoas** deixou de ser só um total: agora tem o cadastro de quem recebe
+da agência — sócias, freelancers, prestadores — e cada pagamento do
+financeiro pode apontar para uma pessoa. A tela mostra quanto cada uma
+custou no mês e no ano, e avisa quando sobrou pagamento sem dono.
+
+O cadastro de quem **recebe** é separado de quem **faz login**: um
+freelancer que edita um vídeo nunca vai precisar de senha.
+
+**Renovação de contrato.** Como o contrato é a mensalidade recorrente, a
+data de fim da vigência vira aviso no Início 45 dias antes. Contrato sem
+prazo não avisa (não tem fim), e contrato que já venceu e continua ativo é
+o mais urgente — a mensalidade segue sendo gerada sem contrato que a
+sustente.
 
 ### Documentos e prazos
 

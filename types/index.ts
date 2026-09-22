@@ -23,6 +23,7 @@ import type {
   FinancialStatus,
   Lead,
   ObligationCadence,
+  TeamKind,
   LeadStage,
   Proposal,
   ProposalStatus,
@@ -289,3 +290,15 @@ export const MESES_CURTOS: string[] = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
   "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];
+
+// -------------------------------------------------------------
+// Pessoas — opções e tons de UI
+// -------------------------------------------------------------
+
+export const TEAM_KIND_OPTIONS: TeamKind[] = ["Sócia", "Freelancer", "Prestador"];
+
+export const TEAM_KIND_TONE: Record<TeamKind, BadgeTone> = {
+  Sócia: "roxo",
+  Freelancer: "azul",
+  Prestador: "cinza",
+};

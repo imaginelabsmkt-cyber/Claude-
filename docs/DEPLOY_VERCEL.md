@@ -15,11 +15,41 @@ Tudo o que é necessário tem plano gratuito (Supabase e Vercel).
 2. Dê um nome (ex.: `agencia-social`), defina uma senha do banco (guarde-a) e
    escolha a região mais próxima (ex.: São Paulo). Clique em **Create**.
 3. Aguarde o provisionamento (~2 min).
-4. Aplique o schema do banco:
-   - No menu lateral, abra **SQL Editor** → **New query**.
-   - Cole todo o conteúdo de
-     [`supabase/migrations/20260714120000_initial_schema.sql`](../supabase/migrations/20260714120000_initial_schema.sql)
-     e clique em **Run**. Deve concluir sem erros.
+4. Aplique o schema do banco. No menu lateral, abra **SQL Editor** →
+   **New query** e rode os arquivos de `supabase/migrations/` **um a um, na
+   ordem do nome** (a data no começo do nome é a ordem). Cole o conteúdo,
+   clique em **Run**, confira que terminou sem erro e passe ao próximo:
+
+   | # | Arquivo | O que cria |
+   | - | ------- | ---------- |
+   | 1 | `20260714120000_initial_schema.sql` | Base: perfis, clientes, conteúdos |
+   | 2 | `20260715120000_client_niche_monthly_goal.sql` | Nicho e meta do cliente |
+   | 3 | `20260715130000_content_script_caption.sql` | Roteiro e legenda |
+   | 4 | `20260715140000_content_reference_url.sql` | Link de referência |
+   | 5 | `20260716120000_hardening_rls.sql` | Reforço de segurança |
+   | 6 | `20260717120000_content_recording_time.sql` | Hora da gravação |
+   | 7 | `20260718120000_google_integration.sql` | Integração com o Google |
+   | 8 | `20260719120000_plannings.sql` | Planejamentos mensais |
+   | 9 | `20260720120000_planning_google_sync.sql` | Sincronia do planejamento |
+   | 10 | `20260721120000_planning_situation.sql` | Situação do planejamento |
+   | 11 | `20260722120000_google_calendars.sql` | Agendas do Google |
+   | 12 | `20260723120000_content_cover_source.sql` | Origem da capa |
+   | 13 | `20260724120000_client_files.sql` | Arquivos do cliente |
+   | 14 | `20260725120000_client_onboarding_reports.sql` | Onboard e relatórios |
+   | 15 | `20260726120000_client_diagnostics.sql` | Diagnósticos |
+   | 16 | `20260727120000_report_analysis.sql` | Análise de relatório |
+   | 17 | `20260908120000_financeiro.sql` | **Financeiro** (fluxo de caixa) |
+   | 18 | `20260921120000_comercial.sql` | **Comercial** (funil e propostas) |
+   | 19 | `20260922120000_empresa.sql` | **Empresa** (documentos e prazos) |
+   | 20 | `20260923120000_pessoas.sql` | **Pessoas** (equipe e freelas) |
+
+   > Todas são idempotentes: se você rodar de novo por engano, não quebra
+   > nem duplica nada.
+
+   **Opcional — seu histórico de 2026.** Depois da migration 17, você pode
+   rodar `supabase/seed_financeiro.sql`: ele carrega os 149 lançamentos de
+   abril a setembro/2026 da planilha, os 15 clientes do período e as
+   recorrências vigentes. Se já houver lançamentos, ele não faz nada.
 5. Copie as credenciais: **Project Settings → API**:
    - **Project URL** → será a `NEXT_PUBLIC_SUPABASE_URL`.
    - **anon public** (em Project API keys) → será a `NEXT_PUBLIC_SUPABASE_ANON_KEY`.

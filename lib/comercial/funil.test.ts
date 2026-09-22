@@ -7,7 +7,11 @@ import {
   estaParado,
   propostaVencida,
   propostaVigente,
+  renovacoesProximas,
+  textoRenovacao,
+  ultimoDiaDoMes,
   valorDoFunil,
+  type ContratoVigente,
 } from "@/lib/comercial/funil";
 import type { Lead, Proposal } from "@/types";
 
@@ -198,5 +202,67 @@ describe("dadosDoFechamento", () => {
     });
     expect(d.cliente.name).toBe("Ateliê Flor de Sal");
     expect(d.recorrencia.description).toBe("Mensalidade Ateliê Flor de Sal");
+  });
+});
+
+describe("renovação de contrato", () => {
+  function contrato(over: Partial<ContratoVigente> = {}): ContratoVigente {
+    return {
+      id: "r1",
+      description: "Mensalidade Kiku Sushi",
+      clientId: "cli-1",
+      amount: 2200,
+      endMonth: "2026-10",
+      active: true,
+      ...over,
+    };
+  }
+
+  it("último dia do mês respeita o calendário", () => {
+    expect(ultimoDiaDoMes("2026-10")).toBe("2026-10-31");
+    expect(ultimoDiaDoMes("2026-11")).toBe("2026-11-30");
+    expect(ultimoDiaDoMes("2026-02")).toBe("2026-02-28");
+    expect(ultimoDiaDoMes("2028-02")).toBe("2028-02-29");
+    expect(ultimoDiaDoMes("nada")).toBeNull();
+  });
+
+  it("avisa contrato que acaba dentro do horizonte", () => {
+    // 21/09 -> 31/10 são 40 dias.
+    const r = renovacoesProximas([contrato()], HOJE, 45);
+    expect(r).toHaveLength(1);
+    expect(r[0].dias).toBe(40);
+    expect(r[0].data).toBe("2026-10-31");
+  });
+
+  it("ignora contrato que acaba longe demais", () => {
+    expect(renovacoesProximas([contrato({ endMonth: "2027-09" })], HOJE, 45)).toEqual([]);
+  });
+
+  it("contrato sem prazo nunca renova", () => {
+    expect(renovacoesProximas([contrato({ endMonth: null })], HOJE)).toEqual([]);
+  });
+
+  it("contrato pausado não entra", () => {
+    expect(renovacoesProximas([contrato({ active: false })], HOJE)).toEqual([]);
+  });
+
+  it("contrato vencido e ainda ativo é o mais urgente", () => {
+    const r = renovacoesProximas(
+      [
+        contrato({ id: "futuro", endMonth: "2026-10" }),
+        contrato({ id: "vencido", endMonth: "2026-08" }),
+      ],
+      HOJE,
+    );
+    expect(r[0].id).toBe("vencido");
+    expect(r[0].dias).toBeLessThan(0);
+  });
+
+  it("descreve o prazo em português", () => {
+    const base = { id: "x", description: "d", clientId: null, amount: 0, endMonth: "2026-10", data: "2026-10-31" };
+    expect(textoRenovacao({ ...base, dias: -3 })).toBe("venceu há 3 dias");
+    expect(textoRenovacao({ ...base, dias: 0 })).toBe("acaba hoje");
+    expect(textoRenovacao({ ...base, dias: 1 })).toBe("acaba amanhã");
+    expect(textoRenovacao({ ...base, dias: 12 })).toBe("renova em 12 dias");
   });
 });

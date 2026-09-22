@@ -8,7 +8,7 @@
  */
 
 import { arredondar, somar } from "@/lib/financeiro/calculo";
-import { deslocarMes } from "@/lib/financeiro/meses";
+import { deslocarMes, partesMes } from "@/lib/financeiro/meses";
 import type { Lead, LeadStage, Proposal } from "@/types";
 
 /**
@@ -185,4 +185,91 @@ export function dadosDoFechamento(
           }
         : null,
   };
+}
+
+
+// -------------------------------------------------------------
+// Renovação de contrato
+// -------------------------------------------------------------
+
+/**
+ * O contrato de um cliente é a mensalidade recorrente: o `end_month`
+ * dela é a data em que a vigência acaba. Isto é o mínimo que as regras
+ * de renovação precisam saber.
+ */
+export interface ContratoVigente {
+  id: string;
+  description: string;
+  clientId: string | null;
+  amount: number;
+  /** Último mês coberto pelo contrato ("YYYY-MM"); null = sem prazo. */
+  endMonth: string | null;
+  active: boolean;
+}
+
+/** Um contrato chegando ao fim. */
+export interface Renovacao {
+  id: string;
+  description: string;
+  clientId: string | null;
+  amount: number;
+  /** Último mês do contrato. */
+  endMonth: string;
+  /** Data do último dia coberto ("YYYY-MM-DD"). */
+  data: string;
+  /** Dias até acabar (negativo = já acabou). */
+  dias: number;
+}
+
+/** Último dia de um mês "YYYY-MM", como "YYYY-MM-DD". */
+export function ultimoDiaDoMes(mes: string): string | null {
+  const { ano, mes: m } = partesMes(mes);
+  if (!ano) return null;
+  const dia = new Date(ano, m, 0).getDate();
+  return `${mes}-${String(dia).padStart(2, "0")}`;
+}
+
+/**
+ * Contratos que vencem dentro do horizonte (ou que já venceram e ainda
+ * estão ativos — o caso que mais dói, porque a mensalidade segue sendo
+ * gerada sem contrato que a sustente).
+ *
+ * Contrato sem `end_month` não renova: não tem prazo para acabar.
+ */
+export function renovacoesProximas(
+  contratos: ContratoVigente[],
+  hoje: Date = new Date(),
+  horizonteDias = 45,
+): Renovacao[] {
+  const base = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+  return contratos
+    .filter((c) => c.active && c.endMonth)
+    .map((c) => {
+      const data = ultimoDiaDoMes(c.endMonth!);
+      if (!data) return null;
+      const [a, m, d] = data.split("-").map(Number);
+      const dias = Math.round(
+        (new Date(a, m - 1, d).getTime() - base.getTime()) / 86_400_000,
+      );
+      return {
+        id: c.id,
+        description: c.description,
+        clientId: c.clientId,
+        amount: c.amount,
+        endMonth: c.endMonth!,
+        data,
+        dias,
+      };
+    })
+    .filter((r): r is Renovacao => r !== null && r.dias <= horizonteDias)
+    .sort((a, b) => a.dias - b.dias);
+}
+
+/** Texto do aviso de renovação. */
+export function textoRenovacao(r: Renovacao): string {
+  if (r.dias < 0) return `venceu há ${Math.abs(r.dias)} dias`;
+  if (r.dias === 0) return "acaba hoje";
+  if (r.dias === 1) return "acaba amanhã";
+  return `renova em ${r.dias} dias`;
 }

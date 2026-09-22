@@ -349,6 +349,44 @@ nunca existiram. Há teste cobrindo exatamente isso.
 O banco garante a coerência: periodicidade `Única` exige `due_date`, as
 periódicas exigem `due_day`, e `Anual` exige `due_month`.
 
+## 5.6 Pessoas — quem recebe, e o alerta de renovação
+
+### `team_members` não é `profiles`
+
+| Tabela | É quem… |
+| ------ | ------- |
+| `profiles` | **faz login** no sistema (hoje, Fran e Vitória) |
+| `team_members` | **recebe dinheiro** da agência — inclui freelancer que nunca terá login |
+
+`team_members.profile_id` liga as duas quando é a mesma pessoa. São
+conceitos diferentes e por isso são tabelas diferentes.
+
+O **valor** continua vindo do financeiro: `financial_entries` e
+`financial_recurrences` ganharam `team_member_id` (nullable), que só diz
+*a quem* aquele pagamento se refere. A migration já liga o que existia,
+casando `"Pró-labore " || nome` com a pessoa.
+
+O formulário de lançamento só oferece o campo "para quem" quando a
+categoria escolhida é de pessoas (consulta `categoriasDaArea("pessoas")`)
+— perguntar isso num lançamento de assinatura seria ruído.
+
+Ninguém é excluído: desativar preserva o histórico, e a FK é
+`on delete set null` para que apagar um cadastro nunca apague pagamento.
+
+### Renovação de contrato
+
+Não existe tabela de contratos (ver 5.4): o contrato é a recorrência, e
+a vigência é o `end_month` dela. `renovacoesProximas`
+(`lib/comercial/funil.ts`) transforma isso em aviso:
+
+- contrato **sem** `end_month` nunca renova — não tem prazo para acabar;
+- contrato **pausado** não entra;
+- contrato **já vencido e ainda ativo** é o mais urgente, porque a
+  mensalidade segue sendo gerada sem vigência que a sustente;
+- horizonte padrão de 45 dias.
+
+O aviso entra na mesma lista do Início, com a cor do comercial.
+
 ## 6. Convenções de código
 
 - **Rotas/arquivos:** `kebab-case`.

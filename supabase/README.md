@@ -30,6 +30,7 @@ supabase/
 | `company_files`         | Documentos da empresa (bucket `company-files`).         |
 | `company_obligations`   | Prazos que não são despesa (declaração, alvará).        |
 | `obligation_completions`| Um registro por período cumprido.                      |
+| `team_members`          | Quem recebe da agência (≠ `profiles`, que faz login).   |
 
 ### Tipos ENUM
 
@@ -45,6 +46,7 @@ supabase/
   `Negociação`, `Fechado`, `Perdido`
 - `proposal_status`: `Rascunho`, `Enviada`, `Aceita`, `Recusada`
 - `obligation_cadence`: `Mensal`, `Trimestral`, `Anual`, `Única`
+- `team_kind`: `Sócia`, `Freelancer`, `Prestador`
 
 ### Relacionamentos
 
@@ -225,3 +227,20 @@ Garantias que o banco impõe:
 
 Duas obrigações de MEI/Simples já vêm cadastradas — mas só se a tabela
 estiver vazia, para não duplicar em reexecução.
+
+
+## Pessoas
+
+Migration: `20260923120000_pessoas.sql` (idempotente). Cria
+`team_members` e acrescenta `team_member_id` (nullable) a
+`financial_entries` e `financial_recurrences`.
+
+Ao rodar, ela já **liga o que existe**: casa `"Pró-labore " || nome` com
+a pessoa correspondente, então o histórico não fica sem dono. Cadastra as
+duas sócias apenas se a tabela estiver vazia.
+
+| Regra                                          | Como é garantida            |
+| ---------------------------------------------- | --------------------------- |
+| Não existem duas pessoas com o mesmo nome       | `unique (name)`             |
+| Apagar a pessoa não apaga o pagamento           | FK `on delete set null`     |
+| Valor de referência não pode ser negativo       | `check (default_rate >= 0)` |
