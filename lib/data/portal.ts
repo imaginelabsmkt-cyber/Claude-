@@ -1,10 +1,12 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { inicioDaSemana, hojeISO, ehCapa } from "@/lib/rules/contents";
+import { inicioDaSemana, hojeISO, ehCapa, ehArte } from "@/lib/rules/contents";
+import { organizarRoteiro } from "@/lib/portal/roteiro";
 import type { Content, ContentStatus } from "@/types";
 import type {
   DadosPortal,
   PortalDemanda,
+  PortalGravacao,
   PortalPost,
 } from "@/lib/portal/tipos";
 
@@ -104,6 +106,29 @@ export async function carregarPortal(
     )
     .map(paraPost);
 
+  // Gravações marcadas na semana (com o roteiro organizado para leitura).
+  const gravacoesSemana: PortalGravacao[] = visiveis
+    .filter(
+      (c) =>
+        c.requires_recording &&
+        !ehArte(c.format) &&
+        c.recording_date &&
+        c.recording_date >= iniISO &&
+        c.recording_date <= fimISO,
+    )
+    .sort((a, b) =>
+      (a.recording_date ?? "").localeCompare(b.recording_date ?? ""),
+    )
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      format: c.format,
+      data: c.recording_date,
+      hora: c.recording_time,
+      local: c.recording_location,
+      roteiro: organizarRoteiro(c.script),
+    }));
+
   const { data: demandas } = await admin
     .from("demands")
     .select("id, title, category, status")
@@ -118,6 +143,7 @@ export async function carregarPortal(
     iniISO,
     fimISO,
     postsSemana,
+    gravacoesSemana,
     emProducao,
     demandas: (demandas ?? []) as PortalDemanda[],
   };

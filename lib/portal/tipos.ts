@@ -39,12 +39,36 @@ export interface PortalDemanda {
   status: string;
 }
 
+/** Uma "cena" do roteiro: a fala (o que é dito) e a direção (o que aparece). */
+export interface RoteiroLinha {
+  fala: string;
+  direcao: string;
+}
+
+/** Roteiro já organizado no servidor (sem os separadores internos). */
+export interface RoteiroOrganizado {
+  linhas: RoteiroLinha[]; // roteiro em tabela (fala | direção)
+  paragrafos: string[]; // roteiro em texto corrido (quando não é tabela)
+}
+
+/** Gravação marcada na semana. */
+export interface PortalGravacao {
+  id: string;
+  title: string;
+  format: string | null;
+  data: string | null; // recording_date
+  hora: string | null; // recording_time
+  local: string | null; // recording_location
+  roteiro: RoteiroOrganizado | null;
+}
+
 export interface DadosPortal {
   cliente: { id: string; name: string; color: string | null };
   semanaISO: string; // segunda-feira da semana exibida
   iniISO: string;
   fimISO: string;
   postsSemana: PortalPost[];
+  gravacoesSemana: PortalGravacao[];
   emProducao: PortalPost[];
   demandas: PortalDemanda[];
 }

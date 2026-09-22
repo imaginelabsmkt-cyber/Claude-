@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { STATUS_CLIENTE, type DadosPortal, type PortalPost } from "@/lib/portal/tipos";
+import {
+  STATUS_CLIENTE,
+  type DadosPortal,
+  type PortalGravacao,
+  type PortalPost,
+} from "@/lib/portal/tipos";
 
 const NOMES_MES = [
   "jan", "fev", "mar", "abr", "mai", "jun",
@@ -90,6 +95,90 @@ function CartaoPost({ post }: { post: PortalPost }) {
   );
 }
 
+function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
+  const [aberto, setAberto] = useState(false);
+  const r = grav.roteiro;
+  const temRoteiro = !!r && (r.linhas.length > 0 || r.paragrafos.length > 0);
+
+  return (
+    <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        {grav.format ? (
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${chipFormato(grav.format)}`}
+          >
+            {grav.format}
+          </span>
+        ) : null}
+        <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
+          🎥 Gravação
+        </span>
+        <span className="ml-auto text-xs font-medium text-gray-500">
+          {fmtDia(grav.data)}
+          {grav.hora ? ` · ${grav.hora}` : ""}
+        </span>
+      </div>
+
+      <h3 className="mt-2 text-[15px] font-semibold leading-snug text-gray-900">
+        {grav.title}
+      </h3>
+      {grav.local ? (
+        <p className="mt-0.5 text-xs text-gray-500">📍 {grav.local}</p>
+      ) : null}
+
+      {temRoteiro ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setAberto((v) => !v)}
+            className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
+          >
+            {aberto ? "Ocultar roteiro" : "Ver roteiro"}
+          </button>
+          {aberto ? (
+            <div className="mt-2 border-t border-gray-100 pt-3">
+              {r!.linhas.length > 0 ? (
+                <ol className="space-y-3">
+                  {r!.linhas.map((linha, i) => (
+                    <li key={i} className="flex gap-3">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[10px] font-bold text-brand-700">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0">
+                        {linha.fala ? (
+                          <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-900">
+                            {linha.fala}
+                          </p>
+                        ) : null}
+                        {linha.direcao ? (
+                          <p className="mt-0.5 whitespace-pre-wrap text-xs italic leading-relaxed text-gray-500">
+                            🎬 {linha.direcao}
+                          </p>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="space-y-2">
+                  {r!.paragrafos.map((p, i) => (
+                    <p
+                      key={i}
+                      className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700"
+                    >
+                      {p}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function Secao({
   titulo,
   emoji,
@@ -126,7 +215,7 @@ export function PortalView({
   dados: DadosPortal;
   hrefSemana: { anterior: string; proximo: string; hoje: string };
 }) {
-  const { cliente, postsSemana, emProducao, demandas } = dados;
+  const { cliente, postsSemana, gravacoesSemana, emProducao, demandas } = dados;
 
   // Demandas agrupadas por área.
   const grupos = new Map<string, typeof demandas>();
@@ -188,6 +277,14 @@ export function PortalView({
             <CartaoPost key={p.id} post={p} />
           ))}
         </Secao>
+
+        {gravacoesSemana.length > 0 ? (
+          <Secao titulo="Gravações da semana" emoji="🎥">
+            {gravacoesSemana.map((g) => (
+              <CartaoGravacao key={g.id} grav={g} />
+            ))}
+          </Secao>
+        ) : null}
 
         <Secao
           titulo="Em produção"
