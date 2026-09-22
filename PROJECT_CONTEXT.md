@@ -486,9 +486,53 @@ botões, então Ctrl+P sai limpo em papel ou PDF — sem biblioteca de PDF.
 
 ## 8. Segurança (RLS)
 
-- **RLS habilitado em todas as tabelas** (feito na migration inicial).
-- Política do MVP: **todo usuário autenticado** pode ler/escrever todos os
-  registros (`for all to authenticated`). Não autenticado não tem acesso.
+### Autenticado ≠ autorizado
+
+A chave `anon` do Supabase é **pública por natureza**: vai no JavaScript
+que o navegador baixa. Com ela, qualquer pessoa chama a API de cadastro
+do Supabase — mesmo o app não tendo tela de cadastro. E o trigger
+`handle_new_user` cria um profile para quem entrar.
+
+Por isso **estar autenticado não dá acesso a nada**. Uma conta precisa
+estar **liberada**:
+
+```sql
+-- profiles.approved nasce false
+update public.profiles set approved = true where email = '...';
+```
+
+Todas as policies exigem `public.usuario_aprovado()` — uma função
+`security definer` (precisa ser, senão a policy de `profiles` que a
+chama entraria em recursão). Conta não liberada enxerga **só o próprio
+profile**, e nada mais.
+
+### Ninguém se promove sozinho
+
+O Supabase concede `update` na tabela inteira para `authenticated`.
+Revogar coluna a coluna não adianta enquanto o grant de tabela existir —
+então a migration revoga a tabela e devolve só o que o app edita:
+
+```sql
+revoke update on public.profiles from authenticated, anon;
+grant  update (name, avatar_url) on public.profiles to authenticated;
+revoke insert, delete on public.profiles from authenticated, anon;
+```
+
+Sem isso, uma conta bloqueada se marcaria `approved = true`, ou se
+promoveria a `admin`.
+
+### O resto
+
+- **RLS habilitado em todas as tabelas** — as 23, sem exceção.
+- `content_history` é auditoria: tem policy de `select` e `insert`, e
+  **nenhuma** de `update`/`delete` — o banco nega os dois.
+- Integrações do Google são por usuário (`user_id = auth.uid()`) **e**
+  exigem conta liberada.
+- Os buckets `client-files` e `company-files` são privados e as policies
+  de Storage também exigem conta liberada. Download sai por link
+  assinado de 60 segundos.
+- Os layouts mostram a tela "conta não liberada" em vez de um sistema
+  vazio — o bloqueio real é do banco; a tela só explica.
 - Refinamentos por papel (`planner`/`producer`/`admin`) virão depois.
 - Nenhuma chave secreta (`service_role`) no cliente.
 - Detalhes de execução da migration e cadastro de usuários: `supabase/README.md`.

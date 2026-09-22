@@ -257,3 +257,41 @@ Não edite à mão: mexa na migration correspondente e gere de novo.
 Verificado num Postgres limpo: as 20 rodam do zero sem erro, o arquivo
 único idem, rodar duas vezes é inofensivo, e o resultado é 23 tabelas com
 RLS ligado em todas e os dois buckets privados.
+
+## Segurança — conta liberada
+
+Migration: `20260924120000_seguranca.sql`.
+
+O risco que ela fecha: a chave `anon` é pública, então qualquer pessoa
+pode criar conta no Supabase mesmo sem tela de cadastro — e as 23
+policies antigas (`using (true)`) liberavam tudo para qualquer
+autenticado.
+
+Agora `profiles.approved` nasce `false` e todas as policies exigem
+`public.usuario_aprovado()`. Conta nova enxerga só o próprio profile.
+
+Para liberar:
+
+```sql
+update public.profiles set approved = true where email = 'pessoa@...';
+-- quem está esperando:
+select email, name, created_at from public.profiles where not approved;
+```
+
+Testado num Postgres com os papéis do Supabase simulados. Uma conta
+bloqueada:
+
+| Tentativa | Resultado |
+| --------- | --------- |
+| Ler lançamentos, clientes, pessoas, documentos, funil | 0 linhas em tudo |
+| `update profiles set approved = true` | permission denied |
+| `update profiles set role = 'admin'` | permission denied |
+| `insert into profiles (... approved=true)` | permission denied |
+| `delete from profiles` (conta de outro) | permission denied |
+| Gravar lançamento | viola a policy de RLS |
+| Ler `storage.objects` | 0 linhas |
+| Trocar o próprio nome | permitido (é o que o app faz) |
+
+E uma conta liberada continua com acesso completo: lê os 149
+lançamentos, insere, edita e apaga. A auditoria (`content_history`)
+resiste a `update` e `delete` mesmo para ela.

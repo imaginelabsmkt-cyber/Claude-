@@ -51,6 +51,25 @@ Tudo o que é necessário tem plano gratuito (Supabase e Vercel).
    - **Project URL** → será a `NEXT_PUBLIC_SUPABASE_URL`.
    - **anon public** (em Project API keys) → será a `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 
+## Parte 1.5 — Fechar o cadastro (IMPORTANTE)
+
+A chave `anon` do Supabase é **pública por natureza**: ela vai no
+JavaScript que o navegador baixa, e qualquer pessoa consegue lê-la. Com
+ela, dá para chamar a API de cadastro do Supabase direto — mesmo o
+sistema não tendo tela de cadastro nenhuma.
+
+Faça as duas coisas abaixo. Elas se protegem uma à outra.
+
+**1. Desligue o cadastro aberto.** No Supabase, vá em **Authentication →
+Sign In / Providers → Email** e desmarque **Enable sign ups**. Como
+vocês criam as contas à mão, isso não atrapalha nada.
+
+**2. O sistema já exige conta liberada.** Mesmo que o cadastro fique
+aberto por engano, conta nova nasce **bloqueada** (`profiles.approved =
+false`) e não enxerga absolutamente nada — nem fluxo de caixa, nem
+clientes, nem documentos. Quem cria conta sozinho vê só uma tela
+dizendo que precisa ser liberado.
+
 ## Parte 2 — Criar os usuários (Fran e Vitória)
 
 1. No Supabase, abra **Authentication → Users → Add user**.
@@ -65,6 +84,23 @@ Tudo o que é necessário tem plano gratuito (Supabase e Vercel).
    ```
    > O trigger `handle_new_user` cria o registro em `profiles` automaticamente
    > com o papel informado. (Detalhes em `supabase/README.md`.)
+
+> **Depois de criar as contas, libere as duas.** No **SQL Editor**:
+>
+> ```sql
+> update public.profiles set approved = true
+>  where email in ('email-da-fran@...', 'email-da-vitoria@...');
+> ```
+>
+> Sem isso, vocês entram e veem a tela de "conta não liberada" — que é
+> exatamente o que um estranho veria.
+>
+> Para ver quem está esperando liberação:
+>
+> ```sql
+> select email, name, created_at from public.profiles
+>  where not approved order by created_at;
+> ```
 
 ## Parte 3 — Publicar na Vercel
 

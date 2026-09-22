@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
+import { ContaBloqueada } from "@/components/layout/conta-bloqueada";
 import { SessionWatcher } from "@/components/layout/session-watcher";
 import { getAuthContext, displayName } from "@/lib/auth";
 import { GoogleReconciler } from "@/components/layout/google-reconciler";
@@ -19,6 +20,12 @@ export default async function DashboardLayout({
 
   if (!ctx.user) {
     redirect("/login");
+  }
+
+  // Autenticado não é o mesmo que autorizado: a chave pública do Supabase
+  // permite criar conta, e conta nova nasce bloqueada.
+  if (!ctx.approved) {
+    return <ContaBloqueada email={ctx.user.email} />;
   }
 
   const nome = displayName(ctx);

@@ -53,6 +53,11 @@ export type Profile = {
   name: string;
   email: string;
   role: UserRole;
+  /**
+   * Conta liberada para usar o sistema. Nasce `false`: quem se cadastrar
+   * sozinho cria um profile, mas não enxerga nada até alguém liberar.
+   */
+  approved: boolean;
   avatar_url: string | null;
   created_at: ISODateString;
   updated_at: ISODateString;
@@ -725,8 +730,12 @@ export type TeamMemberInsert = Omit<
 // Tipos de Insert / Update (colunas com default são opcionais)
 // -------------------------------------------------------------
 
-export type ProfileInsert = Omit<Profile, "created_at" | "updated_at"> & {
+export type ProfileInsert = Omit<
+  Profile,
+  "created_at" | "updated_at" | "role" | "approved" | "avatar_url"
+> & {
   role?: UserRole;
+  approved?: boolean;
   avatar_url?: string | null;
 };
 export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at" | "updated_at">>;

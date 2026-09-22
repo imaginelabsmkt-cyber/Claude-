@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ContaBloqueada } from "@/components/layout/conta-bloqueada";
 import { getAuthContext, displayName } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function PortaPage() {
   const ctx = await getAuthContext();
   if (!ctx.user) redirect("/login");
+  if (!ctx.approved) return <ContaBloqueada email={ctx.user.email} />;
 
   const portas = [
     {

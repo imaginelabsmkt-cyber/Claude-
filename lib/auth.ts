@@ -6,6 +6,13 @@ export interface AuthContext {
   user: { id: string; email: string | null } | null;
   /** Perfil correspondente na tabela profiles (ou null). */
   profile: Profile | null;
+  /**
+   * A conta está liberada? Estar autenticado NÃO basta: a chave "anon"
+   * do Supabase é pública, então qualquer pessoa consegue criar conta.
+   * Só conta liberada enxerga dado — o banco garante isso por RLS, e
+   * aqui a gente evita mostrar uma tela vazia e confusa.
+   */
+  approved: boolean;
 }
 
 /**
@@ -20,7 +27,7 @@ export async function getAuthContext(): Promise<AuthContext> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { user: null, profile: null };
+    return { user: null, profile: null, approved: false };
   }
 
   const { data: profile } = await supabase
@@ -29,9 +36,12 @@ export async function getAuthContext(): Promise<AuthContext> {
     .eq("id", user.id)
     .maybeSingle();
 
+  const perfil = (profile as Profile | null) ?? null;
+
   return {
     user: { id: user.id, email: user.email ?? null },
-    profile: (profile as Profile | null) ?? null,
+    profile: perfil,
+    approved: perfil?.approved ?? false,
   };
 }
 
