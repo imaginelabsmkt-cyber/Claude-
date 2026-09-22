@@ -139,9 +139,12 @@ function ResultadoBloco({
         Resultados do mês
       </h2>
 
-      {/* Tráfego (equipe) */}
+      {/* Tráfego pago / anúncios (equipe) */}
       {temTrafego ? (
         <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">
+            Tráfego pago (anúncios)
+          </p>
           {resultado.metrics.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {resultado.metrics.map((m, i) => (

@@ -101,28 +101,17 @@ export async function carregarPortal(
     .map(paraPost);
 
   const idsSemana = new Set(postsSemana.map((p) => p.id));
-  const emProducao = visiveis
-    .filter(
-      (c) =>
-        !idsSemana.has(c.id) &&
-        c.status !== "Publicado" &&
-        EM_PRODUCAO.includes(c.status),
-    )
-    .sort((a, b) =>
-      (a.planned_date ?? "zzzz").localeCompare(b.planned_date ?? "zzzz"),
-    )
-    .map(paraPost);
 
   // Gravações marcadas na semana (com o roteiro organizado para leitura).
+  const ehGravacaoSemana = (c: Content) =>
+    c.requires_recording &&
+    !ehArte(c.format) &&
+    !!c.recording_date &&
+    c.recording_date >= iniISO &&
+    c.recording_date <= fimISO;
+
   const gravacoesSemana: PortalGravacao[] = visiveis
-    .filter(
-      (c) =>
-        c.requires_recording &&
-        !ehArte(c.format) &&
-        c.recording_date &&
-        c.recording_date >= iniISO &&
-        c.recording_date <= fimISO,
-    )
+    .filter(ehGravacaoSemana)
     .sort((a, b) =>
       (a.recording_date ?? "").localeCompare(b.recording_date ?? ""),
     )
@@ -135,6 +124,21 @@ export async function carregarPortal(
       local: c.recording_location,
       roteiro: organizarRoteiro(c.script),
     }));
+  const idsGravacao = new Set(gravacoesSemana.map((g) => g.id));
+
+  // Em produção: exclui o que já aparece nas seções da semana (sem repetir).
+  const emProducao = visiveis
+    .filter(
+      (c) =>
+        !idsSemana.has(c.id) &&
+        !idsGravacao.has(c.id) &&
+        c.status !== "Publicado" &&
+        EM_PRODUCAO.includes(c.status),
+    )
+    .sort((a, b) =>
+      (a.planned_date ?? "zzzz").localeCompare(b.planned_date ?? "zzzz"),
+    )
+    .map(paraPost);
 
   // Resumo do mês (mês da semana exibida): planejado x já publicado.
   const mid = addDias(ini, 3); // quinta-feira define o mês da semana

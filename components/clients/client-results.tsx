@@ -28,8 +28,16 @@ function fmtQuando(iso: string | null): string {
   }).format(new Date(iso));
 }
 
-/** Sugestões de métricas de tráfego (a equipe pode trocar o rótulo). */
-const SUGESTOES = ["Investimento", "Alcance", "Cliques", "Leads/contatos"];
+/** Sugestões de métricas de tráfego pago/anúncios (a equipe pode trocar). */
+const SUGESTOES = [
+  "Investimento",
+  "Alcance",
+  "Impressões",
+  "Cliques no link",
+  "CTR",
+  "Resultados (leads/conversas)",
+  "Custo por resultado",
+];
 
 export function ClientResults({
   clientId,
@@ -103,11 +111,11 @@ export function ClientResults({
       {/* Números do tráfego (equipe) */}
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-gray-900">
-          Números do tráfego
+          Tráfego pago (anúncios)
         </h3>
         <p className="mt-0.5 text-xs text-gray-500">
-          Coloque os números do Meta e explique. É isso que o cliente vê no
-          painel dele.
+          Os números dos anúncios (Meta Ads) e uma explicação. É isso que o
+          cliente vê no painel dele.
         </p>
 
         <div className="mt-3 space-y-2">
