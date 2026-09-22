@@ -12,9 +12,12 @@ alter table public.client_monthly_results
 alter table public.client_monthly_results
   alter column month drop not null;
 
+-- Índice NÃO-parcial (o upsert/ON CONFLICT não infere índice parcial).
+-- NULLs são distintos no Postgres, então as linhas antigas (por mês, com
+-- week_start nulo) não conflitam entre si.
+drop index if exists public.client_monthly_results_client_week_key;
 create unique index if not exists client_monthly_results_client_week_key
-  on public.client_monthly_results (client_id, week_start)
-  where week_start is not null;
+  on public.client_monthly_results (client_id, week_start);
 
 comment on column public.client_monthly_results.week_start is
   'Segunda-feira da semana (YYYY-MM-DD). Chave semanal dos resultados.';
