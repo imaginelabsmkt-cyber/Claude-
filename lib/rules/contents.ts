@@ -295,12 +295,31 @@ export function papelResponsavel(
  * - Publicação -> data prevista de postagem
  * Cai para a data prevista quando o prazo específico não existe.
  */
+/** Antecedência padrão para gravar antes da postagem (dias). */
+export const DIAS_GRAVACAO_ANTES = 5;
+
+/** Prazo de gravação AUTOMÁTICO: alguns dias antes da data prevista do post. */
+export function prazoGravacao(
+  content: Pick<Content, "planned_date">,
+): string | null {
+  const prevista = parseData(content.planned_date);
+  if (!prevista) return null;
+  return hojeISO(
+    new Date(
+      prevista.getFullYear(),
+      prevista.getMonth(),
+      prevista.getDate() - DIAS_GRAVACAO_ANTES,
+    ),
+  );
+}
+
 export function prazoPrincipal(
   content: Pick<
     Content,
     | "status"
     | "script_deadline"
     | "recording_deadline"
+    | "recording_date"
     | "editing_deadline"
     | "planned_date"
   >,
@@ -311,7 +330,9 @@ export function prazoPrincipal(
       return content.script_deadline ?? content.planned_date;
     case "Aguardando gravação":
     case "Gravado":
-      return content.recording_deadline ?? content.planned_date;
+      // Prazo de gravar AUTOMÁTICO: alguns dias antes do post (nunca fica
+      // adiantado errado). Se a gravação já está marcada, usa a data marcada.
+      return content.recording_date ?? prazoGravacao(content);
     case "Fila de edição":
     case "Em edição":
     case "Revisão interna":
@@ -491,6 +512,7 @@ type ContentUrgencia = Pick<
   | "priority"
   | "script_deadline"
   | "recording_deadline"
+  | "recording_date"
   | "editing_deadline"
   | "planned_date"
 >;

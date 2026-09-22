@@ -178,12 +178,22 @@ describe("prazoPrincipal", () => {
     expect(prazoPrincipal(c)).toBe("2026-07-20");
   });
 
-  it("usa o prazo de gravação na fase de gravação", () => {
+  it("usa a data marcada de gravação na fase de gravação", () => {
     const c = makeContent({
       status: "Aguardando gravação",
-      recording_deadline: "2026-07-18",
+      recording_date: "2026-07-18",
+      planned_date: "2026-07-30",
     });
     expect(prazoPrincipal(c)).toBe("2026-07-18");
+  });
+
+  it("prazo de gravação automático (5 dias antes) quando não marcada", () => {
+    const c = makeContent({
+      status: "Aguardando gravação",
+      recording_date: null,
+      planned_date: "2026-07-25",
+    });
+    expect(prazoPrincipal(c)).toBe("2026-07-20");
   });
 
   it("usa o prazo de edição na fase de edição", () => {
@@ -196,8 +206,7 @@ describe("prazoPrincipal", () => {
 
   it("cai para a data prevista quando não há prazo específico", () => {
     const c = makeContent({
-      status: "Aguardando gravação",
-      recording_deadline: null,
+      status: "Aprovação do cliente",
       planned_date: "2026-07-25",
     });
     expect(prazoPrincipal(c)).toBe("2026-07-25");
