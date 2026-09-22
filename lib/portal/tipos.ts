@@ -1,4 +1,4 @@
-import type { ContentStatus } from "@/types";
+import type { ContentStatus, MetricaTrafego } from "@/types";
 
 /** Rótulo limpo (para o cliente) e tom de cor de cada status interno. */
 export const STATUS_CLIENTE: Record<ContentStatus, { label: string; tom: string }> = {
@@ -77,12 +77,24 @@ export interface ResumoMes {
   jaFeitos: PortalPost[]; // o que já foi ao ar no mês
 }
 
+/** Resultados do mês no painel: tráfego (equipe) + o que o cliente respondeu. */
+export interface ResultadoPortal {
+  month: string; // 'YYYY-MM'
+  metrics: MetricaTrafego[];
+  teamNote: string | null;
+  closedCount: number | null;
+  sources: string | null;
+  comment: string | null;
+  respondido: boolean;
+}
+
 export interface DadosPortal {
   cliente: { id: string; name: string; color: string | null };
   semanaISO: string; // segunda-feira da semana exibida
   iniISO: string;
   fimISO: string;
   resumoMes: ResumoMes;
+  resultado: ResultadoPortal;
   postsSemana: PortalPost[];
   gravacoesSemana: PortalGravacao[];
   emProducao: PortalPost[];

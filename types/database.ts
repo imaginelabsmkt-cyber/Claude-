@@ -282,6 +282,36 @@ export type ContentFeedbackInsert = Omit<ContentFeedback, "id" | "created_at"> &
   id?: UUID;
 };
 
+/** Uma métrica de tráfego (rótulo + valor livres). */
+export type MetricaTrafego = { label: string; value: string };
+
+/** client_monthly_results — resultados do mês (tráfego da equipe + retorno do cliente). */
+export type ClientMonthlyResult = {
+  id: UUID;
+  client_id: UUID;
+  month: string; // 'YYYY-MM'
+  metrics: MetricaTrafego[];
+  team_note: string | null;
+  closed_count: number | null;
+  sources: string | null;
+  client_comment: string | null;
+  client_updated_at: ISODateString | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+export type ClientMonthlyResultInsert = {
+  id?: UUID;
+  client_id: UUID;
+  month: string;
+  metrics?: MetricaTrafego[];
+  team_note?: string | null;
+  closed_count?: number | null;
+  sources?: string | null;
+  client_comment?: string | null;
+  client_updated_at?: ISODateString | null;
+  updated_at?: ISODateString;
+};
+
 /** plannings — gestão da criação do planejamento mensal por cliente */
 export type Planning = {
   id: UUID;
@@ -563,6 +593,12 @@ export interface Database {
         Row: ContentFeedback;
         Insert: ContentFeedbackInsert;
         Update: Partial<ContentFeedbackInsert>;
+        Relationships: [];
+      };
+      client_monthly_results: {
+        Row: ClientMonthlyResult;
+        Insert: ClientMonthlyResultInsert;
+        Update: Partial<ClientMonthlyResultInsert>;
         Relationships: [];
       };
       plannings: {

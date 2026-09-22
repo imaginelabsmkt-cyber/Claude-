@@ -172,6 +172,23 @@ export async function carregarPortal(
       .map(paraPost),
   };
 
+  // Resultados do mês (tráfego + retorno do cliente).
+  const { data: res } = await admin
+    .from("client_monthly_results")
+    .select("*")
+    .eq("client_id", cliente.id)
+    .eq("month", mesRef)
+    .maybeSingle();
+  const resultado = {
+    month: mesRef,
+    metrics: res?.metrics ?? [],
+    teamNote: res?.team_note ?? null,
+    closedCount: res?.closed_count ?? null,
+    sources: res?.sources ?? null,
+    comment: res?.client_comment ?? null,
+    respondido: !!res?.client_updated_at,
+  };
+
   const { data: demandas } = await admin
     .from("demands")
     .select("id, title, category, status")
@@ -186,6 +203,7 @@ export async function carregarPortal(
     iniISO,
     fimISO,
     resumoMes,
+    resultado,
     postsSemana,
     gravacoesSemana,
     emProducao,

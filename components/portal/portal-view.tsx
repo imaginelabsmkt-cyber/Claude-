@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { toast } from "@/lib/ui/toast";
+import { enviarResultadoClienteAction } from "@/lib/actions/resultados";
 import {
   STATUS_CLIENTE,
   type DadosPortal,
   type PortalGravacao,
   type PortalPost,
+  type ResultadoPortal,
   type ResumoMes,
 } from "@/lib/portal/tipos";
 
@@ -93,6 +97,132 @@ function CartaoPost({ post }: { post: PortalPost }) {
         </>
       ) : null}
     </div>
+  );
+}
+
+function ResultadoBloco({
+  token,
+  resultado,
+}: {
+  token: string;
+  resultado: ResultadoPortal;
+}) {
+  const router = useRouter();
+  const [closed, setClosed] = useState(
+    resultado.closedCount != null ? String(resultado.closedCount) : "",
+  );
+  const [sources, setSources] = useState(resultado.sources ?? "");
+  const [comment, setComment] = useState(resultado.comment ?? "");
+  const [enviando, iniciar] = useTransition();
+
+  const temTrafego = resultado.metrics.length > 0 || !!resultado.teamNote?.trim();
+
+  const enviar = () =>
+    iniciar(async () => {
+      const r = await enviarResultadoClienteAction(token, resultado.month, {
+        closedCount: closed,
+        sources,
+        comment,
+      });
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível enviar.");
+        return;
+      }
+      toast.sucesso("Enviado! Obrigada 💛");
+      router.refresh();
+    });
+
+  return (
+    <section className="mt-6">
+      <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
+        <span aria-hidden>📈</span>
+        Resultados do mês
+      </h2>
+
+      {/* Tráfego (equipe) */}
+      {temTrafego ? (
+        <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+          {resultado.metrics.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {resultado.metrics.map((m, i) => (
+                <div
+                  key={i}
+                  className="flex-1 basis-[40%] rounded-xl bg-brand-50 px-3 py-2 text-center"
+                >
+                  <p className="text-lg font-bold text-brand-800">
+                    {m.value || "—"}
+                  </p>
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500">
+                    {m.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {resultado.teamNote?.trim() ? (
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+              {resultado.teamNote}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Retorno do cliente (formulário) */}
+      <div className="mt-3 rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
+        <p className="text-sm font-semibold text-brand-800">
+          Conta pra gente como foi o seu mês 💬
+        </p>
+        <p className="mt-0.5 text-xs text-gray-600">
+          Isso ajuda a gente a melhorar ainda mais os seus resultados.
+        </p>
+
+        <label className="mt-3 block text-xs font-medium text-gray-600">
+          Quantos você fechou este mês?
+        </label>
+        <input
+          inputMode="numeric"
+          value={closed}
+          onChange={(e) => setClosed(e.target.value.replace(/[^0-9]/g, ""))}
+          placeholder="Ex.: 5"
+          className="mt-1 w-32 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
+        />
+
+        <label className="mt-3 block text-xs font-medium text-gray-600">
+          De onde eles vieram?
+        </label>
+        <input
+          value={sources}
+          onChange={(e) => setSources(e.target.value)}
+          placeholder="Ex.: Instagram, anúncio, indicação…"
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
+        />
+
+        <label className="mt-3 block text-xs font-medium text-gray-600">
+          Comentário (opcional)
+        </label>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={3}
+          placeholder="Como foi o mês? O que funcionou, o que podemos melhorar…"
+          className="mt-1 w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-relaxed outline-none focus:border-brand-500"
+        />
+
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={enviar}
+            disabled={enviando}
+            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          >
+            {enviando ? "Enviando…" : resultado.respondido ? "Atualizar" : "Enviar"}
+          </button>
+          {resultado.respondido ? (
+            <span className="text-xs text-green-700">✓ já recebemos, obrigada!</span>
+          ) : null}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -273,6 +403,7 @@ function Secao({
 }
 
 export function PortalView({
+  token,
   dados,
   hrefSemana,
 }: {
@@ -283,6 +414,7 @@ export function PortalView({
   const {
     cliente,
     resumoMes,
+    resultado,
     postsSemana,
     gravacoesSemana,
     emProducao,
@@ -422,6 +554,8 @@ export function PortalView({
             </div>
           ))}
         </Secao>
+
+        <ResultadoBloco token={token} resultado={resultado} />
 
         <p className="mt-10 text-center text-xs text-gray-400">
           Feito com carinho pela favie 💛

@@ -16,6 +16,8 @@ import { ClientSectionTabs } from "@/components/clients/client-section-tabs";
 import { ClientFilesTab } from "@/components/clients/client-files-tab";
 import { ClientOnboarding } from "@/components/clients/client-onboarding";
 import { ClientPortalShare } from "@/components/clients/client-portal-share";
+import { ClientResults } from "@/components/clients/client-results";
+import { obterResultadoMes } from "@/lib/data/resultados";
 import { DemandsBoard } from "@/components/demandas/demands-board";
 import { ClientWeeklyReport } from "@/components/clients/client-weekly-report";
 import { listDemands, listDemandsFeitasCliente } from "@/lib/data/demands";
@@ -44,7 +46,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: { id: string };
-  searchParams: { semana?: string };
+  searchParams: { semana?: string; resultadosMes?: string };
 }
 
 const NOMES_DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -108,6 +110,13 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     hojeISO(noventaAtras),
     hojeISO(hojeRef),
   );
+
+  // Resultados do mês (tráfego + retorno do cliente).
+  const mesAtualCal = hojeISO(hojeRef).slice(0, 7);
+  const resultadosMesSel = /^\d{4}-\d{2}$/.test(searchParams.resultadosMes ?? "")
+    ? searchParams.resultadosMes!
+    : mesAtualCal;
+  const resultadoMes = await obterResultadoMes(cliente.id, resultadosMesSel);
 
   const hoje = new Date();
 
@@ -353,6 +362,18 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
               <ClientReportsTab
                 clientId={cliente.id}
                 relatorios={relatorios}
+              />
+            ),
+          },
+          {
+            id: "resultados",
+            label: "Resultados",
+            icone: "chart",
+            conteudo: (
+              <ClientResults
+                clientId={cliente.id}
+                mesAtual={resultadosMesSel}
+                inicial={resultadoMes}
               />
             ),
           },
