@@ -58,6 +58,39 @@ export async function salvarResultadosEquipeAction(
 }
 
 /**
+ * Salva (ou remove) a planilha de tráfego extraída de um Excel/CSV. grade=null
+ * remove. Preserva o resto da linha do mês.
+ */
+export async function salvarPlanilhaTrafegoAction(
+  clientId: string,
+  month: string,
+  grade: string[][] | null,
+  fileName: string | null,
+): Promise<ResultadoResult> {
+  if (!clientId || !MES_RE.test(month)) {
+    return { ok: false, error: "Dados inválidos." };
+  }
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase.from("client_monthly_results").upsert(
+    {
+      client_id: clientId,
+      month,
+      traffic_table: grade,
+      traffic_file_name: grade ? fileName : null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "client_id,month" },
+  );
+  if (error) return { ok: false, error: "Não foi possível salvar a planilha." };
+
+  revalidatePath(`/clientes/${clientId}`);
+  return { ok: true };
+}
+
+/**
  * Cliente responde os resultados dele pelo painel (link secreto). Valida o
  * token, grava só os campos do cliente e avisa a coordenação. Sem sessão.
  */

@@ -115,7 +115,9 @@ function ResultadoBloco({
   const [comment, setComment] = useState(resultado.comment ?? "");
   const [enviando, iniciar] = useTransition();
 
-  const temTrafego = resultado.metrics.length > 0 || !!resultado.teamNote?.trim();
+  const temTabela = !!resultado.table && resultado.table.length > 0;
+  const temTrafego =
+    temTabela || resultado.metrics.length > 0 || !!resultado.teamNote?.trim();
 
   const enviar = () =>
     iniciar(async () => {
@@ -145,7 +147,33 @@ function ResultadoBloco({
           <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">
             Tráfego pago (anúncios)
           </p>
-          {resultado.metrics.length > 0 ? (
+          {temTabela ? (
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="w-full border-collapse text-left text-xs sm:text-sm">
+                <tbody>
+                  {resultado.table!.map((linha, i) => (
+                    <tr
+                      key={i}
+                      className={
+                        i === 0
+                          ? "bg-brand-50 font-semibold text-brand-800"
+                          : "border-t border-gray-100"
+                      }
+                    >
+                      {linha.map((cel, j) => (
+                        <td
+                          key={j}
+                          className="whitespace-nowrap px-3 py-2 text-gray-700"
+                        >
+                          {cel}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : resultado.metrics.length > 0 ? (
             <div className="overflow-hidden rounded-lg border border-gray-200">
               <table className="w-full border-collapse text-left text-sm">
                 <tbody>

@@ -81,6 +81,7 @@ export interface ResumoMes {
 export interface ResultadoPortal {
   month: string; // 'YYYY-MM'
   metrics: MetricaTrafego[];
+  table: string[][] | null; // planilha extraída (tem prioridade sobre metrics)
   teamNote: string | null;
   closedCount: number | null;
   sources: string | null;

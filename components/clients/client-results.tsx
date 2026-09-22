@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/ui/toast";
-import { salvarResultadosEquipeAction } from "@/lib/actions/resultados";
+import { Icon } from "@/components/ui/icon";
+import {
+  salvarResultadosEquipeAction,
+  salvarPlanilhaTrafegoAction,
+} from "@/lib/actions/resultados";
+import { extrairPlanilha } from "@/lib/planilha/extrair";
 import type { ClientMonthlyResult, MetricaTrafego } from "@/types";
 
 const NOMES_MES = [
@@ -57,6 +62,53 @@ export function ClientResults({
   const [note, setNote] = useState(inicial?.team_note ?? "");
   const [salvando, iniciar] = useTransition();
   const respCliente = inicial;
+
+  const inputPlanilha = useRef<HTMLInputElement>(null);
+  const [tabela, setTabela] = useState<string[][] | null>(
+    inicial?.traffic_table ?? null,
+  );
+  const [nomePlanilha, setNomePlanilha] = useState<string | null>(
+    inicial?.traffic_file_name ?? null,
+  );
+  const [lendo, setLendo] = useState(false);
+
+  const subirPlanilha = async (file: File) => {
+    setLendo(true);
+    try {
+      const grade = await extrairPlanilha(file);
+      if (grade.length === 0) {
+        toast.erro("Não consegui ler a planilha. Tente salvar como CSV.");
+        setLendo(false);
+        return;
+      }
+      const r = await salvarPlanilhaTrafegoAction(clientId, mes, grade, file.name);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível salvar.");
+        setLendo(false);
+        return;
+      }
+      setTabela(grade);
+      setNomePlanilha(file.name);
+      toast.sucesso("Planilha importada");
+      router.refresh();
+    } catch {
+      toast.erro("Não consegui ler esse arquivo.");
+    }
+    setLendo(false);
+  };
+
+  const removerPlanilha = async () => {
+    if (!window.confirm("Remover a planilha importada deste mês?")) return;
+    const r = await salvarPlanilhaTrafegoAction(clientId, mes, null, null);
+    if (!r.ok) {
+      toast.erro(r.error ?? "Não foi possível remover.");
+      return;
+    }
+    setTabela(null);
+    setNomePlanilha(null);
+    toast.sucesso("Planilha removida");
+    router.refresh();
+  };
 
   // Quando muda o mês, recarrega a página com o mês novo (dados via servidor).
   const trocarMes = (novo: string) => {
@@ -113,11 +165,84 @@ export function ClientResults({
           Tráfego pago (anúncios)
         </h3>
         <p className="mt-0.5 text-xs text-gray-500">
-          Os números dos anúncios (Meta Ads) e uma explicação. É isso que o
-          cliente vê no painel dele.
+          Suba a planilha do Meta (Excel ou CSV) e o sistema extrai os números,
+          ou preencha na mão. É isso que o cliente vê no painel dele.
         </p>
 
-        <div className="mt-3 space-y-2">
+        {/* Subir planilha (extrai sozinho) */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => inputPlanilha.current?.click()}
+            disabled={lendo}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          >
+            <Icon nome="upload" className="h-3.5 w-3.5" />
+            {lendo
+              ? "Lendo…"
+              : tabela
+                ? "Trocar planilha"
+                : "Subir planilha (Excel/CSV)"}
+          </button>
+          {nomePlanilha ? (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700">
+              <Icon nome="file" className="h-3.5 w-3.5 text-gray-400" />
+              {nomePlanilha}
+              <button
+                type="button"
+                onClick={removerPlanilha}
+                title="Remover"
+                className="ml-1 text-gray-400 hover:text-red-600"
+              >
+                ✕
+              </button>
+            </span>
+          ) : null}
+          <input
+            ref={inputPlanilha}
+            type="file"
+            accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) subirPlanilha(f);
+              e.target.value = "";
+            }}
+          />
+        </div>
+
+        {tabela && tabela.length > 0 ? (
+          <div className="mt-3 overflow-x-auto rounded-lg border border-gray-200">
+            <table className="w-full border-collapse text-left text-xs">
+              <tbody>
+                {tabela.map((linha, i) => (
+                  <tr
+                    key={i}
+                    className={
+                      i === 0
+                        ? "bg-brand-50 font-semibold text-brand-800"
+                        : "border-t border-gray-100"
+                    }
+                  >
+                    {linha.map((cel, j) => (
+                      <td
+                        key={j}
+                        className="whitespace-nowrap px-2 py-1 text-gray-700"
+                      >
+                        {cel}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          Ou preencha na mão
+        </p>
+        <div className="mt-2 space-y-2">
           {metrics.map((m, i) => (
             <div key={i} className="flex items-center gap-2">
               <input
@@ -129,7 +254,7 @@ export function ClientResults({
               <input
                 value={m.value}
                 onChange={(e) => setMetric(i, "value", e.target.value)}
-                placeholder="Ex.: R$ 450"
+                placeholder="valor"
                 className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
               <button

@@ -191,6 +191,7 @@ export async function carregarPortal(
   const resultado = {
     month: mesRef,
     metrics: res?.metrics ?? [],
+    table: res?.traffic_table ?? null,
     teamNote: res?.team_note ?? null,
     closedCount: res?.closed_count ?? null,
     sources: res?.sources ?? null,

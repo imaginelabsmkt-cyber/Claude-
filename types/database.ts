@@ -314,6 +314,9 @@ export type ClientMonthlyResult = {
   client_id: UUID;
   month: string; // 'YYYY-MM'
   metrics: MetricaTrafego[];
+  /** Planilha de tráfego extraída de um Excel/CSV (linhas x colunas). */
+  traffic_table: string[][] | null;
+  traffic_file_name: string | null;
   team_note: string | null;
   closed_count: number | null;
   sources: string | null;
@@ -327,6 +330,8 @@ export type ClientMonthlyResultInsert = {
   client_id: UUID;
   month: string;
   metrics?: MetricaTrafego[];
+  traffic_table?: string[][] | null;
+  traffic_file_name?: string | null;
   team_note?: string | null;
   closed_count?: number | null;
   sources?: string | null;
