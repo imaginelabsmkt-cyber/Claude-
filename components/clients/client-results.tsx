@@ -8,30 +8,12 @@ import {
   salvarResultadosEquipeAction,
   salvarPlanilhaTrafegoAction,
 } from "@/lib/actions/resultados";
-import { extrairPlanilha, extrairKPIs, explicarKPIs } from "@/lib/planilha/extrair";
+import {
+  extrairPlanilha,
+  extrairKPIs,
+  explicarKPIs,
+} from "@/lib/planilha/extrair";
 import type { ClientMonthlyResult, MetricaTrafego } from "@/types";
-
-const NOMES_MES = [
-  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
-  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
-];
-
-function rotuloMes(m: string): string {
-  const [a, mm] = m.split("-").map(Number);
-  return `${NOMES_MES[(mm ?? 1) - 1] ?? ""} de ${a}`;
-}
-function mesDelta(m: string, d: number): string {
-  const [a, mm] = m.split("-").map(Number);
-  const dt = new Date(a, mm - 1 + d, 1);
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
-}
-function fmtQuando(iso: string | null): string {
-  if (!iso) return "";
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-  }).format(new Date(iso));
-}
 
 /** Sugestões de métricas de tráfego pago/anúncios (a equipe pode trocar). */
 const SUGESTOES = [
@@ -42,17 +24,26 @@ const SUGESTOES = [
   "Conversas iniciadas",
 ];
 
+function fmtQuando(iso: string | null): string {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(new Date(iso));
+}
+
 export function ClientResults({
   clientId,
-  mesAtual,
+  weekStart,
+  intervalo,
   inicial,
 }: {
   clientId: string;
-  mesAtual: string;
+  weekStart: string; // segunda-feira (YYYY-MM-DD)
+  intervalo: string; // "22/set a 28/set"
   inicial: ClientMonthlyResult | null;
 }) {
   const router = useRouter();
-  const [mes, setMes] = useState(mesAtual);
   const [metrics, setMetrics] = useState<MetricaTrafego[]>(
     inicial?.metrics?.length
       ? inicial.metrics
@@ -60,6 +51,7 @@ export function ClientResults({
   );
   const [note, setNote] = useState(inicial?.team_note ?? "");
   const [salvando, iniciar] = useTransition();
+  const [manualAberto, setManualAberto] = useState(false);
   const respCliente = inicial;
 
   const inputPlanilha = useRef<HTMLInputElement>(null);
@@ -71,6 +63,9 @@ export function ClientResults({
   );
   const [lendo, setLendo] = useState(false);
 
+  // Só mostra no dashboard as métricas com valor preenchido.
+  const preenchidas = metrics.filter((m) => m.value.trim());
+
   const subirPlanilha = async (file: File) => {
     setLendo(true);
     try {
@@ -80,18 +75,21 @@ export function ClientResults({
         setLendo(false);
         return;
       }
-      const r = await salvarPlanilhaTrafegoAction(clientId, mes, grade, file.name);
+      const r = await salvarPlanilhaTrafegoAction(
+        clientId,
+        weekStart,
+        grade,
+        file.name,
+      );
       if (!r.ok) {
         toast.erro(r.error ?? "Não foi possível salvar.");
         setLendo(false);
         return;
       }
-      // Extrai os KPIs (dashboard) e já preenche os números do mês.
       const kpis = extrairKPIs(grade);
       if (kpis.length > 0) {
-        // Escreve a explicação automática se o campo estiver vazio.
         const explic = note.trim() ? note : explicarKPIs(kpis);
-        await salvarResultadosEquipeAction(clientId, mes, kpis, explic);
+        await salvarResultadosEquipeAction(clientId, weekStart, kpis, explic);
         setMetrics(kpis);
         if (!note.trim() && explic) setNote(explic);
       }
@@ -110,8 +108,8 @@ export function ClientResults({
   };
 
   const removerPlanilha = async () => {
-    if (!window.confirm("Remover a planilha importada deste mês?")) return;
-    const r = await salvarPlanilhaTrafegoAction(clientId, mes, null, null);
+    if (!window.confirm("Remover a planilha importada desta semana?")) return;
+    const r = await salvarPlanilhaTrafegoAction(clientId, weekStart, null, null);
     if (!r.ok) {
       toast.erro(r.error ?? "Não foi possível remover.");
       return;
@@ -120,12 +118,6 @@ export function ClientResults({
     setNomePlanilha(null);
     toast.sucesso("Planilha removida");
     router.refresh();
-  };
-
-  // Quando muda o mês, recarrega a página com o mês novo (dados via servidor).
-  const trocarMes = (novo: string) => {
-    setMes(novo);
-    router.push(`/clientes/${clientId}?resultadosMes=${novo}#resultados`);
   };
 
   const setMetric = (i: number, campo: keyof MetricaTrafego, v: string) =>
@@ -139,7 +131,12 @@ export function ClientResults({
 
   const salvar = () =>
     iniciar(async () => {
-      const r = await salvarResultadosEquipeAction(clientId, mes, metrics, note);
+      const r = await salvarResultadosEquipeAction(
+        clientId,
+        weekStart,
+        metrics,
+        note,
+      );
       if (!r.ok) {
         toast.erro(r.error ?? "Não foi possível salvar.");
         return;
@@ -149,39 +146,22 @@ export function ClientResults({
     });
 
   return (
-    <div id="resultados" className="space-y-4">
-      {/* Navegação de mês */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => trocarMes(mesDelta(mes, -1))}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          ←
-        </button>
-        <span className="text-sm font-bold capitalize text-gray-900">
-          {rotuloMes(mes)}
-        </span>
-        <button
-          type="button"
-          onClick={() => trocarMes(mesDelta(mes, 1))}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          →
-        </button>
-      </div>
-
-      {/* Números do tráfego (equipe) */}
+    <div className="space-y-4">
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-900">
-          Tráfego pago (anúncios)
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-gray-900">
+            Tráfego pago (anúncios)
+          </h3>
+          <span className="text-xs font-medium text-gray-500">
+            Semana de {intervalo} · use as setas da semana acima para trocar
+          </span>
+        </div>
         <p className="mt-0.5 text-xs text-gray-500">
           Suba a planilha do Meta (Excel ou CSV) e o sistema extrai os números,
           ou preencha na mão. É isso que o cliente vê no painel dele.
         </p>
 
-        {/* Subir planilha (extrai sozinho) */}
+        {/* Subir planilha */}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -223,70 +203,68 @@ export function ClientResults({
           />
         </div>
 
-        {tabela && tabela.length > 0 ? (
-          <div className="mt-3 overflow-x-auto rounded-lg border border-gray-200">
-            <table className="w-full border-collapse text-left text-xs">
-              <tbody>
-                {tabela.map((linha, i) => (
-                  <tr
-                    key={i}
-                    className={
-                      i === 0
-                        ? "bg-brand-50 font-semibold text-brand-800"
-                        : "border-t border-gray-100"
-                    }
-                  >
-                    {linha.map((cel, j) => (
-                      <td
-                        key={j}
-                        className="whitespace-nowrap px-2 py-1 text-gray-700"
-                      >
-                        {cel}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Dashboard (preview igual ao do cliente) */}
+        {preenchidas.length > 0 ? (
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {preenchidas.map((m, i) => (
+              <div
+                key={i}
+                className="rounded-xl bg-gradient-to-br from-brand-50 to-white p-3 text-center ring-1 ring-brand-100"
+              >
+                <p className="text-lg font-extrabold leading-tight text-brand-800">
+                  {m.value}
+                </p>
+                <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
+                  {m.label}
+                </p>
+              </div>
+            ))}
           </div>
         ) : null}
 
-        <p className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          Ou preencha na mão
-        </p>
-        <div className="mt-2 space-y-2">
-          {metrics.map((m, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                value={m.label}
-                onChange={(e) => setMetric(i, "label", e.target.value)}
-                placeholder="Ex.: Investimento"
-                className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
-              />
-              <input
-                value={m.value}
-                onChange={(e) => setMetric(i, "value", e.target.value)}
-                placeholder="valor"
-                className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
-              />
-              <button
-                type="button"
-                onClick={() => removeMetric(i)}
-                title="Remover"
-                className="rounded-md px-2 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
+        {/* Editar números na mão (recolhível) */}
         <button
           type="button"
-          onClick={addMetric}
-          className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
+          onClick={() => setManualAberto((v) => !v)}
+          className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400 hover:text-gray-600"
         >
-          + Adicionar número
+          {manualAberto ? "▲ Ocultar edição" : "▼ Editar números na mão"}
         </button>
+        {manualAberto ? (
+          <div className="mt-2 space-y-2">
+            {metrics.map((m, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={m.label}
+                  onChange={(e) => setMetric(i, "label", e.target.value)}
+                  placeholder="Ex.: Investimento"
+                  className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                />
+                <input
+                  value={m.value}
+                  onChange={(e) => setMetric(i, "value", e.target.value)}
+                  placeholder="valor"
+                  className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeMetric(i)}
+                  title="Remover"
+                  className="rounded-md px-2 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addMetric}
+              className="text-xs font-semibold text-brand-700 hover:underline"
+            >
+              + Adicionar número
+            </button>
+          </div>
+        ) : null}
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <label className="block text-xs font-medium text-gray-600">
@@ -311,7 +289,7 @@ export function ClientResults({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={4}
-          placeholder="Ex.: Esse mês investimos R$ 450 e alcançamos 12 mil pessoas. Geramos 18 contatos no direct. O custo por contato caiu em relação ao mês passado…"
+          placeholder="Ex.: Nesta semana investimos R$ 175,70 e alcançamos 12 mil pessoas…"
           className="mt-1 w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm leading-relaxed outline-none focus:border-brand-500"
         />
 
@@ -335,7 +313,7 @@ export function ClientResults({
         {respCliente?.client_updated_at ? (
           <div className="mt-2 space-y-2 text-sm text-gray-700">
             <p>
-              <span className="font-semibold">Fechou no mês:</span>{" "}
+              <span className="font-semibold">Fechou na semana:</span>{" "}
               {respCliente.closed_count ?? "não informado"}
             </p>
             {respCliente.sources ? (
@@ -356,7 +334,7 @@ export function ClientResults({
           </div>
         ) : (
           <p className="mt-1 text-xs text-gray-400">
-            O cliente ainda não respondeu os resultados deste mês pelo painel.
+            O cliente ainda não respondeu os resultados desta semana pelo painel.
           </p>
         )}
       </div>

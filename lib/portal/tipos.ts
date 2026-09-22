@@ -79,7 +79,7 @@ export interface ResumoMes {
 
 /** Resultados do mês no painel: tráfego (equipe) + o que o cliente respondeu. */
 export interface ResultadoPortal {
-  month: string; // 'YYYY-MM'
+  weekStart: string; // 'YYYY-MM-DD' (segunda-feira)
   metrics: MetricaTrafego[];
   table: string[][] | null; // planilha extraída (tem prioridade sobre metrics)
   teamNote: string | null;

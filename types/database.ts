@@ -312,7 +312,8 @@ export type MetricaTrafego = { label: string; value: string };
 export type ClientMonthlyResult = {
   id: UUID;
   client_id: UUID;
-  month: string; // 'YYYY-MM'
+  month: string | null; // 'YYYY-MM' (legado)
+  week_start: string | null; // 'YYYY-MM-DD' (segunda-feira) — chave semanal
   metrics: MetricaTrafego[];
   /** Planilha de tráfego extraída de um Excel/CSV (linhas x colunas). */
   traffic_table: string[][] | null;
@@ -328,7 +329,8 @@ export type ClientMonthlyResult = {
 export type ClientMonthlyResultInsert = {
   id?: UUID;
   client_id: UUID;
-  month: string;
+  month?: string | null;
+  week_start?: string | null;
   metrics?: MetricaTrafego[];
   traffic_table?: string[][] | null;
   traffic_file_name?: string | null;

@@ -181,15 +181,15 @@ export async function carregarPortal(
       .map(paraPost),
   };
 
-  // Resultados do mês (tráfego + retorno do cliente).
+  // Resultados da SEMANA (tráfego + retorno do cliente).
   const { data: res } = await admin
     .from("client_monthly_results")
     .select("*")
     .eq("client_id", cliente.id)
-    .eq("month", mesRef)
+    .eq("week_start", iniISO)
     .maybeSingle();
   const resultado = {
-    month: mesRef,
+    weekStart: iniISO,
     metrics: res?.metrics ?? [],
     table: res?.traffic_table ?? null,
     teamNote: res?.team_note ?? null,

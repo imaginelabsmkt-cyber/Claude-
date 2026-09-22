@@ -137,7 +137,7 @@ function ResultadoBloco({
 
   const enviar = () =>
     iniciar(async () => {
-      const r = await enviarResultadoClienteAction(token, resultado.month, {
+      const r = await enviarResultadoClienteAction(token, resultado.weekStart, {
         closedCount: closed,
         sources,
         comment,
@@ -154,7 +154,7 @@ function ResultadoBloco({
     <section className="mt-6">
       <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
         <span aria-hidden>📈</span>
-        Resultados do mês
+        Resultados da semana
       </h2>
 
       {/* Tráfego pago / anúncios (equipe) */}
@@ -233,14 +233,14 @@ function ResultadoBloco({
       {/* Retorno do cliente (formulário) */}
       <div className="mt-3 rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
         <p className="text-sm font-semibold text-brand-800">
-          Conta pra gente como foi o seu mês 💬
+          Conta pra gente como foi a sua semana 💬
         </p>
         <p className="mt-0.5 text-xs text-gray-600">
           Isso ajuda a gente a melhorar ainda mais os seus resultados.
         </p>
 
         <label className="mt-3 block text-xs font-medium text-gray-600">
-          Quantos você fechou este mês?{" "}
+          Quantos você fechou nesta semana?{" "}
           <span className="text-gray-400">
             (viraram consulta, agendamento ou cliente)
           </span>

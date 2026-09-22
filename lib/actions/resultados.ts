@@ -12,25 +12,24 @@ export interface ResultadoResult {
   error?: string;
 }
 
-const MES_RE = /^\d{4}-\d{2}$/;
+const DATA_RE = /^\d{4}-\d{2}-\d{2}$/; // segunda-feira da semana
 
 /**
- * Equipe salva os números de tráfego do mês (métricas + explicação). Upsert por
- * cliente/mês, preservando o que o cliente já respondeu.
+ * Equipe salva os números de tráfego da SEMANA (métricas + explicação). Upsert
+ * por cliente/semana, preservando o que o cliente já respondeu.
  */
 export async function salvarResultadosEquipeAction(
   clientId: string,
-  month: string,
+  weekStart: string,
   metrics: MetricaTrafego[],
   teamNote: string,
 ): Promise<ResultadoResult> {
-  if (!clientId || !MES_RE.test(month)) {
+  if (!clientId || !DATA_RE.test(weekStart)) {
     return { ok: false, error: "Dados inválidos." };
   }
   if (!(await usuarioAtualId())) {
     return { ok: false, error: "Sessão expirada. Entre novamente." };
   }
-  // Limpa métricas (rótulo obrigatório) e limita tamanho.
   const limpas = (metrics ?? [])
     .map((m) => ({
       label: (m.label ?? "").trim().slice(0, 60),
@@ -39,18 +38,16 @@ export async function salvarResultadosEquipeAction(
     .filter((m) => m.label || m.value);
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("client_monthly_results")
-    .upsert(
-      {
-        client_id: clientId,
-        month,
-        metrics: limpas,
-        team_note: teamNote.trim().slice(0, 4000) || null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "client_id,month" },
-    );
+  const { error } = await supabase.from("client_monthly_results").upsert(
+    {
+      client_id: clientId,
+      week_start: weekStart,
+      metrics: limpas,
+      team_note: teamNote.trim().slice(0, 4000) || null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "client_id,week_start" },
+  );
   if (error) return { ok: false, error: "Não foi possível salvar." };
 
   revalidatePath(`/clientes/${clientId}`);
@@ -59,15 +56,15 @@ export async function salvarResultadosEquipeAction(
 
 /**
  * Salva (ou remove) a planilha de tráfego extraída de um Excel/CSV. grade=null
- * remove. Preserva o resto da linha do mês.
+ * remove. Preserva o resto da linha da semana.
  */
 export async function salvarPlanilhaTrafegoAction(
   clientId: string,
-  month: string,
+  weekStart: string,
   grade: string[][] | null,
   fileName: string | null,
 ): Promise<ResultadoResult> {
-  if (!clientId || !MES_RE.test(month)) {
+  if (!clientId || !DATA_RE.test(weekStart)) {
     return { ok: false, error: "Dados inválidos." };
   }
   if (!(await usuarioAtualId())) {
@@ -77,12 +74,12 @@ export async function salvarPlanilhaTrafegoAction(
   const { error } = await supabase.from("client_monthly_results").upsert(
     {
       client_id: clientId,
-      month,
+      week_start: weekStart,
       traffic_table: grade,
       traffic_file_name: grade ? fileName : null,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "client_id,month" },
+    { onConflict: "client_id,week_start" },
   );
   if (error) return { ok: false, error: "Não foi possível salvar a planilha." };
 
@@ -92,14 +89,14 @@ export async function salvarPlanilhaTrafegoAction(
 
 /**
  * Cliente responde os resultados dele pelo painel (link secreto). Valida o
- * token, grava só os campos do cliente e avisa a coordenação. Sem sessão.
+ * token, grava só os campos do cliente na SEMANA e avisa a coordenação.
  */
 export async function enviarResultadoClienteAction(
   token: string,
-  month: string,
+  weekStart: string,
   dados: { closedCount: string; sources: string; comment: string },
 ): Promise<ResultadoResult> {
-  if (!token || !MES_RE.test(month)) {
+  if (!token || !DATA_RE.test(weekStart)) {
     return { ok: false, error: "Link inválido." };
   }
   const admin = createAdminClient();
@@ -117,20 +114,18 @@ export async function enviarResultadoClienteAction(
   const n = parseInt(dados.closedCount, 10);
   const closed = Number.isFinite(n) && n >= 0 ? n : null;
 
-  const { error } = await admin
-    .from("client_monthly_results")
-    .upsert(
-      {
-        client_id: cliente.id,
-        month,
-        closed_count: closed,
-        sources: dados.sources.trim().slice(0, 500) || null,
-        client_comment: dados.comment.trim().slice(0, 2000) || null,
-        client_updated_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "client_id,month" },
-    );
+  const { error } = await admin.from("client_monthly_results").upsert(
+    {
+      client_id: cliente.id,
+      week_start: weekStart,
+      closed_count: closed,
+      sources: dados.sources.trim().slice(0, 500) || null,
+      client_comment: dados.comment.trim().slice(0, 2000) || null,
+      client_updated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "client_id,week_start" },
+  );
   if (error) return { ok: false, error: "Não foi possível enviar." };
 
   // Avisa a coordenação (best-effort, não bloqueia).
@@ -141,14 +136,14 @@ export async function enviarResultadoClienteAction(
       .in("role", ["planner", "admin", "producer"]);
     const resumo =
       closed != null
-        ? `${cliente.name} fechou ${closed} este mês.`
-        : `${cliente.name} respondeu os resultados do mês.`;
+        ? `${cliente.name} fechou ${closed} esta semana.`
+        : `${cliente.name} respondeu os resultados da semana.`;
     for (const p of coord ?? []) {
       await enviarPushParaUsuario(admin, p.id, {
         title: "📈 Resultado do cliente",
         body: resumo,
         url: `/clientes/${cliente.id}`,
-        tag: `resultado-${cliente.id}-${month}`,
+        tag: `resultado-${cliente.id}-${weekStart}`,
       });
     }
   } catch {

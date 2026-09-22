@@ -18,7 +18,7 @@ import { ClientOnboarding } from "@/components/clients/client-onboarding";
 import { ClientPortalShare } from "@/components/clients/client-portal-share";
 import { ClientResults } from "@/components/clients/client-results";
 import { ClientWeeklyNote } from "@/components/clients/client-weekly-note";
-import { obterResultadoMes, obterNotaSemanal } from "@/lib/data/resultados";
+import { obterResultadoSemana, obterNotaSemanal } from "@/lib/data/resultados";
 import { DemandsBoard } from "@/components/demandas/demands-board";
 import { ClientWeeklyReport } from "@/components/clients/client-weekly-report";
 import { listDemands, listDemandsFeitasCliente } from "@/lib/data/demands";
@@ -47,7 +47,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: { id: string };
-  searchParams: { semana?: string; resultadosMes?: string };
+  searchParams: { semana?: string };
 }
 
 const NOMES_DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -112,13 +112,6 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     hojeISO(hojeRef),
   );
 
-  // Resultados do mês (tráfego + retorno do cliente).
-  const mesAtualCal = hojeISO(hojeRef).slice(0, 7);
-  const resultadosMesSel = /^\d{4}-\d{2}$/.test(searchParams.resultadosMes ?? "")
-    ? searchParams.resultadosMes!
-    : mesAtualCal;
-  const resultadoMes = await obterResultadoMes(cliente.id, resultadosMesSel);
-
   const hoje = new Date();
 
   // Semana exibida (?semana=YYYY-MM-DD, qualquer dia da semana). Padrão: hoje.
@@ -128,7 +121,10 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const inicioSemana = inicioDaSemana(base);
   const meioSemana = addDays(inicioSemana, 3); // referência do mês
   const semanaInicioISO = hojeISO(inicioSemana);
-  const notaSemanal = await obterNotaSemanal(cliente.id, semanaInicioISO);
+  const [notaSemanal, resultadoSemana] = await Promise.all([
+    obterNotaSemanal(cliente.id, semanaInicioISO),
+    obterResultadoSemana(cliente.id, semanaInicioISO),
+  ]);
 
   // Mês (para a meta contratual e para apagar planejamento)
   const mes = `${meioSemana.getFullYear()}-${String(meioSemana.getMonth() + 1).padStart(2, "0")}`;
@@ -383,8 +379,9 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
             conteudo: (
               <ClientResults
                 clientId={cliente.id}
-                mesAtual={resultadosMesSel}
-                inicial={resultadoMes}
+                weekStart={semanaInicioISO}
+                intervalo={tituloSemana}
+                inicial={resultadoSemana}
               />
             ),
           },
