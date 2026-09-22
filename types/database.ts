@@ -166,13 +166,16 @@ export type ClientFile = {
   client_id: UUID;
   name: string;
   path: string;
+  /** Tipo do documento — permite achar "os contratos". */
+  kind: ClientFileKind;
   size_bytes: number | null;
   mime_type: string | null;
   uploaded_by: UUID | null;
   created_at: ISODateString;
 }
-export type ClientFileInsert = Omit<ClientFile, "id" | "created_at"> & {
+export type ClientFileInsert = Omit<ClientFile, "id" | "created_at" | "kind"> & {
   id?: UUID;
+  kind?: ClientFileKind;
 };
 
 /** client_onboarding — DNA/onboarding do cliente (JSONB flexível). */
@@ -542,6 +545,122 @@ export type ProposalInsert = Omit<
 };
 
 // -------------------------------------------------------------
+// Empresa — documentos e obrigações (20260922120000_empresa.sql)
+// -------------------------------------------------------------
+
+/** Periodicidade de uma obrigação com prazo. */
+export type ObligationCadence = "Mensal" | "Trimestral" | "Anual" | "Única";
+
+/** Tipos de documento de cliente (check em client_files.kind). */
+export type ClientFileKind =
+  | "Contrato"
+  | "Proposta"
+  | "Briefing"
+  | "Referência"
+  | "Arte"
+  | "Nota fiscal"
+  | "Outro";
+
+/** Tipos de documento da empresa (check em company_files.kind). */
+export type CompanyFileKind =
+  | "Contrato social"
+  | "CNPJ"
+  | "Alvará"
+  | "Certidão"
+  | "Imposto"
+  | "Contabilidade"
+  | "Seguro"
+  | "Outro";
+
+/** company_files — documento da empresa (binário no bucket company-files). */
+export type CompanyFile = {
+  id: UUID;
+  name: string;
+  path: string;
+  kind: CompanyFileKind;
+  size_bytes: number | null;
+  mime_type: string | null;
+  notes: string | null;
+  uploaded_by: UUID | null;
+  created_at: ISODateString;
+}
+
+/** company_obligations — prazo que não é despesa. */
+export type Obligation = {
+  id: UUID;
+  title: string;
+  /** Área que cuida do assunto: "contabil" ou "administrativo". */
+  area: string;
+  cadence: ObligationCadence;
+  due_day: number | null;
+  due_month: number | null;
+  due_date: DateString | null;
+  /** Dias de antecedência do aviso. */
+  alert_days: number;
+  notes: string | null;
+  active: boolean;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+/** obligation_completions — um período cumprido. */
+export type ObligationCompletion = {
+  id: UUID;
+  obligation_id: UUID;
+  /** "2026-09" (mensal/trimestral), "2026" (anual) ou "unica". */
+  period: string;
+  completed_at: DateString;
+  notes: string | null;
+  created_at: ISODateString;
+}
+
+export type CompanyFileInsert = Omit<
+  CompanyFile,
+  "id" | "created_at" | "kind" | "size_bytes" | "mime_type" | "notes" | "uploaded_by"
+> & {
+  id?: UUID;
+  kind?: CompanyFileKind;
+  size_bytes?: number | null;
+  mime_type?: string | null;
+  notes?: string | null;
+  uploaded_by?: UUID | null;
+};
+
+export type ObligationInsert = Omit<
+  Obligation,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "area"
+  | "cadence"
+  | "due_day"
+  | "due_month"
+  | "due_date"
+  | "alert_days"
+  | "notes"
+  | "active"
+> & {
+  id?: UUID;
+  area?: string;
+  cadence?: ObligationCadence;
+  due_day?: number | null;
+  due_month?: number | null;
+  due_date?: DateString | null;
+  alert_days?: number;
+  notes?: string | null;
+  active?: boolean;
+};
+
+export type ObligationCompletionInsert = Omit<
+  ObligationCompletion,
+  "id" | "created_at" | "completed_at" | "notes"
+> & {
+  id?: UUID;
+  completed_at?: DateString;
+  notes?: string | null;
+};
+
+// -------------------------------------------------------------
 // Tipos de Insert / Update (colunas com default são opcionais)
 // -------------------------------------------------------------
 
@@ -735,6 +854,24 @@ export interface Database {
         Update: Partial<ProposalInsert>;
         Relationships: [];
       };
+      company_files: {
+        Row: CompanyFile;
+        Insert: CompanyFileInsert;
+        Update: Partial<CompanyFileInsert>;
+        Relationships: [];
+      };
+      company_obligations: {
+        Row: Obligation;
+        Insert: ObligationInsert;
+        Update: Partial<ObligationInsert>;
+        Relationships: [];
+      };
+      obligation_completions: {
+        Row: ObligationCompletion;
+        Insert: ObligationCompletionInsert;
+        Update: Partial<ObligationCompletionInsert>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -746,6 +883,7 @@ export interface Database {
       financial_status: FinancialStatus;
       lead_stage: LeadStage;
       proposal_status: ProposalStatus;
+      obligation_cadence: ObligationCadence;
     };
     CompositeTypes: Record<string, never>;
   };

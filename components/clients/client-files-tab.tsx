@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/lib/ui/toast";
 import { formatarData } from "@/lib/utils";
 import { Icon } from "@/components/ui/icon";
-import type { ClientFile } from "@/types";
+import { Select } from "@/components/ui/select";
+import { CLIENT_FILE_KIND_OPTIONS } from "@/types";
+import type { ClientFile, ClientFileKind } from "@/types";
 
 const BUCKET = "client-files";
 const LIMITE_MB = 50;
@@ -61,6 +63,9 @@ export function ClientFilesTab({
   const [enviando, setEnviando] = useState(false);
   const [arrastando, setArrastando] = useState(false);
   const [removendo, setRemovendo] = useState<string | null>(null);
+  // Tipo aplicado ao que for enviado agora. Marcar como "Contrato" faz o
+  // arquivo aparecer também em Interno > Administrativo > Contratos.
+  const [tipo, setTipo] = useState<ClientFileKind>("Outro");
 
   const enviarArquivos = async (lista: FileList | File[]) => {
     const files = Array.from(lista);
@@ -88,6 +93,7 @@ export function ClientFilesTab({
         client_id: clientId,
         name: file.name,
         path,
+        kind: tipo,
         size_bytes: file.size,
         mime_type: file.type || null,
         uploaded_by: auth.user?.id ?? null,
@@ -136,6 +142,33 @@ export function ClientFilesTab({
 
   return (
     <div>
+      {/* Tipo do que será enviado */}
+      <div className="mb-3 flex flex-wrap items-end gap-3">
+        <div className="min-w-[11rem]">
+          <label
+            htmlFor="arquivo-tipo"
+            className="mb-1 block text-xs font-medium text-gray-700"
+          >
+            Tipo do arquivo
+          </label>
+          <Select
+            id="arquivo-tipo"
+            value={tipo}
+            onChange={(e) => setTipo(e.target.value as ClientFileKind)}
+          >
+            {CLIENT_FILE_KIND_OPTIONS.map((k) => (
+              <option key={k} value={k}>
+                {k}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <p className="text-xs text-gray-500">
+          Marcar como <strong>Contrato</strong> faz o arquivo aparecer também no
+          Interno, em Administrativo.
+        </p>
+      </div>
+
       {/* Área de envio (clique ou arraste) */}
       <div
         onDragOver={(e) => {

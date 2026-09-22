@@ -78,8 +78,8 @@ cada uma com a sua cor — e **a cor diz de onde o dado vem**:
 | Comercial | vinho | Carteira de clientes, funil de oportunidades e propostas |
 | Financeiro | petróleo | Fluxo de caixa (detalhado abaixo) |
 | Pessoas | lilás | Pró-labore e freelas |
-| Contábil | azul | DAS, contabilidade e obrigações com prazo |
-| Administrativo | ocre | Assinaturas, ferramentas e equipamentos |
+| Contábil | azul | DAS, contabilidade e prazos com o governo |
+| Administrativo | ocre | Ferramentas, contratos e documentos da empresa |
 
 Na tela **Início**, cada linha carrega a tarja e a etiqueta da área de onde
 veio — você reconhece a origem antes de ler o texto. O vermelho fica fora
@@ -87,6 +87,25 @@ desse jogo: significa sempre "venceu ou está vencendo".
 
 Pessoas, Contábil e Administrativo não guardam dados próprios: são recortes
 das categorias do financeiro. Um número só para a empresa inteira.
+
+### Documentos e prazos
+
+**Contratos e documentos.** O contrato assinado de um cliente é um arquivo
+do cliente: anexe na ficha dele e marque o tipo como *Contrato* — ele passa
+a aparecer também em Administrativo, sem deixar de estar lá. Documento da
+empresa (contrato social, CNPJ, alvará) vai direto no Administrativo. Os
+dois ficam em armazenamento privado: o download sai por link que expira em
+um minuto.
+
+**Prazos que não são despesa.** A declaração anual do Simples, a renovação
+do alvará. Você cadastra a periodicidade (mensal, trimestral, anual ou uma
+única vez) e o dia; o sistema calcula o vencimento, avisa com a
+antecedência que você escolher e aparece no Início junto das pendências
+financeiras. Marcar como feito é um clique, e não dá para marcar o mesmo
+período duas vezes.
+
+DAS e contabilidade **não** entram aqui — são despesa, e já vêm do
+financeiro.
 
 ### O funil fecha o ciclo
 

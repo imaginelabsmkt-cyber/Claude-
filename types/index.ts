@@ -18,8 +18,11 @@ import type {
   FinancialEntry,
   FinancialKind,
   FinancialRecurrence,
+  ClientFileKind,
+  CompanyFileKind,
   FinancialStatus,
   Lead,
+  ObligationCadence,
   LeadStage,
   Proposal,
   ProposalStatus,
@@ -245,4 +248,44 @@ export const LEAD_SOURCE_OPTIONS: string[] = [
   "Evento",
   "Cliente antigo",
   "Outro",
+];
+
+// -------------------------------------------------------------
+// Empresa — opções e tons de UI
+// -------------------------------------------------------------
+
+export const OBLIGATION_CADENCE_OPTIONS: ObligationCadence[] = [
+  "Mensal",
+  "Trimestral",
+  "Anual",
+  "Única",
+];
+
+/** Tipos de documento de cliente. */
+export const CLIENT_FILE_KIND_OPTIONS: ClientFileKind[] = [
+  "Contrato",
+  "Proposta",
+  "Briefing",
+  "Referência",
+  "Arte",
+  "Nota fiscal",
+  "Outro",
+];
+
+/** Tipos de documento da empresa. */
+export const COMPANY_FILE_KIND_OPTIONS: CompanyFileKind[] = [
+  "Contrato social",
+  "CNPJ",
+  "Alvará",
+  "Certidão",
+  "Imposto",
+  "Contabilidade",
+  "Seguro",
+  "Outro",
+];
+
+/** Meses para os selects de vencimento. */
+export const MESES_CURTOS: string[] = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];

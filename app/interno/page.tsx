@@ -111,7 +111,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
               origem={c.origem}
               titulo={c.titulo}
               descricao={c.descricao}
-              valor={formatarMoeda(c.valor)}
+              valor={c.valor > 0 ? formatarMoeda(c.valor) : undefined}
               prazo={c.prazo}
               atrasado={c.atrasado}
             />

@@ -1,8 +1,10 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { Stat } from "@/components/interno/stat";
 import { RecorteLista } from "@/components/interno/recorte-lista";
+import { ObrigacoesPanel } from "@/components/empresa/obrigacoes-panel";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterRecorteArea } from "@/lib/data/interno";
+import { listarObrigacoes } from "@/lib/data/empresa";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
@@ -20,7 +22,11 @@ export default async function ContabilPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
-  const recorte = await obterRecorteArea("contabil", mes);
+  const [recorte, obrigacoes] = await Promise.all([
+    obterRecorteArea("contabil", mes),
+    listarObrigacoes("contabil"),
+  ]);
+  const atrasadas = obrigacoes.filter((o) => o.aberto?.situacao === "Atrasada").length;
   const emAberto = recorte.lancamentos.filter((l) => l.status === "Pendente");
 
   return (
@@ -44,9 +50,10 @@ export default async function ContabilPage({ searchParams }: PageProps) {
         />
         <Stat rotulo="Fixo por mês" valor={formatarMoeda(recorte.mensal)} />
         <Stat
-          rotulo="Pago no ano"
-          valor={formatarMoeda(recorte.noAno)}
-          detalhe={`Em ${mes.slice(0, 4)}`}
+          rotulo="Prazos cadastrados"
+          valor={String(obrigacoes.length)}
+          alerta={atrasadas > 0}
+          detalhe={atrasadas > 0 ? `${atrasadas} atrasada(s)` : "nenhuma atrasada"}
         />
       </div>
 
@@ -59,9 +66,14 @@ export default async function ContabilPage({ searchParams }: PageProps) {
       />
 
       <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
-        DAS e honorários da contabilidade são recorrências: uma vez cadastrados,
-        aparecem todo mês sem ninguém precisar lembrar.
+        DAS e honorários da contabilidade são recorrências do financeiro: uma vez
+        cadastrados, aparecem todo mês sem ninguém precisar lembrar.
       </p>
+
+      <h2 className="mb-2 mt-7 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+        Prazos que não são despesa
+      </h2>
+      <ObrigacoesPanel obrigacoes={obrigacoes} area="contabil" />
     </>
   );
 }

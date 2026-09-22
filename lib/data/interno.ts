@@ -6,6 +6,11 @@ import {
   type PainelMes,
 } from "@/lib/data/financeiro";
 import { areaDaCategoria, categoriasDaArea } from "@/lib/interno/classificacao";
+import { listarObrigacoesUrgentes } from "@/lib/data/empresa";
+import {
+  rotuloPeriodo,
+  textoPrazo as textoPrazoObrigacao,
+} from "@/lib/empresa/obrigacoes";
 import { somar } from "@/lib/financeiro/calculo";
 import type { AreaId } from "@/lib/interno/areas";
 import type { FinancialEntryWithRelations } from "@/types";
@@ -100,10 +105,16 @@ export interface PainelInterno {
 export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
   const supabase = createClient();
 
-  const [financeiro, lancamentos, { data: recorrencias }, { count: ativos }] =
-    await Promise.all([
+  const [
+    financeiro,
+    lancamentos,
+    obrigacoes,
+    { data: recorrencias },
+    { count: ativos },
+  ] = await Promise.all([
       obterPainelMes(mes),
       listarLancamentos({ mes }),
+      listarObrigacoesUrgentes(),
       supabase
         .from("financial_recurrences")
         .select("kind, amount, start_month, end_month")
@@ -118,7 +129,29 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     (r) => r.start_month <= mes && (!r.end_month || r.end_month >= mes),
   );
 
-  const compromissos = comoCompromissos(lancamentos);
+  // As obrigações com prazo próprio entram na mesma lista das pendências
+  // financeiras — no Início, tudo que tem prazo aparece junto, cada linha
+  // com a cor da sua área.
+  const daObrigacao: Compromisso[] = obrigacoes
+    .filter((o) => o.aberto !== null)
+    .map((o) => ({
+      id: `obrigacao-${o.id}`,
+      origem: o.area === "administrativo" ? "administrativo" : "contabil",
+      titulo: o.title,
+      descricao: `${o.cadence} · ${rotuloPeriodo(o.aberto!.periodo)}`,
+      valor: 0,
+      prazo: textoPrazoObrigacao(o.aberto!),
+      atrasado: o.aberto!.situacao === "Atrasada",
+      dias: o.aberto!.dias,
+    }));
+
+  const compromissos = [...comoCompromissos(lancamentos), ...daObrigacao].sort(
+    (a, b) => {
+      if (a.dias === null) return 1;
+      if (b.dias === null) return -1;
+      return a.dias - b.dias;
+    },
+  );
 
   return {
     mes,

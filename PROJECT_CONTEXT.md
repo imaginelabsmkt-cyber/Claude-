@@ -296,6 +296,59 @@ Fechar um negócio com um nome que já existe em `clients` **reaproveita e
 reativa** o cliente, em vez de duplicar. Ganhar de volta quem saiu é
 comum — e o histórico financeiro dele continua inteiro.
 
+## 5.5 Empresa — documentos e prazos
+
+### Documentos: dois lugares, sem sobreposição
+
+| O documento é de… | Mora em | Bucket |
+| ----------------- | ------- | ------ |
+| um **cliente** (contrato, briefing, nota) | `client_files`, na ficha do cliente | `client-files` |
+| a **empresa** (contrato social, CNPJ, alvará) | `company_files` | `company-files` |
+
+`client_files` ganhou a coluna **`kind`** (`Contrato`, `Proposta`,
+`Briefing`, `Referência`, `Arte`, `Nota fiscal`, `Outro`). Marcar um
+arquivo como `Contrato` o faz aparecer em *Administrativo → Contratos*
+**sem sair** da ficha do cliente: é o mesmo arquivo, visto de dois
+lugares. Por isso também não existe tabela de contratos — o valor e a
+vigência continuam na recorrência (ver 5.4).
+
+Os dois buckets são **privados**; o download sai por link assinado de 60
+segundos, nunca por URL pública.
+
+### Obrigações: só o que NÃO é despesa
+
+`company_obligations` guarda prazo que não passa pelo caixa — a
+declaração anual do Simples, a renovação do alvará. **Despesa com prazo
+(DAS, contabilidade) continua no financeiro**, porque lá é onde o
+dinheiro vive; ela chega ao Início como lançamento pendente.
+
+Periodicidade (enum `obligation_cadence`): `Mensal`, `Trimestral`,
+`Anual`, `Única`. O trimestral usa `due_month` como âncora — âncora em
+março significa março, junho, setembro e dezembro.
+
+Cada período cumprido é uma linha em `obligation_completions`, com a
+chave do período variando conforme a periodicidade:
+
+```
+Mensal / Trimestral -> "2026-09"
+Anual               -> "2026"
+Única               -> "unica"
+```
+
+A unicidade `(obligation_id, period)` impede marcar o mesmo período duas
+vezes, e desativar a obrigação preserva o histórico.
+
+### A regra que evita atraso fantasma
+
+`vencimentoAberto` (`lib/empresa/obrigacoes.ts`) procura o período mais
+antigo ainda não cumprido — mas **ignora períodos anteriores a
+`since`** (o `created_at` da obrigação). Sem esse corte, cadastrar hoje
+uma obrigação mensal faria o sistema acusar seis meses de atraso que
+nunca existiram. Há teste cobrindo exatamente isso.
+
+O banco garante a coerência: periodicidade `Única` exige `due_date`, as
+periódicas exigem `due_day`, e `Anual` exige `due_month`.
+
 ## 6. Convenções de código
 
 - **Rotas/arquivos:** `kebab-case`.

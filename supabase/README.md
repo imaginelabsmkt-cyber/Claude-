@@ -27,6 +27,9 @@ supabase/
 | `financial_recurrences` | Mensalidades e custos fixos que se repetem todo mês.   |
 | `commercial_leads`      | Oportunidades do funil comercial.                      |
 | `commercial_proposals`  | Propostas enviadas a uma oportunidade.                 |
+| `company_files`         | Documentos da empresa (bucket `company-files`).         |
+| `company_obligations`   | Prazos que não são despesa (declaração, alvará).        |
+| `obligation_completions`| Um registro por período cumprido.                      |
 
 ### Tipos ENUM
 
@@ -41,6 +44,7 @@ supabase/
 - `lead_stage`: `Contato feito`, `Diagnóstico`, `Proposta enviada`,
   `Negociação`, `Fechado`, `Perdido`
 - `proposal_status`: `Rascunho`, `Enviada`, `Aceita`, `Recusada`
+- `obligation_cadence`: `Mensal`, `Trimestral`, `Anual`, `Única`
 
 ### Relacionamentos
 
@@ -200,3 +204,24 @@ se a etapa for alterada fora da tela do funil.
 Não há tabela de contratos, de propósito: um contrato é cliente + valor
 mensal + vigência, e isso já é uma linha de `financial_recurrences`. Ver
 a seção 5.4 do PROJECT_CONTEXT.
+
+
+## Empresa
+
+Migration: `20260922120000_empresa.sql` (idempotente). Além das tabelas,
+ela **altera `client_files`** acrescentando a coluna `kind` (com default
+`'Outro'`, então nada existente quebra) e cria o bucket privado
+`company-files` com as policies de Storage.
+
+Garantias que o banco impõe:
+
+| Regra                                            | Como é garantida                     |
+| ------------------------------------------------ | ------------------------------------ |
+| Tipo de documento fora da lista não entra         | `check` em `kind`                    |
+| Obrigação `Única` exige data; periódica exige dia | `company_obligations_prazo_check`    |
+| Obrigação `Anual` exige o mês                     | `company_obligations_anual_check`    |
+| Não dá para cumprir o mesmo período duas vezes    | `unique (obligation_id, period)`     |
+| Desativar obrigação preserva o histórico          | `active = false`, sem delete         |
+
+Duas obrigações de MEI/Simples já vêm cadastradas — mas só se a tabela
+estiver vazia, para não duplicar em reexecução.
