@@ -8,7 +8,7 @@ import {
   salvarResultadosEquipeAction,
   salvarPlanilhaTrafegoAction,
 } from "@/lib/actions/resultados";
-import { extrairPlanilha } from "@/lib/planilha/extrair";
+import { extrairPlanilha, extrairKPIs } from "@/lib/planilha/extrair";
 import type { ClientMonthlyResult, MetricaTrafego } from "@/types";
 
 const NOMES_MES = [
@@ -87,9 +87,19 @@ export function ClientResults({
         setLendo(false);
         return;
       }
+      // Extrai os KPIs (dashboard) e já preenche os números do mês.
+      const kpis = extrairKPIs(grade);
+      if (kpis.length > 0) {
+        await salvarResultadosEquipeAction(clientId, mes, kpis, note);
+        setMetrics(kpis);
+      }
       setTabela(grade);
       setNomePlanilha(file.name);
-      toast.sucesso("Planilha importada");
+      toast.sucesso(
+        kpis.length > 0
+          ? `Planilha importada. ${kpis.length} indicadores reconhecidos.`
+          : "Planilha importada.",
+      );
       router.refresh();
     } catch {
       toast.erro("Não consegui ler esse arquivo.");

@@ -119,6 +119,22 @@ function ResultadoBloco({
   const temTrafego =
     temTabela || resultado.metrics.length > 0 || !!resultado.teamNote?.trim();
 
+  // Funil: conversas iniciadas (Meta) x quantos o cliente fechou.
+  const conversao = (() => {
+    const m = resultado.metrics.find((x) =>
+      x.label.toLowerCase().includes("conversas"),
+    );
+    const conversas = m ? parseInt(m.value.replace(/[^\d]/g, ""), 10) : NaN;
+    const fechou = resultado.closedCount;
+    if (!Number.isFinite(conversas) || conversas <= 0 || fechou == null)
+      return null;
+    return {
+      conversas,
+      fechou,
+      taxa: Math.round((fechou / conversas) * 100),
+    };
+  })();
+
   const enviar = () =>
     iniciar(async () => {
       const r = await enviarResultadoClienteAction(token, resultado.month, {
@@ -147,7 +163,39 @@ function ResultadoBloco({
           <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">
             Tráfego pago (anúncios)
           </p>
-          {temTabela ? (
+          {resultado.metrics.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {resultado.metrics.map((m, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl bg-gradient-to-br from-brand-50 to-white p-3 text-center ring-1 ring-brand-100"
+                  >
+                    <p className="text-lg font-extrabold leading-tight text-brand-800">
+                      {m.value || "—"}
+                    </p>
+                    <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
+                      {m.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {conversao ? (
+                <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-brand-800 px-4 py-3 text-white">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-white/70">
+                      Conversas que viraram cliente
+                    </p>
+                    <p className="text-sm font-semibold">
+                      {conversao.conversas} conversas → {conversao.fechou}{" "}
+                      fechado{conversao.fechou === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <p className="text-2xl font-extrabold">{conversao.taxa}%</p>
+                </div>
+              ) : null}
+            </>
+          ) : temTabela ? (
             <div className="overflow-x-auto rounded-lg border border-gray-200">
               <table className="w-full border-collapse text-left text-xs sm:text-sm">
                 <tbody>
@@ -168,24 +216,6 @@ function ResultadoBloco({
                           {cel}
                         </td>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : resultado.metrics.length > 0 ? (
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <table className="w-full border-collapse text-left text-sm">
-                <tbody>
-                  {resultado.metrics.map((m, i) => (
-                    <tr
-                      key={i}
-                      className="border-t border-gray-100 first:border-t-0"
-                    >
-                      <td className="px-3 py-2 text-gray-700">{m.label}</td>
-                      <td className="px-3 py-2 text-right font-bold text-brand-800">
-                        {m.value || ""}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
