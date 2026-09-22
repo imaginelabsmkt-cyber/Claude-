@@ -418,6 +418,7 @@ export function PortalView({
     cliente,
     resumoMes,
     resultado,
+    recadoSemana,
     postsSemana,
     gravacoesSemana,
     emProducao,
@@ -473,6 +474,20 @@ export function PortalView({
         </div>
 
         <ResumoMesCard resumo={resumoMes} />
+
+        {recadoSemana?.trim() ? (
+          <section className="mt-6">
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
+              <span aria-hidden>📝</span>
+              Como foi a semana
+            </h2>
+            <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+                {recadoSemana}
+              </p>
+            </div>
+          </section>
+        ) : null}
 
         <Secao
           titulo="Essa semana vai ao ar"

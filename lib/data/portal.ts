@@ -198,6 +198,15 @@ export async function carregarPortal(
     respondido: !!res?.client_updated_at,
   };
 
+  // Relatório da semana escrito pela equipe (o "nosso lado").
+  const { data: notaRow } = await admin
+    .from("client_weekly_notes")
+    .select("note")
+    .eq("client_id", cliente.id)
+    .eq("week_start", iniISO)
+    .maybeSingle();
+  const recadoSemana = notaRow?.note ?? null;
+
   const { data: demandas } = await admin
     .from("demands")
     .select("id, title, category, status")
@@ -213,6 +222,7 @@ export async function carregarPortal(
     fimISO,
     resumoMes,
     resultado,
+    recadoSemana,
     postsSemana,
     gravacoesSemana,
     emProducao,

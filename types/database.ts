@@ -282,6 +282,25 @@ export type ContentFeedbackInsert = Omit<ContentFeedback, "id" | "created_at"> &
   id?: UUID;
 };
 
+/** client_weekly_notes — recado semanal da equipe (aparece no painel do cliente). */
+export type ClientWeeklyNote = {
+  id: UUID;
+  client_id: UUID;
+  week_start: string; // 'YYYY-MM-DD' (segunda-feira)
+  note: string | null;
+  created_by: UUID | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+export type ClientWeeklyNoteInsert = {
+  id?: UUID;
+  client_id: UUID;
+  week_start: string;
+  note?: string | null;
+  created_by?: UUID | null;
+  updated_at?: ISODateString;
+};
+
 /** Uma métrica de tráfego (rótulo + valor livres). */
 export type MetricaTrafego = { label: string; value: string };
 
@@ -599,6 +618,12 @@ export interface Database {
         Row: ClientMonthlyResult;
         Insert: ClientMonthlyResultInsert;
         Update: Partial<ClientMonthlyResultInsert>;
+        Relationships: [];
+      };
+      client_weekly_notes: {
+        Row: ClientWeeklyNote;
+        Insert: ClientWeeklyNoteInsert;
+        Update: Partial<ClientWeeklyNoteInsert>;
         Relationships: [];
       };
       plannings: {
