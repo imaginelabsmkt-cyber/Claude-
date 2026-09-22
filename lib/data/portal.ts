@@ -38,7 +38,6 @@ function paraPost(c: Content): PortalPost {
     format: c.format,
     status: c.status,
     data: c.actual_post_date ?? c.planned_date,
-    script: c.script,
     caption: c.caption,
     aguardaAprovacao: c.status === "Aprovação do cliente",
   };

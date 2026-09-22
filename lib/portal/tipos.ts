@@ -28,8 +28,7 @@ export interface PortalPost {
   format: string | null;
   status: ContentStatus;
   data: string | null; // planned_date ou actual_post_date
-  script: string | null;
-  caption: string | null;
+  caption: string | null; // legenda (o roteiro é interno, não vai pro cliente)
   aguardaAprovacao: boolean;
 }
 

@@ -37,7 +37,7 @@ function chipFormato(format: string | null): string {
 function CartaoPost({ post }: { post: PortalPost }) {
   const [aberto, setAberto] = useState(false);
   const st = STATUS_CLIENTE[post.status];
-  const temDetalhe = !!(post.script?.trim() || post.caption?.trim());
+  const temLegenda = !!post.caption?.trim();
 
   return (
     <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
@@ -65,37 +65,23 @@ function CartaoPost({ post }: { post: PortalPost }) {
         {post.title}
       </h3>
 
-      {temDetalhe ? (
+      {temLegenda ? (
         <>
           <button
             type="button"
             onClick={() => setAberto((v) => !v)}
             className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
           >
-            {aberto ? "Ocultar roteiro e legenda" : "Ver roteiro e legenda"}
+            {aberto ? "Ocultar legenda" : "Ver legenda"}
           </button>
           {aberto ? (
-            <div className="mt-2 space-y-3 border-t border-gray-100 pt-3">
-              {post.script?.trim() ? (
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
-                    Roteiro
-                  </p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                    {post.script}
-                  </p>
-                </div>
-              ) : null}
-              {post.caption?.trim() ? (
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
-                    Legenda
-                  </p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                    {post.caption}
-                  </p>
-                </div>
-              ) : null}
+            <div className="mt-2 border-t border-gray-100 pt-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                Legenda
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+                {post.caption}
+              </p>
             </div>
           ) : null}
         </>
