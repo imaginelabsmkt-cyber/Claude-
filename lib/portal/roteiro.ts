@@ -25,9 +25,7 @@ export function organizarRoteiro(script: string | null): RoteiroOrganizado | nul
   }
   if (linhas.length === 0) return null;
 
-  const semFala = (t: string) => t.replace(/^FALA\s*[^:]*:\s*/i, "").trim();
-
-  // Formato tabela (2 colunas separadas por COL_DELIM).
+  // Formato tabela (2 colunas separadas por COL_DELIM) — igual ao conteúdo.
   const tabela = linhas.filter((l) => l.includes(COL_DELIM));
   if (tabela.length > 0) {
     const rows = tabela.map((l) => l.split(COL_DELIM).map((c) => c.trim()));
@@ -35,18 +33,20 @@ export function organizarRoteiro(script: string | null): RoteiroOrganizado | nul
     const primeira = rows[0];
     const ehCabecalho =
       primeira.length >= 2 && primeira.every((c) => c.length <= 40);
+    const colEsq = ehCabecalho ? primeira[0] || "Fala" : "Fala";
+    const colDir = ehCabecalho ? primeira[1] || "Cenas" : "Cenas";
     const corpo = ehCabecalho ? rows.slice(1) : rows;
     const roteiroLinhas = corpo
-      .map((r) => ({ fala: semFala(r[0] ?? ""), direcao: (r[1] ?? "").trim() }))
-      .filter((r) => r.fala || r.direcao);
+      .map((r) => ({ esq: (r[0] ?? "").trim(), dir: (r[1] ?? "").trim() }))
+      .filter((r) => r.esq || r.dir);
     if (roteiroLinhas.length === 0) return null;
-    return { linhas: roteiroLinhas, paragrafos: [] };
+    return { colEsq, colDir, linhas: roteiroLinhas, paragrafos: [] };
   }
 
-  // Texto corrido: limpa resíduos do separador e o prefixo "FALA:".
+  // Texto corrido: limpa resíduos do separador.
   const paragrafos = linhas
-    .map((l) => semFala(l.split(COL_DELIM).join(" ").trim()))
+    .map((l) => l.split(COL_DELIM).join(" ").trim())
     .filter(Boolean);
   if (paragrafos.length === 0) return null;
-  return { linhas: [], paragrafos };
+  return { colEsq: "", colDir: "", linhas: [], paragrafos };
 }

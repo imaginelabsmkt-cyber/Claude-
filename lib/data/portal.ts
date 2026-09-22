@@ -1,6 +1,12 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { inicioDaSemana, hojeISO, ehCapa, ehArte } from "@/lib/rules/contents";
+import {
+  inicioDaSemana,
+  hojeISO,
+  ehCapa,
+  ehArte,
+  mesEfetivo,
+} from "@/lib/rules/contents";
 import { organizarRoteiro } from "@/lib/portal/roteiro";
 import type { Content, ContentStatus } from "@/types";
 import type {
@@ -8,6 +14,7 @@ import type {
   PortalDemanda,
   PortalGravacao,
   PortalPost,
+  ResumoMes,
 } from "@/lib/portal/tipos";
 
 export type { DadosPortal, PortalDemanda, PortalPost } from "@/lib/portal/tipos";
@@ -59,7 +66,7 @@ export async function carregarPortal(
 
   const { data: cliente } = await admin
     .from("clients")
-    .select("id, name, color")
+    .select("id, name, color, monthly_goal")
     .eq("portal_token", token)
     .eq("portal_enabled", true)
     .eq("is_internal", false)
@@ -129,6 +136,29 @@ export async function carregarPortal(
       roteiro: organizarRoteiro(c.script),
     }));
 
+  // Resumo do mês (mês da semana exibida): planejado x já publicado.
+  const mid = addDias(ini, 3); // quinta-feira define o mês da semana
+  const mesRef = `${mid.getFullYear()}-${String(mid.getMonth() + 1).padStart(2, "0")}`;
+  const doMes = visiveis.filter((c) => mesEfetivo(c) === mesRef);
+  const publicadosMes = doMes.filter((c) => c.status === "Publicado");
+  const resumoMes: ResumoMes = {
+    label: new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+    }).format(mid),
+    planejados: doMes.length,
+    publicados: publicadosMes.length,
+    restantes: Math.max(doMes.length - publicadosMes.length, 0),
+    meta: cliente.monthly_goal ?? null,
+    jaFeitos: publicadosMes
+      .sort((a, b) =>
+        (b.actual_post_date ?? b.planned_date ?? "").localeCompare(
+          a.actual_post_date ?? a.planned_date ?? "",
+        ),
+      )
+      .map(paraPost),
+  };
+
   const { data: demandas } = await admin
     .from("demands")
     .select("id, title, category, status")
@@ -142,6 +172,7 @@ export async function carregarPortal(
     semanaISO: iniISO,
     iniISO,
     fimISO,
+    resumoMes,
     postsSemana,
     gravacoesSemana,
     emProducao,

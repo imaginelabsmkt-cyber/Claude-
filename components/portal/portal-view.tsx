@@ -7,6 +7,7 @@ import {
   type DadosPortal,
   type PortalGravacao,
   type PortalPost,
+  type ResumoMes,
 } from "@/lib/portal/tipos";
 
 const NOMES_MES = [
@@ -95,6 +96,64 @@ function CartaoPost({ post }: { post: PortalPost }) {
   );
 }
 
+function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
+  const [aberto, setAberto] = useState(false);
+  const total = resumo.meta ?? resumo.planejados;
+
+  const Tile = ({ n, rotulo }: { n: number | string; rotulo: string }) => (
+    <div className="flex-1 rounded-xl bg-white/70 px-3 py-2 text-center">
+      <p className="text-xl font-bold text-brand-800">{n}</p>
+      <p className="text-[11px] uppercase tracking-wide text-gray-500">
+        {rotulo}
+      </p>
+    </div>
+  );
+
+  return (
+    <div className="mt-4 rounded-2xl border border-black/5 bg-brand-50 p-4 shadow-sm">
+      <p className="text-sm font-bold capitalize text-brand-800">
+        {resumo.label}
+      </p>
+      <div className="mt-2 flex gap-2">
+        <Tile n={`${resumo.publicados}/${total}`} rotulo="Publicados" />
+        <Tile n={resumo.restantes} rotulo="A publicar" />
+        <Tile n={resumo.planejados} rotulo="Planejados" />
+      </div>
+      {resumo.jaFeitos.length > 0 ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setAberto((v) => !v)}
+            className="mt-3 text-xs font-semibold text-brand-700 hover:underline"
+          >
+            {aberto
+              ? "Ocultar o que já foi ao ar"
+              : `Ver o que já foi ao ar (${resumo.jaFeitos.length})`}
+          </button>
+          {aberto ? (
+            <ul className="mt-2 space-y-1.5 border-t border-brand-200 pt-2">
+              {resumo.jaFeitos.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center gap-2 text-sm text-gray-700"
+                >
+                  <span className="text-green-600">✓</span>
+                  <span className="min-w-0 flex-1 truncate">{p.title}</span>
+                  {p.data ? (
+                    <span className="shrink-0 text-xs text-gray-400">
+                      {fmtDia(p.data)}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
   const [aberto, setAberto] = useState(false);
   const r = grav.roteiro;
@@ -138,27 +197,33 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           {aberto ? (
             <div className="mt-2 border-t border-gray-100 pt-3">
               {r!.linhas.length > 0 ? (
-                <ol className="space-y-3">
-                  {r!.linhas.map((linha, i) => (
-                    <li key={i} className="flex gap-3">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[10px] font-bold text-brand-700">
-                        {i + 1}
-                      </span>
-                      <div className="min-w-0">
-                        {linha.fala ? (
-                          <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-900">
-                            {linha.fala}
-                          </p>
-                        ) : null}
-                        {linha.direcao ? (
-                          <p className="mt-0.5 whitespace-pre-wrap text-xs italic leading-relaxed text-gray-500">
-                            🎬 {linha.direcao}
-                          </p>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <table className="w-full table-fixed border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
+                        <th className="w-1/2 border-r border-brand-100 px-3 py-2">
+                          {r!.colEsq}
+                        </th>
+                        <th className="w-1/2 px-3 py-2">{r!.colDir}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {r!.linhas.map((linha, i) => (
+                        <tr
+                          key={i}
+                          className="border-t border-gray-100 align-top"
+                        >
+                          <td className="whitespace-pre-wrap break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
+                            {linha.esq || "·"}
+                          </td>
+                          <td className="whitespace-pre-wrap break-words px-3 py-2 italic leading-relaxed text-gray-500">
+                            {linha.dir || "·"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {r!.paragrafos.map((p, i) => (
@@ -215,7 +280,8 @@ export function PortalView({
   dados: DadosPortal;
   hrefSemana: { anterior: string; proximo: string; hoje: string };
 }) {
-  const { cliente, postsSemana, gravacoesSemana, emProducao, demandas } = dados;
+  const { cliente, resumoMes, postsSemana, gravacoesSemana, emProducao, demandas } =
+    dados;
 
   // Demandas agrupadas por área.
   const grupos = new Map<string, typeof demandas>();
@@ -263,6 +329,8 @@ export function PortalView({
             →
           </Link>
         </div>
+
+        <ResumoMesCard resumo={resumoMes} />
 
         <Secao
           titulo="Essa semana vai ao ar"

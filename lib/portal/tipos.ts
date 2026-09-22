@@ -39,16 +39,21 @@ export interface PortalDemanda {
   status: string;
 }
 
-/** Uma "cena" do roteiro: a fala (o que é dito) e a direção (o que aparece). */
+/** Uma linha da tabela do roteiro: coluna esquerda (fala) e direita (cena). */
 export interface RoteiroLinha {
-  fala: string;
-  direcao: string;
+  esq: string;
+  dir: string;
 }
 
-/** Roteiro já organizado no servidor (sem os separadores internos). */
+/**
+ * Roteiro organizado como no conteúdo: tabela fiel de 2 colunas (cabeçalho da
+ * Vitória + linhas). Sem tabela, cai em texto corrido (paragrafos).
+ */
 export interface RoteiroOrganizado {
-  linhas: RoteiroLinha[]; // roteiro em tabela (fala | direção)
-  paragrafos: string[]; // roteiro em texto corrido (quando não é tabela)
+  colEsq: string;
+  colDir: string;
+  linhas: RoteiroLinha[];
+  paragrafos: string[];
 }
 
 /** Gravação marcada na semana. */
@@ -62,11 +67,22 @@ export interface PortalGravacao {
   roteiro: RoteiroOrganizado | null;
 }
 
+/** Resumo do mês para o cliente: quanto foi planejado x já publicado. */
+export interface ResumoMes {
+  label: string; // "setembro de 2026"
+  planejados: number;
+  publicados: number;
+  restantes: number;
+  meta: number | null; // combo contratado, se houver
+  jaFeitos: PortalPost[]; // o que já foi ao ar no mês
+}
+
 export interface DadosPortal {
   cliente: { id: string; name: string; color: string | null };
   semanaISO: string; // segunda-feira da semana exibida
   iniISO: string;
   fimISO: string;
+  resumoMes: ResumoMes;
   postsSemana: PortalPost[];
   gravacoesSemana: PortalGravacao[];
   emProducao: PortalPost[];
