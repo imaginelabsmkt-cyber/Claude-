@@ -29,21 +29,25 @@ function Stat({ rotulo, valor }: { rotulo: string; valor: number }) {
 export default async function ArtesPage({ searchParams }: PageProps) {
   const hoje = new Date();
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
-  const filtrarMes = /^\d{4}-\d{2}$/.test(searchParams.mes ?? "");
-  const mes = filtrarMes ? searchParams.mes! : mesAtual;
+  const mes = /^\d{4}-\d{2}$/.test(searchParams.mes ?? "")
+    ? searchParams.mes!
+    : mesAtual;
 
   const [todos, clientes] = await Promise.all([
     listContents({}),
     listClientOptions(),
   ]);
 
+  // Sempre filtra pelo mês (padrão: mês atual). Como as artes pendentes "rolam"
+  // para o mês atual (mesEfetivo), elas continuam aparecendo; já os POSTADOS
+  // ficam limitados ao mês, para o quadro não acumular tudo.
   const artes = todos.filter(
     (c) =>
       c.format != null &&
       FORMATOS_ARTE.includes(c.format) &&
       c.status !== "Cancelado" &&
       c.status !== "Pausado" &&
-      (!filtrarMes || mesEfetivo(c) === mes),
+      mesEfetivo(c) === mes,
   );
 
   const atrasadas = artes.filter(
