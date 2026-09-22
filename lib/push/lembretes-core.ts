@@ -40,6 +40,18 @@ async function autoPublicarAgendados(
       })
       .eq("id", c.id)
       .eq("status", "Agendado"); // trava contra corrida
+
+    // A capa do vídeo já está pronta quando ele publica: publica a capa junto.
+    await admin
+      .from("contents")
+      .update({
+        status: "Publicado",
+        actual_post_date: pd,
+        reference_month: pd.slice(0, 7),
+      })
+      .eq("cover_source_id", c.id)
+      .neq("status", "Publicado")
+      .neq("status", "Cancelado");
     await admin.from("content_history").insert({
       content_id: c.id,
       user_id: null,

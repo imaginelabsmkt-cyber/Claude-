@@ -78,3 +78,37 @@ export async function criarCapaDoVideo(
     console.error("criarCapaDoVideo:", e);
   }
 }
+
+/**
+ * Quando o vídeo é publicado, a capa dele já está pronta: marca a capa como
+ * "Publicado" também (com a mesma data real), a menos que já esteja publicada
+ * ou cancelada. Melhor esforço: nunca quebra a ação principal.
+ */
+export async function publicarCapaDoVideo(
+  sb: SB,
+  videoId: string,
+  dataReal: string | null,
+): Promise<void> {
+  try {
+    const { data: capa } = await sb
+      .from("contents")
+      .select("id, status")
+      .eq("cover_source_id", videoId)
+      .maybeSingle();
+    if (!capa) return;
+    if (capa.status === "Publicado" || capa.status === "Cancelado") return;
+
+    const dados: {
+      status: "Publicado";
+      actual_post_date?: string | null;
+      reference_month?: string | null;
+    } = { status: "Publicado" };
+    if (dataReal) {
+      dados.actual_post_date = dataReal;
+      dados.reference_month = dataReal.slice(0, 7);
+    }
+    await sb.from("contents").update(dados).eq("id", capa.id);
+  } catch (e) {
+    console.error("publicarCapaDoVideo:", e);
+  }
+}

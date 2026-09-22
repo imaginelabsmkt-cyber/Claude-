@@ -22,7 +22,7 @@ import {
   sincronizarPostagem,
   removerGoogleDoConteudo,
 } from "@/lib/google/sync";
-import { criarCapaDoVideo } from "@/lib/content/covers";
+import { criarCapaDoVideo, publicarCapaDoVideo } from "@/lib/content/covers";
 import { formatarData } from "@/lib/utils";
 import { aposResposta } from "@/lib/after";
 import { notificarPlanner, notificarProducer } from "@/lib/push/eventos";
@@ -267,6 +267,15 @@ export async function definirStatusConteudoAction(
 
   const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar o status." };
+
+  // Vídeo publicado => a capa dele já está pronta: publica a capa junto.
+  if (status === "Publicado" && !ehArte(antigo?.format)) {
+    await publicarCapaDoVideo(
+      supabase,
+      id,
+      dados.actual_post_date ?? antigo?.actual_post_date ?? hojeISO(),
+    );
+  }
 
   await registrarHistorico(id, [
     { field: "Status", old: antigo?.status ?? null, new: status },
