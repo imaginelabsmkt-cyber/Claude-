@@ -240,7 +240,10 @@ function ResultadoBloco({
         </p>
 
         <label className="mt-3 block text-xs font-medium text-gray-600">
-          Quantos você fechou este mês?
+          Quantos você fechou este mês?{" "}
+          <span className="text-gray-400">
+            (viraram consulta, agendamento ou cliente)
+          </span>
         </label>
         <input
           inputMode="numeric"

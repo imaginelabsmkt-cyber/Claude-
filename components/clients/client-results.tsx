@@ -40,7 +40,6 @@ const SUGESTOES = [
   "Impressões",
   "Visitas à página",
   "Conversas iniciadas",
-  "Viraram consulta/agendamento",
 ];
 
 export function ClientResults({
