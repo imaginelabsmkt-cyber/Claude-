@@ -7,6 +7,7 @@ contém **apenas o schema** — nenhuma tela depende disto ainda.
 supabase/
 ├── migrations/
 │   └── 20260714120000_initial_schema.sql   # schema completo
+├── schema_completo.sql                      # as 20 migrations num arquivo só
 ├── seed.sql                                 # usuários de exemplo (opcional)
 ├── seed_financeiro.sql                      # carga da planilha 2026 (opcional)
 └── README.md                               # este arquivo
@@ -244,3 +245,15 @@ duas sócias apenas se a tabela estiver vazia.
 | Não existem duas pessoas com o mesmo nome       | `unique (name)`             |
 | Apagar a pessoa não apaga o pagamento           | FK `on delete set null`     |
 | Valor de referência não pode ser negativo       | `check (default_rate >= 0)` |
+
+## schema_completo.sql
+
+É a **junção das 20 migrations na ordem**, gerada a partir de
+`migrations/`. Serve para colar uma vez no SQL Editor do Supabase em vez
+de rodar vinte arquivos.
+
+Não edite à mão: mexa na migration correspondente e gere de novo.
+
+Verificado num Postgres limpo: as 20 rodam do zero sem erro, o arquivo
+único idem, rodar duas vezes é inofensivo, e o resultado é 23 tabelas com
+RLS ligado em todas e os dois buckets privados.
