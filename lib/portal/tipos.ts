@@ -86,5 +86,6 @@ export interface DadosPortal {
   postsSemana: PortalPost[];
   gravacoesSemana: PortalGravacao[];
   emProducao: PortalPost[];
+  pausadosCancelados: PortalPost[];
   demandas: PortalDemanda[];
 }

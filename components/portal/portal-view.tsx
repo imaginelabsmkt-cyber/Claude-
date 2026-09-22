@@ -280,8 +280,15 @@ export function PortalView({
   dados: DadosPortal;
   hrefSemana: { anterior: string; proximo: string; hoje: string };
 }) {
-  const { cliente, resumoMes, postsSemana, gravacoesSemana, emProducao, demandas } =
-    dados;
+  const {
+    cliente,
+    resumoMes,
+    postsSemana,
+    gravacoesSemana,
+    emProducao,
+    pausadosCancelados,
+    demandas,
+  } = dados;
 
   // Demandas agrupadas por área.
   const grupos = new Map<string, typeof demandas>();
@@ -367,6 +374,14 @@ export function PortalView({
             <CartaoPost key={p.id} post={p} />
           ))}
         </Secao>
+
+        {pausadosCancelados.length > 0 ? (
+          <Secao titulo="Pausados ou cancelados" emoji="⏸️">
+            {pausadosCancelados.map((p) => (
+              <CartaoPost key={p.id} post={p} />
+            ))}
+          </Secao>
+        ) : null}
 
         <Secao
           titulo="O que estamos fazendo por você"

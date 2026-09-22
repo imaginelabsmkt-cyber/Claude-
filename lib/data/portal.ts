@@ -141,6 +141,19 @@ export async function carregarPortal(
   const mesRef = `${mid.getFullYear()}-${String(mid.getMonth() + 1).padStart(2, "0")}`;
   const doMes = visiveis.filter((c) => mesEfetivo(c) === mesRef);
   const publicadosMes = doMes.filter((c) => c.status === "Publicado");
+
+  // Pausados/cancelados do mês (transparência para o cliente).
+  const pausadosCancelados = (contents ?? [])
+    .filter(
+      (c) =>
+        !ehCapa(c) &&
+        (c.status === "Pausado" || c.status === "Cancelado") &&
+        mesEfetivo(c) === mesRef,
+    )
+    .sort((a, b) =>
+      (a.planned_date ?? "").localeCompare(b.planned_date ?? ""),
+    )
+    .map(paraPost);
   const resumoMes: ResumoMes = {
     label: new Intl.DateTimeFormat("pt-BR", {
       month: "long",
@@ -176,6 +189,7 @@ export async function carregarPortal(
     postsSemana,
     gravacoesSemana,
     emProducao,
+    pausadosCancelados,
     demandas: (demandas ?? []) as PortalDemanda[],
   };
 }
