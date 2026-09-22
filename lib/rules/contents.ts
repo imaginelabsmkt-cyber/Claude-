@@ -246,7 +246,7 @@ export function responsavelAtual(
     case "Aprovado":
     case "Agendado":
     case "Publicado":
-      return ctx.publisherName ?? producer;
+      return ctx.publisherName ?? planner; // quem posta é a Vitória
     default:
       return "·";
   }
@@ -266,6 +266,14 @@ export type PapelDemanda = "planner" | "producer";
 export function papelResponsavel(
   content: Pick<Content, "status" | "format">,
 ): PapelDemanda {
+  // Postagem (aprovado/agendado/publicado) é da Vitória (planner), vídeo ou arte.
+  if (
+    content.status === "Aprovado" ||
+    content.status === "Agendado" ||
+    content.status === "Publicado"
+  ) {
+    return "planner";
+  }
   // Revisão interna: a revisão troca de mãos (vídeo -> Vitória, arte -> Fran).
   if (content.status === "Revisão interna") {
     return ehArte(content.format) ? "producer" : "planner";
@@ -520,18 +528,37 @@ export function urgenciaConteudo(
     : null;
   const dias = alvo ? difEmDias(alvo, hoje) : null;
 
+  // Verbo da etapa atual, para o selo dizer O QUE vence (não só "vence").
+  const VERBO: Record<ContentStatus, string> = {
+    Planejamento: "Roteiro",
+    "Roteiro pronto": "Gravar",
+    "Aguardando gravação": "Gravar",
+    Gravado: "Editar",
+    "Fila de edição": "Editar",
+    "Em edição": "Editar",
+    "Revisão interna": "Revisar",
+    "Aprovação do cliente": "Aprovar",
+    Ajustes: "Ajustar",
+    Aprovado: "Postar",
+    Agendado: "Postar",
+    Publicado: "",
+    Pausado: "",
+    Cancelado: "",
+  };
+  const v = VERBO[content.status] || "Entregar";
+
   // Urgente manual fura a fila.
   if (content.priority === "Urgente") {
-    return { nivel: "urgente", dias, ordem: ORDEM_URGENCIA.urgente, rotulo: "Urgente" };
+    return { nivel: "urgente", dias, ordem: ORDEM_URGENCIA.urgente, rotulo: `${v}: urgente` };
   }
   if (dias == null) return tranquilo(null, "");
   if (dias < 0)
-    return { nivel: "atrasado", dias, ordem: ORDEM_URGENCIA.atrasado, rotulo: `Atrasado ${Math.abs(dias)}d` };
+    return { nivel: "atrasado", dias, ordem: ORDEM_URGENCIA.atrasado, rotulo: `${v}: atrasado ${Math.abs(dias)}d` };
   if (dias === 0)
-    return { nivel: "hoje", dias, ordem: ORDEM_URGENCIA.hoje, rotulo: "Vence hoje" };
+    return { nivel: "hoje", dias, ordem: ORDEM_URGENCIA.hoje, rotulo: `${v} hoje` };
   if (dias <= 7)
-    return { nivel: "semana", dias, ordem: ORDEM_URGENCIA.semana, rotulo: `Em ${dias}d` };
-  return tranquilo(dias, `Em ${dias}d`);
+    return { nivel: "semana", dias, ordem: ORDEM_URGENCIA.semana, rotulo: `${v} em ${dias}d` };
+  return tranquilo(dias, `${v} em ${dias}d`);
 }
 
 /** Ordena por urgência (mais urgente primeiro; mais atrasado desempata). */

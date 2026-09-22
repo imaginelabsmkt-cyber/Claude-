@@ -147,16 +147,16 @@ describe("responsavelAtual", () => {
     ).toBe("Vitória");
   });
 
-  it("publicação -> responsável cadastrado (fallback producer)", () => {
+  it("publicação -> responsável cadastrado (fallback: Vitória posta)", () => {
     expect(
       responsavelAtual(makeContent({ status: "Agendado" }), {
         ...ctx,
         publisherName: "Fran",
       }),
     ).toBe("Fran");
-    // sem publisher cadastrado, cai para o producer
+    // sem publisher cadastrado, a postagem é da Vitória (planner)
     expect(responsavelAtual(makeContent({ status: "Publicado" }), ctx)).toBe(
-      "Fran",
+      "Vitória",
     );
   });
 
