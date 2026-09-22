@@ -8,7 +8,7 @@ import {
   salvarResultadosEquipeAction,
   salvarPlanilhaTrafegoAction,
 } from "@/lib/actions/resultados";
-import { extrairPlanilha, extrairKPIs } from "@/lib/planilha/extrair";
+import { extrairPlanilha, extrairKPIs, explicarKPIs } from "@/lib/planilha/extrair";
 import type { ClientMonthlyResult, MetricaTrafego } from "@/types";
 
 const NOMES_MES = [
@@ -89,8 +89,11 @@ export function ClientResults({
       // Extrai os KPIs (dashboard) e já preenche os números do mês.
       const kpis = extrairKPIs(grade);
       if (kpis.length > 0) {
-        await salvarResultadosEquipeAction(clientId, mes, kpis, note);
+        // Escreve a explicação automática se o campo estiver vazio.
+        const explic = note.trim() ? note : explicarKPIs(kpis);
+        await salvarResultadosEquipeAction(clientId, mes, kpis, explic);
         setMetrics(kpis);
+        if (!note.trim() && explic) setNote(explic);
       }
       setTabela(grade);
       setNomePlanilha(file.name);
@@ -285,9 +288,25 @@ export function ClientResults({
           + Adicionar número
         </button>
 
-        <label className="mt-4 block text-xs font-medium text-gray-600">
-          Explicação dos números (o cliente lê)
-        </label>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <label className="block text-xs font-medium text-gray-600">
+            Explicação dos números (o cliente lê)
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              const t = explicarKPIs(metrics);
+              if (!t) {
+                toast.erro("Preencha os números primeiro.");
+                return;
+              }
+              setNote(t);
+            }}
+            className="text-xs font-semibold text-brand-700 hover:underline"
+          >
+            ✨ Gerar explicação automática
+          </button>
+        </div>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}

@@ -194,6 +194,46 @@ export function extrairKPIs(grid: string[][]): MetricaTrafego[] {
   }));
 }
 
+/**
+ * Monta uma explicação em texto a partir dos KPIs, para o cliente ler. Sem IA:
+ * frases prontas com os números reconhecidos. Devolve "" se não houver nada.
+ */
+export function explicarKPIs(metrics: MetricaTrafego[]): string {
+  const get = (l: string) => metrics.find((m) => m.label === l)?.value?.trim();
+  const invest = get("Investimento");
+  const alc = get("Pessoas alcançadas");
+  const imp = get("Impressões");
+  const vis = get("Visitas à página");
+  const conv = get("Conversas iniciadas");
+  const custo = get("Custo por resultado");
+
+  const frases: string[] = [];
+  if (invest) {
+    const compl: string[] = [];
+    if (alc) compl.push(`alcançando ${alc} pessoas`);
+    if (imp) compl.push(`${imp} impressões`);
+    frases.push(
+      `Neste mês investimos ${invest} em anúncios` +
+        (compl.length ? `, ${compl.join(" e ")}.` : "."),
+    );
+  } else if (alc || imp) {
+    const compl: string[] = [];
+    if (alc) compl.push(`alcançamos ${alc} pessoas`);
+    if (imp) compl.push(`tivemos ${imp} impressões`);
+    frases.push(`Neste mês ${compl.join(" e ")}.`);
+  }
+  if (vis) frases.push(`Foram ${vis} visitas à página.`);
+  if (conv) {
+    frases.push(
+      `Geramos ${conv} conversas iniciadas` +
+        (custo ? `, com custo por resultado de ${custo}.` : "."),
+    );
+  } else if (custo) {
+    frases.push(`O custo por resultado ficou em ${custo}.`);
+  }
+  return frases.join(" ");
+}
+
 export async function extrairPlanilha(file: File): Promise<string[][]> {
   const ehCSV =
     /\.csv$/i.test(file.name) || file.type === "text/csv";
