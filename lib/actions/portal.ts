@@ -46,7 +46,7 @@ export async function configurarPortalAction(
 }
 
 /**
- * Gera um NOVO token — invalida o link anterior (revoga o acesso de quem tinha
+ * Gera um NOVO token, invalida o link anterior (revoga o acesso de quem tinha
  * o link antigo). Mantém o painel ligado.
  */
 export async function regenerarLinkPortalAction(

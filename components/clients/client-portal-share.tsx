@@ -102,7 +102,7 @@ export function ClientPortalShare({
         <div className="space-y-3 border-t border-brand-200 px-4 py-3">
           <p className="text-xs text-gray-600">
             Um link secreto para o cliente acompanhar, de forma limpa, o que vai
-            ao ar, o que está em produção e as tarefas da semana. Sem senha —
+            ao ar, o que está em produção e as tarefas da semana. Sem senha:
             quem tem o link, vê. Gere um link novo para revogar o acesso.
           </p>
 

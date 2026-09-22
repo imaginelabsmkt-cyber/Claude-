@@ -40,10 +40,15 @@ function addDias(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
+/** Remove traços/símbolos soltos no começo do título (ex.: "- Título"). */
+function limparTitulo(t: string): string {
+  return t.replace(/^[\s–—·•-]+/, "").trim() || t.trim();
+}
+
 function paraPost(c: Content): PortalPost {
   return {
     id: c.id,
-    title: c.title,
+    title: limparTitulo(c.title),
     format: c.format,
     status: c.status,
     data: c.actual_post_date ?? c.planned_date,
@@ -54,7 +59,7 @@ function paraPost(c: Content): PortalPost {
 
 /**
  * Carrega os dados do painel do cliente a partir do TOKEN (link secreto). Usa a
- * service role e filtra tudo pelo cliente do token — o cliente nunca vê dado de
+ * service role e filtra tudo pelo cliente do token, o cliente nunca vê dado de
  * outro. Retorna null se o token não existe ou o painel está desligado.
  */
 export async function carregarPortal(
@@ -117,7 +122,7 @@ export async function carregarPortal(
     )
     .map((c) => ({
       id: c.id,
-      title: c.title,
+      title: limparTitulo(c.title),
       format: c.format,
       data: c.recording_date,
       hora: c.recording_time,

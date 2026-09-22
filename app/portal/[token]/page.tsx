@@ -20,7 +20,7 @@ function addSemanas(iso: string, n: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Painel do cliente — acesso por link secreto, visão limpa da semana. */
+/** Painel do cliente, acesso por link secreto, visão limpa da semana. */
 export default async function PortalPage({ params, searchParams }: PageProps) {
   const dados = await carregarPortal(params.token, searchParams.semana);
 

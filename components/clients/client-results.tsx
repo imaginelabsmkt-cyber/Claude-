@@ -184,7 +184,7 @@ export function ClientResults({
           <div className="mt-2 space-y-2 text-sm text-gray-700">
             <p>
               <span className="font-semibold">Fechou no mês:</span>{" "}
-              {respCliente.closed_count ?? "—"}
+              {respCliente.closed_count ?? "não informado"}
             </p>
             {respCliente.sources ? (
               <p>

@@ -1,5 +1,5 @@
 /**
- * Organiza o texto colado do onboard nos campos do DNA, SEM IA — roda no
+ * Organiza o texto colado do onboard nos campos do DNA, SEM IA, roda no
  * próprio sistema. Lida com dois formatos:
  *
  *  1) CSV do Google Forms (uma linha de perguntas + uma linha de respostas,

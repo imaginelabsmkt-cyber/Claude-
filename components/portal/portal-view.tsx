@@ -153,7 +153,7 @@ function ResultadoBloco({
                   className="flex-1 basis-[40%] rounded-xl bg-brand-50 px-3 py-2 text-center"
                 >
                   <p className="text-lg font-bold text-brand-800">
-                    {m.value || "—"}
+                    {m.value || ""}
                   </p>
                   <p className="text-[11px] uppercase tracking-wide text-gray-500">
                     {m.label}

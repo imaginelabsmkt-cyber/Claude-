@@ -19,13 +19,13 @@ export function organizarRoteiro(script: string | null): RoteiroOrganizado | nul
   for (const bruta of script.split(/\r?\n/)) {
     const l = bruta.trim();
     if (!l) continue;
-    if (/^LEGENDA\s*[:\-–]?/i.test(l)) break;
+    if (/^LEGENDA\s*[:–—-]?/i.test(l)) break;
     if (/DIRECIONAMENTO\s+DE\s+STORIES/i.test(l)) break;
     linhas.push(l);
   }
   if (linhas.length === 0) return null;
 
-  // Formato tabela (2 colunas separadas por COL_DELIM) — igual ao conteúdo.
+  // Formato tabela (2 colunas separadas por COL_DELIM), igual ao conteúdo.
   const tabela = linhas.filter((l) => l.includes(COL_DELIM));
   if (tabela.length > 0) {
     const rows = tabela.map((l) => l.split(COL_DELIM).map((c) => c.trim()));
