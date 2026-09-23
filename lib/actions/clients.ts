@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { semearChecklists } from "@/lib/checklist/seed";
 import {
   clienteFormSchema,
   type ClienteFormValues,
@@ -66,6 +67,9 @@ export async function criarClienteAction(
   if (error || !data) {
     return { ok: false, error: "Não foi possível salvar o cliente." };
   }
+
+  // Checklists automáticos (onboarding + acessos do plano) do cliente novo.
+  await semearChecklists(supabase, data.id);
 
   revalidatePath("/clientes");
   return { ok: true, id: data.id };

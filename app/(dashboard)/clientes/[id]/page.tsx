@@ -18,7 +18,9 @@ import { ClientOnboarding } from "@/components/clients/client-onboarding";
 import { ClientPortalShare } from "@/components/clients/client-portal-share";
 import { ClientResults } from "@/components/clients/client-results";
 import { ClientActionPlan } from "@/components/clients/client-action-plan";
+import { ClientChecklist } from "@/components/clients/client-checklist";
 import { listActionPlan } from "@/lib/data/action-plan";
+import { listChecklist } from "@/lib/data/checklist";
 import { ClientWeeklyNote } from "@/components/clients/client-weekly-note";
 import { obterResultadoSemana, obterNotaSemanal } from "@/lib/data/resultados";
 import { DemandsBoard } from "@/components/demandas/demands-board";
@@ -101,7 +103,11 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
       listClientDiagnostics(cliente.id),
       listDemands(),
     ]);
-  const planoAcao = await listActionPlan(cliente.id);
+  const [planoAcao, checklistOnboard, checklistPlano] = await Promise.all([
+    listActionPlan(cliente.id),
+    listChecklist(cliente.id, "onboard"),
+    listChecklist(cliente.id, "plano"),
+  ]);
   const demandasDoCliente = demandas.filter((d) => d.client_id === cliente.id);
 
   // Demandas concluídas do cliente nos últimos ~90 dias (inclui arquivadas),
@@ -261,7 +267,15 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
             label: "Onboard",
             icone: "sparkles",
             conteudo: (
-              <ClientOnboarding clientId={cliente.id} inicial={onboarding} />
+              <div className="space-y-5">
+                <ClientChecklist
+                  clientId={cliente.id}
+                  kind="onboard"
+                  titulo="Checklist de onboarding"
+                  itens={checklistOnboard}
+                />
+                <ClientOnboarding clientId={cliente.id} inicial={onboarding} />
+              </div>
             ),
           },
           {
@@ -348,11 +362,19 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
             icone: "target",
             badge: planoAcao.length || undefined,
             conteudo: (
-              <ClientActionPlan
-                clientId={cliente.id}
-                itens={planoAcao}
-                perfis={perfis}
-              />
+              <div className="space-y-5">
+                <ClientChecklist
+                  clientId={cliente.id}
+                  kind="plano"
+                  titulo="Acessos e pendências (checklist)"
+                  itens={checklistPlano}
+                />
+                <ClientActionPlan
+                  clientId={cliente.id}
+                  itens={planoAcao}
+                  perfis={perfis}
+                />
+              </div>
             ),
           },
           {

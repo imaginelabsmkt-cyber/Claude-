@@ -338,6 +338,27 @@ export type ActionPlanItemInsert = {
   updated_at?: ISODateString;
 };
 
+/** client_checklist_items — checklists do cliente (onboard e plano). */
+export type ClientChecklistItem = {
+  id: UUID;
+  client_id: UUID;
+  kind: string; // 'onboard' | 'plano'
+  label: string;
+  done: boolean;
+  position: number;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+export type ClientChecklistItemInsert = {
+  id?: UUID;
+  client_id: UUID;
+  kind: string;
+  label: string;
+  done?: boolean;
+  position?: number;
+  updated_at?: ISODateString;
+};
+
 /** Uma métrica de tráfego (rótulo + valor livres). */
 export type MetricaTrafego = { label: string; value: string };
 
@@ -674,6 +695,12 @@ export interface Database {
         Row: ActionPlanItem;
         Insert: ActionPlanItemInsert;
         Update: Partial<ActionPlanItemInsert>;
+        Relationships: [];
+      };
+      client_checklist_items: {
+        Row: ClientChecklistItem;
+        Insert: ClientChecklistItemInsert;
+        Update: Partial<ClientChecklistItemInsert>;
         Relationships: [];
       };
       plannings: {
