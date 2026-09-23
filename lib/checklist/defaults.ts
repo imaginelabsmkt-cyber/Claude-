@@ -16,13 +16,18 @@ export const CHECKLIST_ONBOARD: string[] = [
   "Ativar o painel do cliente (link)",
 ];
 
-/** Plano de ação: acessos necessários (depois da reunião de alinhamento). */
+/**
+ * Plano de ação: o que precisamos do cliente (acessos e pendências), no mesmo
+ * passo a passo do deck de alinhamento.
+ */
 export const CHECKLIST_PLANO: string[] = [
-  "Acesso ao Google (Meu Negócio / Search Console)",
-  "Acesso ao Facebook Ads / Meta (Business Manager)",
-  "Acesso ao Instagram",
-  "Acesso ao site (se houver)",
-  "WhatsApp Business / número de atendimento",
+  "Criar Business Manager + conta de anúncios",
+  "Cadastrar cartão e definir a verba mensal de anúncios",
+  "Compartilhar Drive (logo, identidade visual, fotos)",
+  "Acesso de gestão do Perfil da Empresa no Google",
+  "Acesso ao Instagram (trocar a senha depois de configurar)",
+  "Indicar quem vai gravar (com autorização de imagem)",
+  "Confirmar quem grava e o dia da gravação",
 ];
 
 export function itensPadrao(kind: ChecklistKind): string[] {
