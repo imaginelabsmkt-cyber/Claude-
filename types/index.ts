@@ -84,6 +84,9 @@ export const FORMAT_OPTIONS: string[] = [
 /** Semanas previstas do mês (1 a 5). */
 export const WEEK_OPTIONS: number[] = [1, 2, 3, 4, 5];
 
+/** Tipo do planejamento: conteúdo ou plano de ação. */
+export const PLANNING_TYPE_OPTIONS = ["Conteúdo", "Plano de ação"] as const;
+
 /** Etapas do processo de criação do planejamento (por cliente/mês). */
 export const PLANNING_STATUS_OPTIONS: string[] = [
   "Marcar reunião",

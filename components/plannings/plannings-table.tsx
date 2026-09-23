@@ -7,6 +7,7 @@ import { salvarPlanningAction, type PlanningPatch } from "@/lib/actions/planning
 import { toast } from "@/lib/ui/toast";
 import {
   PLANNING_STATUS_OPTIONS,
+  PLANNING_TYPE_OPTIONS,
   PLANNING_ENTREGUE,
   PLANNING_SITUACAO_TONE,
 } from "@/types";
@@ -135,6 +136,125 @@ function useSalvar() {
   return { salvar, salvando };
 }
 
+/** "23/09 · 11:00" (ou vazio). */
+function rotuloReuniao(date: string | null, time: string | null): string {
+  if (!date) return "";
+  const [, m, d] = date.split("-");
+  return `${d}/${m}${time ? ` · ${time}` : ""}`;
+}
+
+/**
+ * Seletor de data/hora da reunião com um popover próprio (data + hora + OK
+ * dentro dele), no lugar do datetime-local nativo (que não confirma nada).
+ */
+function CampoReuniao({
+  meetingDate,
+  meetingTime,
+  disabled,
+  onConfirmar,
+  onLimpar,
+}: {
+  meetingDate: string | null;
+  meetingTime: string | null;
+  disabled?: boolean;
+  onConfirmar: (date: string, time: string | null) => void;
+  onLimpar: () => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [data, setData] = useState(meetingDate ?? "");
+  const [hora, setHora] = useState(meetingTime ?? "");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setAberto(false);
+    };
+    document.addEventListener("mousedown", fora);
+    return () => document.removeEventListener("mousedown", fora);
+  }, [aberto]);
+
+  const abrir = () => {
+    setData(meetingDate ?? "");
+    setHora(meetingTime ?? "");
+    setAberto(true);
+  };
+
+  const confirmar = () => {
+    if (!data) return;
+    onConfirmar(data, hora || null);
+    setAberto(false);
+  };
+
+  const rotulo = rotuloReuniao(meetingDate, meetingTime);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => (aberto ? setAberto(false) : abrir())}
+        className={cn(
+          "flex w-[12rem] items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-sm",
+          rotulo
+            ? "border-gray-300 text-gray-800"
+            : "border-dashed border-gray-300 text-gray-400",
+          "hover:border-brand-400",
+        )}
+      >
+        <span>{rotulo || "Marcar reunião"}</span>
+        <span aria-hidden className="text-gray-400">
+          📅
+        </span>
+      </button>
+
+      {aberto ? (
+        <div className="absolute left-0 top-full z-20 mt-1 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+          <label className="block text-[11px] font-medium text-gray-500">
+            Dia
+          </label>
+          <input
+            type="date"
+            value={data}
+            onChange={(e) => setData(e.target.value)}
+            className="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+          />
+          <label className="mt-2 block text-[11px] font-medium text-gray-500">
+            Hora
+          </label>
+          <input
+            type="time"
+            value={hora}
+            onChange={(e) => setHora(e.target.value)}
+            className="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+          />
+          <div className="mt-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                onLimpar();
+                setAberto(false);
+              }}
+              className="text-xs font-semibold text-gray-500 hover:text-red-600"
+            >
+              Limpar
+            </button>
+            <button
+              type="button"
+              onClick={confirmar}
+              disabled={!data}
+              className="rounded-lg bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function Linha({
   linha,
   mes,
@@ -165,16 +285,6 @@ function Linha({
 
   const set = (patch: PlanningPatch) => salvar(linha.clientId, mes, patch);
 
-  // Confirma o dia/hora da reunião (dá o retorno visual e marca a reunião).
-  const confirmarReuniao = () => {
-    if (!p?.meeting_date) {
-      toast.erro("Escolha o dia e a hora primeiro.");
-      return;
-    }
-    if (status === "Marcar reunião") set({ status: "Reunião marcada" });
-    toast.sucesso("Reunião confirmada");
-  };
-
   // Ditado por voz: acrescenta o texto transcrito e já salva.
   const adicionarDitado = (t: string) => {
     const novo = notas.trim() ? `${notas.trim()} ${t}` : t;
@@ -200,6 +310,24 @@ function Linha({
               </span>
             ) : null}
           </span>
+          <select
+            aria-label="Tipo do planejamento"
+            value={p?.plan_type ?? "Conteúdo"}
+            disabled={salvando}
+            onChange={(e) => set({ plan_type: e.target.value })}
+            className={cn(
+              "mt-1 rounded-full px-2 py-0.5 text-[11px] font-semibold outline-none",
+              (p?.plan_type ?? "Conteúdo") === "Plano de ação"
+                ? "bg-brand-100 text-brand-700"
+                : "bg-gray-100 text-gray-600",
+            )}
+          >
+            {PLANNING_TYPE_OPTIONS.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
         </td>
         <td className="px-3 py-2">
           <select
@@ -220,37 +348,22 @@ function Linha({
           </select>
         </td>
         <td className="px-3 py-2">
-          <div className="flex items-center gap-1.5">
-            <input
-              type="datetime-local"
-              aria-label="Data e hora da reunião"
-              value={
-                p?.meeting_date
-                  ? `${p.meeting_date}T${p.meeting_time ?? "00:00"}`
-                  : ""
-              }
-              disabled={salvando}
-              onChange={(e) => {
-                const v = e.target.value; // "YYYY-MM-DDTHH:MM" ou ""
-                if (!v) set({ meeting_date: null, meeting_time: null });
-                else
-                  set({
-                    meeting_date: v.slice(0, 10),
-                    meeting_time: v.slice(11, 16),
-                  });
-              }}
-              className={cn(CLASSE, "w-[12.5rem]")}
-            />
-            <button
-              type="button"
-              onClick={confirmarReuniao}
-              disabled={salvando || !p?.meeting_date}
-              title="Confirmar dia e hora da reunião"
-              className="shrink-0 rounded-md bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
-            >
-              OK
-            </button>
-          </div>
+          <CampoReuniao
+            meetingDate={p?.meeting_date ?? null}
+            meetingTime={p?.meeting_time ?? null}
+            disabled={salvando}
+            onConfirmar={(date, time) => {
+              set({
+                meeting_date: date,
+                meeting_time: time,
+                ...(status === "Marcar reunião"
+                  ? { status: "Reunião marcada" }
+                  : {}),
+              });
+              toast.sucesso("Reunião confirmada");
+            }}
+            onLimpar={() => set({ meeting_date: null, meeting_time: null })}
+          />
         </td>
         <td className="px-3 py-2">
           <input

@@ -11,6 +11,7 @@ import type { ActionResult } from "@/lib/actions/contents";
 
 export interface PlanningPatch {
   status?: string;
+  plan_type?: string;
   meeting_date?: string | null;
   meeting_time?: string | null;
   delivery_deadline?: string | null;
@@ -58,6 +59,7 @@ export async function salvarPlanningAction(
     updated_at: new Date().toISOString(),
   };
   if ("status" in patch) dados.status = patch.status;
+  if ("plan_type" in patch) dados.plan_type = patch.plan_type;
   if ("meeting_date" in patch) dados.meeting_date = patch.meeting_date || null;
   if ("meeting_time" in patch) dados.meeting_time = patch.meeting_time || null;
   if ("delivery_deadline" in patch)

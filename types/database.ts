@@ -402,6 +402,8 @@ export type Planning = {
   client_id: UUID;
   reference_month: string;
   status: string;
+  /** "Conteúdo" | "Plano de ação". */
+  plan_type: string;
   meeting_date: DateString | null;
   meeting_time: string | null;
   delivery_deadline: DateString | null;
@@ -415,6 +417,7 @@ export type PlanningInsert = {
   client_id: UUID;
   reference_month: string;
   status?: string;
+  plan_type?: string;
   meeting_date?: DateString | null;
   meeting_time?: string | null;
   delivery_deadline?: DateString | null;
