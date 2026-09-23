@@ -89,6 +89,16 @@ export interface ResultadoPortal {
   respondido: boolean;
 }
 
+/** Uma estratégia do plano de ação, como o cliente vê. */
+export interface PortalEstrategia {
+  id: string;
+  title: string;
+  type: string | null;
+  status: string;
+  description: string | null;
+  arquivo: { url: string; name: string } | null;
+}
+
 export interface DadosPortal {
   cliente: { id: string; name: string; color: string | null };
   semanaISO: string; // segunda-feira da semana exibida
@@ -102,5 +112,6 @@ export interface DadosPortal {
   gravacoesSemana: PortalGravacao[];
   emProducao: PortalPost[];
   pausadosCancelados: PortalPost[];
+  planoAcao: PortalEstrategia[];
   demandas: PortalDemanda[];
 }

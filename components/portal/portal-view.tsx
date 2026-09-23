@@ -487,6 +487,7 @@ export function PortalView({
     gravacoesSemana,
     emProducao,
     pausadosCancelados,
+    planoAcao,
     demandas,
   } = dados;
 
@@ -536,6 +537,62 @@ export function PortalView({
             →
           </Link>
         </div>
+
+        {planoAcao.length > 0 ? (
+          <section className="mt-6">
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
+              <span aria-hidden>🎯</span>
+              Plano de ação
+            </h2>
+            <div className="space-y-2">
+              {planoAcao.map((e) => {
+                const tom =
+                  e.status === "Feito"
+                    ? "bg-green-100 text-green-700"
+                    : e.status === "Fazendo"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-gray-100 text-gray-600";
+                return (
+                  <div
+                    key={e.id}
+                    className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      {e.type ? (
+                        <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
+                          {e.type}
+                        </span>
+                      ) : null}
+                      <span className="text-sm font-semibold text-gray-900">
+                        {e.title}
+                      </span>
+                      <span
+                        className={`ml-auto rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tom}`}
+                      >
+                        {e.status}
+                      </span>
+                    </div>
+                    {e.description ? (
+                      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                        {e.description}
+                      </p>
+                    ) : null}
+                    {e.arquivo ? (
+                      <a
+                        href={e.arquivo.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:underline"
+                      >
+                        ⬇ {e.arquivo.name}
+                      </a>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         <ResumoMesCard resumo={resumoMes} />
 

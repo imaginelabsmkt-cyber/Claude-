@@ -305,6 +305,39 @@ export type ClientWeeklyNoteInsert = {
   updated_at?: ISODateString;
 };
 
+/** action_plan_items — estratégias do plano de ação do cliente. */
+export type ActionPlanItem = {
+  id: UUID;
+  client_id: UUID;
+  title: string;
+  type: string | null;
+  status: string; // A fazer | Fazendo | Feito
+  description: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  due_date: DateString | null;
+  assignee_id: UUID | null;
+  position: number;
+  archived_at: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+export type ActionPlanItemInsert = {
+  id?: UUID;
+  client_id: UUID;
+  title: string;
+  type?: string | null;
+  status?: string;
+  description?: string | null;
+  file_path?: string | null;
+  file_name?: string | null;
+  due_date?: DateString | null;
+  assignee_id?: UUID | null;
+  position?: number;
+  archived_at?: string | null;
+  updated_at?: ISODateString;
+};
+
 /** Uma métrica de tráfego (rótulo + valor livres). */
 export type MetricaTrafego = { label: string; value: string };
 
@@ -635,6 +668,12 @@ export interface Database {
         Row: ClientWeeklyNote;
         Insert: ClientWeeklyNoteInsert;
         Update: Partial<ClientWeeklyNoteInsert>;
+        Relationships: [];
+      };
+      action_plan_items: {
+        Row: ActionPlanItem;
+        Insert: ActionPlanItemInsert;
+        Update: Partial<ActionPlanItemInsert>;
         Relationships: [];
       };
       plannings: {

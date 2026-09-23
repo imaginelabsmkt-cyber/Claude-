@@ -12,6 +12,7 @@ import type { Content, ContentStatus } from "@/types";
 import type {
   DadosPortal,
   PortalDemanda,
+  PortalEstrategia,
   PortalGravacao,
   PortalPost,
   ResumoMes,
@@ -220,6 +221,34 @@ export async function carregarPortal(
     }
   }
 
+  // Plano de ação (estratégias) — com link assinado para os arquivos.
+  const { data: estrategias } = await admin
+    .from("action_plan_items")
+    .select("id, title, type, status, description, file_path, file_name")
+    .eq("client_id", cliente.id)
+    .is("archived_at", null)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
+  const planoAcao: PortalEstrategia[] = [];
+  for (const e of estrategias ?? []) {
+    let arquivo: { url: string; name: string } | null = null;
+    if (e.file_path) {
+      const { data: a } = await admin.storage
+        .from("client-files")
+        .createSignedUrl(e.file_path, 60 * 60);
+      if (a?.signedUrl)
+        arquivo = { url: a.signedUrl, name: e.file_name ?? "Arquivo" };
+    }
+    planoAcao.push({
+      id: e.id,
+      title: e.title,
+      type: e.type,
+      status: e.status,
+      description: e.description,
+      arquivo,
+    });
+  }
+
   const { data: demandas } = await admin
     .from("demands")
     .select("id, title, category, status")
@@ -241,6 +270,7 @@ export async function carregarPortal(
     gravacoesSemana,
     emProducao,
     pausadosCancelados,
+    planoAcao,
     demandas: (demandas ?? []) as PortalDemanda[],
   };
 }

@@ -124,6 +124,17 @@ export const DEMAND_STATUS_TONE: Record<DemandStatus, string> = {
   Feita: "bg-green-100 text-green-700",
 };
 
+/** Tipos de estratégia do plano de ação. */
+export const ACTION_PLAN_TYPES = [
+  "Ranqueamento Google",
+  "Tráfego pago",
+  "WhatsApp",
+  "Treinamento",
+  "Auditoria",
+  "Conteúdo",
+  "Outro",
+] as const;
+
 /** Áreas/tipos de demanda, para organizar o acompanhamento por cliente. */
 export const DEMAND_CATEGORIES = [
   "Conteúdo",
