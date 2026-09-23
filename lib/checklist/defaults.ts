@@ -12,13 +12,17 @@ export const CHECKLIST_ONBOARD: string[] = [
   "Criar grupo no WhatsApp",
   "Coletar materiais e acessos da marca",
   "Fazer diagnóstico inicial",
+  "Definir metas e planejamento do 1º mês",
+  "Ativar o painel do cliente (link)",
 ];
 
 /** Plano de ação: acessos necessários (depois da reunião de alinhamento). */
 export const CHECKLIST_PLANO: string[] = [
   "Acesso ao Google (Meu Negócio / Search Console)",
-  "Acesso ao Facebook Ads / Meta",
+  "Acesso ao Facebook Ads / Meta (Business Manager)",
   "Acesso ao Instagram",
+  "Acesso ao site (se houver)",
+  "WhatsApp Business / número de atendimento",
 ];
 
 export function itensPadrao(kind: ChecklistKind): string[] {
