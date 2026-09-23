@@ -165,6 +165,16 @@ function Linha({
 
   const set = (patch: PlanningPatch) => salvar(linha.clientId, mes, patch);
 
+  // Confirma o dia/hora da reunião (dá o retorno visual e marca a reunião).
+  const confirmarReuniao = () => {
+    if (!p?.meeting_date) {
+      toast.erro("Escolha o dia e a hora primeiro.");
+      return;
+    }
+    if (status === "Marcar reunião") set({ status: "Reunião marcada" });
+    toast.sucesso("Reunião confirmada");
+  };
+
   // Ditado por voz: acrescenta o texto transcrito e já salva.
   const adicionarDitado = (t: string) => {
     const novo = notas.trim() ? `${notas.trim()} ${t}` : t;
@@ -210,26 +220,37 @@ function Linha({
           </select>
         </td>
         <td className="px-3 py-2">
-          <input
-            type="datetime-local"
-            aria-label="Data e hora da reunião"
-            value={
-              p?.meeting_date
-                ? `${p.meeting_date}T${p.meeting_time ?? "00:00"}`
-                : ""
-            }
-            disabled={salvando}
-            onChange={(e) => {
-              const v = e.target.value; // "YYYY-MM-DDTHH:MM" ou ""
-              if (!v) set({ meeting_date: null, meeting_time: null });
-              else
-                set({
-                  meeting_date: v.slice(0, 10),
-                  meeting_time: v.slice(11, 16),
-                });
-            }}
-            className={cn(CLASSE, "w-[12.5rem]")}
-          />
+          <div className="flex items-center gap-1.5">
+            <input
+              type="datetime-local"
+              aria-label="Data e hora da reunião"
+              value={
+                p?.meeting_date
+                  ? `${p.meeting_date}T${p.meeting_time ?? "00:00"}`
+                  : ""
+              }
+              disabled={salvando}
+              onChange={(e) => {
+                const v = e.target.value; // "YYYY-MM-DDTHH:MM" ou ""
+                if (!v) set({ meeting_date: null, meeting_time: null });
+                else
+                  set({
+                    meeting_date: v.slice(0, 10),
+                    meeting_time: v.slice(11, 16),
+                  });
+              }}
+              className={cn(CLASSE, "w-[12.5rem]")}
+            />
+            <button
+              type="button"
+              onClick={confirmarReuniao}
+              disabled={salvando || !p?.meeting_date}
+              title="Confirmar dia e hora da reunião"
+              className="shrink-0 rounded-md bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
+            >
+              OK
+            </button>
+          </div>
         </td>
         <td className="px-3 py-2">
           <input
