@@ -5,9 +5,13 @@ export type ChecklistKind = "onboard" | "plano";
 /** Onboarding: o passo a passo ao entrar um cliente novo. */
 export const CHECKLIST_ONBOARD: string[] = [
   "Fazer contrato",
+  "Confirmar 1º pagamento",
   "Enviar Google Forms (onboard)",
+  "Preencher o DNA no sistema (aba Onboard)",
   "Marcar reunião de alinhamento",
   "Criar grupo no WhatsApp",
+  "Coletar materiais e acessos da marca",
+  "Fazer diagnóstico inicial",
 ];
 
 /** Plano de ação: acessos necessários (depois da reunião de alinhamento). */
