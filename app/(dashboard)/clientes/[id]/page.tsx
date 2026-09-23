@@ -21,8 +21,7 @@ import { ClientActionPlan } from "@/components/clients/client-action-plan";
 import { ClientChecklist } from "@/components/clients/client-checklist";
 import { listActionPlan } from "@/lib/data/action-plan";
 import { listChecklist } from "@/lib/data/checklist";
-import { ClientWeeklyNote } from "@/components/clients/client-weekly-note";
-import { obterResultadoSemana, obterNotaSemanal } from "@/lib/data/resultados";
+import { obterResultadoSemana } from "@/lib/data/resultados";
 import { DemandsBoard } from "@/components/demandas/demands-board";
 import { ClientWeeklyReport } from "@/components/clients/client-weekly-report";
 import { listDemands, listDemandsFeitasCliente } from "@/lib/data/demands";
@@ -130,10 +129,10 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const inicioSemana = inicioDaSemana(base);
   const meioSemana = addDays(inicioSemana, 3); // referência do mês
   const semanaInicioISO = hojeISO(inicioSemana);
-  const [notaSemanal, resultadoSemana] = await Promise.all([
-    obterNotaSemanal(cliente.id, semanaInicioISO),
-    obterResultadoSemana(cliente.id, semanaInicioISO),
-  ]);
+  const resultadoSemana = await obterResultadoSemana(
+    cliente.id,
+    semanaInicioISO,
+  );
 
   // Mês (para a meta contratual e para apagar planejamento)
   const mes = `${meioSemana.getFullYear()}-${String(meioSemana.getMonth() + 1).padStart(2, "0")}`;
@@ -214,14 +213,6 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
         hrefAnterior={semanaHref(-1)}
         hrefProximo={semanaHref(1)}
         hrefHoje={`/clientes/${cliente.id}`}
-      />
-
-      {/* Relatório da semana (aparece no painel do cliente) */}
-      <ClientWeeklyNote
-        clientId={cliente.id}
-        weekStart={semanaInicioISO}
-        intervalo={tituloSemana}
-        inicial={notaSemanal}
       />
 
       {/* Resumo compacto do mês + ação de apagar planejamento */}

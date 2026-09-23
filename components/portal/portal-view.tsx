@@ -481,8 +481,6 @@ export function PortalView({
     cliente,
     resumoMes,
     resultado,
-    recadoSemana,
-    recadoArquivo,
     postsSemana,
     gravacoesSemana,
     emProducao,
@@ -595,35 +593,6 @@ export function PortalView({
         ) : null}
 
         <ResumoMesCard resumo={resumoMes} />
-
-        {recadoSemana?.trim() || recadoArquivo ? (
-          <section className="mt-6">
-            <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
-              <span aria-hidden>📝</span>
-              Como foi a semana
-            </h2>
-            <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-              {recadoSemana?.trim() ? (
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                  {recadoSemana}
-                </p>
-              ) : null}
-              {recadoArquivo ? (
-                <a
-                  href={recadoArquivo.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={
-                    "inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 " +
-                    (recadoSemana?.trim() ? "mt-3" : "")
-                  }
-                >
-                  ⬇ Baixar relatório ({recadoArquivo.name})
-                </a>
-              ) : null}
-            </div>
-          </section>
-        ) : null}
 
         <Secao
           titulo="Essa semana vai ao ar"

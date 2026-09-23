@@ -200,27 +200,6 @@ export async function carregarPortal(
     respondido: !!res?.client_updated_at,
   };
 
-  // Relatório da semana escrito pela equipe (o "nosso lado"), texto e/ou arquivo.
-  const { data: notaRow } = await admin
-    .from("client_weekly_notes")
-    .select("note, file_path, file_name")
-    .eq("client_id", cliente.id)
-    .eq("week_start", iniISO)
-    .maybeSingle();
-  const recadoSemana = notaRow?.note ?? null;
-  let recadoArquivo: { url: string; name: string } | null = null;
-  if (notaRow?.file_path) {
-    const { data: assinado } = await admin.storage
-      .from("client-files")
-      .createSignedUrl(notaRow.file_path, 60 * 60);
-    if (assinado?.signedUrl) {
-      recadoArquivo = {
-        url: assinado.signedUrl,
-        name: notaRow.file_name ?? "Relatório da semana",
-      };
-    }
-  }
-
   // Plano de ação (estratégias) — com link assinado para os arquivos.
   const { data: estrategias } = await admin
     .from("action_plan_items")
@@ -264,8 +243,6 @@ export async function carregarPortal(
     fimISO,
     resumoMes,
     resultado,
-    recadoSemana,
-    recadoArquivo,
     postsSemana,
     gravacoesSemana,
     emProducao,
