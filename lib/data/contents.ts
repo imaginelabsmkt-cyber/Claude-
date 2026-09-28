@@ -52,11 +52,16 @@ export async function listContents(
   // Por padrão, esconde conteúdos de clientes desativados em todas as telas
   // (mantém os "sem cliente"). A página do cliente pede incluí-los.
   if (!opcoes.incluirClientesInativos) {
+    // Esconde conteúdo de clientes inativos, MAS nunca o conteúdo interno da
+    // favie (mesmo que o "cliente favie" esteja inativo), para o conteúdo
+    // próprio aparecer na fila de edição, minhas tarefas, etc.
     const { data: inativos } = await supabase
       .from("clients")
-      .select("id")
+      .select("id, is_internal")
       .eq("active", false);
-    const ids = (inativos ?? []).map((c) => c.id);
+    const ids = (inativos ?? [])
+      .filter((c) => !c.is_internal)
+      .map((c) => c.id);
     if (ids.length > 0) {
       query = query.or(`client_id.is.null,client_id.not.in.(${ids.join(",")})`);
     }
