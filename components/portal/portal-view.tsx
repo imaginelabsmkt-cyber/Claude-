@@ -13,6 +13,11 @@ import {
   type ResultadoPortal,
   type ResumoMes,
 } from "@/lib/portal/tipos";
+import {
+  PLANO_STAGES,
+  PLANO_STAGE_RESUMO,
+  PLANO_STATUS_LABEL,
+} from "@/types";
 
 const NOMES_MES = [
   "jan", "fev", "mar", "abr", "mai", "jun",
@@ -496,6 +501,23 @@ export function PortalView({
     grupos.set(k, [...(grupos.get(k) ?? []), d]);
   }
 
+  // Plano de ação: cronograma agrupado por etapa + o que precisamos do cliente.
+  const planoPorEtapa = new Map<string, typeof planoAcao>();
+  for (const e of planoAcao) {
+    const k =
+      e.stage && (PLANO_STAGES as readonly string[]).includes(e.stage)
+        ? e.stage
+        : "Outros";
+    planoPorEtapa.set(k, [...(planoPorEtapa.get(k) ?? []), e]);
+  }
+  const planoGrupos = [...PLANO_STAGES, "Outros"]
+    .filter((e) => planoPorEtapa.has(e))
+    .map((e) => ({ etapa: e, lista: planoPorEtapa.get(e) ?? [] }));
+  const temEtapasPlano = planoGrupos.some((g) => g.etapa !== "Outros");
+  const precisamosVoce = planoAcao.filter(
+    (e) => e.owner === "Cliente" && e.status !== "Feita",
+  );
+
   return (
     <main className="min-h-screen bg-[#fff7ea] pb-16">
       {/* Cabeçalho */}
@@ -536,58 +558,111 @@ export function PortalView({
           </Link>
         </div>
 
+        {/* O que precisamos de você (itens do cliente, pendentes) */}
+        {precisamosVoce.length > 0 ? (
+          <section className="mt-6">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+              <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800">
+                <span aria-hidden>🙌</span>
+                O que precisamos de você
+              </h2>
+              <ul className="space-y-2">
+                {precisamosVoce.map((e) => (
+                  <li key={e.id} className="flex gap-2 text-sm text-amber-900">
+                    <span aria-hidden className="mt-0.5">•</span>
+                    <span>
+                      <span className="font-semibold">{e.title}</span>
+                      {e.dateLabel ? (
+                        <span className="text-amber-700"> · {e.dateLabel}</span>
+                      ) : null}
+                      {e.description ? (
+                        <span className="block text-[13px] font-normal text-amber-800/80">
+                          {e.description}
+                        </span>
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ) : null}
+
         {planoAcao.length > 0 ? (
           <section className="mt-6">
             <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
               <span aria-hidden>🎯</span>
               Plano de ação
             </h2>
-            <div className="space-y-2">
-              {planoAcao.map((e) => {
-                const tom =
-                  e.status === "Feito"
-                    ? "bg-green-100 text-green-700"
-                    : e.status === "Fazendo"
-                      ? "bg-amber-100 text-amber-700"
-                      : "bg-gray-100 text-gray-600";
-                return (
-                  <div
-                    key={e.id}
-                    className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      {e.type ? (
-                        <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
-                          {e.type}
+            <div className="space-y-4">
+              {planoGrupos.map(({ etapa, lista }) => (
+                <div key={etapa}>
+                  {temEtapasPlano ? (
+                    <div className="mb-1.5 flex items-baseline gap-2">
+                      <h3 className="text-xs font-bold uppercase tracking-wide text-gray-700">
+                        {etapa === "Outros" ? "Mais itens" : etapa}
+                      </h3>
+                      {PLANO_STAGE_RESUMO[etapa] ? (
+                        <span className="text-[11px] text-gray-400">
+                          {PLANO_STAGE_RESUMO[etapa]}
                         </span>
                       ) : null}
-                      <span className="text-sm font-semibold text-gray-900">
-                        {e.title}
-                      </span>
-                      <span
-                        className={`ml-auto rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tom}`}
-                      >
-                        {e.status}
-                      </span>
                     </div>
-                    {e.description ? (
-                      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                        {e.description}
-                      </p>
-                    ) : null}
-                    {e.arquivo ? (
-                      <a
-                        href={e.arquivo.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:underline"
-                      >
-                        ⬇ {e.arquivo.name}
-                      </a>
-                    ) : null}
+                  ) : null}
+                  <div className="space-y-2">
+                    {lista.map((e) => {
+                      const tom =
+                        e.status === "Feita"
+                          ? "bg-green-100 text-green-700"
+                          : e.status === "Fazendo"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-gray-100 text-gray-600";
+                      return (
+                        <div
+                          key={e.id}
+                          className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm"
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            {e.dateLabel ? (
+                              <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                                {e.dateLabel}
+                              </span>
+                            ) : null}
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${e.owner === "Cliente" ? "bg-amber-100 text-amber-800" : "bg-brand-100 text-brand-700"}`}
+                            >
+                              {e.owner === "Cliente" ? "Você" : "FAVIE"}
+                            </span>
+                            <span className="text-sm font-semibold text-gray-900">
+                              {e.title}
+                            </span>
+                            <span
+                              className={`ml-auto rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tom}`}
+                            >
+                              {PLANO_STATUS_LABEL[e.status] ?? e.status}
+                            </span>
+                          </div>
+                          {e.description ? (
+                            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                              {e.description}
+                            </p>
+                          ) : null}
+                          {e.arquivo ? (
+                            <a
+                              href={e.arquivo.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:underline"
+                            >
+                              ⬇ {e.arquivo.name}
+                            </a>
+                          ) : null}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </section>
         ) : null}

@@ -89,13 +89,16 @@ export interface ResultadoPortal {
   respondido: boolean;
 }
 
-/** Uma estratégia do plano de ação, como o cliente vê. */
+/** Um item do plano de ação (cronograma), como o cliente vê. */
 export interface PortalEstrategia {
   id: string;
   title: string;
   type: string | null;
   status: string;
   description: string | null;
+  owner: string; // FAVIE | Cliente
+  stage: string | null;
+  dateLabel: string | null;
   arquivo: { url: string; name: string } | null;
 }
 

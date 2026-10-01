@@ -8,6 +8,7 @@ import {
   mesEfetivo,
 } from "@/lib/rules/contents";
 import { organizarRoteiro } from "@/lib/portal/roteiro";
+import { formatarData } from "@/lib/utils";
 import type { Content, ContentStatus } from "@/types";
 import type {
   DadosPortal,
@@ -203,11 +204,13 @@ export async function carregarPortal(
   // Plano de ação (estratégias) — com link assinado para os arquivos.
   const { data: estrategias } = await admin
     .from("action_plan_items")
-    .select("id, title, type, status, description, file_path, file_name")
+    .select(
+      "id, title, type, status, description, file_path, file_name, owner, stage, date_label, due_date, position",
+    )
     .eq("client_id", cliente.id)
     .is("archived_at", null)
-    .order("position", { ascending: true })
-    .order("created_at", { ascending: true });
+    .order("due_date", { ascending: true, nullsFirst: false })
+    .order("position", { ascending: true });
   const planoAcao: PortalEstrategia[] = [];
   for (const e of estrategias ?? []) {
     let arquivo: { url: string; name: string } | null = null;
@@ -224,6 +227,9 @@ export async function carregarPortal(
       type: e.type,
       status: e.status,
       description: e.description,
+      owner: e.owner ?? "FAVIE",
+      stage: e.stage ?? null,
+      dateLabel: e.date_label?.trim() || (e.due_date ? formatarData(e.due_date) : null),
       arquivo,
     });
   }

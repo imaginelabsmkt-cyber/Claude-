@@ -318,6 +318,11 @@ export type ActionPlanItem = {
   due_date: DateString | null;
   assignee_id: UUID | null;
   position: number;
+  owner: string; // FAVIE | Cliente
+  stage: string | null; // Preparar | Produzir | Lançar | Acompanhar
+  date_label: string | null; // previsão em texto ("05 a 09/10", "toda semana")
+  linked_demand_id: UUID | null;
+  linked_content_id: UUID | null;
   archived_at: string | null;
   created_at: ISODateString;
   updated_at: ISODateString;
@@ -334,6 +339,11 @@ export type ActionPlanItemInsert = {
   due_date?: DateString | null;
   assignee_id?: UUID | null;
   position?: number;
+  owner?: string;
+  stage?: string | null;
+  date_label?: string | null;
+  linked_demand_id?: UUID | null;
+  linked_content_id?: UUID | null;
   archived_at?: string | null;
   updated_at?: ISODateString;
 };
@@ -486,6 +496,12 @@ export type GoogleSyncInsert = Omit<GoogleSync, "id" | "updated_at"> & {
 };
 
 // Demandas gerais (tarefas fora do fluxo de conteúdo).
+/** Uma etapa (subtarefa) de uma demanda. */
+export type DemandStep = {
+  label: string;
+  done: boolean;
+};
+
 export type DemandRow = {
   id: string;
   title: string;
@@ -497,6 +513,7 @@ export type DemandRow = {
   status: string;
   created_by: string | null;
   google_task_id: string | null;
+  steps: DemandStep[];
   archived_at: string | null;
   created_at: string;
   updated_at: string;
@@ -512,6 +529,7 @@ export type DemandInsert = {
   status?: string;
   created_by?: string | null;
   google_task_id?: string | null;
+  steps?: DemandStep[];
   archived_at?: string | null;
   created_at?: string;
   updated_at?: string;

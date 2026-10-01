@@ -14,6 +14,7 @@ import type {
   Content,
   ContentPriority,
   ContentStatus,
+  DemandStep,
   Profile,
   UserRole,
 } from "./database";
@@ -138,6 +139,46 @@ export const ACTION_PLAN_TYPES = [
   "Outro",
 ] as const;
 
+// ---------------------------------------------------------------
+// Plano de ação como CRONOGRAMA (roadmap do mês)
+// ---------------------------------------------------------------
+
+/** Quem faz o item do plano. */
+export const PLANO_OWNERS = ["FAVIE", "Cliente"] as const;
+export type PlanoOwner = (typeof PLANO_OWNERS)[number];
+
+export const PLANO_OWNER_TONE: Record<string, string> = {
+  FAVIE: "bg-brand-100 text-brand-700",
+  Cliente: "bg-amber-100 text-amber-800",
+};
+
+/** Etapas do mês, na ordem em que acontecem. */
+export const PLANO_STAGES = [
+  "Preparar",
+  "Produzir",
+  "Lançar",
+  "Acompanhar",
+] as const;
+export type PlanoStage = (typeof PLANO_STAGES)[number];
+
+/** Uma frase curta explicando cada etapa (aparece pro cliente no painel). */
+export const PLANO_STAGE_RESUMO: Record<string, string> = {
+  Preparar: "Aprovação do plano e estrutura de anúncios",
+  Produzir: "Fotos, vídeos, perfil novo, Google e WhatsApp",
+  Lançar: "Vídeos no ar e anúncios começando",
+  Acompanhar: "Leitura semanal e relatório do mês",
+};
+
+/**
+ * Rótulos do status do plano (reaproveita o status de demanda por baixo:
+ * A fazer | Fazendo | Feita), mas com a palavra que o plano usa.
+ */
+export const PLANO_STATUS_LABEL: Record<string, string> = {
+  "A fazer": "A fazer",
+  Fazendo: "Em andamento",
+  Feita: "Feito",
+};
+
 /** Áreas/tipos de demanda, para organizar o acompanhamento por cliente. */
 export const DEMAND_CATEGORIES = [
   "Conteúdo",
@@ -161,6 +202,7 @@ export interface Demand {
   due_date: string | null;
   status: DemandStatus;
   created_by: string | null;
+  steps: DemandStep[];
   archived_at: string | null;
   created_at: string;
   updated_at: string;
