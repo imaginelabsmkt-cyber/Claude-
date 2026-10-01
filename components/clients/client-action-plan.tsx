@@ -149,6 +149,10 @@ export function ClientActionPlan({
       else router.refresh();
     });
 
+  // Check rápido: liga/desliga "Feito" com um clique (sem abrir o seletor).
+  const alternarFeito = (it: ActionPlanItem) =>
+    mudarStatus(it.id, it.status === "Feita" ? "A fazer" : "Feita");
+
   const excluir = (it: ActionPlanItem) =>
     iniciar(async () => {
       if (!window.confirm(`Remover "${it.title}"?`)) return;
@@ -255,6 +259,10 @@ export function ClientActionPlan({
   const grupos = useMemo(() => {
     const porEtapa = new Map<string, ActionPlanItem[]>();
     const ordenar = (a: ActionPlanItem, b: ActionPlanItem) => {
+      // Feitos descem pro fim, pra sobrar o que falta em evidência.
+      const fa = a.status === "Feita" ? 1 : 0;
+      const fb = b.status === "Feita" ? 1 : 0;
+      if (fa !== fb) return fa - fb;
       if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
       if (a.due_date) return -1;
       if (b.due_date) return 1;
@@ -273,14 +281,22 @@ export function ClientActionPlan({
   }, [itens]);
 
   const temEtapas = grupos.some((g) => g.etapa !== "Outros");
+  const feitosCount = itens.filter((i) => i.status === "Feita").length;
 
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[11px] text-gray-400">
-          O cronograma do mês: o que a FAVIE faz, o que precisamos do cliente,
-          com data e status. O cliente vê este plano no painel dele.
-        </p>
+        <div>
+          <p className="text-[11px] text-gray-400">
+            O cronograma do mês: o que a FAVIE faz, o que precisamos do cliente,
+            com data e status. O cliente vê este plano no painel dele.
+          </p>
+          {itens.length > 0 ? (
+            <p className="mt-1 text-xs font-semibold text-gray-600">
+              {feitosCount}/{itens.length} feitos · clique no ✓ pra dar como feito
+            </p>
+          ) : null}
+        </div>
         <div className="flex shrink-0 gap-2">
           <button
             type="button"
@@ -523,12 +539,25 @@ export function ClientActionPlan({
                 </div>
               ) : null}
               <ul className="space-y-2">
-                {lista.map((it) => (
+                {lista.map((it) => {
+                  const feito = it.status === "Feita";
+                  return (
                   <li
                     key={it.id}
-                    className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
+                    className={`rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-opacity ${feito ? "opacity-60" : ""}`}
                   >
                     <div className="flex flex-wrap items-center gap-2">
+                      {/* Check rápido pra dar como feito. */}
+                      <button
+                        type="button"
+                        aria-label={feito ? "Reabrir" : "Marcar como feito"}
+                        title={feito ? "Reabrir" : "Marcar como feito"}
+                        disabled={salvando}
+                        onClick={() => alternarFeito(it)}
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] text-white transition-colors ${feito ? "border-green-600 bg-green-600" : "border-gray-300 hover:border-green-500"}`}
+                      >
+                        {feito ? "✓" : ""}
+                      </button>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${PLANO_OWNER_TONE[it.owner ?? "FAVIE"] ?? "bg-gray-100 text-gray-600"}`}
                       >
@@ -539,7 +568,9 @@ export function ClientActionPlan({
                           {rotuloData(it)}
                         </span>
                       ) : null}
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span
+                        className={`text-sm font-semibold ${feito ? "text-gray-400 line-through" : "text-gray-900"}`}
+                      >
                         {it.title}
                       </span>
                       <select
@@ -621,7 +652,8 @@ export function ClientActionPlan({
                       </button>
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </div>
           ))}
