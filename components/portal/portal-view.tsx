@@ -501,9 +501,12 @@ export function PortalView({
     grupos.set(k, [...(grupos.get(k) ?? []), d]);
   }
 
-  // Plano de ação: cronograma agrupado por etapa + o que precisamos do cliente.
+  // Plano de ação no painel: o cronograma da FAVIE (o que a gente faz) vira a
+  // linha do tempo; o que o cliente precisa fazer vai pro bloco destacado, pra
+  // não repetir. Itens do cliente já feitos não precisam aparecer.
+  const planoFavie = planoAcao.filter((e) => e.owner !== "Cliente");
   const planoPorEtapa = new Map<string, typeof planoAcao>();
-  for (const e of planoAcao) {
+  for (const e of planoFavie) {
     const k =
       e.stage && (PLANO_STAGES as readonly string[]).includes(e.stage)
         ? e.stage
@@ -588,7 +591,7 @@ export function PortalView({
           </section>
         ) : null}
 
-        {planoAcao.length > 0 ? (
+        {planoFavie.length > 0 ? (
           <section className="mt-6">
             <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
               <span aria-hidden>🎯</span>

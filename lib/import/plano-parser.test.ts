@@ -112,3 +112,71 @@ describe("parsePlanoAcao — texto real do pdf.js", () => {
     expect(itens.length).toBeGreaterThanOrEqual(10);
   });
 });
+
+// Seção "O que precisamos de vocês" (página 1): itens do cliente SEM marcador,
+// quebrados em várias linhas e em colunas achatadas pelo pdf.js.
+const PRECISAMOS = `
+O   que   precisamos   de   vocês
+Com   esses   itens   em   dia ,   a   previsão   é   fazer   as   fotos   em   01/10
+Até   30/09   Até   02/10   No   dia   da   sessão
+Aprovar   o   plano
+Aprovar   a   descrição   do
+Google   ( opção   A   ou   B )
+Con fi rmar   se   01/10
+funciona   para   as   fotos   e
+os   vídeos ,   ou   indicar
+outros   dias   e   turnos ,   e   os
+alunos   modelos
+Cadastrar   a   forma   de
+pagamento   dos   anúncios
+na   Meta :   cartão   ou   Pix
+Business   e   conta   de
+anúncios
+já   feito
+✓
+Alunos   modelos   no   estúdio
+Autorização   de   imagem
+assinada   por   cada   aluno
+Estúdio   organizado ,   com
+boa   luz
+Cronograma   previsão
+30/09
+quarta   Aprovação   do   plano   de   ação   Vocês   fazem
+`;
+
+describe("parsePlanoAcao — seção 'O que precisamos de vocês'", () => {
+  const itens = parsePlanoAcao(PRECISAMOS, 2026);
+  const acha = (p: string) => itens.find((i) => i.titulo.startsWith(p));
+
+  it("todos os itens da seção são do cliente", () => {
+    const naSecao = itens.filter((i) => !i.titulo.startsWith("Aprovação do plano"));
+    expect(naSecao.every((i) => i.owner === "Cliente")).toBe(true);
+  });
+
+  it("junta item quebrado em várias linhas num só", () => {
+    const c = acha("Confirmar se 01/10");
+    expect(c?.titulo).toBe(
+      "Confirmar se 01/10 funciona para as fotos e os vídeos, ou indicar outros dias e turnos, e os alunos modelos",
+    );
+  });
+
+  it("junta continuação com aspas/parênteses", () => {
+    expect(acha("Aprovar a descrição")?.titulo).toBe(
+      "Aprovar a descrição do Google (opção A ou B)",
+    );
+  });
+
+  it("'já feito ✓' marca o item como Feita", () => {
+    expect(acha("Business e conta")?.status).toBe("Feita");
+  });
+
+  it("não deixa a intro nem a linha de colunas virarem item", () => {
+    expect(acha("Com esses itens")).toBeUndefined();
+    expect(acha("Até 30/09")).toBeUndefined();
+  });
+
+  it("encerra a seção no 'Cronograma' e volta ao modo normal", () => {
+    const cron = acha("Aprovação do plano de ação");
+    expect(cron?.dueDate).toBe("2026-09-30");
+  });
+});

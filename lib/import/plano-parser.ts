@@ -127,6 +127,31 @@ function tirarPrefixoData(corpo: string): { resto: string; prefixo: string | nul
   };
 }
 
+/**
+ * Palavras que COMEÇAM um item na seção "O que precisamos de vocês" (onde os
+ * itens não têm marcador e vêm quebrados em várias linhas). Linha que começa
+ * com Maiúscula + uma dessas = novo item; as demais são continuação.
+ */
+const INICIO_ITEM = new Set([
+  "aprovar", "confirmar", "cadastrar", "enviar", "mandar", "indicar",
+  "autorizar", "autorizacao", "organizar", "garantir", "separar", "alunos",
+  "estudio", "acesso", "drive", "business", "trazer", "deixar", "preencher",
+  "responder", "combinar", "criar", "liberar", "fornecer", "assinar",
+]);
+
+/** Entra na seção "O que precisamos de vocês". */
+const SECAO_INICIO = /o que precisamos de voc[êe]s/;
+/** Cabeçalhos que ENCERRAM aquela seção. */
+const SECAO_FIM =
+  /^(cronograma|descri[çc][ãa]o do|alunos modelos para|whatsapp e planilha|o que est[áa] no pacote|o m[êe]s em quatro|placa de avalia)/;
+
+/** Diz se a linha começa um novo item da seção do cliente. */
+function iniciaItemSecao(linha: string): boolean {
+  const first = linha.split(/\s+/)[0] ?? "";
+  const maiuscula = /^[A-ZÀ-Ý]/.test(first);
+  return maiuscula && INICIO_ITEM.has(base(first));
+}
+
 /** Limpa o título: tira "Observação:", pontuação solta e espaços. */
 function limparTitulo(s: string): string {
   let t = s.replace(/^observa[çc][ãa]o\s*:?\s*/i, "");
@@ -163,7 +188,56 @@ export function parsePlanoAcao(texto: string, ano: number): ItemPlano[] {
   const itens: ItemPlano[] = [];
   let dataPendente: string | null = null; // data numa linha só antes do item
 
+  // Estado da seção "O que precisamos de vocês" (itens do cliente sem marcador).
+  let emSecaoCliente = false;
+  let itemSecao: { titulo: string; status: "A fazer" | "Fazendo" | "Feita" } | null =
+    null;
+  const fecharItemSecao = () => {
+    if (itemSecao) {
+      const titulo = limparTitulo(itemSecao.titulo);
+      if (titulo.length >= 3) {
+        itens.push({
+          titulo,
+          owner: "Cliente",
+          status: itemSecao.status,
+          dateLabel: null,
+          dueDate: null,
+          stage: null,
+        });
+      }
+    }
+    itemSecao = null;
+  };
+
   for (const linha of linhas) {
+    const bl = base(linha);
+
+    // --- Seção "O que precisamos de vocês" -------------------------------
+    if (SECAO_INICIO.test(bl)) {
+      fecharItemSecao();
+      emSecaoCliente = true;
+      continue;
+    }
+    if (emSecaoCliente && SECAO_FIM.test(bl)) {
+      fecharItemSecao();
+      emSecaoCliente = false;
+      // não dá continue: deixa a linha ser processada normalmente abaixo.
+    }
+    if (emSecaoCliente) {
+      // "já feito ✓" => o item atual já está pronto.
+      if (/^(j[áa]\s+feito|feito|✓)$/.test(bl) || linha === "✓") {
+        if (itemSecao) itemSecao.status = "Feita";
+        continue;
+      }
+      if (iniciaItemSecao(linha)) {
+        fecharItemSecao();
+        itemSecao = { titulo: linha, status: "A fazer" };
+      } else if (itemSecao) {
+        itemSecao.titulo += ` ${linha}`;
+      }
+      continue;
+    }
+
     if (/^[\W_]+$/.test(linha)) continue;
 
     const mk = extrairMarcadores(linha);
@@ -208,5 +282,6 @@ export function parsePlanoAcao(texto: string, ano: number): ItemPlano[] {
     // Senão: texto corrido -> ignora.
   }
 
+  fecharItemSecao(); // caso a seção vá até o fim do texto
   return itens;
 }
