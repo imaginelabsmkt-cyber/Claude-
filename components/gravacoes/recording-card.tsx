@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UrgencyBadge } from "@/components/shared/urgency-badge";
 import { corPrioridade } from "@/lib/ui/prioridade";
+import { toast } from "@/lib/ui/toast";
 import { urgenciaConteudo } from "@/lib/rules/contents";
 import { formatarData } from "@/lib/utils";
 import {
@@ -67,7 +68,7 @@ export function RecordingCard({
    *   (feedback instantâneo) e volta se a ação falhar.
    */
   function executar(
-    fn: () => Promise<{ ok: boolean; error?: string }>,
+    fn: () => Promise<{ ok: boolean; error?: string; avisoGoogle?: string }>,
     moveCard = false,
   ) {
     setErro(null);
@@ -79,6 +80,8 @@ export function RecordingCard({
         setOculto(false); // desfaz o sumiço otimista
         return;
       }
+      // Salvou, mas o Google caiu: avisa na hora (a gravação não foi pra agenda).
+      if (r.avisoGoogle) toast.erro(r.avisoGoogle);
       setEditandoData(false);
       router.refresh();
     });

@@ -21,6 +21,7 @@ import {
   sincronizarEdicao,
   sincronizarPostagem,
   removerGoogleDoConteudo,
+  googleSincronizavel,
 } from "@/lib/google/sync";
 import {
   criarCapaDoVideo,
@@ -36,6 +37,8 @@ export interface ActionResult {
   error?: string;
   fieldErrors?: Record<string, string>;
   id?: string;
+  /** Aviso (não-erro): salvou, mas o Google está desconectado e não sincronizou. */
+  avisoGoogle?: string;
 }
 
 /**
@@ -391,9 +394,18 @@ export async function marcarComoGravadoAction(
     { field: "Status", old: antigo?.status ?? null, new: "Gravado" },
   ]);
 
+  const podeGoogle = await googleSincronizavel();
   aposResposta(() => sincronizarGravacao(id));
 
   revalidarConteudos(id);
+  if (!podeGoogle) {
+    return {
+      ok: true,
+      id,
+      avisoGoogle:
+        "Marcado como gravado, mas o Google Agenda está desconectado — reconecte em Configurações para sincronizar.",
+    };
+  }
   return { ok: true, id };
 }
 
@@ -423,6 +435,9 @@ export async function alterarDataGravacaoAction(
   const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
 
+  // Checa já se o Google está utilizável, pra avisar na hora se caiu.
+  const podeGoogle = await googleSincronizavel();
+
   const tituloGrav = cAntes?.title ?? "Vídeo";
   const quandoGrav = formatarData(data);
   aposResposta(async () => {
@@ -438,6 +453,13 @@ export async function alterarDataGravacaoAction(
   });
 
   revalidarConteudos(id);
+  if (!podeGoogle) {
+    return {
+      ok: true,
+      avisoGoogle:
+        "Data salva, mas o Google Agenda está desconectado — reconecte em Configurações para a gravação ir pra agenda.",
+    };
+  }
   return { ok: true, id };
 }
 
@@ -513,6 +535,8 @@ export async function agendarGravacoesEmLoteAction(
     .in("id", ids);
   if (error) return { ok: false, error: "Não foi possível agendar." };
 
+  const podeGoogle = await googleSincronizavel();
+
   // Um evento SÓ no Google para todos os vídeos do lote (1h por vídeo).
   const qtd = ids.length;
   const quando = formatarData(data);
@@ -529,6 +553,14 @@ export async function agendarGravacoesEmLoteAction(
   });
 
   revalidarConteudos();
+  if (!podeGoogle) {
+    return {
+      ok: true,
+      quantidade: ids.length,
+      avisoGoogle:
+        "Gravações agendadas, mas o Google Agenda está desconectado — reconecte em Configurações para irem pra agenda.",
+    };
+  }
   return { ok: true, quantidade: ids.length };
 }
 

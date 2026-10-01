@@ -63,6 +63,19 @@ async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
   }
 }
 
+/**
+ * Diz se o Google está utilizável para sincronizar agora (conectado e com token
+ * válido). Como passa pelo tokenDoUsuario, também marca a conexão como caída
+ * (e mostra a faixa de aviso) quando o token expirou.
+ */
+export async function googleSincronizavel(): Promise<boolean> {
+  const userId = await usuarioAtualId();
+  if (!userId) return false;
+  const sb = createClient();
+  const token = await tokenDoUsuario(sb, userId);
+  return Boolean(token);
+}
+
 async function idSync(
   sb: SB,
   contentId: string,

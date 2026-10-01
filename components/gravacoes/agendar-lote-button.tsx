@@ -90,6 +90,7 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
       toast.sucesso(
         `${r.quantidade ?? 0} gravação(ões) agendada(s) para o mesmo dia.`,
       );
+      if (r.avisoGoogle) toast.erro(r.avisoGoogle);
       setAberto(false);
       setClientId("");
       setData("");
