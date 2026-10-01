@@ -526,7 +526,7 @@ export function PortalView({
           </p>
           <h1 className="mt-1 text-2xl font-bold">{cliente.name}</h1>
           <p className="mt-1 text-sm text-white/80">
-            O que está acontecendo com o seu conteúdo, de forma simples.
+            Acompanhe de perto tudo que está sendo feito pela sua marca.
           </p>
         </div>
       </header>

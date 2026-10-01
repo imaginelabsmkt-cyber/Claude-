@@ -202,15 +202,44 @@ export async function carregarPortal(
   };
 
   // Plano de ação (estratégias) — com link assinado para os arquivos.
-  const { data: estrategias } = await admin
-    .from("action_plan_items")
-    .select(
-      "id, title, type, status, description, file_path, file_name, owner, stage, date_label, due_date, position",
-    )
-    .eq("client_id", cliente.id)
-    .is("archived_at", null)
-    .order("due_date", { ascending: true, nullsFirst: false })
-    .order("position", { ascending: true });
+  // Resiliente: se as colunas novas (owner/stage/date_label) ainda não existirem
+  // (migração não rodada), cai pro básico em vez de sumir com o plano inteiro.
+  type LinhaPlano = {
+    id: string;
+    title: string;
+    type: string | null;
+    status: string;
+    description: string | null;
+    file_path: string | null;
+    file_name: string | null;
+    owner?: string | null;
+    stage?: string | null;
+    date_label?: string | null;
+    due_date?: string | null;
+  };
+  let estrategias: LinhaPlano[] | null = null;
+  {
+    const completo = await admin
+      .from("action_plan_items")
+      .select(
+        "id, title, type, status, description, file_path, file_name, owner, stage, date_label, due_date, position",
+      )
+      .eq("client_id", cliente.id)
+      .is("archived_at", null)
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .order("position", { ascending: true });
+    if (completo.error) {
+      const basico = await admin
+        .from("action_plan_items")
+        .select("id, title, type, status, description, file_path, file_name, position")
+        .eq("client_id", cliente.id)
+        .is("archived_at", null)
+        .order("position", { ascending: true });
+      estrategias = (basico.data as LinhaPlano[] | null) ?? [];
+    } else {
+      estrategias = (completo.data as LinhaPlano[] | null) ?? [];
+    }
+  }
   const planoAcao: PortalEstrategia[] = [];
   for (const e of estrategias ?? []) {
     let arquivo: { url: string; name: string } | null = null;
