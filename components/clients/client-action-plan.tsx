@@ -76,10 +76,12 @@ export function ClientActionPlan({
   const [salvando, iniciar] = useTransition();
   const [enviandoArq, setEnviandoArq] = useState(false);
 
-  // Importação do texto do plano.
+  // Importação do plano (arquivo PDF ou texto colado).
   const [importOpen, setImportOpen] = useState(false);
   const [texto, setTexto] = useState("");
   const [preview, setPreview] = useState<ItemPlano[] | null>(null);
+  const [lendoPdf, setLendoPdf] = useState(false);
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   const nomePerfil = (id: string | null) =>
     id ? (perfis.find((p) => p.id === id)?.name ?? null) : null;
@@ -183,6 +185,36 @@ export function ClientActionPlan({
   };
 
   // --- Importação ---------------------------------------------------------
+  const subirArquivo = async (file: File) => {
+    setLendoPdf(true);
+    try {
+      let txt = "";
+      if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
+        const { lerTextoPdf } = await import("@/lib/import/ler-pdf");
+        txt = await lerTextoPdf(file);
+      } else {
+        txt = await file.text(); // .txt
+      }
+      if (!txt.trim()) {
+        toast.erro("Não consegui ler texto desse arquivo.");
+        return;
+      }
+      setTexto(txt);
+      const achados = parsePlanoAcao(txt, new Date().getFullYear());
+      if (achados.length === 0) {
+        toast.erro(
+          "Li o arquivo, mas não achei itens com responsável. Confira o texto abaixo e ajuste.",
+        );
+      } else {
+        setPreview(achados);
+      }
+    } catch {
+      toast.erro("Não foi possível ler o PDF. Tente colar o texto.");
+    } finally {
+      setLendoPdf(false);
+    }
+  };
+
   const analisar = () => {
     const achados = parsePlanoAcao(texto, new Date().getFullYear());
     if (achados.length === 0) {
@@ -616,10 +648,36 @@ export function ClientActionPlan({
             {!preview ? (
               <>
                 <p className="mb-3 text-xs text-gray-500">
-                  Cole o cronograma do plano (de quem faz o quê e quando). Cada
-                  linha de tarefa precisa terminar com quem faz: FAVIE, Vocês
-                  fazem ou Anúncios. Você revisa tudo antes de criar.
+                  Suba o <strong>PDF do plano</strong> que o sistema lê sozinho,
+                  ou cole o texto do cronograma. Você revisa tudo antes de criar.
                 </p>
+
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    onClick={() => importFileRef.current?.click()}
+                    disabled={lendoPdf}
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+                  >
+                    <Icon nome="upload" className="h-4 w-4" />
+                    {lendoPdf ? "Lendo o PDF…" : "Subir PDF do plano"}
+                  </button>
+                  <input
+                    ref={importFileRef}
+                    type="file"
+                    accept=".pdf,.txt,application/pdf,text/plain"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) subirArquivo(f);
+                      e.target.value = "";
+                    }}
+                  />
+                  <span className="ml-2 text-[11px] text-gray-400">
+                    ou cole o texto abaixo
+                  </span>
+                </div>
+
                 <textarea
                   value={texto}
                   onChange={(e) => setTexto(e.target.value)}
