@@ -1,22 +1,21 @@
 /**
  * =============================================================
- * LEITOR DO PLANO DE AÇÃO (texto -> itens do cronograma)
+ * LEITOR DO PLANO DE AÇÃO (texto do PDF -> itens do cronograma)
  * =============================================================
  * Interpreta o texto do plano de ação (o cronograma de "quem faz o quê e
  * quando") e devolve os itens detectados. Função pura (testável), sem banco.
  *
- * O sinal mais confiável de que uma linha é um ITEM do cronograma é o
- * MARCADOR DE RESPONSÁVEL no fim da linha (FAVIE, Vocês fazem, Anúncios,
- * Cliente). Então só emitimos item quando achamos esse marcador — isso evita
- * confundir texto corrido (parágrafos de explicação) com itens. O resto (datas
- * soltas, dias da semana) vira o rótulo de data do item.
+ * O texto vem do pdf.js e é BAGUNÇADO: palavras grudadas por espaços
+ * ("per fi l" = "perfil"), espaços duplos entre palavras, o dia da semana na
+ * MESMA linha do item ("quarta Aprovação ... Vocês fazem"), datas quebradas em
+ * duas linhas ("toda"/"semana", "a partir de"/"13/10"). Então a gente limpa,
+ * junta as datas quebradas e usa o MARCADOR DE RESPONSÁVEL no fim da linha
+ * (FAVIE, Vocês fazem, Anúncios…) como âncora do que é item de verdade — assim
+ * texto corrido de explicação não vira item.
  *
- * É "melhor esforço": o resultado é uma prévia que a pessoa revisa e ajusta
- * antes de criar de fato.
+ * É "melhor esforço": o resultado é uma prévia que a pessoa revisa e ajusta.
  * =============================================================
  */
-
-import { PLANO_STAGES } from "@/types";
 
 export interface ItemPlano {
   titulo: string;
@@ -26,11 +25,11 @@ export interface ItemPlano {
   dateLabel: string | null;
   /** Data real (início) em ISO "YYYY-MM-DD" para ordenar/virar tarefa. */
   dueDate: string | null;
-  /** Etapa do mês, quando o texto traz um cabeçalho de etapa. */
+  /** Etapa do mês (não é lida do PDF automaticamente; a pessoa define). */
   stage: string | null;
 }
 
-/** Remove acentos e baixa a caixa, p/ comparar sem depender de acento. */
+/** Remove acentos e baixa a caixa (para comparar sem depender de acento). */
 function base(s: string): string {
   return s
     .normalize("NFD")
@@ -38,9 +37,23 @@ function base(s: string): string {
     .toLowerCase();
 }
 
-/** Dia da semana (ou "a confirmar") sozinho numa linha. */
-const DIA_SEMANA =
-  /^(segunda|terca|quarta|quinta|sexta|sabado|domingo|a confirmar)\.?$/;
+/**
+ * Limpa uma linha crua do PDF: junta espaços, remonta ligaduras separadas
+ * ("per fi l" -> "perfil", "con fi rmar" -> "confirmar").
+ */
+function limpar(s: string): string {
+  let t = s.replace(/\s+/g, " ").trim();
+  // Roda duas vezes para casos encadeados.
+  t = t.replace(/(\p{L})\s(fi|fl|ffi|ff)\s(\p{L})/giu, "$1$2$3");
+  t = t.replace(/(\p{L})\s(fi|fl|ffi|ff)\s(\p{L})/giu, "$1$2$3");
+  // Ligadura no começo de palavra depois de pontuação: ", fi xados" -> ", fixados".
+  t = t.replace(/([,.;:(]\s?)(fi|fl|ffi|ff)\s(\p{L})/giu, "$1$2$3");
+  return t;
+}
+
+/** Dia da semana (ou "a confirmar") que aparece colado antes do título. */
+const PREFIXO_DATA =
+  /^(segunda|terca|quarta|quinta|sexta|sabado|domingo|a confirmar)\s+/;
 
 /**
  * Início de linha que é uma DATA (ou faixa). Cobre: "30/09", "até 02/10",
@@ -49,14 +62,17 @@ const DIA_SEMANA =
 const DATA_INICIO =
   /^((?:ate\s+|a partir de\s+)?\d{1,2}(?:\s*(?:a|e)\s*\d{1,2})?\s*\/\s*\d{1,2}|toda\s+semana)(?=\s|$)/;
 
-/** Marcador de responsável/status no FIM da linha (para ir tirando um a um). */
+/**
+ * Marcador de responsável/status no FIM da linha. É CASE-SENSITIVE de
+ * propósito: "Anúncios" (coluna) é marcador, mas "anúncios" em texto corrido
+ * ("…e os anúncios") NÃO é — senão a prosa viraria item.
+ */
 const MARCADOR_FIM =
-  /\s*(FAVIE|An[úu]ncios|Voc[êe]s\s+fazem|Voc[êe]\s+faz|Cliente|J[áa]\s+feito\s*✓?|Em\s+andamento|✓)\s*$/i;
+  /\s*(FAVIE|An[úu]ncios|Voc[êe]s\s+fazem|Voc[êe]s\s+mandam(?:\s+fazer)?|Voc[êe]\s+faz|Cliente|J[áa]\s+feito\s*✓?|Em\s+andamento|✓)\s*$/;
 
 /** Converte o rótulo de data no ISO da data de INÍCIO (ou null). */
 function dataInicioISO(label: string, ano: number): string | null {
   const b = base(label);
-  if (/toda\s+semana|a confirmar/.test(b)) return null;
   // "05 a 09/10" / "14 e 15/10" -> usa o primeiro dia com o mês do fim.
   const faixa = b.match(/(\d{1,2})\s*(?:a|e)\s*\d{1,2}\s*\/\s*(\d{1,2})/);
   if (faixa) return montarISO(Number(faixa[1]), Number(faixa[2]), ano);
@@ -71,19 +87,20 @@ function montarISO(dia: number, mes: number, ano: number): string | null {
 }
 
 /**
- * Tira os marcadores do fim da linha e devolve o título limpo + owner/status.
- * Retorna null quando NÃO há nenhum marcador de responsável (não é item).
+ * Tira os marcadores do fim da linha. Devolve o corpo (ainda com a eventual
+ * data/dia da semana na frente) + owner/status. Null se não há responsável.
  */
-function extrairMarcadores(
-  linha: string,
-): { titulo: string; owner: "FAVIE" | "Cliente"; status: "A fazer" | "Fazendo" | "Feita" } | null {
+function extrairMarcadores(linha: string): {
+  corpo: string;
+  owner: "FAVIE" | "Cliente";
+  status: "A fazer" | "Fazendo" | "Feita";
+} | null {
   let resto = linha;
   let temFavie = false;
   let temCliente = false;
   let status: "A fazer" | "Fazendo" | "Feita" = "A fazer";
 
   let m: RegExpMatchArray | null;
-  // Vai tirando marcadores do fim, um por um (ex.: "... FAVIE Vocês fazem").
   while ((m = resto.match(MARCADOR_FIM))) {
     const tok = base(m[1]);
     if (tok === "favie" || tok.startsWith("anuncio")) temFavie = true;
@@ -93,23 +110,32 @@ function extrairMarcadores(
     resto = resto.slice(0, m.index).trimEnd();
   }
 
-  if (!temFavie && !temCliente) return null; // sem responsável => não é item
-
+  if (!temFavie && !temCliente) return null;
   // FAVIE executa mesmo quando o cliente também participa (ex.: a sessão de
   // fotos, onde a FAVIE grava e o cliente leva os modelos).
   const owner: "FAVIE" | "Cliente" = temFavie ? "FAVIE" : "Cliente";
-  const titulo = resto.replace(/\s+/g, " ").trim();
-  if (titulo.length < 3) return null;
-  return { titulo, owner, status };
+  return { corpo: resto.replace(/\s+/g, " ").trim(), owner, status };
 }
 
-/** Detecta um cabeçalho de etapa (linha que é só "Preparar", "Produzir"…). */
-function detectarEtapa(linha: string): string | null {
-  const b = base(linha).replace(/^\d+\s*[.)-]?\s*/, ""); // tira "1 ", "2) "…
-  for (const etapa of PLANO_STAGES) {
-    if (b === base(etapa)) return etapa;
-  }
-  return null;
+/** Tira o dia da semana / "a confirmar" da frente; devolve resto + o prefixo. */
+function tirarPrefixoData(corpo: string): { resto: string; prefixo: string | null } {
+  const m = base(corpo).match(PREFIXO_DATA);
+  if (!m) return { resto: corpo, prefixo: null };
+  return {
+    resto: corpo.slice(m[0].length).trim(),
+    prefixo: corpo.slice(0, m[0].length).trim(),
+  };
+}
+
+/** Limpa o título: tira "Observação:", pontuação solta e espaços. */
+function limparTitulo(s: string): string {
+  let t = s.replace(/^observa[çc][ãa]o\s*:?\s*/i, "");
+  t = t.replace(/^[\s:;,·•\-–—]+/, "");
+  // Tira os espaços presos DENTRO de aspas/parênteses (mantém os de fora).
+  t = t.replace(/"\s*([^"]*?)\s*"/g, '"$1"');
+  t = t.replace(/\(\s*([^)]*?)\s*\)/g, "($1)");
+  t = t.replace(/\s+([,.;:!?])/g, "$1");
+  return t.replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -117,59 +143,69 @@ function detectarEtapa(linha: string): string | null {
  * dia/mês). Devolve os itens na ordem em que aparecem.
  */
 export function parsePlanoAcao(texto: string, ano: number): ItemPlano[] {
-  const linhas = texto
+  const cruas = texto
     .split(/\r?\n/)
-    .map((l) => l.trim())
+    .map(limpar)
     .filter((l) => l.length > 0);
 
-  const itens: ItemPlano[] = [];
-  let dateLabel: string | null = null;
-  let stage: string | null = null;
+  // Junta as datas quebradas em duas linhas: "toda"+"semana …" e
+  // "a partir de"+"13/10 …".
+  const linhas: string[] = [];
+  for (let i = 0; i < cruas.length; i++) {
+    let l = cruas[i];
+    const b = base(l);
+    if (b === "toda" && i + 1 < cruas.length) l = `${l} ${cruas[++i]}`;
+    else if (/(^|\s)a partir de$/.test(b) && i + 1 < cruas.length)
+      l = `${l} ${cruas[++i]}`;
+    linhas.push(l);
+  }
 
-  const emitir = (linhaItem: string) => {
-    const mk = extrairMarcadores(linhaItem);
-    if (!mk) return;
-    itens.push({
-      titulo: mk.titulo,
-      owner: mk.owner,
-      status: mk.status,
-      dateLabel,
-      dueDate: dateLabel ? dataInicioISO(dateLabel, ano) : null,
-      stage,
-    });
-  };
+  const itens: ItemPlano[] = [];
+  let dataPendente: string | null = null; // data numa linha só antes do item
 
   for (const linha of linhas) {
-    // separadores só de símbolos
     if (/^[\W_]+$/.test(linha)) continue;
 
-    const etapa = detectarEtapa(linha);
-    if (etapa) {
-      stage = etapa;
-      continue;
-    }
+    const mk = extrairMarcadores(linha);
+    if (mk) {
+      let corpo = mk.corpo;
+      let dateLabel: string | null;
 
-    const bl = base(linha);
-
-    const mData = linha.match(DATA_INICIO) ?? bl.match(DATA_INICIO);
-    if (mData) {
-      // Usa o texto ORIGINAL do trecho de data para o rótulo (mantém acentos).
-      const bruto = linha.slice(0, mData[0].length).trim();
-      dateLabel = bruto || mData[0].trim();
-      const remainder = linha.slice(mData[0].length).trim();
-      if (remainder) emitir(remainder); // data + item na mesma linha
-      continue;
-    }
-
-    if (DIA_SEMANA.test(bl)) {
-      // Dia da semana solto: agrega ao rótulo da data atual ("30/09 quarta").
-      if (dateLabel && !base(dateLabel).includes(bl)) {
-        dateLabel = `${dateLabel} ${linha}`;
+      const mData = base(corpo).match(DATA_INICIO);
+      if (mData) {
+        // Data na própria linha do item ("05 a 09/10 Auditoria…").
+        dateLabel = corpo.slice(0, mData[0].length).trim();
+        corpo = corpo.slice(mData[0].length).trim();
+      } else {
+        // Data veio na linha anterior; aqui pode ter o dia da semana colado.
+        const pre = tirarPrefixoData(corpo);
+        corpo = pre.resto;
+        dateLabel = dataPendente
+          ? pre.prefixo
+            ? `${dataPendente} ${pre.prefixo}`
+            : dataPendente
+          : pre.prefixo;
       }
+
+      const titulo = limparTitulo(corpo);
+      if (titulo.length >= 3) {
+        itens.push({
+          titulo,
+          owner: mk.owner,
+          status: mk.status,
+          dateLabel: dateLabel || null,
+          dueDate: dateLabel ? dataInicioISO(dateLabel, ano) : null,
+          stage: null,
+        });
+      }
+      dataPendente = null; // consumida
       continue;
     }
 
-    emitir(linha);
+    // Linha sem responsável: se for uma data sozinha, guarda pro próximo item.
+    const md = base(linha).match(DATA_INICIO);
+    if (md) dataPendente = linha.slice(0, md[0].length).trim();
+    // Senão: texto corrido -> ignora.
   }
 
   return itens;
