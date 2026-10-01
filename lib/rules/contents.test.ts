@@ -8,6 +8,7 @@ import {
   entregaEmAlerta,
   motivoPrioridade,
   mesEfetivo,
+  urgenciaConteudo,
 } from "@/lib/rules/contents";
 import type { Content } from "@/types";
 
@@ -430,5 +431,27 @@ describe("mesEfetivo", () => {
   it("cancelado fica congelado no mês dele (reference_month)", () => {
     const c = makeContent({ status: "Cancelado", reference_month: "2026-05" });
     expect(mesEfetivo(c, HOJE)).toBe("2026-05");
+  });
+});
+
+describe("urgenciaConteudo — foto é produção, não gravação", () => {
+  it("vídeo a gravar hoje diz 'Gravar hoje'", () => {
+    const c = makeContent({
+      format: "Reel",
+      status: "Aguardando gravação",
+      requires_recording: true,
+      recording_date: "2026-07-14",
+    });
+    expect(urgenciaConteudo(c, HOJE).rotulo).toBe("Gravar hoje");
+  });
+
+  it("ensaio de fotos a produzir hoje diz 'Fotografar hoje'", () => {
+    const c = makeContent({
+      format: "Ensaio de fotos",
+      status: "Aguardando gravação",
+      requires_recording: true,
+      recording_date: "2026-07-14",
+    });
+    expect(urgenciaConteudo(c, HOJE).rotulo).toBe("Fotografar hoje");
   });
 });

@@ -88,7 +88,7 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
   return [
     { titulo: "Fotos a produzir (artes)", itens: fotosArte },
     {
-      titulo: "Gravações da semana",
+      titulo: "Produções da semana",
       itens: paraGravar.filter((c) => classificarGravacao(c, hoje) === "semana"),
     },
     {

@@ -27,7 +27,7 @@ export function AAgendarList({ rows }: { rows: AAgendarRow[] }) {
         requires_recording: false,
       });
       if (!r.ok) toast.erro(r.error ?? "Não foi possível remover.");
-      else toast.sucesso("Removido da lista de gravação");
+      else toast.sucesso("Removido da lista de produção");
       router.refresh();
     });
 
@@ -71,7 +71,7 @@ export function AAgendarList({ rows }: { rows: AAgendarRow[] }) {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-gray-400">
-        Use “+ Agendar gravações” para marcar data e hora (individual ou em lote).
+        Use “+ Agendar produções” para marcar data e hora (individual ou em lote).
       </p>
     </section>
   );

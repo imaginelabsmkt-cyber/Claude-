@@ -684,7 +684,7 @@ export function PortalView({
         </Secao>
 
         {gravacoesSemana.length > 0 ? (
-          <Secao titulo="Gravações da semana" emoji="🎥">
+          <Secao titulo="Produções da semana" emoji="🎥">
             {gravacoesSemana.map((g) => (
               <CartaoGravacao key={g.id} grav={g} />
             ))}

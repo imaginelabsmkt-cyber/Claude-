@@ -52,6 +52,10 @@ export function RecordingCard({
 }: RecordingCardProps) {
   const router = useRouter();
   const urg = urgenciaConteudo(content);
+  // Foto/ensaio é PRODUÇÃO, não "gravação": ajusta os rótulos do card.
+  const ehFoto = /foto|ensaio/i.test(content.format ?? "");
+  const txtData = ehFoto ? "Data da produção" : "Data de gravação";
+  const txtPrazo = ehFoto ? "Prazo da produção" : "Prazo de gravação";
   const [processando, iniciar] = useTransition();
   const [editandoData, setEditandoData] = useState(false);
   const [data, setData] = useState(content.recording_date ?? "");
@@ -119,7 +123,7 @@ export function RecordingCard({
 
       <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
         <Campo
-          rotulo="Data de gravação"
+          rotulo={txtData}
           valor={
             content.recording_date
               ? `${formatarData(content.recording_date)}${content.recording_time ? ` às ${content.recording_time}` : ""}`
@@ -127,7 +131,7 @@ export function RecordingCard({
           }
         />
         <Campo
-          rotulo="Prazo de gravação"
+          rotulo={txtPrazo}
           valor={content.recording_deadline ? formatarData(content.recording_deadline) : null}
         />
         <Campo
@@ -145,7 +149,7 @@ export function RecordingCard({
         <div className="mt-3 flex flex-wrap items-end gap-2">
           <div>
             <label className="text-[11px] uppercase tracking-wide text-gray-500">
-              Data da gravação
+              {txtData}
             </label>
             <Input
               type="date"
@@ -195,7 +199,7 @@ export function RecordingCard({
                 executar(() => marcarComoGravadoAction(content.id), true)
               }
             >
-              Marcar como gravado
+              {ehFoto ? "Marcar como feito" : "Marcar como gravado"}
             </Button>
           ) : null}
 
@@ -265,7 +269,7 @@ export function RecordingCard({
                 )
               }
             >
-              Não precisa gravar
+              {ehFoto ? "Não precisa produzir" : "Não precisa gravar"}
             </Button>
           ) : null}
         </div>

@@ -510,6 +510,7 @@ type ContentUrgencia = Pick<
   Content,
   | "status"
   | "priority"
+  | "format"
   | "script_deadline"
   | "recording_deadline"
   | "recording_date"
@@ -567,7 +568,10 @@ export function urgenciaConteudo(
     Pausado: "",
     Cancelado: "",
   };
-  const v = VERBO[content.status] || "Entregar";
+  // Foto/ensaio é produção, não "gravação": o verbo vira "Fotografar".
+  const ehFoto = /foto|ensaio/i.test(content.format ?? "");
+  const vBase = VERBO[content.status] || "Entregar";
+  const v = ehFoto && vBase === "Gravar" ? "Fotografar" : vBase;
 
   // Urgente manual fura a fila.
   if (content.priority === "Urgente") {

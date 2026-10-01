@@ -105,13 +105,13 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
 
   return (
     <>
-      <Button onClick={() => setAberto(true)}>+ Agendar gravações</Button>
+      <Button onClick={() => setAberto(true)}>+ Agendar produções</Button>
 
       {aberto ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl bg-white p-5 shadow-xl">
             <h2 className="mb-1 text-base font-semibold text-gray-900">
-              Agendar gravações em lote
+              Agendar produções em lote
             </h2>
             <p className="mb-4 text-xs text-gray-500">
               Escolha o cliente, a data e a hora, e marque os vídeos que vão ser

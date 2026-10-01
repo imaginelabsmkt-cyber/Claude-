@@ -107,8 +107,8 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
   return (
     <>
       <PageHeader
-        titulo="Gravações"
-        descricao="Conteúdos que precisam de gravação, por situação"
+        titulo="Produções"
+        descricao="Vídeos e fotos que precisam de produção, por situação"
         icone="gravacoes"
         tom="ambar"
         acao={
@@ -120,16 +120,16 @@ export default async function GravacoesPage({ searchParams }: PageProps) {
 
       {itens.length === 0 ? (
         <EmptyState
-          titulo="Nenhuma gravação encontrada"
+          titulo="Nenhuma produção encontrada"
           descricao="Ajuste os filtros ou marque conteúdos como 'precisa de gravação'."
         />
       ) : (
         <div className="space-y-8">
           {semana.length > 0 ? (
-            <Cards titulo="Gravações desta semana" lista={semana} />
+            <Cards titulo="Produções desta semana" lista={semana} />
           ) : null}
           {proxima.length > 0 ? (
-            <Cards titulo="Próximas gravações" lista={proxima} />
+            <Cards titulo="Próximas produções" lista={proxima} />
           ) : null}
           {aAgendar.length > 0 ? (
             <AAgendarList

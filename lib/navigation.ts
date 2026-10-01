@@ -65,8 +65,8 @@ export const NAVEGACAO: ItemNavegacao[] = [
   },
   {
     href: "/gravacoes",
-    label: "Gravações",
-    descricao: "Conteúdos em captação",
+    label: "Produções",
+    descricao: "Vídeos e fotos em captação",
     icone: "gravacoes",
   },
   {
