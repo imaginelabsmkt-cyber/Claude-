@@ -181,18 +181,27 @@ export function DemandsBoard({
       return (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999");
     });
 
+  const alternarEtapa = (d: Demand, idx: number) => {
+    const novo = (d.steps ?? []).map((s, i) =>
+      i === idx ? { ...s, done: !s.done } : s,
+    );
+    salvar(d.id, { steps: novo });
+  };
+
   const Linha = ({ d, i }: { d: Demand; i: number }) => {
     const atrasada =
       d.status !== "Feita" && !!d.due_date && d.due_date < hoje;
     const feita = d.status === "Feita";
+    const etapas = d.steps ?? [];
+    const feitas = etapas.filter((s) => s.done).length;
     return (
       <div
         className={cn(
-          "flex flex-wrap items-center gap-2 px-3 py-2.5",
           i > 0 && "border-t border-gray-100",
           feita && "bg-gray-50/60",
         )}
       >
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2.5">
         <button
           type="button"
           aria-label={feita ? "Reabrir" : "Marcar como feita"}
@@ -308,6 +317,46 @@ export function DemandsBoard({
             🗄️
           </button>
         </div>
+      </div>
+
+      {/* Etapas (checklist) da demanda, quando houver. */}
+      {etapas.length > 0 ? (
+        <div className="px-3 pb-2.5 pl-12">
+          <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+            Etapas {feitas}/{etapas.length}
+          </p>
+          <ul className="space-y-1">
+            {etapas.map((s, idx) => (
+              <li key={idx}>
+                <button
+                  type="button"
+                  disabled={salvando}
+                  onClick={() => alternarEtapa(d, idx)}
+                  className="flex items-center gap-2 text-left text-xs disabled:opacity-60"
+                >
+                  <span
+                    className={cn(
+                      "flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] text-white",
+                      s.done
+                        ? "border-green-600 bg-green-600"
+                        : "border-gray-300 hover:border-green-500",
+                    )}
+                  >
+                    {s.done ? "✓" : ""}
+                  </span>
+                  <span
+                    className={cn(
+                      s.done ? "text-gray-400 line-through" : "text-gray-600",
+                    )}
+                  >
+                    {s.label}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       </div>
     );
   };

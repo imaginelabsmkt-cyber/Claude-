@@ -79,6 +79,7 @@ export const FORMAT_OPTIONS: string[] = [
   "Story",
   "Post estático",
   "Vídeo longo",
+  "Ensaio de fotos",
   "Outro",
 ];
 

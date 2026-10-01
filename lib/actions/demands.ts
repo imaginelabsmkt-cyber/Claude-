@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
-import { DEMAND_STATUS_OPTIONS, type DemandStatus } from "@/types";
+import { DEMAND_STATUS_OPTIONS, type DemandStatus, type DemandStep } from "@/types";
 import { sincronizarDemanda } from "@/lib/google/demands-sync";
 import { aposResposta } from "@/lib/after";
 import {
@@ -33,6 +33,7 @@ export interface NovaDemanda {
   assignee_ids?: string[];
   client_id?: string | null;
   due_date?: string | null;
+  steps?: DemandStep[];
 }
 
 /** Cria uma demanda geral. */
@@ -57,6 +58,7 @@ export async function criarDemandaAction(
       client_id: input.client_id || null,
       due_date: input.due_date || null,
       status: "A fazer",
+      steps: (input.steps ?? []).filter((s) => s?.label?.trim()),
       created_by: userId,
     })
     .select("id")
@@ -89,6 +91,7 @@ export interface DemandaPatch {
   client_id?: string | null;
   due_date?: string | null;
   status?: DemandStatus;
+  steps?: DemandStep[];
 }
 
 /** Atualiza campos de uma demanda (título, área, responsáveis, prazo, status…). */
@@ -123,6 +126,9 @@ export async function atualizarDemandaAction(
       return { ok: false, error: "Status inválido." };
     }
     dados.status = patch.status;
+  }
+  if ("steps" in patch) {
+    dados.steps = (patch.steps ?? []).filter((s) => s?.label?.trim());
   }
   if (Object.keys(dados).length === 0) {
     return { ok: false, error: "Nada para salvar." };

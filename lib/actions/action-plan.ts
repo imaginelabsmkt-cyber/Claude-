@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
+import { aposResposta } from "@/lib/after";
+import { sincronizarGravacao } from "@/lib/google/sync";
+import { criarDemandaAction } from "@/lib/actions/demands";
+import { modeloParaItem } from "@/lib/plano/templates";
 import type { ActionPlanItemInsert } from "@/types";
 
 export interface EstrategiaResult {
@@ -150,6 +154,134 @@ export async function importarCronogramaAction(
   if (error) return { ok: false, error: "Não foi possível importar." };
   revalidatePath(`/clientes/${clientId}`);
   return { ok: true, quantidade: registros.length };
+}
+
+export interface GerarResult {
+  ok: boolean;
+  error?: string;
+  kind?: "ensaio" | "demanda";
+  id?: string;
+}
+
+/**
+ * Transforma um item FAVIE do plano numa TAREFA de verdade:
+ *  - ensaio/sessão de fotos -> conteúdo de produção (Gravações + Agenda);
+ *  - demais -> demanda com etapas (checklist) já preenchidas.
+ * Liga o item à tarefa criada (idempotente: não gera de novo se já tem).
+ */
+export async function gerarTarefaDoItemAction(
+  clientId: string,
+  itemId: string,
+): Promise<GerarResult> {
+  if (!clientId || !itemId) return { ok: false, error: "Item inválido." };
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+
+  const supabase = createClient();
+  const { data: item } = await supabase
+    .from("action_plan_items")
+    .select(
+      "id, title, owner, due_date, date_label, linked_demand_id, linked_content_id",
+    )
+    .eq("id", itemId)
+    .maybeSingle();
+  if (!item) return { ok: false, error: "Item não encontrado." };
+  if (item.owner === "Cliente") {
+    return { ok: false, error: "Esse item é do cliente, não vira tarefa da equipe." };
+  }
+  if (item.linked_demand_id || item.linked_content_id) {
+    return { ok: false, error: "Esse item já virou tarefa." };
+  }
+
+  const modelo = modeloParaItem(item.title);
+  const due =
+    item.due_date && /^\d{4}-\d{2}-\d{2}$/.test(item.due_date)
+      ? item.due_date
+      : null;
+
+  if (modelo.kind === "ensaio") {
+    const referenceMonth = (due ?? new Date().toISOString().slice(0, 10)).slice(0, 7);
+    const { data: novo, error } = await supabase
+      .from("contents")
+      .insert({
+        client_id: clientId,
+        title: item.title.slice(0, 200),
+        format: "Ensaio de fotos",
+        status: "Aguardando gravação",
+        priority: "Alta",
+        reference_month: referenceMonth,
+        planned_week: null,
+        planned_date: null,
+        actual_post_date: null,
+        requires_recording: true,
+        recording_date: due, // se o plano previu a data, já vai pra Agenda
+        recording_location: null,
+        outfit: null,
+        participants: [],
+        description: item.date_label ? `Previsão do plano: ${item.date_label}` : null,
+        content_pillar: null,
+        objective: null,
+        planner_id: null,
+        recorder_id: null,
+        editor_id: null,
+        publisher_id: null,
+        script_deadline: null,
+        recording_deadline: due,
+        editing_deadline: null,
+        script_url: null,
+        raw_files_url: null,
+        edited_file_url: null,
+        published_url: null,
+        notes: null,
+      })
+      .select("id")
+      .single();
+    if (error || !novo) {
+      return { ok: false, error: "Não foi possível criar o ensaio." };
+    }
+
+    await supabase
+      .from("action_plan_items")
+      .update({
+        linked_content_id: novo.id,
+        status: "Fazendo",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", itemId);
+
+    // Com data prevista, manda já pra Agenda do Google (como uma gravação).
+    if (due) aposResposta(() => sincronizarGravacao(novo.id));
+
+    revalidatePath(`/clientes/${clientId}`);
+    revalidatePath("/gravacoes");
+    return { ok: true, kind: "ensaio", id: novo.id };
+  }
+
+  // Demanda com etapas (checklist) já preenchidas.
+  const r = await criarDemandaAction({
+    title: item.title,
+    category: modelo.category,
+    client_id: clientId,
+    due_date: item.due_date ?? null,
+    steps: modelo.steps,
+  });
+  if (!r.ok || !r.id) {
+    return { ok: false, error: r.error ?? "Não foi possível criar a demanda." };
+  }
+
+  await supabase
+    .from("action_plan_items")
+    .update({
+      linked_demand_id: r.id,
+      status: "Fazendo",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", itemId);
+
+  revalidatePath(`/clientes/${clientId}`);
+  revalidatePath("/demandas");
+  return { ok: true, kind: "demanda", id: r.id };
 }
 
 /** Remove uma estratégia (arquiva). */

@@ -12,6 +12,7 @@ import {
   statusEstrategiaAction,
   excluirEstrategiaAction,
   importarCronogramaAction,
+  gerarTarefaDoItemAction,
   type DadosEstrategia,
 } from "@/lib/actions/action-plan";
 import {
@@ -155,6 +156,21 @@ export function ClientActionPlan({
         toast.sucesso("Item removido");
         router.refresh();
       }
+    });
+
+  const gerarTarefa = (it: ActionPlanItem) =>
+    iniciar(async () => {
+      const r = await gerarTarefaDoItemAction(clientId, it.id);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível gerar a tarefa.");
+        return;
+      }
+      toast.sucesso(
+        r.kind === "ensaio"
+          ? "Virou ensaio — já está nas Gravações"
+          : "Virou demanda com etapas",
+      );
+      router.refresh();
     });
 
   const baixar = async (it: ActionPlanItem) => {
@@ -527,6 +543,35 @@ export function ClientActionPlan({
                           <Icon nome="download" className="h-3.5 w-3.5" />
                           {it.file_name}
                         </button>
+                      ) : null}
+                      {/* Virar tarefa: só pra itens da FAVIE ainda sem vínculo. */}
+                      {it.owner !== "Cliente" &&
+                      !it.linked_demand_id &&
+                      !it.linked_content_id ? (
+                        <button
+                          type="button"
+                          onClick={() => gerarTarefa(it)}
+                          disabled={salvando}
+                          className="inline-flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2 py-0.5 font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-60"
+                        >
+                          + Gerar tarefa
+                        </button>
+                      ) : null}
+                      {it.linked_content_id ? (
+                        <a
+                          href="/gravacoes"
+                          className="inline-flex items-center gap-1 font-semibold text-green-700 hover:underline"
+                        >
+                          ✓ Virou ensaio
+                        </a>
+                      ) : null}
+                      {it.linked_demand_id ? (
+                        <a
+                          href="/demandas"
+                          className="inline-flex items-center gap-1 font-semibold text-green-700 hover:underline"
+                        >
+                          ✓ Virou demanda
+                        </a>
                       ) : null}
                       <button
                         type="button"
