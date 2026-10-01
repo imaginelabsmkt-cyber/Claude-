@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/lib/ui/toast";
@@ -62,7 +62,7 @@ function rotuloData(it: ActionPlanItem): string | null {
 
 export function ClientActionPlan({
   clientId,
-  itens,
+  itens: itensProp,
   perfis,
 }: {
   clientId: string;
@@ -75,6 +75,15 @@ export function ClientActionPlan({
   const [form, setForm] = useState<DadosEstrategia | null>(null);
   const [salvando, iniciar] = useTransition();
   const [enviandoArq, setEnviandoArq] = useState(false);
+
+  // Palpite otimista por item (status): a tela muda NA HORA no clique, sem
+  // esperar o servidor nem recarregar a página. Zera quando chegam dados novos.
+  const [otim, setOtim] = useState<Record<string, Partial<ActionPlanItem>>>({});
+  useEffect(() => setOtim({}), [itensProp]);
+  const itens = useMemo(
+    () => itensProp.map((i) => (otim[i.id] ? { ...i, ...otim[i.id] } : i)),
+    [itensProp, otim],
+  );
 
   // Importação do plano (arquivo PDF ou texto colado).
   const [importOpen, setImportOpen] = useState(false);
@@ -142,12 +151,21 @@ export function ClientActionPlan({
       router.refresh();
     });
 
-  const mudarStatus = (id: string, status: string) =>
+  // Muda o status NA HORA (otimista) e salva no servidor em segundo plano, SEM
+  // recarregar a página (era isso que travava a cada clique).
+  const mudarStatus = (id: string, status: string) => {
+    setOtim((o) => ({ ...o, [id]: { ...o[id], status } }));
     iniciar(async () => {
       const r = await statusEstrategiaAction(clientId, id, status);
-      if (!r.ok) toast.erro(r.error ?? "Erro");
-      else router.refresh();
+      if (!r.ok) {
+        toast.erro(r.error ?? "Erro");
+        setOtim((o) => {
+          const { [id]: _, ...resto } = o;
+          return resto; // desfaz o palpite
+        });
+      }
     });
+  };
 
   // Check rápido: liga/desliga "Feito" com um clique (sem abrir o seletor).
   const alternarFeito = (it: ActionPlanItem) =>

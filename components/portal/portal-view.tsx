@@ -13,11 +13,6 @@ import {
   type ResultadoPortal,
   type ResumoMes,
 } from "@/lib/portal/tipos";
-import {
-  PLANO_STAGES,
-  PLANO_STAGE_RESUMO,
-  PLANO_STATUS_LABEL,
-} from "@/types";
 
 const NOMES_MES = [
   "jan", "fev", "mar", "abr", "mai", "jun",
@@ -501,22 +496,22 @@ export function PortalView({
     grupos.set(k, [...(grupos.get(k) ?? []), d]);
   }
 
-  // Plano de ação no painel: o cronograma da FAVIE (o que a gente faz) vira a
-  // linha do tempo; o que o cliente precisa fazer vai pro bloco destacado, pra
-  // não repetir. Itens do cliente já feitos não precisam aparecer.
+  // Plano de ação SINTETIZADO pro painel: em vez de despejar a lista inteira,
+  // mostramos o que a FAVIE está fazendo, resumido em "em andamento", "próximos"
+  // e quantos já foram concluídos, com uma barra de progresso. O que depende do
+  // cliente vai pro bloco destacado "O que precisamos de você".
   const planoFavie = planoAcao.filter((e) => e.owner !== "Cliente");
-  const planoPorEtapa = new Map<string, typeof planoAcao>();
-  for (const e of planoFavie) {
-    const k =
-      e.stage && (PLANO_STAGES as readonly string[]).includes(e.stage)
-        ? e.stage
-        : "Outros";
-    planoPorEtapa.set(k, [...(planoPorEtapa.get(k) ?? []), e]);
-  }
-  const planoGrupos = [...PLANO_STAGES, "Outros"]
-    .filter((e) => planoPorEtapa.has(e))
-    .map((e) => ({ etapa: e, lista: planoPorEtapa.get(e) ?? [] }));
-  const temEtapasPlano = planoGrupos.some((g) => g.etapa !== "Outros");
+  const porData = (a: (typeof planoAcao)[number], b: (typeof planoAcao)[number]) =>
+    (a.dateLabel ? 0 : 1) - (b.dateLabel ? 0 : 1);
+  const planoFeitos = planoFavie.filter((e) => e.status === "Feita");
+  const planoAndamento = planoFavie.filter((e) => e.status === "Fazendo");
+  const planoProximos = planoFavie
+    .filter((e) => e.status !== "Feita" && e.status !== "Fazendo")
+    .sort(porData);
+  const planoPct =
+    planoFavie.length > 0
+      ? Math.round((planoFeitos.length / planoFavie.length) * 100)
+      : 0;
   const precisamosVoce = planoAcao.filter(
     (e) => e.owner === "Cliente" && e.status !== "Feita",
   );
@@ -597,76 +592,94 @@ export function PortalView({
               <span aria-hidden>🎯</span>
               Plano de ação
             </h2>
-            <div className="space-y-4">
-              {planoGrupos.map(({ etapa, lista }) => (
-                <div key={etapa}>
-                  {temEtapasPlano ? (
-                    <div className="mb-1.5 flex items-baseline gap-2">
-                      <h3 className="text-xs font-bold uppercase tracking-wide text-gray-700">
-                        {etapa === "Outros" ? "Mais itens" : etapa}
-                      </h3>
-                      {PLANO_STAGE_RESUMO[etapa] ? (
-                        <span className="text-[11px] text-gray-400">
-                          {PLANO_STAGE_RESUMO[etapa]}
+
+            {/* Progresso do mês */}
+            <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-semibold text-gray-800">
+                  Andamento do mês
+                </span>
+                <span className="text-sm font-bold text-brand-700">
+                  {planoFeitos.length}/{planoFavie.length} concluídos
+                </span>
+              </div>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full rounded-full bg-brand-500"
+                  style={{ width: `${planoPct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Em andamento agora */}
+            {planoAndamento.length > 0 ? (
+              <div className="mt-3">
+                <h3 className="mb-1.5 text-xs font-bold uppercase tracking-wide text-amber-700">
+                  Em andamento agora
+                </h3>
+                <div className="space-y-2">
+                  {planoAndamento.map((e) => (
+                    <div
+                      key={e.id}
+                      className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3 shadow-sm"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        {e.dateLabel ? (
+                          <span className="rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                            {e.dateLabel}
+                          </span>
+                        ) : null}
+                        <span className="text-sm font-semibold text-gray-900">
+                          {e.title}
                         </span>
+                      </div>
+                      {e.description ? (
+                        <p className="mt-1 whitespace-pre-wrap text-[13px] leading-relaxed text-gray-600">
+                          {e.description}
+                        </p>
                       ) : null}
                     </div>
-                  ) : null}
-                  <div className="space-y-2">
-                    {lista.map((e) => {
-                      const tom =
-                        e.status === "Feita"
-                          ? "bg-green-100 text-green-700"
-                          : e.status === "Fazendo"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-gray-100 text-gray-600";
-                      return (
-                        <div
-                          key={e.id}
-                          className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm"
-                        >
-                          <div className="flex flex-wrap items-center gap-2">
-                            {e.dateLabel ? (
-                              <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
-                                {e.dateLabel}
-                              </span>
-                            ) : null}
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${e.owner === "Cliente" ? "bg-amber-100 text-amber-800" : "bg-brand-100 text-brand-700"}`}
-                            >
-                              {e.owner === "Cliente" ? "Você" : "FAVIE"}
-                            </span>
-                            <span className="text-sm font-semibold text-gray-900">
-                              {e.title}
-                            </span>
-                            <span
-                              className={`ml-auto rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tom}`}
-                            >
-                              {PLANO_STATUS_LABEL[e.status] ?? e.status}
-                            </span>
-                          </div>
-                          {e.description ? (
-                            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                              {e.description}
-                            </p>
-                          ) : null}
-                          {e.arquivo ? (
-                            <a
-                              href={e.arquivo.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:underline"
-                            >
-                              ⬇ {e.arquivo.name}
-                            </a>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : null}
+
+            {/* Próximos passos */}
+            {planoProximos.length > 0 ? (
+              <div className="mt-3 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-700">
+                  Próximos passos
+                </h3>
+                <ul className="space-y-2">
+                  {planoProximos.slice(0, 6).map((e) => (
+                    <li key={e.id} className="flex items-start gap-2 text-sm">
+                      <span aria-hidden className="mt-0.5 text-gray-300">
+                        ○
+                      </span>
+                      <span className="text-gray-800">
+                        {e.title}
+                        {e.dateLabel ? (
+                          <span className="text-gray-400"> · {e.dateLabel}</span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {planoProximos.length > 6 ? (
+                  <p className="mt-2 text-[11px] text-gray-400">
+                    +{planoProximos.length - 6} outros no plano
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* Já concluído */}
+            {planoFeitos.length > 0 ? (
+              <p className="mt-3 text-xs font-medium text-green-700">
+                ✓ {planoFeitos.length} já concluído
+                {planoFeitos.length > 1 ? "s" : ""} neste plano
+              </p>
+            ) : null}
           </section>
         ) : null}
 
