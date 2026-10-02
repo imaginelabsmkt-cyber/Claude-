@@ -101,6 +101,30 @@ function CartaoPost({ post }: { post: PortalPost }) {
   );
 }
 
+/** Métricas que o dashboard sempre mostra (mesmo antes de começar o tráfego). */
+const DASHBOARD_PADRAO = [
+  "Investimento",
+  "Pessoas alcançadas",
+  "Impressões",
+  "Visitas à página",
+  "Conversas iniciadas",
+];
+
+/** Explicação curta de cada métrica (o cliente toca pra ver). */
+const EXPLICACAO_METRICA: Record<string, string> = {
+  Investimento: "Quanto foi investido nos anúncios nesta semana.",
+  "Pessoas alcançadas": "Quantas pessoas diferentes viram os seus anúncios.",
+  Impressões:
+    "Quantas vezes os anúncios apareceram na tela (a mesma pessoa pode ver mais de uma vez).",
+  "Visitas à página":
+    "Quantas pessoas visitaram o seu perfil ou página vindas dos anúncios.",
+  "Cliques no link": "Quantas pessoas clicaram no link do anúncio.",
+  "Conversas iniciadas":
+    "Quantas pessoas começaram uma conversa com você pelos anúncios.",
+  Resultados: "Quantas das ações que definimos como objetivo aconteceram.",
+  "Custo por resultado": "Quanto custou, em média, cada resultado.",
+};
+
 function ResultadoBloco({
   token,
   resultado,
@@ -115,10 +139,15 @@ function ResultadoBloco({
   const [sources, setSources] = useState(resultado.sources ?? "");
   const [comment, setComment] = useState(resultado.comment ?? "");
   const [enviando, iniciar] = useTransition();
+  const [explicando, setExplicando] = useState<string | null>(null);
 
-  const temTabela = !!resultado.table && resultado.table.length > 0;
-  const temTrafego =
-    temTabela || resultado.metrics.length > 0 || !!resultado.teamNote?.trim();
+  // O dashboard aparece SEMPRE: com os números quando a equipe sobe o relatório,
+  // ou com as métricas em branco (—) antes do tráfego começar, pra já dar a cara
+  // do painel. Os extras da planilha que não estão no padrão entram no fim.
+  const semDados = resultado.metrics.length === 0;
+  const metricasExibir = semDados
+    ? DASHBOARD_PADRAO.map((label) => ({ label, value: "" }))
+    : resultado.metrics;
 
   // Funil: conversas iniciadas (Meta) x quantos o cliente fechou.
   const conversao = (() => {
@@ -158,78 +187,87 @@ function ResultadoBloco({
         Resultados da semana
       </h2>
 
-      {/* Tráfego pago / anúncios (equipe) */}
-      {temTrafego ? (
-        <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">
+      {/* Dashboard do tráfego pago — sempre visível */}
+      <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
             Tráfego pago (anúncios)
           </p>
-          {resultado.metrics.length > 0 ? (
-            <>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {resultado.metrics.map((m, i) => (
-                  <div
-                    key={i}
-                    className="rounded-xl bg-gradient-to-br from-brand-50 to-white p-3 text-center ring-1 ring-brand-100"
-                  >
-                    <p className="text-lg font-extrabold leading-tight text-brand-800">
-                      {m.value || "—"}
-                    </p>
-                    <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
-                      {m.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              {conversao ? (
-                <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-brand-800 px-4 py-3 text-white">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-wide text-white/70">
-                      Conversas que viraram cliente
-                    </p>
-                    <p className="text-sm font-semibold">
-                      {conversao.conversas} conversas → {conversao.fechou}{" "}
-                      fechado{conversao.fechou === 1 ? "" : "s"}
-                    </p>
-                  </div>
-                  <p className="text-2xl font-extrabold">{conversao.taxa}%</p>
-                </div>
-              ) : null}
-            </>
-          ) : temTabela ? (
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="w-full border-collapse text-left text-xs sm:text-sm">
-                <tbody>
-                  {resultado.table!.map((linha, i) => (
-                    <tr
-                      key={i}
-                      className={
-                        i === 0
-                          ? "bg-brand-50 font-semibold text-brand-800"
-                          : "border-t border-gray-100"
-                      }
-                    >
-                      {linha.map((cel, j) => (
-                        <td
-                          key={j}
-                          className="whitespace-nowrap px-3 py-2 text-gray-700"
-                        >
-                          {cel}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : null}
-          {resultado.teamNote?.trim() ? (
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-              {resultado.teamNote}
-            </p>
+          {semDados ? (
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+              começa em breve
+            </span>
           ) : null}
         </div>
-      ) : null}
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {metricasExibir.map((m, i) => {
+            const temExpl = !!EXPLICACAO_METRICA[m.label];
+            const ativo = explicando === m.label;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() =>
+                  temExpl ? setExplicando(ativo ? null : m.label) : undefined
+                }
+                className={`relative rounded-xl bg-gradient-to-br from-brand-50 to-white p-3 text-center ring-1 transition-all ${ativo ? "ring-brand-400" : "ring-brand-100"}`}
+              >
+                {temExpl ? (
+                  <span className="absolute right-1.5 top-1.5 text-[10px] text-brand-300">
+                    ⓘ
+                  </span>
+                ) : null}
+                <p className="text-lg font-extrabold leading-tight text-brand-800">
+                  {m.value || "—"}
+                </p>
+                <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
+                  {m.label}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Explicação da métrica tocada */}
+        {explicando && EXPLICACAO_METRICA[explicando] ? (
+          <div className="mt-2 rounded-xl bg-brand-50 px-3 py-2 text-[13px] leading-relaxed text-brand-800">
+            <span className="font-semibold">{explicando}:</span>{" "}
+            {EXPLICACAO_METRICA[explicando]}
+          </div>
+        ) : (
+          <p className="mt-2 text-[11px] text-gray-400">
+            Toque num número pra ver o que ele significa.
+          </p>
+        )}
+
+        {conversao ? (
+          <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-brand-800 px-4 py-3 text-white">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-white/70">
+                Conversas que viraram cliente
+              </p>
+              <p className="text-sm font-semibold">
+                {conversao.conversas} conversas → {conversao.fechou}{" "}
+                fechado{conversao.fechou === 1 ? "" : "s"}
+              </p>
+            </div>
+            <p className="text-2xl font-extrabold">{conversao.taxa}%</p>
+          </div>
+        ) : null}
+
+        {resultado.teamNote?.trim() ? (
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+            {resultado.teamNote}
+          </p>
+        ) : null}
+
+        {semDados ? (
+          <p className="mt-3 text-xs text-gray-500">
+            Os números aparecem aqui toda semana, assim que a campanha começar.
+          </p>
+        ) : null}
+      </div>
 
       {/* Retorno do cliente (formulário) */}
       <div className="mt-3 rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
