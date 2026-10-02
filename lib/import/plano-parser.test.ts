@@ -180,3 +180,29 @@ describe("parsePlanoAcao — seção 'O que precisamos de vocês'", () => {
     expect(cron?.dueDate).toBe("2026-09-30");
   });
 });
+
+describe("parsePlanoAcao — junta itens repetidos (dedup)", () => {
+  it("funde 'Aprovar o plano' com 'Aprovação do plano de ação' (fica o datado)", () => {
+    const texto = `
+O   que   precisamos   de   vocês
+Aprovar   o   plano
+Cronograma   previsão
+30/09
+quarta   Aprovação   do   plano   de   ação   Vocês   fazem
+`;
+    const itens = parsePlanoAcao(texto, 2026);
+    const plano = itens.filter((i) => /plano/i.test(i.titulo));
+    expect(plano.length).toBe(1);
+    expect(plano[0].titulo).toBe("Aprovação do plano de ação");
+    expect(plano[0].dueDate).toBe("2026-09-30");
+  });
+
+  it("NÃO funde itens só parecidos de leve (carrosséis diferentes)", () => {
+    const texto = `
+07/10   Carrossel   "Vem conhecer o Studio Bambu"   FAVIE
+09/10   Carrossel   "Como começar no Studio Bambu"   FAVIE
+`;
+    const itens = parsePlanoAcao(texto, 2026);
+    expect(itens.length).toBe(2);
+  });
+});

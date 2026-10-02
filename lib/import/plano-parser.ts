@@ -163,9 +163,73 @@ function limparTitulo(s: string): string {
   return t.replace(/\s+/g, " ").trim();
 }
 
+// --- Deduplicação de itens parecidos -----------------------------------
+// O plano repete a mesma tarefa em dois lugares (a caixa "O que precisamos de
+// vocês" e o cronograma), então "Aprovar o plano" e "Aprovação do plano de
+// ação" viram dois itens. Aqui a gente junta esses pares, de forma conservadora:
+// só entre itens do MESMO responsável e com alta sobreposição de radicais.
+
+const STOPWORDS = new Set([
+  "o", "a", "os", "as", "de", "do", "da", "dos", "das", "e", "ou", "em", "no",
+  "na", "nos", "nas", "para", "pra", "por", "com", "se", "que", "um", "uma",
+  "ao", "aos", "the", "of", "sua", "seu", "nesta", "cada",
+]);
+
+/** Radicais significativos de um título (sem stopword, sem número, prefixo 5). */
+function radicais(titulo: string): Set<string> {
+  const out = new Set<string>();
+  for (const tok of base(titulo).split(/[^a-z0-9]+/)) {
+    if (tok.length < 2 || STOPWORDS.has(tok) || /\d/.test(tok)) continue;
+    out.add(tok.slice(0, 5));
+  }
+  return out;
+}
+
+/** Dois títulos são "o mesmo" se compartilham >=2 radicais e >=70% do menor. */
+function saoParecidos(a: string, b: string): boolean {
+  const ra = radicais(a);
+  const rb = radicais(b);
+  if (ra.size === 0 || rb.size === 0) return false;
+  let comum = 0;
+  for (const r of ra) if (rb.has(r)) comum += 1;
+  return comum >= 2 && comum / Math.min(ra.size, rb.size) >= 0.7;
+}
+
+/** Entre dois itens repetidos, fica com o melhor (com data > mais completo). */
+function melhorItem(a: ItemPlano, b: ItemPlano): ItemPlano {
+  const princ =
+    a.dueDate && !b.dueDate
+      ? a
+      : b.dueDate && !a.dueDate
+        ? b
+        : a.titulo.length >= b.titulo.length
+          ? a
+          : b;
+  const outro = princ === a ? b : a;
+  return {
+    ...princ,
+    dueDate: princ.dueDate ?? outro.dueDate,
+    dateLabel: princ.dateLabel ?? outro.dateLabel,
+    status: a.status === "Feita" || b.status === "Feita" ? "Feita" : princ.status,
+  };
+}
+
+/** Junta itens repetidos (mesmo responsável, títulos muito parecidos). */
+function deduplicar(itens: ItemPlano[]): ItemPlano[] {
+  const out: ItemPlano[] = [];
+  for (const item of itens) {
+    const i = out.findIndex(
+      (o) => o.owner === item.owner && saoParecidos(o.titulo, item.titulo),
+    );
+    if (i === -1) out.push(item);
+    else out[i] = melhorItem(out[i], item);
+  }
+  return out;
+}
+
 /**
  * Interpreta o texto do plano de ação. `ano` monta as datas (o texto traz só
- * dia/mês). Devolve os itens na ordem em que aparecem.
+ * dia/mês). Devolve os itens na ordem em que aparecem, sem repetidos.
  */
 export function parsePlanoAcao(texto: string, ano: number): ItemPlano[] {
   const cruas = texto
@@ -283,5 +347,5 @@ export function parsePlanoAcao(texto: string, ano: number): ItemPlano[] {
   }
 
   fecharItemSecao(); // caso a seção vá até o fim do texto
-  return itens;
+  return deduplicar(itens);
 }
