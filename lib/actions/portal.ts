@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { usuarioAtualId } from "@/lib/auth";
 
 export interface PortalResult {
@@ -66,4 +67,54 @@ export async function regenerarLinkPortalAction(
 
   revalidatePath(`/clientes/${clientId}`);
   return { ok: true, token, enabled: true };
+}
+
+export interface PortalAcaoResult {
+  ok: boolean;
+  error?: string;
+}
+
+/**
+ * Marca/desmarca um item do plano como feito, PELO CLIENTE (painel por link
+ * secreto, sem login). Seguro: valida o token -> cliente, e só deixa mexer em
+ * item DAQUELE cliente e que seja de responsabilidade do CLIENTE (owner
+ * "Cliente"). O cliente nunca mexe no que é da FAVIE.
+ */
+export async function marcarPlanoClienteAction(
+  token: string,
+  itemId: string,
+  feito: boolean,
+): Promise<PortalAcaoResult> {
+  if (!token || !itemId) return { ok: false, error: "Link inválido." };
+  const admin = createAdminClient();
+  if (!admin) return { ok: false, error: "Indisponível no momento." };
+
+  const { data: cliente } = await admin
+    .from("clients")
+    .select("id")
+    .eq("portal_token", token)
+    .eq("portal_enabled", true)
+    .eq("is_internal", false)
+    .maybeSingle();
+  if (!cliente) return { ok: false, error: "Link indisponível." };
+
+  const { data: item } = await admin
+    .from("action_plan_items")
+    .select("id, client_id, owner")
+    .eq("id", itemId)
+    .maybeSingle();
+  if (!item || item.client_id !== cliente.id || item.owner !== "Cliente") {
+    return { ok: false, error: "Item inválido." };
+  }
+
+  const { error } = await admin
+    .from("action_plan_items")
+    .update({
+      status: feito ? "Feita" : "A fazer",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", itemId);
+  if (error) return { ok: false, error: "Não foi possível salvar." };
+
+  return { ok: true };
 }

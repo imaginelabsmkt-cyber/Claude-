@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "@/lib/ui/toast";
 import { enviarResultadoClienteAction } from "@/lib/actions/resultados";
+import { marcarPlanoClienteAction } from "@/lib/actions/portal";
 import {
   STATUS_CLIENTE,
   type DadosPortal,
@@ -512,9 +513,26 @@ export function PortalView({
     planoFavie.length > 0
       ? Math.round((planoFeitos.length / planoFavie.length) * 100)
       : 0;
-  const precisamosVoce = planoAcao.filter(
-    (e) => e.owner === "Cliente" && e.status !== "Feita",
-  );
+  // O que precisamos do cliente: TODOS os itens do cliente (feitos e a fazer),
+  // pra ele poder dar check no que já resolveu. Check otimista + salva por token.
+  const [feitoCliente, setFeitoCliente] = useState<Record<string, boolean>>({});
+  const [, iniciarCheck] = useTransition();
+  const estaFeito = (e: (typeof planoAcao)[number]) =>
+    feitoCliente[e.id] ?? e.status === "Feita";
+  const alternarCliente = (e: (typeof planoAcao)[number]) => {
+    const novo = !estaFeito(e);
+    setFeitoCliente((m) => ({ ...m, [e.id]: novo }));
+    iniciarCheck(async () => {
+      const r = await marcarPlanoClienteAction(token, e.id, novo);
+      if (!r.ok) {
+        setFeitoCliente((m) => ({ ...m, [e.id]: !novo })); // desfaz
+        toast.erro(r.error ?? "Não foi possível salvar.");
+      }
+    });
+  };
+  const precisamosVoce = planoAcao
+    .filter((e) => e.owner === "Cliente")
+    .sort((a, b) => Number(estaFeito(a)) - Number(estaFeito(b)));
 
   return (
     <main className="min-h-screen bg-[#fff7ea] pb-16">
@@ -556,31 +574,57 @@ export function PortalView({
           </Link>
         </div>
 
-        {/* O que precisamos de você (itens do cliente, pendentes) */}
+        {/* O que precisamos de você (itens do cliente — pode dar check) */}
         {precisamosVoce.length > 0 ? (
           <section className="mt-6">
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-              <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800">
+              <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800">
                 <span aria-hidden>🙌</span>
                 O que precisamos de você
               </h2>
-              <ul className="space-y-2">
-                {precisamosVoce.map((e) => (
-                  <li key={e.id} className="flex gap-2 text-sm text-amber-900">
-                    <span aria-hidden className="mt-0.5">•</span>
-                    <span>
-                      <span className="font-semibold">{e.title}</span>
-                      {e.dateLabel ? (
-                        <span className="text-amber-700"> · {e.dateLabel}</span>
-                      ) : null}
-                      {e.description ? (
-                        <span className="block text-[13px] font-normal text-amber-800/80">
-                          {e.description}
+              <p className="mb-3 text-[11px] text-amber-700">
+                Toque no círculo pra marcar o que você já resolveu.
+              </p>
+              <ul className="space-y-1.5">
+                {precisamosVoce.map((e) => {
+                  const feito = estaFeito(e);
+                  return (
+                    <li key={e.id}>
+                      <button
+                        type="button"
+                        onClick={() => alternarCliente(e)}
+                        className="flex w-full items-start gap-2.5 rounded-lg p-1.5 text-left hover:bg-amber-100/60"
+                      >
+                        <span
+                          aria-hidden
+                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] text-white transition-colors ${feito ? "border-green-600 bg-green-600" : "border-amber-400 bg-white"}`}
+                        >
+                          {feito ? "✓" : ""}
                         </span>
-                      ) : null}
-                    </span>
-                  </li>
-                ))}
+                        <span className="text-sm">
+                          <span
+                            className={`font-semibold ${feito ? "text-amber-900/50 line-through" : "text-amber-900"}`}
+                          >
+                            {e.title}
+                          </span>
+                          {e.dateLabel ? (
+                            <span
+                              className={feito ? "text-amber-700/50" : "text-amber-700"}
+                            >
+                              {" "}
+                              · {e.dateLabel}
+                            </span>
+                          ) : null}
+                          {e.description && !feito ? (
+                            <span className="block text-[13px] font-normal text-amber-800/80">
+                              {e.description}
+                            </span>
+                          ) : null}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </section>
