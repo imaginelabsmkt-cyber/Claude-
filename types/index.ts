@@ -180,6 +180,16 @@ export const PLANO_STATUS_LABEL: Record<string, string> = {
   Feita: "Feito",
 };
 
+/** Fontes de onde os contatos do cliente podem vir (resultados da semana). */
+export const FONTES_CONTATO = [
+  "Anúncio",
+  "Instagram",
+  "Link da bio",
+  "Indicação",
+  "Google",
+  "Outro",
+] as const;
+
 /** Áreas/tipos de demanda, para organizar o acompanhamento por cliente. */
 export const DEMAND_CATEGORIES = [
   "Conteúdo",

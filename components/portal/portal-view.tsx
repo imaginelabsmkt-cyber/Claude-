@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { toast } from "@/lib/ui/toast";
 import { enviarResultadoClienteAction } from "@/lib/actions/resultados";
 import { marcarPlanoClienteAction } from "@/lib/actions/portal";
+import { FONTES_CONTATO } from "@/types";
 import {
   STATUS_CLIENTE,
   type DadosPortal,
@@ -136,10 +137,20 @@ function ResultadoBloco({
   const [closed, setClosed] = useState(
     resultado.closedCount != null ? String(resultado.closedCount) : "",
   );
-  const [sources, setSources] = useState(resultado.sources ?? "");
+  const [sources] = useState(resultado.sources ?? "");
   const [comment, setComment] = useState(resultado.comment ?? "");
+  // Contatos por fonte (contagem) — jeito rápido de informar de onde vieram.
+  const [fontes, setFontes] = useState<Record<string, number>>(() => ({
+    ...resultado.sourcesBreakdown,
+  }));
+  const ajustarFonte = (fonte: string, delta: number) =>
+    setFontes((f) => ({ ...f, [fonte]: Math.max(0, (f[fonte] ?? 0) + delta) }));
+  const totalContatos = Object.values(fontes).reduce((a, b) => a + (b || 0), 0);
   const [enviando, iniciar] = useTransition();
   const [explicando, setExplicando] = useState<string | null>(null);
+  // Formulário aberto por padrão só quando ainda não respondeu; depois vira
+  // uma visão de dashboard com botão "Atualizar".
+  const [editando, setEditando] = useState(!resultado.respondido);
 
   // O dashboard aparece SEMPRE: com os números quando a equipe sobe o relatório,
   // ou com as métricas em branco (—) antes do tráfego começar, pra já dar a cara
@@ -171,12 +182,14 @@ function ResultadoBloco({
         closedCount: closed,
         sources,
         comment,
+        sourcesBreakdown: fontes,
       });
       if (!r.ok) {
         toast.erro(r.error ?? "Não foi possível enviar.");
         return;
       }
       toast.sucesso("Enviado! Obrigada 💛");
+      setEditando(false);
       router.refresh();
     });
 
@@ -269,63 +282,175 @@ function ResultadoBloco({
         ) : null}
       </div>
 
-      {/* Retorno do cliente (formulário) */}
+      {/* Seus resultados — entram no dashboard e viram relatório */}
       <div className="mt-3 rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
         <p className="text-sm font-semibold text-brand-800">
-          Conta pra gente como foi a sua semana 💬
+          Seus resultados desta semana 💬
         </p>
         <p className="mt-0.5 text-xs text-gray-600">
-          Isso ajuda a gente a melhorar ainda mais os seus resultados.
+          Quantos viraram cliente e de onde vieram. Isso completa o dashboard.
         </p>
 
-        <label className="mt-3 block text-xs font-medium text-gray-600">
-          Quantos você fechou nesta semana?{" "}
-          <span className="text-gray-400">
-            (viraram consulta, agendamento ou cliente)
-          </span>
-        </label>
-        <input
-          inputMode="numeric"
-          value={closed}
-          onChange={(e) => setClosed(e.target.value.replace(/[^0-9]/g, ""))}
-          placeholder="Ex.: 5"
-          className="mt-1 w-32 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
-        />
+        {resultado.respondido && !editando ? (
+          <>
+            {/* Visão dashboard da resposta do cliente */}
+            {(() => {
+              const entradas = Object.entries(resultado.sourcesBreakdown).filter(
+                ([, v]) => v > 0,
+              );
+              const totContatos = entradas.reduce((a, [, v]) => a + v, 0);
+              return (
+                <>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="rounded-xl bg-white p-3 text-center ring-1 ring-brand-100">
+                      <p className="text-lg font-extrabold leading-tight text-brand-800">
+                        {totContatos || "—"}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
+                        Contatos
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white p-3 text-center ring-1 ring-brand-100">
+                      <p className="text-lg font-extrabold leading-tight text-brand-800">
+                        {resultado.closedCount ?? "—"}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
+                        Fecharam
+                      </p>
+                    </div>
+                  </div>
+                  {entradas.length > 0 ? (
+                    <div className="mt-2 rounded-xl bg-white p-3 ring-1 ring-brand-100">
+                      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-gray-500">
+                        De onde vieram
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {entradas.map(([fonte, qtd]) => (
+                          <span
+                            key={fonte}
+                            className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-brand-100"
+                          >
+                            {fonte} <strong>{qtd}</strong>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              );
+            })()}
+            {resultado.comment?.trim() ? (
+              <p className="mt-2 whitespace-pre-wrap rounded-xl bg-white px-3 py-2 text-sm italic text-gray-600 ring-1 ring-brand-100">
+                “{resultado.comment}”
+              </p>
+            ) : null}
+            <div className="mt-3 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setEditando(true)}
+                className="rounded-lg border border-brand-300 bg-white px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+              >
+                Atualizar
+              </button>
+              <span className="text-xs text-green-700">
+                ✓ já recebemos, obrigada!
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="mt-3 block text-xs font-medium text-gray-600">
+              De onde vieram os contatos?{" "}
+              <span className="text-gray-400">(toque no + pra contar)</span>
+            </label>
+            <div className="mt-1.5 space-y-1.5">
+              {FONTES_CONTATO.map((fonte) => {
+                const qtd = fontes[fonte] ?? 0;
+                return (
+                  <div
+                    key={fonte}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-1.5"
+                  >
+                    <span className="text-sm text-gray-700">{fonte}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => ajustarFonte(fonte, -1)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50"
+                        aria-label={`Menos ${fonte}`}
+                      >
+                        −
+                      </button>
+                      <span className="w-6 text-center text-sm font-bold text-brand-800">
+                        {qtd}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => ajustarFonte(fonte, 1)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-brand-300 bg-brand-50 text-brand-700 hover:bg-brand-100"
+                        aria-label={`Mais ${fonte}`}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">
+              Total de contatos: <strong>{totalContatos}</strong>
+            </p>
 
-        <label className="mt-3 block text-xs font-medium text-gray-600">
-          De onde eles vieram?
-        </label>
-        <input
-          value={sources}
-          onChange={(e) => setSources(e.target.value)}
-          placeholder="Ex.: Instagram, anúncio, indicação…"
-          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
-        />
+            <label className="mt-3 block text-xs font-medium text-gray-600">
+              Desses, quantos viraram cliente?{" "}
+              <span className="text-gray-400">
+                (consulta, agendamento ou fechamento)
+              </span>
+            </label>
+            <input
+              inputMode="numeric"
+              value={closed}
+              onChange={(e) => setClosed(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="Ex.: 5"
+              className="mt-1 w-32 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
+            />
 
-        <label className="mt-3 block text-xs font-medium text-gray-600">
-          Comentário (opcional)
-        </label>
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          rows={3}
-          placeholder="Como foi o mês? O que funcionou, o que podemos melhorar…"
-          className="mt-1 w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-relaxed outline-none focus:border-brand-500"
-        />
+            <label className="mt-3 block text-xs font-medium text-gray-600">
+              Comentário (opcional)
+            </label>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={3}
+              placeholder="Como foi o mês? O que funcionou, o que podemos melhorar…"
+              className="mt-1 w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-relaxed outline-none focus:border-brand-500"
+            />
 
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={enviar}
-            disabled={enviando}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-          >
-            {enviando ? "Enviando…" : resultado.respondido ? "Atualizar" : "Enviar"}
-          </button>
-          {resultado.respondido ? (
-            <span className="text-xs text-green-700">✓ já recebemos, obrigada!</span>
-          ) : null}
-        </div>
+            <div className="mt-3 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={enviar}
+                disabled={enviando}
+                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+              >
+                {enviando
+                  ? "Enviando…"
+                  : resultado.respondido
+                    ? "Salvar"
+                    : "Enviar"}
+              </button>
+              {resultado.respondido ? (
+                <button
+                  type="button"
+                  onClick={() => setEditando(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  cancelar
+                </button>
+              ) : null}
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

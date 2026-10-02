@@ -94,7 +94,12 @@ export async function salvarPlanilhaTrafegoAction(
 export async function enviarResultadoClienteAction(
   token: string,
   weekStart: string,
-  dados: { closedCount: string; sources: string; comment: string },
+  dados: {
+    closedCount: string;
+    sources: string;
+    comment: string;
+    sourcesBreakdown?: Record<string, number>;
+  },
 ): Promise<ResultadoResult> {
   if (!token || !DATA_RE.test(weekStart)) {
     return { ok: false, error: "Link inválido." };
@@ -114,12 +119,26 @@ export async function enviarResultadoClienteAction(
   const n = parseInt(dados.closedCount, 10);
   const closed = Number.isFinite(n) && n >= 0 ? n : null;
 
+  // Breakdown por fonte: só guarda os positivos; monta um resumo legível pro
+  // campo `sources` (texto), que a equipe já exibe e os dados antigos usam.
+  const breakdown: Record<string, number> = {};
+  for (const [fonte, qtd] of Object.entries(dados.sourcesBreakdown ?? {})) {
+    const v = Math.trunc(Number(qtd));
+    if (Number.isFinite(v) && v > 0) breakdown[fonte.slice(0, 40)] = v;
+  }
+  const resumoFontes = Object.entries(breakdown)
+    .map(([f, q]) => `${f}: ${q}`)
+    .join(", ");
+  const sources =
+    resumoFontes || dados.sources.trim().slice(0, 500) || null;
+
   const { error } = await admin.from("client_monthly_results").upsert(
     {
       client_id: cliente.id,
       week_start: weekStart,
       closed_count: closed,
-      sources: dados.sources.trim().slice(0, 500) || null,
+      sources,
+      sources_breakdown: breakdown,
       client_comment: dados.comment.trim().slice(0, 2000) || null,
       client_updated_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

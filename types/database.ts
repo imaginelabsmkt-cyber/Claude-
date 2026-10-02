@@ -385,6 +385,8 @@ export type ClientMonthlyResult = {
   team_note: string | null;
   closed_count: number | null;
   sources: string | null;
+  /** De onde vieram os contatos, por fonte: { "Anúncio": 3, "Link da bio": 2 }. */
+  sources_breakdown: Record<string, number>;
   client_comment: string | null;
   client_updated_at: ISODateString | null;
   created_at: ISODateString;
@@ -401,6 +403,7 @@ export type ClientMonthlyResultInsert = {
   team_note?: string | null;
   closed_count?: number | null;
   sources?: string | null;
+  sources_breakdown?: Record<string, number>;
   client_comment?: string | null;
   client_updated_at?: ISODateString | null;
   updated_at?: ISODateString;

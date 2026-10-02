@@ -197,6 +197,7 @@ export async function carregarPortal(
     teamNote: res?.team_note ?? null,
     closedCount: res?.closed_count ?? null,
     sources: res?.sources ?? null,
+    sourcesBreakdown: res?.sources_breakdown ?? {},
     comment: res?.client_comment ?? null,
     respondido: !!res?.client_updated_at,
   };

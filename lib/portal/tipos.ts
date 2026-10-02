@@ -85,6 +85,7 @@ export interface ResultadoPortal {
   teamNote: string | null;
   closedCount: number | null;
   sources: string | null;
+  sourcesBreakdown: Record<string, number>;
   comment: string | null;
   respondido: boolean;
 }
