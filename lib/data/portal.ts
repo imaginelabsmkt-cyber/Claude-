@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   inicioDaSemana,
@@ -68,6 +69,7 @@ export async function carregarPortal(
   token: string,
   semana?: string,
 ): Promise<DadosPortal | null> {
+  noStore(); // nunca cacheia os dados do painel: sempre lê o estado atual
   const admin = createAdminClient();
   if (!admin) return null;
 
