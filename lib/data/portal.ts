@@ -27,17 +27,18 @@ export { STATUS_CLIENTE } from "@/lib/portal/tipos";
 /** Status internos que NÃO aparecem para o cliente. */
 const OCULTOS: ContentStatus[] = ["Cancelado", "Pausado"];
 
-/** Status considerados "em produção" (fora os que já vão ao ar na semana). */
-const EM_PRODUCAO: ContentStatus[] = [
-  "Aguardando gravação",
+/**
+ * Status considerados "em edição" (já foi gravado e está sendo editado/
+ * finalizado). Não inclui "Aguardando gravação" (ainda vai gravar) nem os já
+ * prontos pra postar (Aprovado/Agendado).
+ */
+const EM_EDICAO: ContentStatus[] = [
   "Gravado",
   "Fila de edição",
   "Em edição",
+  "Ajustes",
   "Revisão interna",
   "Aprovação do cliente",
-  "Ajustes",
-  "Aprovado",
-  "Agendado",
 ];
 
 function addDias(d: Date, n: number): Date {
@@ -125,13 +126,14 @@ export async function carregarPortal(
 
   const idsSemana = new Set(postsSemana.map((p) => p.id));
 
-  // Gravações marcadas na semana (com o roteiro organizado para leitura).
+  // Gravações/produções AINDA A FAZER (não as já gravadas: essas vão pra "Em
+  // edição"). Mostra as desta semana e as atrasadas (que precisam remarcar).
   const ehGravacaoSemana = (c: Content) =>
     c.requires_recording &&
     !ehArte(c.format) &&
+    !estaGravado(c.status) &&
     !!c.recording_date &&
-    c.recording_date >= iniISO &&
-    c.recording_date <= fimISO;
+    c.recording_date <= fimISO; // desta semana ou atrasada (a remarcar)
 
   const gravacoesSemana: PortalGravacao[] = visiveis
     .filter(ehGravacaoSemana)
@@ -154,14 +156,15 @@ export async function carregarPortal(
     }));
   const idsGravacao = new Set(gravacoesSemana.map((g) => g.id));
 
-  // Em produção: exclui o que já aparece nas seções da semana (sem repetir).
+  // Em edição: já gravado e em edição/finalização (sem repetir o que já está
+  // nas seções da semana).
   const emProducao = visiveis
     .filter(
       (c) =>
         !idsSemana.has(c.id) &&
         !idsGravacao.has(c.id) &&
         c.status !== "Publicado" &&
-        EM_PRODUCAO.includes(c.status),
+        EM_EDICAO.includes(c.status),
     )
     .sort((a, b) =>
       (a.planned_date ?? "zzzz").localeCompare(b.planned_date ?? "zzzz"),

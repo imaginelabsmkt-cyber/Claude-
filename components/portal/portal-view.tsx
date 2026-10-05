@@ -194,12 +194,7 @@ function ResultadoBloco({
     });
 
   return (
-    <section className="mt-6">
-      <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
-        <span aria-hidden>📈</span>
-        Resultados da semana
-      </h2>
-
+    <Colapsavel titulo="Resultados da semana" emoji="📈">
       {/* Dashboard do tráfego pago — sempre visível */}
       <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
@@ -452,7 +447,7 @@ function ResultadoBloco({
           </>
         )}
       </div>
-    </section>
+    </Colapsavel>
   );
 }
 
@@ -617,6 +612,45 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
   );
 }
 
+/** Seção recolhível: toque no título pra minimizar/abrir. */
+function Colapsavel({
+  titulo,
+  emoji,
+  cor = "text-brand-800",
+  defaultAberto = true,
+  badge,
+  children,
+}: {
+  titulo: string;
+  emoji: string;
+  cor?: string;
+  defaultAberto?: boolean;
+  badge?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const [aberto, setAberto] = useState(defaultAberto);
+  return (
+    <section className="mt-6">
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        className={`mb-2 flex w-full items-center gap-2 text-sm font-bold uppercase tracking-wide ${cor}`}
+      >
+        <span aria-hidden>{emoji}</span>
+        <span className="flex-1 text-left">{titulo}</span>
+        {badge}
+        <span
+          aria-hidden
+          className={`text-base text-gray-400 transition-transform ${aberto ? "" : "-rotate-90"}`}
+        >
+          ⌄
+        </span>
+      </button>
+      {aberto ? children : null}
+    </section>
+  );
+}
+
 function Secao({
   titulo,
   emoji,
@@ -629,11 +663,7 @@ function Secao({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-6">
-      <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
-        <span aria-hidden>{emoji}</span>
-        {titulo}
-      </h2>
+    <Colapsavel titulo={titulo} emoji={emoji}>
       {vazio ? (
         <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
           {vazio}
@@ -641,7 +671,7 @@ function Secao({
       ) : (
         <div className="space-y-3">{children}</div>
       )}
-    </section>
+    </Colapsavel>
   );
 }
 
@@ -752,12 +782,26 @@ export function PortalView({
 
         {/* O que precisamos de você (itens do cliente — pode dar check) */}
         {precisamosVoce.length > 0 ? (
-          <section className="mt-6">
+          <Colapsavel
+            titulo="O que precisamos de você"
+            emoji="🙌"
+            cor="text-amber-800"
+            badge={
+              (() => {
+                const pend = precisamosVoce.filter((e) => !estaFeito(e)).length;
+                return pend > 0 ? (
+                  <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-900">
+                    {pend} a fazer
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
+                    tudo ok
+                  </span>
+                );
+              })()
+            }
+          >
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-              <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800">
-                <span aria-hidden>🙌</span>
-                O que precisamos de você
-              </h2>
               <p className="mb-3 text-[11px] text-amber-700">
                 Toque no círculo pra marcar o que você já resolveu.
               </p>
@@ -803,16 +847,11 @@ export function PortalView({
                 })}
               </ul>
             </div>
-          </section>
+          </Colapsavel>
         ) : null}
 
         {planoFavie.length > 0 ? (
-          <section className="mt-6">
-            <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-800">
-              <span aria-hidden>🎯</span>
-              Plano de ação
-            </h2>
-
+          <Colapsavel titulo="Plano de ação" emoji="🎯">
             {/* Progresso do mês */}
             <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
               <div className="flex items-baseline justify-between">
@@ -900,7 +939,7 @@ export function PortalView({
                 {planoFeitos.length > 1 ? "s" : ""} neste plano
               </p>
             ) : null}
-          </section>
+          </Colapsavel>
         ) : null}
 
         <ResumoMesCard resumo={resumoMes} />
@@ -920,7 +959,7 @@ export function PortalView({
         </Secao>
 
         {gravacoesSemana.length > 0 ? (
-          <Secao titulo="Produções da semana" emoji="🎥">
+          <Secao titulo="Produções a fazer" emoji="🎥">
             {gravacoesSemana.map((g) => (
               <CartaoGravacao key={g.id} grav={g} />
             ))}
@@ -928,11 +967,11 @@ export function PortalView({
         ) : null}
 
         <Secao
-          titulo="Em produção"
+          titulo="Em edição"
           emoji="🎬"
           vazio={
             emProducao.length === 0
-              ? "Nada em produção no momento."
+              ? "Nada em edição no momento."
               : undefined
           }
         >
