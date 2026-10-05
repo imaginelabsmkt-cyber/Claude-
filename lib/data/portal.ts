@@ -63,6 +63,30 @@ function limparTitulo(t: string): string {
   return s || t.trim();
 }
 
+/**
+ * Marcadores de SEÇÃO INTERNA dentro da legenda. Tudo a partir da primeira
+ * linha que começa com um desses (direções de arte/anúncio/stories/roteiro) é
+ * interno e NÃO vai pro cliente. A legenda de verdade fica antes disso.
+ */
+const INICIO_INTERNO =
+  /^(card\s*extra|destaque|story|stories|direcionamento|t[ií]tulo\s*:|subt[ií]tulo\s*:|foto\s*:|capa\b|roteiro|cenas?\b|fala\b|fica como est[aá]|lettering|refer[eê]ncia|observa[çc])/i;
+
+/** Corta a legenda nos marcadores internos, deixando só o que vai pro cliente. */
+function limparLegenda(caption: string | null): string | null {
+  if (!caption) return caption;
+  const linhas = caption.split(/\r?\n/);
+  const saida: string[] = [];
+  for (const l of linhas) {
+    const base = l
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .trim();
+    if (INICIO_INTERNO.test(base)) break;
+    saida.push(l);
+  }
+  return saida.join("\n").trim() || null;
+}
+
 function paraPost(c: Content): PortalPost {
   return {
     id: c.id,
@@ -70,7 +94,7 @@ function paraPost(c: Content): PortalPost {
     format: c.format,
     status: c.status,
     data: c.actual_post_date ?? c.planned_date,
-    caption: c.caption,
+    caption: limparLegenda(c.caption),
     aguardaAprovacao: c.status === "Aprovação do cliente",
   };
 }
