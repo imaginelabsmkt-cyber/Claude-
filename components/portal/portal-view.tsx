@@ -465,11 +465,9 @@ function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
   );
 
   return (
-    <div className="mt-4 rounded-2xl border border-black/5 bg-brand-50 p-4 shadow-sm">
-      <p className="text-sm font-bold capitalize text-brand-800">
-        {resumo.label}
-      </p>
-      <div className="mt-2 flex gap-2">
+    <Colapsavel titulo={resumo.label} emoji="📊">
+    <div className="rounded-2xl border border-black/5 bg-brand-50 p-4 shadow-sm">
+      <div className="flex gap-2">
         <Tile n={`${resumo.publicados}/${total}`} rotulo="Publicados" />
         <Tile n={resumo.restantes} rotulo="A publicar" />
         <Tile n={resumo.planejados} rotulo="Planejados" />
@@ -506,6 +504,7 @@ function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
         </>
       ) : null}
     </div>
+    </Colapsavel>
   );
 }
 
@@ -541,8 +540,9 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           </span>
         )}
         <span className="ml-auto text-xs font-medium text-gray-500">
-          {fmtDia(grav.data)}
-          {grav.hora ? ` · ${grav.hora}` : ""}
+          {grav.situacao === "a_remarcar"
+            ? "nova data em breve"
+            : `${fmtDia(grav.data)}${grav.hora ? ` · ${grav.hora}` : ""}`}
         </span>
       </div>
 
@@ -736,9 +736,49 @@ export function PortalView({
       }
     });
   };
-  const precisamosVoce = planoAcao
-    .filter((e) => e.owner === "Cliente")
-    .sort((a, b) => Number(estaFeito(a)) - Number(estaFeito(b)));
+  const [verFeitosCliente, setVerFeitosCliente] = useState(false);
+  const itensCliente = planoAcao.filter((e) => e.owner === "Cliente");
+  const clientePendentes = itensCliente.filter((e) => !estaFeito(e));
+  const clienteFeitos = itensCliente.filter((e) => estaFeito(e));
+  const precisamosVoce = itensCliente; // usado só pra decidir se mostra a seção
+
+  const LinhaCliente = ({ e }: { e: (typeof planoAcao)[number] }) => {
+    const feito = estaFeito(e);
+    return (
+      <li>
+        <button
+          type="button"
+          onClick={() => alternarCliente(e)}
+          className="flex w-full items-start gap-2.5 rounded-lg p-1.5 text-left hover:bg-amber-100/60"
+        >
+          <span
+            aria-hidden
+            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] text-white transition-colors ${feito ? "border-green-600 bg-green-600" : "border-amber-400 bg-white"}`}
+          >
+            {feito ? "✓" : ""}
+          </span>
+          <span className="text-sm">
+            <span
+              className={`font-semibold ${feito ? "text-amber-900/50 line-through" : "text-amber-900"}`}
+            >
+              {e.title}
+            </span>
+            {e.dateLabel ? (
+              <span className={feito ? "text-amber-700/50" : "text-amber-700"}>
+                {" "}
+                · {e.dateLabel}
+              </span>
+            ) : null}
+            {e.description && !feito ? (
+              <span className="block text-[13px] font-normal text-amber-800/80">
+                {e.description}
+              </span>
+            ) : null}
+          </span>
+        </button>
+      </li>
+    );
+  };
 
   return (
     <main className="min-h-screen bg-[#fff7ea] pb-16">
@@ -802,50 +842,46 @@ export function PortalView({
             }
           >
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-              <p className="mb-3 text-[11px] text-amber-700">
-                Toque no círculo pra marcar o que você já resolveu.
-              </p>
-              <ul className="space-y-1.5">
-                {precisamosVoce.map((e) => {
-                  const feito = estaFeito(e);
-                  return (
-                    <li key={e.id}>
-                      <button
-                        type="button"
-                        onClick={() => alternarCliente(e)}
-                        className="flex w-full items-start gap-2.5 rounded-lg p-1.5 text-left hover:bg-amber-100/60"
-                      >
-                        <span
-                          aria-hidden
-                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] text-white transition-colors ${feito ? "border-green-600 bg-green-600" : "border-amber-400 bg-white"}`}
-                        >
-                          {feito ? "✓" : ""}
-                        </span>
-                        <span className="text-sm">
-                          <span
-                            className={`font-semibold ${feito ? "text-amber-900/50 line-through" : "text-amber-900"}`}
-                          >
-                            {e.title}
-                          </span>
-                          {e.dateLabel ? (
-                            <span
-                              className={feito ? "text-amber-700/50" : "text-amber-700"}
-                            >
-                              {" "}
-                              · {e.dateLabel}
-                            </span>
-                          ) : null}
-                          {e.description && !feito ? (
-                            <span className="block text-[13px] font-normal text-amber-800/80">
-                              {e.description}
-                            </span>
-                          ) : null}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              {/* A fazer */}
+              {clientePendentes.length > 0 ? (
+                <>
+                  <p className="mb-2 text-[11px] text-amber-700">
+                    Toque no círculo pra marcar o que você já resolveu.
+                  </p>
+                  <ul className="space-y-1.5">
+                    {clientePendentes.map((e) => (
+                      <LinhaCliente key={e.id} e={e} />
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="text-sm font-medium text-green-700">
+                  ✓ Tudo resolvido por aqui, obrigada!
+                </p>
+              )}
+
+              {/* Já feito (recolhível) */}
+              {clienteFeitos.length > 0 ? (
+                <div className="mt-3 border-t border-amber-200 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setVerFeitosCliente((v) => !v)}
+                    className="flex w-full items-center gap-1.5 text-xs font-semibold text-amber-700"
+                  >
+                    <span aria-hidden className={verFeitosCliente ? "" : "-rotate-90"}>
+                      ⌄
+                    </span>
+                    ✓ Já feito ({clienteFeitos.length})
+                  </button>
+                  {verFeitosCliente ? (
+                    <ul className="mt-1.5 space-y-1.5">
+                      {clienteFeitos.map((e) => (
+                        <LinhaCliente key={e.id} e={e} />
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </Colapsavel>
         ) : null}
