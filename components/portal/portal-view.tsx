@@ -8,7 +8,7 @@ import { enviarResultadoClienteAction } from "@/lib/actions/resultados";
 import { marcarPlanoClienteAction } from "@/lib/actions/portal";
 import { FONTES_CONTATO } from "@/types";
 import {
-  STATUS_CLIENTE,
+  statusClientePost,
   type DadosPortal,
   type PortalGravacao,
   type PortalPost,
@@ -48,7 +48,7 @@ function chipFormato(format: string | null): string {
 
 function CartaoPost({ post }: { post: PortalPost }) {
   const [aberto, setAberto] = useState(false);
-  const st = STATUS_CLIENTE[post.status];
+  const st = statusClientePost(post.status, post.format);
   const temLegenda = !!post.caption?.trim();
 
   return (

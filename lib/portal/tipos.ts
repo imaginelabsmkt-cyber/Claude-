@@ -21,6 +21,40 @@ export const STATUS_CLIENTE: Record<ContentStatus, { label: string; tom: string 
   Cancelado: { label: "Cancelado", tom: "bg-gray-100 text-gray-500" },
 };
 
+/** Formatos que são ARTE (carrossel/post): não têm roteiro; precisam de FOTOS. */
+const ARTE_FMT = ["Carrossel", "Post estático"];
+
+/**
+ * Status como o cliente vê, levando o FORMATO em conta. Carrossel/arte não tem
+ * "roteiro" nem edição de vídeo: a copy já está pronta, o que falta são as
+ * FOTOS. Então os estágios iniciais viram "Aguardando fotos" e os prontos,
+ * "Pronto".
+ */
+export function statusClientePost(
+  status: ContentStatus,
+  format: string | null,
+): { label: string; tom: string } {
+  const arte = !!format && ARTE_FMT.includes(format);
+  if (arte) {
+    const aguardandoFotos: ContentStatus[] = [
+      "Planejamento",
+      "Roteiro pronto",
+      "Aguardando gravação",
+      "Gravado",
+      "Fila de edição",
+      "Em edição",
+      "Ajustes",
+    ];
+    if (aguardandoFotos.includes(status)) {
+      return { label: "Aguardando fotos", tom: "bg-amber-100 text-amber-700" };
+    }
+    if (status === "Aprovado" || status === "Agendado") {
+      return { label: "Pronto", tom: "bg-green-100 text-green-700" };
+    }
+  }
+  return STATUS_CLIENTE[status];
+}
+
 /** Item de conteúdo enxuto para o portal (nada de campos internos). */
 export interface PortalPost {
   id: string;
