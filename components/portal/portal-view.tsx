@@ -532,6 +532,19 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
         <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
           🎥 Gravação
         </span>
+        {grav.situacao === "gravado" ? (
+          <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
+            ✓ Já gravado
+          </span>
+        ) : grav.situacao === "a_remarcar" ? (
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+            A remarcar
+          </span>
+        ) : (
+          <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-600">
+            Agendado
+          </span>
+        )}
         <span className="ml-auto text-xs font-medium text-gray-500">
           {fmtDia(grav.data)}
           {grav.hora ? ` · ${grav.hora}` : ""}

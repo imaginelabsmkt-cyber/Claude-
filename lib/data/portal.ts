@@ -6,6 +6,7 @@ import {
   hojeISO,
   ehCapa,
   ehArte,
+  estaGravado,
   mesEfetivo,
 } from "@/lib/rules/contents";
 import { organizarRoteiro } from "@/lib/portal/roteiro";
@@ -145,6 +146,11 @@ export async function carregarPortal(
       hora: c.recording_time,
       local: c.recording_location,
       roteiro: organizarRoteiro(c.script),
+      situacao: estaGravado(c.status)
+        ? ("gravado" as const)
+        : c.recording_date && c.recording_date < hojeISO()
+          ? ("a_remarcar" as const)
+          : ("agendado" as const),
     }));
   const idsGravacao = new Set(gravacoesSemana.map((g) => g.id));
 
