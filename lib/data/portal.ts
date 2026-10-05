@@ -43,9 +43,22 @@ function addDias(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-/** Remove traços/símbolos soltos no começo do título (ex.: "- Título"). */
+/**
+ * Limpa o título para o CLIENTE ver: tira traços/símbolos soltos do começo e os
+ * códigos internos entre parênteses no fim (ex.: "(base 2, Fixado, Tráfego)",
+ * "(tráfego, Segunda Rodada)"). Só remove o parêntese final quando ele tem
+ * cara de anotação interna (não mexe num parêntese comum do título).
+ */
 function limparTitulo(t: string): string {
-  return t.replace(/^[\s–—·•-]+/, "").trim() || t.trim();
+  let s = t.replace(/^[\s–—·•-]+/, "").trim();
+  // parêntese no fim com palavra interna conhecida
+  s = s
+    .replace(
+      /\s*\((?:[^)]*\b(?:base|fixad[oa]|tr[aá]fego|rodada|an[uú]ncio|principal|reels?|carross?el|story|stories|capa|trend|v\d+)\b[^)]*)\)\s*$/i,
+      "",
+    )
+    .trim();
+  return s || t.trim();
 }
 
 function paraPost(c: Content): PortalPost {
