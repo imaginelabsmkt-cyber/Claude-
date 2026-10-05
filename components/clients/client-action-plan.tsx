@@ -22,7 +22,6 @@ import {
   PLANO_OWNERS,
   PLANO_OWNER_TONE,
   PLANO_STAGES,
-  PLANO_STAGE_RESUMO,
   PLANO_STATUS_LABEL,
   type ActionPlanItem,
   type Profile,
@@ -273,9 +272,8 @@ export function ClientActionPlan({
       router.refresh();
     });
 
-  // Agrupa por etapa (na ordem do mês); itens sem etapa caem em "Outros".
+  // Separa a parte da FAVIE (o que a gente faz) da parte do cliente.
   const grupos = useMemo(() => {
-    const porEtapa = new Map<string, ActionPlanItem[]>();
     const ordenar = (a: ActionPlanItem, b: ActionPlanItem) => {
       // Feitos descem pro fim, pra sobrar o que falta em evidência.
       const fa = a.status === "Feita" ? 1 : 0;
@@ -286,19 +284,16 @@ export function ClientActionPlan({
       if (b.due_date) return 1;
       return a.position - b.position;
     };
-    for (const it of itens) {
-      const chave = it.stage && PLANO_STAGES.includes(it.stage as never)
-        ? it.stage
-        : "Outros";
-      porEtapa.set(chave, [...(porEtapa.get(chave) ?? []), it]);
-    }
-    const ordem = [...PLANO_STAGES, "Outros"];
-    return ordem
-      .filter((e) => porEtapa.has(e))
-      .map((e) => ({ etapa: e, lista: (porEtapa.get(e) ?? []).sort(ordenar) }));
+    const favie = itens.filter((i) => (i.owner ?? "FAVIE") !== "Cliente");
+    const cliente = itens.filter((i) => (i.owner ?? "FAVIE") === "Cliente");
+    const res: { chave: string; titulo: string; lista: ActionPlanItem[] }[] = [];
+    if (favie.length)
+      res.push({ chave: "FAVIE", titulo: "O que a FAVIE faz", lista: [...favie].sort(ordenar) });
+    if (cliente.length)
+      res.push({ chave: "Cliente", titulo: "O que o cliente faz", lista: [...cliente].sort(ordenar) });
+    return res;
   }, [itens]);
 
-  const temEtapas = grupos.some((g) => g.etapa !== "Outros");
   const feitosCount = itens.filter((i) => i.status === "Feita").length;
 
   return (
@@ -534,7 +529,7 @@ export function ClientActionPlan({
         </div>
       ) : null}
 
-      {/* Lista agrupada por etapa */}
+      {/* Lista separada: parte da FAVIE e parte do cliente */}
       {itens.length === 0 && !form ? (
         <p className="mt-6 text-center text-sm text-gray-500">
           Nenhum item ainda. Clique em “Importar do texto” para colar o plano, ou
@@ -542,20 +537,19 @@ export function ClientActionPlan({
         </p>
       ) : (
         <div className="space-y-5">
-          {grupos.map(({ etapa, lista }) => (
-            <div key={etapa}>
-              {temEtapas ? (
-                <div className="mb-2 flex items-baseline gap-2">
-                  <h4 className="text-sm font-bold text-gray-800">
-                    {etapa === "Outros" ? "Outros itens" : etapa}
-                  </h4>
-                  {PLANO_STAGE_RESUMO[etapa] ? (
-                    <span className="text-[11px] text-gray-400">
-                      {PLANO_STAGE_RESUMO[etapa]}
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
+          {grupos.map(({ chave, titulo, lista }) => (
+            <div key={chave}>
+              <div className="mb-2 flex items-baseline gap-2">
+                <h4
+                  className={`rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${chave === "Cliente" ? "bg-amber-100 text-amber-800" : "bg-brand-100 text-brand-700"}`}
+                >
+                  {titulo}
+                </h4>
+                <span className="text-[11px] text-gray-400">
+                  {lista.filter((i) => i.status !== "Feita").length} a fazer ·{" "}
+                  {lista.length} no total
+                </span>
+              </div>
               <ul className="space-y-2">
                 {lista.map((it) => {
                   const feito = it.status === "Feita";
