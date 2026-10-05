@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { EditQueue } from "@/components/fila-edicao/edit-queue";
 import { listContents, listAllClients } from "@/lib/data/contents";
 import { ordenarFilaFinal, hojeISO, ehCapa, ehArte } from "@/lib/rules/contents";
+import { puxarEdicoesDoGoogle } from "@/lib/google/pull-edicao";
 import type { ContentStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,8 @@ const STATUS_FILA: ContentStatus[] = [
 
 /** Fila de edição, foco na Fran, com ordenação automática e manual. */
 export default async function FilaEdicaoPage() {
+  // Traz do Google o dia de edição que a Fran marcou por lá (antes de listar).
+  await puxarEdicoesDoGoogle();
   const [todos, clientes] = await Promise.all([
     listContents({}),
     listAllClients(),

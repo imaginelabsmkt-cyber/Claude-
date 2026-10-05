@@ -45,7 +45,7 @@ type SB = ReturnType<typeof createClient>;
 type SyncKind = "event" | "task" | "post" | "edit_event";
 
 /** Access token do usuário (a partir do refresh token guardado). Null se não conectado. */
-async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
+export async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
   const { data } = await sb
     .from("google_accounts")
     .select("refresh_token, revoked_at")
