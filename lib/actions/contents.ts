@@ -28,6 +28,7 @@ import {
   publicarCapaDoVideo,
   cancelarCapaDoVideo,
 } from "@/lib/content/covers";
+import { puxarEdicoesDoGoogle } from "@/lib/google/pull-edicao";
 import { formatarData } from "@/lib/utils";
 import { aposResposta } from "@/lib/after";
 import { notificarPlanner, notificarProducer } from "@/lib/push/eventos";
@@ -1254,4 +1255,17 @@ export async function excluirTodosDoClienteAction(
 
   revalidarConteudos(undefined, clientId);
   return { ok: true };
+}
+
+/**
+ * Sincroniza do Google o dia de edição que a Fran marcou por lá (sync inverso).
+ * Chamado em segundo plano pela Fila de edição, pra NÃO travar o carregamento.
+ * Devolve quantos itens mudaram (pra decidir se vale atualizar a tela).
+ */
+export async function sincronizarEdicoesGoogleAction(): Promise<{
+  mudou: number;
+}> {
+  const mudou = await puxarEdicoesDoGoogle();
+  if (mudou > 0) revalidatePath("/fila-edicao");
+  return { mudou };
 }
