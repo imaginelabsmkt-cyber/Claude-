@@ -138,6 +138,7 @@ export default async function DashboardPage({
   const atencao: { titulo: string; itens: Content[] }[] = [
     { titulo: "Urgentes", itens: contents.filter((c) => c.priority === "Urgente" && naoFinal(c)) },
     { titulo: "Atrasados", itens: atrasados },
+    { titulo: "Produção a agendar", itens: contents.filter((c) => c.requires_recording && !estaGravado(c.status) && !c.recording_date && !ehArte(c.format) && naoFinal(c)) },
     { titulo: "Da semana sem gravação", itens: contents.filter((c) => naSemana(c) && c.requires_recording && !estaGravado(c.status)) },
     { titulo: "Da semana sem edição", itens: contents.filter((c) => naSemana(c) && (c.status === "Gravado" || c.status === "Fila de edição")) },
     { titulo: "Aguardando aprovação", itens: contents.filter((c) => GRUPO_EM_APROVACAO.includes(c.status)) },
