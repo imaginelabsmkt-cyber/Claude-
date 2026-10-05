@@ -530,6 +530,10 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
             ✓ Já gravado
           </span>
+        ) : grav.situacao === "a_agendar" ? (
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+            A agendar
+          </span>
         ) : grav.situacao === "a_remarcar" ? (
           <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
             A remarcar
@@ -540,8 +544,8 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           </span>
         )}
         <span className="ml-auto text-xs font-medium text-gray-500">
-          {grav.situacao === "a_remarcar"
-            ? "nova data em breve"
+          {grav.situacao === "a_remarcar" || grav.situacao === "a_agendar"
+            ? "data a combinar"
             : `${fmtDia(grav.data)}${grav.hora ? ` · ${grav.hora}` : ""}`}
         </span>
       </div>

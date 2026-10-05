@@ -99,8 +99,8 @@ export interface PortalGravacao {
   hora: string | null; // recording_time
   local: string | null; // recording_location
   roteiro: RoteiroOrganizado | null;
-  /** Situação: já gravado, a remarcar (passou e não gravou) ou agendado. */
-  situacao: "gravado" | "a_remarcar" | "agendado";
+  /** Situação da produção. */
+  situacao: "gravado" | "a_remarcar" | "agendado" | "a_agendar";
 }
 
 /** Resumo do mês para o cliente: quanto foi planejado x já publicado. */

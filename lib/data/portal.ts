@@ -150,19 +150,28 @@ export async function carregarPortal(
 
   const idsSemana = new Set(postsSemana.map((p) => p.id));
 
-  // Gravações/produções AINDA A FAZER (não as já gravadas: essas vão pra "Em
-  // edição"). Mostra as desta semana e as atrasadas (que precisam remarcar).
-  const ehGravacaoSemana = (c: Content) =>
-    c.requires_recording &&
-    !ehArte(c.format) &&
-    !estaGravado(c.status) &&
-    !!c.recording_date &&
-    c.recording_date <= fimISO; // desta semana ou atrasada (a remarcar)
+  // Mês da semana exibida (quinta define o mês), pra incluir as produções do
+  // mês que ainda NÃO têm data ("a agendar", ex.: a sessão de fotos do mês).
+  const midSemana = addDias(ini, 3);
+  const mesSemana = `${midSemana.getFullYear()}-${String(midSemana.getMonth() + 1).padStart(2, "0")}`;
+
+  // Produções AINDA A FAZER (não as já gravadas: essas vão pra "Em edição").
+  // Inclui: as desta semana, as atrasadas (a remarcar) e as do mês que ainda
+  // não têm data marcada (a agendar — ex.: a sessão de fotos do mês).
+  const ehGravacaoSemana = (c: Content) => {
+    if (!c.requires_recording || ehArte(c.format) || estaGravado(c.status)) {
+      return false;
+    }
+    if (c.recording_date) return c.recording_date <= fimISO;
+    // Sem data: mostra como "a agendar" se for do mês exibido.
+    return mesEfetivo(c) === mesSemana;
+  };
 
   const gravacoesSemana: PortalGravacao[] = visiveis
     .filter(ehGravacaoSemana)
     .sort((a, b) =>
-      (a.recording_date ?? "").localeCompare(b.recording_date ?? ""),
+      // Sem data (a agendar) primeiro; depois por data.
+      (a.recording_date ?? "0000").localeCompare(b.recording_date ?? "0000"),
     )
     .map((c) => ({
       id: c.id,
@@ -174,9 +183,11 @@ export async function carregarPortal(
       roteiro: organizarRoteiro(c.script),
       situacao: estaGravado(c.status)
         ? ("gravado" as const)
-        : c.recording_date && c.recording_date < hojeISO()
-          ? ("a_remarcar" as const)
-          : ("agendado" as const),
+        : !c.recording_date
+          ? ("a_agendar" as const)
+          : c.recording_date < hojeISO()
+            ? ("a_remarcar" as const)
+            : ("agendado" as const),
     }));
   const idsGravacao = new Set(gravacoesSemana.map((g) => g.id));
 
