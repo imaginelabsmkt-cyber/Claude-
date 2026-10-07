@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { organizarRoteiro } from "@/lib/portal/roteiro";
 import { Button } from "@/components/ui/button";
 import {
   PriorityBadge,
@@ -91,6 +92,62 @@ function acoesPara(status: ContentStatus): { label: string; to: ContentStatus }[
 const CLASSE_MINI =
   "rounded-md border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-gray-700 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-50";
 
+/**
+ * Roteiro só-leitura, na formatação de tabela (FALA | CENAS), igual ao
+ * conteúdo. Mostra só o roteiro (corta legenda/stories). Serve pra Fran bater
+ * o olho sem sair da fila — dá pra deixar vários abertos ao mesmo tempo.
+ */
+function RoteiroLeitura({ script }: { script: string | null }) {
+  const r = organizarRoteiro(script);
+  if (!r || (r.linhas.length === 0 && r.paragrafos.length === 0)) {
+    return (
+      <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-400">
+        Sem roteiro cadastrado neste conteúdo.
+      </p>
+    );
+  }
+  if (r.linhas.length > 0) {
+    return (
+      <div className="overflow-hidden rounded-lg border border-gray-200">
+        <table className="w-full table-fixed border-collapse text-left text-sm">
+          <thead>
+            <tr className="bg-brand-50 text-[11px] font-bold uppercase tracking-wider text-brand-700">
+              <th className="w-1/2 border-r border-brand-100 px-3 py-2">
+                {r.colEsq}
+              </th>
+              <th className="w-1/2 px-3 py-2">{r.colDir}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {r.linhas.map((linha, i) => (
+              <tr key={i} className="border-t border-gray-100 align-top">
+                <td className="whitespace-pre-wrap break-words border-r border-gray-100 px-3 py-2 leading-relaxed text-gray-900">
+                  {linha.esq || "·"}
+                </td>
+                <td className="whitespace-pre-wrap break-words px-3 py-2 italic leading-relaxed text-gray-500">
+                  {linha.dir || "·"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3">
+      {r.paragrafos.map((p, i) => (
+        <p
+          key={i}
+          className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800"
+        >
+          {p}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function ItemFila({
   content,
   cliente,
@@ -102,6 +159,7 @@ function ItemFila({
 }) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
+  const [verRoteiro, setVerRoteiro] = useState(false);
   const prazo = prazoPrincipal(content);
   const prazoLabel = rotuloPrazo(prazo, hoje);
   const est = estiloFormato(content.format);
@@ -157,12 +215,23 @@ function ItemFila({
               </span>
             ) : null}
           </div>
-          <Link
-            href={`/conteudos/${content.id}`}
-            className="block truncate font-medium text-gray-900 hover:text-brand-700"
-          >
-            {content.title}
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setVerRoteiro((v) => !v)}
+              title="Clique para ver o roteiro aqui"
+              className="min-w-0 flex-1 truncate text-left font-medium text-gray-900 hover:text-brand-700"
+            >
+              {content.title}
+            </button>
+            <Link
+              href={`/conteudos/${content.id}`}
+              title="Abrir o conteúdo completo"
+              className="shrink-0 text-gray-300 hover:text-brand-700"
+            >
+              ↗
+            </Link>
+          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
@@ -202,6 +271,14 @@ function ItemFila({
           </button>
         ) : null}
       </div>
+
+      {/* Roteiro aberto aqui mesmo (clicou no título). Vários podem ficar
+          abertos ao mesmo tempo, pra editar vários vídeos lado a lado. */}
+      {verRoteiro ? (
+        <div className="mt-2 border-t border-gray-100 pt-2">
+          <RoteiroLeitura script={content.script} />
+        </div>
+      ) : null}
     </div>
   );
 }
