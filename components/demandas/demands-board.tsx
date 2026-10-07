@@ -185,7 +185,18 @@ export function DemandsBoard({
     const novo = (d.steps ?? []).map((s, i) =>
       i === idx ? { ...s, done: !s.done } : s,
     );
-    salvar(d.id, { steps: novo });
+    // O status acompanha as etapas na hora (sem esperar o refresh): todas
+    // feitas = Feita, alguma = Fazendo, nenhuma = A fazer.
+    const feitas = novo.filter((s) => s.done).length;
+    const status =
+      novo.length > 0
+        ? feitas === novo.length
+          ? "Feita"
+          : feitas > 0
+            ? "Fazendo"
+            : "A fazer"
+        : d.status;
+    salvar(d.id, { steps: novo, status });
   };
 
   const Linha = ({ d, i }: { d: Demand; i: number }) => {

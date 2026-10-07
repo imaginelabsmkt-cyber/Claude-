@@ -128,7 +128,18 @@ export async function atualizarDemandaAction(
     dados.status = patch.status;
   }
   if ("steps" in patch) {
-    dados.steps = (patch.steps ?? []).filter((s) => s?.label?.trim());
+    const steps = (patch.steps ?? []).filter((s) => s?.label?.trim());
+    dados.steps = steps;
+    // O status segue as etapas (quando a pessoa não mudou o status na mão):
+    //  - todas concluídas  -> Feita
+    //  - alguma concluída   -> Fazendo
+    //  - nenhuma concluída  -> A fazer
+    // Assim não fica a incoerência de "3/3 etapas feitas" ainda "A fazer".
+    if (!("status" in patch) && steps.length > 0) {
+      const feitas = steps.filter((s) => s.done).length;
+      dados.status =
+        feitas === steps.length ? "Feita" : feitas > 0 ? "Fazendo" : "A fazer";
+    }
   }
   if (Object.keys(dados).length === 0) {
     return { ok: false, error: "Nada para salvar." };
