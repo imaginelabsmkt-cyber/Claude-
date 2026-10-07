@@ -147,6 +147,8 @@ export interface DadosPortal {
   resumoMes: ResumoMes;
   resultado: ResultadoPortal;
   postsSemana: PortalPost[];
+  /** Todas as postagens planejadas do mês exibido (agenda compacta). */
+  postsMes: PortalPost[];
   gravacoesSemana: PortalGravacao[];
   emProducao: PortalPost[];
   pausadosCancelados: PortalPost[];

@@ -150,6 +150,22 @@ export async function carregarPortal(
 
   const idsSemana = new Set(postsSemana.map((p) => p.id));
 
+  // Agenda do MÊS exibido: todas as postagens planejadas (carrosséis, reels…)
+  // com data, pra o cliente ver o que vem e quando, de forma organizada.
+  const midMes = addDias(ini, 3);
+  const mesExibido = `${midMes.getFullYear()}-${String(midMes.getMonth() + 1).padStart(2, "0")}`;
+  const postsMes = visiveis
+    .filter((c) => {
+      const d = c.actual_post_date ?? c.planned_date;
+      return !!d && d.slice(0, 7) === mesExibido;
+    })
+    .sort((a, b) =>
+      (a.actual_post_date ?? a.planned_date ?? "").localeCompare(
+        b.actual_post_date ?? b.planned_date ?? "",
+      ),
+    )
+    .map(paraPost);
+
   // Mês da semana exibida (quinta define o mês), pra incluir as produções do
   // mês que ainda NÃO têm data ("a agendar", ex.: a sessão de fotos do mês).
   const midSemana = addDias(ini, 3);
@@ -339,6 +355,7 @@ export async function carregarPortal(
     resumoMes,
     resultado,
     postsSemana,
+    postsMes,
     gravacoesSemana,
     emProducao,
     pausadosCancelados,
