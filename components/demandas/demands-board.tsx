@@ -199,6 +199,26 @@ export function DemandsBoard({
     salvar(d.id, { steps: novo, status });
   };
 
+  // Renomear uma etapa (texto vazio = remove). O status segue as etapas no
+  // servidor; aqui mando só os steps.
+  const renomearEtapa = (d: Demand, idx: number, label: string) => {
+    const l = label.trim();
+    const atual = d.steps ?? [];
+    if (l === (atual[idx]?.label ?? "")) return;
+    const novo = l
+      ? atual.map((s, i) => (i === idx ? { ...s, label: l } : s))
+      : atual.filter((_, i) => i !== idx);
+    salvar(d.id, { steps: novo });
+  };
+
+  const removerEtapa = (d: Demand, idx: number) =>
+    salvar(d.id, { steps: (d.steps ?? []).filter((_, i) => i !== idx) });
+
+  const adicionarEtapa = (d: Demand) =>
+    salvar(d.id, {
+      steps: [...(d.steps ?? []), { label: "Nova etapa", done: false }],
+    });
+
   const Linha = ({ d, i }: { d: Demand; i: number }) => {
     const atrasada =
       d.status !== "Feita" && !!d.due_date && d.due_date < hoje;
@@ -330,44 +350,69 @@ export function DemandsBoard({
         </div>
       </div>
 
-      {/* Etapas (checklist) da demanda, quando houver. */}
-      {etapas.length > 0 ? (
-        <div className="px-3 pb-2.5 pl-12">
-          <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
-            Etapas {feitas}/{etapas.length}
-          </p>
-          <ul className="space-y-1">
-            {etapas.map((s, idx) => (
-              <li key={idx}>
-                <button
-                  type="button"
-                  disabled={salvando}
-                  onClick={() => alternarEtapa(d, idx)}
-                  className="flex items-center gap-2 text-left text-xs disabled:opacity-60"
-                >
-                  <span
-                    className={cn(
-                      "flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] text-white",
-                      s.done
-                        ? "border-green-600 bg-green-600"
-                        : "border-gray-300 hover:border-green-500",
-                    )}
+      {/* Etapas (checklist) da demanda: editável — marcar, renomear, remover,
+          adicionar. */}
+      <div className="px-3 pb-2.5 pl-12">
+        {etapas.length > 0 ? (
+          <>
+            <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              Etapas {feitas}/{etapas.length}
+            </p>
+            <ul className="space-y-1">
+              {etapas.map((s, idx) => (
+                <li key={idx} className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label={s.done ? "Desmarcar etapa" : "Marcar etapa"}
+                    disabled={salvando}
+                    onClick={() => alternarEtapa(d, idx)}
+                    className="shrink-0 disabled:opacity-60"
                   >
-                    {s.done ? "✓" : ""}
-                  </span>
-                  <span
+                    <span
+                      className={cn(
+                        "flex h-4 w-4 items-center justify-center rounded border text-[10px] text-white",
+                        s.done
+                          ? "border-green-600 bg-green-600"
+                          : "border-gray-300 hover:border-green-500",
+                      )}
+                    >
+                      {s.done ? "✓" : ""}
+                    </span>
+                  </button>
+                  <input
+                    key={`${d.id}-step-${idx}-${s.label}`}
+                    defaultValue={s.label}
+                    disabled={salvando}
+                    onBlur={(e) => renomearEtapa(d, idx, e.target.value)}
                     className={cn(
+                      "min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 text-xs hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500",
                       s.done ? "text-gray-400 line-through" : "text-gray-600",
                     )}
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remover etapa"
+                    title="Remover etapa"
+                    disabled={salvando}
+                    onClick={() => removerEtapa(d, idx)}
+                    className="shrink-0 px-1 text-gray-300 hover:text-red-600 disabled:opacity-60"
                   >
-                    {s.label}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+        <button
+          type="button"
+          disabled={salvando}
+          onClick={() => adicionarEtapa(d)}
+          className="mt-1 text-[11px] font-semibold text-brand-700 hover:underline disabled:opacity-60"
+        >
+          + adicionar etapa
+        </button>
+      </div>
       </div>
     );
   };
