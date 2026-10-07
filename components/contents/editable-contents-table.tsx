@@ -38,6 +38,8 @@ interface EditableContentsTableProps {
   mostrarCliente?: boolean;
   /** Modo enxuto: esconde Prioridade e Responsável (menos poluído na ficha do cliente). */
   compacto?: boolean;
+  /** Ordenação: "urgencia" (padrão) ou "data" (pela data de postagem). */
+  ordenarPor?: "urgencia" | "data";
   vazioTitulo?: string;
   vazioDescricao?: string;
   /** Ação exibida no estado vazio (ex.: botão "+ Novo conteúdo"). */
@@ -301,6 +303,7 @@ export function EditableContentsTable({
   perfis,
   mostrarCliente = true,
   compacto = false,
+  ordenarPor = "urgencia",
   vazioTitulo = "Nenhum conteúdo",
   vazioDescricao = "Cadastre ou importe um planejamento para começar.",
   acaoVazio,
@@ -316,13 +319,20 @@ export function EditableContentsTable({
   }
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
-  // Ordena por URGÊNCIA (mais apertado primeiro; data prevista desempata).
+  // Ordenação das linhas. Padrão: por URGÊNCIA (mais apertado primeiro). Quando
+  // ordenarPor="data": pela DATA DE POSTAGEM (crescente; sem data por último).
+  const porData = (a: Content, b: Content) => {
+    const da = a.actual_post_date ?? a.planned_date ?? "9999";
+    const db = b.actual_post_date ?? b.planned_date ?? "9999";
+    return da !== db ? da.localeCompare(db) : a.title.localeCompare(b.title);
+  };
   const porUrgencia = (a: Content, b: Content) => {
     const d = compararUrgencia(urgenciaConteudo(a), urgenciaConteudo(b));
     return d !== 0
       ? d
       : (a.planned_date ?? "9999").localeCompare(b.planned_date ?? "9999");
   };
+  const ordenador = ordenarPor === "data" ? porData : porUrgencia;
 
   // Agrupa por cliente (só na lista geral). Ordena por nome do cliente e,
   // dentro do cliente, por urgência.
@@ -336,13 +346,13 @@ export function EditableContentsTable({
     .map(([clientId, itens]) => ({
       clientId,
       cliente: clientesById.get(clientId),
-      itens: itens.sort(porUrgencia),
+      itens: itens.sort(ordenador),
     }))
     .sort((a, b) =>
       (a.cliente?.name ?? "").localeCompare(b.cliente?.name ?? ""),
     );
 
-  const contentsOrdenados = [...contents].sort(porUrgencia);
+  const contentsOrdenados = [...contents].sort(ordenador);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">

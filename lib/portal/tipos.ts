@@ -36,17 +36,19 @@ export function statusClientePost(
 ): { label: string; tom: string } {
   const arte = !!format && ARTE_FMT.includes(format);
   if (arte) {
+    // Antes das fotos: a copy já está pronta, falta a FOTO.
     const aguardandoFotos: ContentStatus[] = [
       "Planejamento",
       "Roteiro pronto",
       "Aguardando gravação",
-      "Gravado",
-      "Fila de edição",
-      "Em edição",
-      "Ajustes",
     ];
     if (aguardandoFotos.includes(status)) {
       return { label: "Aguardando fotos", tom: "bg-amber-100 text-amber-700" };
+    }
+    // Com as fotos em mãos: edição das fotos (capa/carrossel).
+    const emEdicao: ContentStatus[] = ["Gravado", "Fila de edição", "Em edição"];
+    if (emEdicao.includes(status)) {
+      return { label: "Em edição", tom: "bg-amber-100 text-amber-700" };
     }
     if (status === "Aprovado" || status === "Agendado") {
       return { label: "Pronto", tom: "bg-green-100 text-green-700" };

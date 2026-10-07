@@ -96,6 +96,7 @@ export function ClientContentsByMonth({
         perfis={perfis}
         mostrarCliente={false}
         compacto
+        ordenarPor="data"
         vazioTitulo={vazioTitulo ?? "Nenhum conteúdo neste mês"}
         vazioDescricao={
           vazioDescricao ??
