@@ -173,7 +173,7 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
             </div>
             <div className="space-y-2">
               {detalhe.map((p) => (
-                <CartaoPost key={p.id} post={p} />
+                <CartaoPost key={p.id} post={p} expandida />
               ))}
             </div>
           </div>
@@ -183,8 +183,16 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
   );
 }
 
-function CartaoPost({ post }: { post: PortalPost }) {
-  const [aberto, setAberto] = useState(false);
+function CartaoPost({
+  post,
+  expandida = false,
+}: {
+  post: PortalPost;
+  // Na janelinha de detalhe, a legenda já aparece aberta (é a "informação"
+  // do carrossel/post) em vez de ficar escondida atrás de "Ver legenda".
+  expandida?: boolean;
+}) {
+  const [aberto, setAberto] = useState(expandida);
   const st = statusClientePost(post.status, post.format);
   const temLegenda = !!post.caption?.trim();
 
@@ -216,13 +224,16 @@ function CartaoPost({ post }: { post: PortalPost }) {
 
       {temLegenda ? (
         <>
-          <button
-            type="button"
-            onClick={() => setAberto((v) => !v)}
-            className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
-          >
-            {aberto ? "Ocultar legenda" : "Ver legenda"}
-          </button>
+          {/* No detalhe (expandida) a legenda já vem aberta, sem botão. */}
+          {expandida ? null : (
+            <button
+              type="button"
+              onClick={() => setAberto((v) => !v)}
+              className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
+            >
+              {aberto ? "Ocultar legenda" : "Ver legenda"}
+            </button>
+          )}
           {aberto ? (
             <div className="mt-2 border-t border-gray-100 pt-3">
               <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
@@ -234,6 +245,10 @@ function CartaoPost({ post }: { post: PortalPost }) {
             </div>
           ) : null}
         </>
+      ) : expandida ? (
+        <p className="mt-2 border-t border-gray-100 pt-3 text-sm text-gray-400">
+          Legenda ainda não cadastrada.
+        </p>
       ) : null}
     </div>
   );
