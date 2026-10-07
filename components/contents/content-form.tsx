@@ -65,6 +65,7 @@ function conteudoParaForm(c: Content): ContentFormValues {
     raw_files_url: s(c.raw_files_url),
     edited_file_url: s(c.edited_file_url),
     published_url: s(c.published_url),
+    storyboard_url: s(c.storyboard_url),
     planner_id: s(c.planner_id),
     recorder_id: s(c.recorder_id),
     editor_id: s(c.editor_id),
@@ -430,6 +431,17 @@ export function ContentForm({
             />
             {erro("required_materials")}
           </div>
+        </div>
+        <div>
+          <Label htmlFor="storyboard_url">Storyboard (link)</Label>
+          <Input
+            id="storyboard_url"
+            type="url"
+            value={values.storyboard_url}
+            onChange={(e) => set("storyboard_url", e.target.value)}
+            placeholder="Link do storyboard no Canva/Drive/Pinterest (aparece pro cliente)"
+          />
+          {erro("storyboard_url")}
         </div>
       </Secao>
 

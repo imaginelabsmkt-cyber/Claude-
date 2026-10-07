@@ -55,6 +55,7 @@ function makeContent(over: Partial<Content> = {}): Content {
     raw_files_url: null,
     edited_file_url: null,
     published_url: null,
+    storyboard_url: null,
     notes: null,
     script: null,
     caption: null,

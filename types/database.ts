@@ -162,6 +162,7 @@ export type Content = {
   raw_files_url: string | null;
   edited_file_url: string | null;
   published_url: string | null;
+  storyboard_url: string | null; // link do storyboard (Canva/Drive) p/ ensaio
 
   // Controle
   notes: string | null;
@@ -584,6 +585,7 @@ export type ContentInsert = Omit<
   | "script"
   | "caption"
   | "reference_url"
+  | "storyboard_url"
   | "recording_time"
   | "cover_source_id"
   | "editing_date"
@@ -592,6 +594,7 @@ export type ContentInsert = Omit<
   id?: UUID;
   status?: ContentStatus;
   reference_url?: string | null;
+  storyboard_url?: string | null;
   recording_time?: string | null;
   cover_source_id?: UUID | null;
   editing_date?: DateString | null;

@@ -78,6 +78,9 @@ export const contentFormSchema = z.object({
   raw_files_url: urlOpcional,
   edited_file_url: urlOpcional,
   published_url: urlOpcional,
+  storyboard_url: urlOpcional, // link do storyboard (Canva/Drive) p/ ensaio
+
+
 
   // Opcionais, responsáveis
   planner_id: uuidOpcional,
@@ -119,6 +122,7 @@ export interface ContentFormValues {
   raw_files_url: string;
   edited_file_url: string;
   published_url: string;
+  storyboard_url: string;
   planner_id: string;
   recorder_id: string;
   editor_id: string;
@@ -158,6 +162,7 @@ export const CONTENT_FORM_PADRAO: ContentFormValues = {
   raw_files_url: "",
   edited_file_url: "",
   published_url: "",
+  storyboard_url: "",
   planner_id: "",
   recorder_id: "",
   editor_id: "",

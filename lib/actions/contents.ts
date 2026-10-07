@@ -110,6 +110,7 @@ function normalizar(v: ParsedContent) {
     raw_files_url: toNull(v.raw_files_url),
     edited_file_url: toNull(v.edited_file_url),
     published_url: toNull(v.published_url),
+    storyboard_url: toNull(v.storyboard_url),
     notes: toNull(v.notes),
     script: toNull(v.script),
     caption: toNull(v.caption),

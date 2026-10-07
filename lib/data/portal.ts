@@ -206,6 +206,7 @@ export async function carregarPortal(
         /foto|ensaio/i.test(c.format ?? "") && c.description?.trim()
           ? c.description.trim()
           : null,
+      storyboardUrl: c.storyboard_url ?? null,
       situacao: estaGravado(c.status)
         ? ("gravado" as const)
         : !c.recording_date

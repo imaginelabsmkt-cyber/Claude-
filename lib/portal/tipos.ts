@@ -108,6 +108,7 @@ export interface PortalGravacao {
   participantes: string[]; // quem participa (ex.: alunos do ensaio)
   materiais: string[]; // o que levar
   orientacoes: string | null; // ideias/briefing do ensaio (storyboard em texto)
+  storyboardUrl: string | null; // link do storyboard (Canva/Drive) p/ ensaio
 }
 
 /** Resumo do mês para o cliente: quanto foi planejado x já publicado. */
