@@ -20,6 +20,8 @@ const TOKEN_URL = "https://oauth2.googleapis.com/token";
 export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/tasks",
+  // Planilha de resultados por cliente (cria e preenche no Drive da conta).
+  "https://www.googleapis.com/auth/spreadsheets",
   "https://www.googleapis.com/auth/userinfo.email",
 ].join(" ");
 

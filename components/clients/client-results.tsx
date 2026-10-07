@@ -37,11 +37,13 @@ export function ClientResults({
   weekStart,
   intervalo,
   inicial,
+  sheetUrl,
 }: {
   clientId: string;
   weekStart: string; // segunda-feira (YYYY-MM-DD)
   intervalo: string; // "22/set a 28/set"
   inicial: ClientMonthlyResult | null;
+  sheetUrl?: string | null; // planilha do cliente no Drive (preenchida sozinha)
 }) {
   const router = useRouter();
   const [metrics, setMetrics] = useState<MetricaTrafego[]>(
@@ -156,6 +158,22 @@ export function ClientResults({
             Semana de {intervalo} · use as setas da semana acima para trocar
           </span>
         </div>
+        {sheetUrl ? (
+          <a
+            href={sheetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline"
+          >
+            📊 Abrir a planilha deste cliente no Drive
+          </a>
+        ) : (
+          <p className="mt-1 text-[11px] text-gray-400">
+            Ao salvar os resultados, uma planilha deste cliente é criada e
+            preenchida sozinha no seu Drive (precisa do Google conectado com a
+            permissão de Planilhas).
+          </p>
+        )}
         <p className="mt-0.5 text-xs text-gray-500">
           Suba a planilha do Meta (Excel ou CSV) e o sistema extrai os números,
           ou preencha na mão. É isso que o cliente vê no painel dele.

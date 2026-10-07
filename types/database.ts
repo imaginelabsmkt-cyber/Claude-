@@ -74,6 +74,9 @@ export type Client = {
   portal_token: string | null;
   /** Se o painel do cliente está ativo. */
   portal_enabled: boolean;
+  /** Planilha de resultados (Google Sheets) criada/preenchida pelo sistema. */
+  results_sheet_id: string | null;
+  results_sheet_url: string | null;
   created_at: ISODateString;
   updated_at: ISODateString;
 }
@@ -557,6 +560,8 @@ export type ClientInsert = Omit<
   | "is_internal"
   | "portal_token"
   | "portal_enabled"
+  | "results_sheet_id"
+  | "results_sheet_url"
 > & {
   id?: UUID;
   active?: boolean;
@@ -565,6 +570,8 @@ export type ClientInsert = Omit<
   is_internal?: boolean;
   portal_token?: string | null;
   portal_enabled?: boolean;
+  results_sheet_id?: string | null;
+  results_sheet_url?: string | null;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;
 

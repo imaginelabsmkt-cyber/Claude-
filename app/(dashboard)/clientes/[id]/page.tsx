@@ -411,6 +411,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                 weekStart={semanaInicioISO}
                 intervalo={tituloSemana}
                 inicial={resultadoSemana}
+                sheetUrl={cliente.results_sheet_url}
               />
             ),
           },

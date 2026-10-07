@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { usuarioAtualId } from "@/lib/auth";
 import { enviarPushParaUsuario } from "@/lib/push/send";
+import { aposResposta } from "@/lib/after";
+import { sincronizarResultadoSheets } from "@/lib/google/sheets";
 import type { MetricaTrafego } from "@/types";
 
 export interface ResultadoResult {
@@ -50,6 +52,7 @@ export async function salvarResultadosEquipeAction(
   );
   if (error) return { ok: false, error: "Não foi possível salvar." };
 
+  aposResposta(() => sincronizarResultadoSheets(clientId, weekStart));
   revalidatePath(`/clientes/${clientId}`);
   return { ok: true };
 }
@@ -83,6 +86,7 @@ export async function salvarPlanilhaTrafegoAction(
   );
   if (error) return { ok: false, error: "Não foi possível salvar a planilha." };
 
+  aposResposta(() => sincronizarResultadoSheets(clientId, weekStart));
   revalidatePath(`/clientes/${clientId}`);
   return { ok: true };
 }
@@ -146,6 +150,9 @@ export async function enviarResultadoClienteAction(
     { onConflict: "client_id,week_start" },
   );
   if (error) return { ok: false, error: "Não foi possível enviar." };
+
+  // Espelha na planilha do cliente (Google Sheets), best-effort.
+  aposResposta(() => sincronizarResultadoSheets(cliente.id, weekStart));
 
   // Avisa a coordenação (best-effort, não bloqueia).
   try {
