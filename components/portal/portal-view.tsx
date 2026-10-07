@@ -59,9 +59,13 @@ function corDot(format: string | null): string {
 /**
  * Calendário do mês com as postagens no dia certo. No celular fica compacto
  * (só pontinhos coloridos por postagem); no computador mostra o título em cada
- * dia. É uma visão SECUNDÁRIA — a semana vem primeiro.
+ * dia. É uma visão SECUNDÁRIA — a semana vem primeiro. Clicar numa postagem
+ * (ou num dia, no celular) abre uma janelinha com TUDO sobre ela.
  */
 function CalendarioMes({ posts }: { posts: PortalPost[] }) {
+  // Postagens abertas na janelinha de detalhe (as do dia/chip clicado).
+  const [detalhe, setDetalhe] = useState<PortalPost[] | null>(null);
+
   const comData = posts.filter((p) => p.data);
   if (comData.length === 0) return null;
   const [ano, mes] = (comData[0].data as string).split("-").map(Number);
@@ -98,36 +102,83 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
               {d ? (
                 <p className="text-[10px] font-semibold text-gray-400">{d}</p>
               ) : null}
-              {/* Computador: título em cada dia. */}
+              {/* Computador: título em cada dia — clicável, abre o detalhe. */}
               <div className="mt-0.5 hidden space-y-0.5 sm:block">
                 {doDia.slice(0, 3).map((p) => (
-                  <p
+                  <button
                     key={p.id}
+                    type="button"
                     title={p.title}
-                    className={`truncate rounded px-1 text-[9px] font-medium leading-tight ${chipFormato(p.format)}`}
+                    onClick={() => setDetalhe([p])}
+                    className={`block w-full truncate rounded px-1 text-left text-[9px] font-medium leading-tight transition-opacity hover:opacity-80 ${chipFormato(p.format)}`}
                   >
                     {p.title}
-                  </p>
+                  </button>
                 ))}
                 {doDia.length > 3 ? (
-                  <p className="text-[9px] text-gray-400">+{doDia.length - 3}</p>
+                  <button
+                    type="button"
+                    onClick={() => setDetalhe(doDia)}
+                    className="text-[9px] text-gray-400 hover:text-gray-600"
+                  >
+                    +{doDia.length - 3}
+                  </button>
                 ) : null}
               </div>
-              {/* Celular: só pontinhos coloridos (fica leve). */}
+              {/* Celular: toca o dia pra ver as postagens dele. */}
               {doDia.length > 0 ? (
-                <div className="mt-1 flex flex-wrap gap-0.5 sm:hidden">
+                <button
+                  type="button"
+                  onClick={() => setDetalhe(doDia)}
+                  className="mt-1 flex w-full flex-wrap gap-0.5 sm:hidden"
+                  aria-label={`Ver postagens do dia ${d}`}
+                >
                   {doDia.slice(0, 4).map((p) => (
                     <span
                       key={p.id}
                       className={`h-1.5 w-1.5 rounded-full ${corDot(p.format)}`}
                     />
                   ))}
-                </div>
+                </button>
               ) : null}
             </div>
           );
         })}
       </div>
+
+      {/* Janelinha por cima com tudo sobre a(s) postagem(ns) clicada(s). */}
+      {detalhe ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+          onClick={() => setDetalhe(null)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-brand-50 p-4 sm:rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-800">
+                {detalhe.length === 1
+                  ? fmtDia(detalhe[0].data)
+                  : `${detalhe.length} postagens`}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setDetalhe(null)}
+                className="rounded-full px-2 py-1 text-gray-400 hover:bg-black/5"
+                aria-label="Fechar"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2">
+              {detalhe.map((p) => (
+                <CartaoPost key={p.id} post={p} />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
