@@ -566,6 +566,64 @@ export async function agendarGravacoesEmLoteAction(
 }
 
 /**
+ * Reenvia UMA produção (vídeo/ensaio) pra Agenda do Google AGORA, de forma
+ * SÍNCRONA, e devolve o que realmente aconteceu — ao contrário da sincronização
+ * automática, que é "melhor esforço" e silenciosa. Serve de diagnóstico: se algo
+ * não foi pra agenda, aqui a pessoa vê o motivo exato (sem data, Google
+ * desconectado, ou falha ao confirmar o evento) e pode forçar o envio.
+ */
+export async function reenviarGravacaoGoogleAction(
+  id: string,
+): Promise<ActionResult> {
+  const userId = await usuarioAtualId();
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const supabase = createClient();
+  const { data: c } = await supabase
+    .from("contents")
+    .select("recording_date, title")
+    .eq("id", id)
+    .maybeSingle();
+  if (!c) return { ok: false, error: "Produção não encontrada." };
+  if (!c.recording_date) {
+    return {
+      ok: false,
+      error:
+        "Esta produção não tem data marcada — marque a data primeiro (é só com data que vai pra agenda).",
+    };
+  }
+  if (!(await googleSincronizavel())) {
+    return {
+      ok: false,
+      error:
+        "Google Agenda desconectado. Reconecte em Configurações e tente de novo.",
+    };
+  }
+
+  // Roda a sincronização de forma síncrona (aqui, não em segundo plano).
+  await sincronizarGravacao(id);
+
+  // Confirma que o evento ficou mesmo vinculado no Google.
+  const { data: vinculo } = await supabase
+    .from("google_sync")
+    .select("external_id")
+    .eq("content_id", id)
+    .eq("user_id", userId)
+    .eq("kind", "event")
+    .maybeSingle();
+  if (!vinculo?.external_id) {
+    return {
+      ok: false,
+      error:
+        "Não consegui confirmar o evento no Google agora. Tente de novo em instantes ou use 'Reenviar tudo' em Configurações.",
+    };
+  }
+
+  revalidarConteudos(id);
+  return { ok: true, id };
+}
+
+/**
  * Cria um ENSAIO DE FOTOS (sessão de fotos) direto para um cliente, em UM passo.
  * É o atalho pra "marcar o ensaio do cliente" sem precisar passar pelo plano de
  * ação: entra nas Produções como produção a fazer, aparece no painel do cliente

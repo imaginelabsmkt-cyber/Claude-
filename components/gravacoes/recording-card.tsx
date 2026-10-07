@@ -16,6 +16,7 @@ import {
   adicionarFilaEdicaoAction,
   atualizarProducaoConteudoAction,
   limparAgendamentoGravacaoAction,
+  reenviarGravacaoGoogleAction,
 } from "@/lib/actions/contents";
 import type { Content } from "@/types";
 
@@ -87,6 +88,20 @@ export function RecordingCard({
       // Salvou, mas o Google caiu: avisa na hora (a gravação não foi pra agenda).
       if (r.avisoGoogle) toast.erro(r.avisoGoogle);
       setEditandoData(false);
+      router.refresh();
+    });
+  }
+
+  // Reenvia pra agenda do Google AGORA e diz o que aconteceu (sucesso ou motivo).
+  function reenviarGoogle() {
+    setErro(null);
+    iniciar(async () => {
+      const r = await reenviarGravacaoGoogleAction(content.id);
+      if (!r.ok) {
+        setErro(r.error ?? "Não foi possível reenviar.");
+        return;
+      }
+      toast.sucesso("Enviado pra agenda do Google ✓");
       router.refresh();
     });
   }
@@ -223,6 +238,18 @@ export function RecordingCard({
           >
             Alterar data
           </Button>
+
+          {content.recording_date ? (
+            <Button
+              tamanho="sm"
+              variante="fantasma"
+              disabled={processando}
+              onClick={reenviarGoogle}
+              title="Força o envio desta produção pra Agenda do Google e mostra o resultado"
+            >
+              ↻ Reenviar pra agenda
+            </Button>
+          ) : null}
 
           {!gravado && content.recording_date ? (
             <Button
