@@ -10,6 +10,7 @@ import { parsePlanoAcao, type ItemPlano } from "@/lib/import/plano-parser";
 import {
   salvarEstrategiaAction,
   statusEstrategiaAction,
+  atualizarDataEstrategiaAction,
   excluirEstrategiaAction,
   importarCronogramaAction,
   gerarTarefaDoItemAction,
@@ -169,6 +170,34 @@ export function ClientActionPlan({
   // Check rápido: liga/desliga "Feito" com um clique (sem abrir o seletor).
   const alternarFeito = (it: ActionPlanItem) =>
     mudarStatus(it.id, it.status === "Feita" ? "A fazer" : "Feita");
+
+  // Edição inline da data (previsão em texto + data pra ordenar).
+  const [editData, setEditData] = useState<{
+    id: string;
+    date_label: string;
+    due_date: string;
+  } | null>(null);
+  const salvarData = () => {
+    if (!editData) return;
+    const { id, date_label, due_date } = editData;
+    setOtim((o) => ({ ...o, [id]: { ...o[id], date_label, due_date } }));
+    setEditData(null);
+    iniciar(async () => {
+      const r = await atualizarDataEstrategiaAction(
+        clientId,
+        id,
+        date_label,
+        due_date,
+      );
+      if (!r.ok) {
+        toast.erro(r.error ?? "Erro");
+        setOtim((o) => {
+          const { [id]: _, ...resto } = o;
+          return resto;
+        });
+      }
+    });
+  };
 
   const excluir = (it: ActionPlanItem) =>
     iniciar(async () => {
@@ -575,11 +604,59 @@ export function ClientActionPlan({
                       >
                         {it.owner === "Cliente" ? "Cliente" : "FAVIE"}
                       </span>
-                      {rotuloData(it) ? (
-                        <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
-                          {rotuloData(it)}
+                      {editData?.id === it.id ? (
+                        <span className="flex flex-wrap items-center gap-1">
+                          <input
+                            value={editData.date_label}
+                            onChange={(e) =>
+                              setEditData((d) =>
+                                d ? { ...d, date_label: e.target.value } : d,
+                              )
+                            }
+                            placeholder="Ex.: 05 a 09/10"
+                            className="w-28 rounded border border-gray-300 px-1.5 py-0.5 text-[11px] outline-none focus:border-brand-500"
+                          />
+                          <input
+                            type="date"
+                            value={editData.due_date}
+                            onChange={(e) =>
+                              setEditData((d) =>
+                                d ? { ...d, due_date: e.target.value } : d,
+                              )
+                            }
+                            className="rounded border border-gray-300 px-1.5 py-0.5 text-[11px] outline-none focus:border-brand-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={salvarData}
+                            className="rounded bg-brand-600 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-brand-700"
+                          >
+                            ok
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditData(null)}
+                            className="px-1 text-[11px] text-gray-400 hover:text-gray-600"
+                          >
+                            ✕
+                          </button>
                         </span>
-                      ) : null}
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditData({
+                              id: it.id,
+                              date_label: it.date_label ?? "",
+                              due_date: it.due_date ?? "",
+                            })
+                          }
+                          title="Alterar a data"
+                          className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 hover:bg-gray-200"
+                        >
+                          {rotuloData(it) ?? "+ data"}
+                        </button>
+                      )}
                       <span
                         className={`text-sm font-semibold ${feito ? "text-gray-400 line-through" : "text-gray-900"}`}
                       >

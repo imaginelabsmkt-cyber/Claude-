@@ -82,6 +82,33 @@ export async function salvarEstrategiaAction(
   return { ok: true, id: data.id };
 }
 
+/** Muda só a DATA de um item do plano (rápido, inline). */
+export async function atualizarDataEstrategiaAction(
+  clientId: string,
+  id: string,
+  dateLabel: string,
+  dueDate: string,
+): Promise<EstrategiaResult> {
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada." };
+  }
+  if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+    return { ok: false, error: "Data inválida." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("action_plan_items")
+    .update({
+      date_label: dateLabel.trim().slice(0, 60) || null,
+      due_date: dueDate || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível salvar a data." };
+  revalidatePath(`/clientes/${clientId}`);
+  return { ok: true, id };
+}
+
 /** Muda só o status de uma estratégia (rápido). */
 export async function statusEstrategiaAction(
   clientId: string,
