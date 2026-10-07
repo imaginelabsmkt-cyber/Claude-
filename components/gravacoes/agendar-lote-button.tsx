@@ -88,7 +88,7 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
         return;
       }
       toast.sucesso(
-        `${r.quantidade ?? 0} gravação(ões) agendada(s) para o mesmo dia.`,
+        `${r.quantidade ?? 0} produção(ões) agendada(s) para o mesmo dia.`,
       );
       if (r.avisoGoogle) toast.erro(r.avisoGoogle);
       setAberto(false);
@@ -114,8 +114,8 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
               Agendar produções em lote
             </h2>
             <p className="mb-4 text-xs text-gray-500">
-              Escolha o cliente, a data e a hora, e marque os vídeos que vão ser
-              gravados juntos.
+              Escolha o cliente, a data e a hora, e marque as produções (vídeos
+              ou ensaio de fotos) que vão ser feitas juntas.
             </p>
 
             <div className="space-y-3">
@@ -166,11 +166,11 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
             <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200">
               {!clientId ? (
                 <p className="p-4 text-center text-xs text-gray-400">
-                  Selecione um cliente para ver os vídeos.
+                  Selecione um cliente para ver as produções.
                 </p>
               ) : doCliente.length === 0 ? (
                 <p className="p-4 text-center text-xs text-gray-400">
-                  Nenhum vídeo a agendar para este cliente.
+                  Nenhuma produção a agendar para este cliente.
                 </p>
               ) : (
                 <ul className="divide-y divide-gray-100">
@@ -267,7 +267,7 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
                             !c.script &&
                             !c.planned_date ? (
                               <p className="text-xs text-gray-400">
-                                Sem detalhes preenchidos para este vídeo.
+                                Sem detalhes preenchidos para esta produção.
                               </p>
                             ) : null}
                           </div>
