@@ -566,6 +566,86 @@ export async function agendarGravacoesEmLoteAction(
 }
 
 /**
+ * Cria um ENSAIO DE FOTOS (sessão de fotos) direto para um cliente, em UM passo.
+ * É o atalho pra "marcar o ensaio do cliente" sem precisar passar pelo plano de
+ * ação: entra nas Produções como produção a fazer, aparece no painel do cliente
+ * e, se já tiver data, vai pra Agenda do Google na hora. Sem data, fica em
+ * "A agendar" pra marcar depois (inclusive no lote).
+ */
+export async function criarEnsaioFotosAction(input: {
+  clientId: string;
+  data?: string | null;
+  hora?: string | null;
+  titulo?: string | null;
+}): Promise<ActionResult> {
+  if (!input?.clientId) return { ok: false, error: "Escolha o cliente." };
+  const data =
+    input.data && /^\d{4}-\d{2}-\d{2}$/.test(input.data) ? input.data : null;
+  if (input.data && !data) return { ok: false, error: "Data inválida." };
+  const hora =
+    input.hora && /^\d{2}:\d{2}$/.test(input.hora) ? input.hora : null;
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+
+  const supabase = createClient();
+  const referenceMonth = (data ?? hojeISO()).slice(0, 7);
+  const { data: novo, error } = await supabase
+    .from("contents")
+    .insert({
+      client_id: input.clientId,
+      title: (input.titulo?.trim() || "Ensaio de fotos").slice(0, 200),
+      format: "Ensaio de fotos",
+      status: "Aguardando gravação",
+      priority: "Alta",
+      reference_month: referenceMonth,
+      planned_week: null,
+      planned_date: null,
+      actual_post_date: null,
+      requires_recording: true,
+      recording_date: data,
+      recording_time: hora,
+      recording_location: null,
+      outfit: null,
+      participants: [],
+      description: null,
+      content_pillar: null,
+      objective: null,
+      planner_id: null,
+      recorder_id: null,
+      editor_id: null,
+      publisher_id: null,
+      script_deadline: null,
+      recording_deadline: data,
+      editing_deadline: null,
+      script_url: null,
+      raw_files_url: null,
+      edited_file_url: null,
+      published_url: null,
+      notes: null,
+    })
+    .select("id")
+    .single();
+  if (error || !novo) {
+    return { ok: false, error: "Não foi possível criar o ensaio." };
+  }
+
+  const podeGoogle = await googleSincronizavel();
+  if (data) aposResposta(() => sincronizarGravacao(novo.id));
+
+  revalidarConteudos(novo.id, input.clientId);
+  if (data && !podeGoogle) {
+    return {
+      ok: true,
+      id: novo.id,
+      avisoGoogle:
+        "Ensaio criado, mas o Google Agenda está desconectado — reconecte em Configurações pra ir pra agenda.",
+    };
+  }
+  return { ok: true, id: novo.id };
+}
+
+/**
  * Desmarca a gravação: zera data/hora e remove o evento do Google, MAS mantém
  * o conteúdo na lista de "a gravar" (requires_recording continua). Assim ele
  * volta a ser candidato para reagendar, inclusive em lote.

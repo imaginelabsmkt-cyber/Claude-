@@ -3,7 +3,10 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { agendarGravacoesEmLoteAction } from "@/lib/actions/contents";
+import {
+  agendarGravacoesEmLoteAction,
+  criarEnsaioFotosAction,
+} from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
 import { formatarData } from "@/lib/utils";
@@ -40,12 +43,22 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const [expandido, setExpandido] = useState<Set<string>>(new Set());
   const [processando, iniciar] = useTransition();
+  const [criandoEnsaio, iniciarEnsaio] = useTransition();
 
-  // Só clientes que têm vídeos a agendar.
-  const clientesComItens = useMemo(() => {
-    const ids = new Set(candidatos.map((c) => c.client_id));
-    return clientes.filter((c) => ids.has(c.id));
-  }, [clientes, candidatos]);
+  // Clientes que já têm produção a agendar (atalho pra ordenar: esses primeiro).
+  const idsComItens = useMemo(
+    () => new Set(candidatos.map((c) => c.client_id)),
+    [candidatos],
+  );
+  // Mostra TODOS os clientes: mesmo quem ainda não tem produção pode ganhar um
+  // ensaio de fotos aqui mesmo. Quem já tem produção aparece no topo.
+  const clientesLista = useMemo(() => {
+    return [...clientes].sort((a, b) => {
+      const pa = idsComItens.has(a.id) ? 0 : 1;
+      const pb = idsComItens.has(b.id) ? 0 : 1;
+      return pa - pb || a.name.localeCompare(b.name);
+    });
+  }, [clientes, idsComItens]);
 
   const doCliente = useMemo(
     () => candidatos.filter((c) => c.client_id === clientId),
@@ -100,6 +113,27 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
     });
   }
 
+  function criarEnsaio() {
+    iniciarEnsaio(async () => {
+      const r = await criarEnsaioFotosAction({
+        clientId,
+        data: data || null,
+        hora: hora || null,
+      });
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível criar o ensaio.");
+        return;
+      }
+      toast.sucesso(
+        data
+          ? "Ensaio de fotos criado e agendado."
+          : "Ensaio de fotos criado — marque a data quando quiser.",
+      );
+      if (r.avisoGoogle) toast.erro(r.avisoGoogle);
+      router.refresh(); // o ensaio aparece na lista de produções do cliente
+    });
+  }
+
   const podeAgendar =
     !processando && !!clientId && !!data && selecionados.size > 0;
 
@@ -129,7 +163,7 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                 >
                   <option value="">Selecione...</option>
-                  {clientesComItens.map((c) => (
+                  {clientesLista.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>
@@ -170,7 +204,8 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
                 </p>
               ) : doCliente.length === 0 ? (
                 <p className="p-4 text-center text-xs text-gray-400">
-                  Nenhuma produção a agendar para este cliente.
+                  Nenhum vídeo a agendar para este cliente. Pra marcar uma
+                  sessão de fotos, use o botão abaixo.
                 </p>
               ) : (
                 <ul className="divide-y divide-gray-100">
@@ -278,6 +313,24 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
                 </ul>
               )}
             </div>
+
+            {/* Atalho: criar um ENSAIO DE FOTOS para este cliente aqui mesmo,
+                sem precisar passar pelo plano de ação. Usa a data/hora acima
+                (se vazias, nasce em "A agendar"). */}
+            {clientId ? (
+              <button
+                type="button"
+                onClick={criarEnsaio}
+                disabled={criandoEnsaio}
+                className="mt-2 w-full rounded-lg border border-dashed border-brand-300 px-3 py-2 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-50"
+              >
+                {criandoEnsaio
+                  ? "Criando ensaio…"
+                  : data
+                    ? "📷 Criar ensaio de fotos nesta data"
+                    : "📷 Criar ensaio de fotos (marcar data depois)"}
+              </button>
+            ) : null}
 
             <div className="mt-4 flex items-center justify-between gap-2">
               <span className="text-xs text-gray-500">
