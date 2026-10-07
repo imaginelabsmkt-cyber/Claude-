@@ -103,6 +103,11 @@ export interface PortalGravacao {
   roteiro: RoteiroOrganizado | null;
   /** Situação da produção. */
   situacao: "gravado" | "a_remarcar" | "agendado" | "a_agendar";
+  /** Orientações pro cliente (ensaio/produção): o que vestir, quem vai etc. */
+  roupa: string | null; // cores/roupas que devem usar
+  participantes: string[]; // quem participa (ex.: alunos do ensaio)
+  materiais: string[]; // o que levar
+  orientacoes: string | null; // ideias/briefing do ensaio (storyboard em texto)
 }
 
 /** Resumo do mês para o cliente: quanto foi planejado x já publicado. */

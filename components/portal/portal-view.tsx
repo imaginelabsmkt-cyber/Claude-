@@ -662,11 +662,25 @@ function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
 
 function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
   const [aberto, setAberto] = useState(false);
+  const [verOrientacoes, setVerOrientacoes] = useState(false);
   const r = grav.roteiro;
   const temRoteiro = !!r && (r.linhas.length > 0 || r.paragrafos.length > 0);
+  const ehFoto = /foto|ensaio/i.test(grav.format ?? "");
+  const agendado = grav.situacao === "agendado" || grav.situacao === "gravado";
+  const temOrientacoes =
+    !!grav.roupa ||
+    grav.participantes.length > 0 ||
+    grav.materiais.length > 0 ||
+    !!grav.orientacoes;
 
   return (
-    <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+    <div
+      className={`rounded-2xl border p-4 shadow-sm ${
+        grav.situacao === "agendado"
+          ? "border-green-300 bg-green-50/50 ring-1 ring-green-200"
+          : "border-black/5 bg-white"
+      }`}
+    >
       <div className="flex flex-wrap items-center gap-2">
         {grav.format ? (
           <span
@@ -676,7 +690,7 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           </span>
         ) : null}
         <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
-          {/foto|ensaio/i.test(grav.format ?? "") ? "📷 Fotos" : "🎥 Gravação"}
+          {ehFoto ? "📷 Fotos" : "🎥 Gravação"}
         </span>
         {grav.situacao === "gravado" ? (
           <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
@@ -691,14 +705,16 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
             A remarcar
           </span>
         ) : (
-          <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-600">
-            Agendado
+          <span className="rounded-full bg-green-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
+            ✅ {ehFoto ? "Ensaio marcado" : "Agendado"}
           </span>
         )}
-        <span className="ml-auto text-xs font-medium text-gray-500">
+        <span
+          className={`ml-auto text-xs font-semibold ${agendado ? "text-green-700" : "text-gray-500"}`}
+        >
           {grav.situacao === "a_remarcar" || grav.situacao === "a_agendar"
             ? "data a combinar"
-            : `${fmtDia(grav.data)}${grav.hora ? ` · ${grav.hora}` : ""}`}
+            : `📅 ${fmtDia(grav.data)}${grav.hora ? ` · ${grav.hora}` : ""}`}
         </span>
       </div>
 
@@ -707,6 +723,61 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
       </h3>
       {grav.local ? (
         <p className="mt-0.5 text-xs text-gray-500">📍 {grav.local}</p>
+      ) : null}
+
+      {/* Orientações pro cliente (o que vestir, quem vai, ideias do ensaio). */}
+      {temOrientacoes ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setVerOrientacoes((v) => !v)}
+            className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
+          >
+            {verOrientacoes ? "Ocultar orientações" : "📋 Ver orientações"}
+          </button>
+          {verOrientacoes ? (
+            <div className="mt-2 space-y-2 rounded-xl border border-brand-100 bg-brand-50/50 p-3">
+              {grav.orientacoes ? (
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+                    Como vai ser
+                  </p>
+                  <p className="mt-0.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+                    {grav.orientacoes}
+                  </p>
+                </div>
+              ) : null}
+              {grav.roupa ? (
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+                    Roupa / cores
+                  </p>
+                  <p className="mt-0.5 text-sm text-gray-700">{grav.roupa}</p>
+                </div>
+              ) : null}
+              {grav.participantes.length > 0 ? (
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+                    Quem participa
+                  </p>
+                  <p className="mt-0.5 text-sm text-gray-700">
+                    {grav.participantes.join(", ")}
+                  </p>
+                </div>
+              ) : null}
+              {grav.materiais.length > 0 ? (
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+                    O que levar
+                  </p>
+                  <p className="mt-0.5 text-sm text-gray-700">
+                    {grav.materiais.join(", ")}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       {temRoteiro ? (

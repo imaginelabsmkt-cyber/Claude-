@@ -197,6 +197,15 @@ export async function carregarPortal(
       hora: c.recording_time,
       local: c.recording_location,
       roteiro: organizarRoteiro(c.script),
+      roupa: c.outfit ?? null,
+      participantes: Array.isArray(c.participants) ? c.participants : [],
+      materiais: Array.isArray(c.required_materials) ? c.required_materials : [],
+      // O texto livre só vai pro cliente em ensaio/foto (briefing do ensaio).
+      // Em vídeo, a descrição pode ter nota interna — não expõe.
+      orientacoes:
+        /foto|ensaio/i.test(c.format ?? "") && c.description?.trim()
+          ? c.description.trim()
+          : null,
       situacao: estaGravado(c.status)
         ? ("gravado" as const)
         : !c.recording_date
