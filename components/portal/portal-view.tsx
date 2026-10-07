@@ -46,6 +46,66 @@ function chipFormato(format: string | null): string {
   return "bg-gray-100 text-gray-600";
 }
 
+/** Calendário do mês com as postagens marcadas no dia certo. */
+function CalendarioMes({ posts }: { posts: PortalPost[] }) {
+  const comData = posts.filter((p) => p.data);
+  if (comData.length === 0) return null;
+  const [ano, mes] = (comData[0].data as string).split("-").map(Number);
+  if (!ano || !mes) return null;
+
+  const primeiroDiaSemana = new Date(ano, mes - 1, 1).getDay(); // 0=Dom
+  const diasNoMes = new Date(ano, mes, 0).getDate();
+  const porDia = new Map<number, PortalPost[]>();
+  for (const p of comData) {
+    const dia = Number((p.data as string).slice(8, 10));
+    porDia.set(dia, [...(porDia.get(dia) ?? []), p]);
+  }
+  const celulas: (number | null)[] = [];
+  for (let i = 0; i < primeiroDiaSemana; i += 1) celulas.push(null);
+  for (let d = 1; d <= diasNoMes; d += 1) celulas.push(d);
+  while (celulas.length % 7 !== 0) celulas.push(null);
+
+  const DIAS = ["D", "S", "T", "Q", "Q", "S", "S"];
+  return (
+    <div className="rounded-2xl border border-black/5 bg-white p-2 shadow-sm">
+      <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-wide text-gray-400">
+        {DIAS.map((d, i) => (
+          <span key={i}>{d}</span>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {celulas.map((d, i) => {
+          const doDia = d ? (porDia.get(d) ?? []) : [];
+          return (
+            <div
+              key={i}
+              className={`min-h-[58px] rounded-lg p-1 ${d ? "border border-gray-100" : ""}`}
+            >
+              {d ? (
+                <p className="text-[10px] font-semibold text-gray-400">{d}</p>
+              ) : null}
+              <div className="mt-0.5 space-y-0.5">
+                {doDia.slice(0, 3).map((p) => (
+                  <p
+                    key={p.id}
+                    title={p.title}
+                    className={`truncate rounded px-1 text-[9px] font-medium leading-tight ${chipFormato(p.format)}`}
+                  >
+                    {p.title}
+                  </p>
+                ))}
+                {doDia.length > 3 ? (
+                  <p className="text-[9px] text-gray-400">+{doDia.length - 3}</p>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function CartaoPost({ post }: { post: PortalPost }) {
   const [aberto, setAberto] = useState(false);
   const st = statusClientePost(post.status, post.format);
@@ -1001,7 +1061,7 @@ export function PortalView({
 
         {postsMes.length > 0 ? (
           <Colapsavel
-            titulo="Agenda de postagens do mês"
+            titulo="Calendário de postagens"
             emoji="🗓️"
             badge={
               <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
@@ -1009,28 +1069,7 @@ export function PortalView({
               </span>
             }
           >
-            <div className="overflow-hidden rounded-2xl border border-black/5 bg-white">
-              {postsMes.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex items-center gap-3 border-b border-gray-100 px-4 py-2.5 last:border-0"
-                >
-                  <span className="w-16 shrink-0 text-xs font-semibold text-gray-500">
-                    {fmtDia(p.data)}
-                  </span>
-                  {p.format ? (
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${chipFormato(p.format)}`}
-                    >
-                      {p.format}
-                    </span>
-                  ) : null}
-                  <span className="min-w-0 flex-1 truncate text-sm text-gray-800">
-                    {p.title}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <CalendarioMes posts={postsMes} />
           </Colapsavel>
         ) : null}
 
