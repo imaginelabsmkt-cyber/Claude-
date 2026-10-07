@@ -676,7 +676,7 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           </span>
         ) : null}
         <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
-          🎥 Gravação
+          {/foto|ensaio/i.test(grav.format ?? "") ? "📷 Fotos" : "🎥 Gravação"}
         </span>
         {grav.situacao === "gravado" ? (
           <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
@@ -811,15 +811,17 @@ function Secao({
   titulo,
   emoji,
   vazio,
+  badge,
   children,
 }: {
   titulo: string;
   emoji: string;
   vazio?: string;
+  badge?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <Colapsavel titulo={titulo} emoji={emoji}>
+    <Colapsavel titulo={titulo} emoji={emoji} badge={badge}>
       {vazio ? (
         <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
           {vazio}
@@ -1188,7 +1190,15 @@ export function PortalView({
         </Colapsavel>
 
         {gravacoesSemana.length > 0 ? (
-          <Secao titulo="Produções a fazer" emoji="🎥">
+          <Secao
+            titulo="Produções a fazer"
+            emoji="🎥"
+            badge={
+              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
+                {gravacoesSemana.length}
+              </span>
+            }
+          >
             {gravacoesSemana.map((g) => (
               <CartaoGravacao key={g.id} grav={g} />
             ))}
