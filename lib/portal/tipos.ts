@@ -65,6 +65,7 @@ export interface PortalPost {
   status: ContentStatus;
   data: string | null; // planned_date ou actual_post_date
   caption: string | null; // legenda (o roteiro é interno, não vai pro cliente)
+  resumo: string | null; // resumo do conteúdo (do campo Descrição) p/ o cliente
   aguardaAprovacao: boolean;
 }
 

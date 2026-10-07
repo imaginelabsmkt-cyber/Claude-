@@ -95,6 +95,7 @@ function paraPost(c: Content): PortalPost {
     status: c.status,
     data: c.actual_post_date ?? c.planned_date,
     caption: limparLegenda(c.caption),
+    resumo: limparLegenda(c.description), // descrição vira "resumo" pro cliente
     aguardaAprovacao: c.status === "Aprovação do cliente",
   };
 }

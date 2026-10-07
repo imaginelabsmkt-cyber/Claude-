@@ -222,6 +222,19 @@ function CartaoPost({
         {post.title}
       </h3>
 
+      {/* Resumo do conteúdo (campo Descrição): aparece no detalhe, antes da
+          legenda, pra o cliente entender do que é o post. */}
+      {expandida && post.resumo ? (
+        <div className="mt-2 rounded-xl border border-brand-100 bg-brand-50/50 p-3">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+            Resumo
+          </p>
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+            {post.resumo}
+          </p>
+        </div>
+      ) : null}
+
       {temLegenda ? (
         <>
           {/* No detalhe (expandida) a legenda já vem aberta, sem botão. */}
