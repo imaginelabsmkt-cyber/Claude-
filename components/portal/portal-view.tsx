@@ -46,7 +46,21 @@ function chipFormato(format: string | null): string {
   return "bg-gray-100 text-gray-600";
 }
 
-/** Calendário do mês com as postagens marcadas no dia certo. */
+/** Cor do "pontinho" por formato (versão compacta/celular do calendário). */
+function corDot(format: string | null): string {
+  const f = (format ?? "").toLowerCase();
+  if (f.includes("reel") || f.includes("vídeo") || f.includes("video"))
+    return "bg-rose-400";
+  if (f.includes("carrossel")) return "bg-blue-400";
+  if (f.includes("story")) return "bg-violet-400";
+  return "bg-gray-400";
+}
+
+/**
+ * Calendário do mês com as postagens no dia certo. No celular fica compacto
+ * (só pontinhos coloridos por postagem); no computador mostra o título em cada
+ * dia. É uma visão SECUNDÁRIA — a semana vem primeiro.
+ */
 function CalendarioMes({ posts }: { posts: PortalPost[] }) {
   const comData = posts.filter((p) => p.data);
   if (comData.length === 0) return null;
@@ -79,12 +93,13 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
           return (
             <div
               key={i}
-              className={`min-h-[58px] rounded-lg p-1 ${d ? "border border-gray-100" : ""}`}
+              className={`min-h-[40px] rounded-lg p-1 sm:min-h-[58px] ${d ? "border border-gray-100" : ""}`}
             >
               {d ? (
                 <p className="text-[10px] font-semibold text-gray-400">{d}</p>
               ) : null}
-              <div className="mt-0.5 space-y-0.5">
+              {/* Computador: título em cada dia. */}
+              <div className="mt-0.5 hidden space-y-0.5 sm:block">
                 {doDia.slice(0, 3).map((p) => (
                   <p
                     key={p.id}
@@ -98,6 +113,17 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
                   <p className="text-[9px] text-gray-400">+{doDia.length - 3}</p>
                 ) : null}
               </div>
+              {/* Celular: só pontinhos coloridos (fica leve). */}
+              {doDia.length > 0 ? (
+                <div className="mt-1 flex flex-wrap gap-0.5 sm:hidden">
+                  {doDia.slice(0, 4).map((p) => (
+                    <span
+                      key={p.id}
+                      className={`h-1.5 w-1.5 rounded-full ${corDot(p.format)}`}
+                    />
+                  ))}
+                </div>
+              ) : null}
             </div>
           );
         })}
@@ -1048,17 +1074,27 @@ export function PortalView({
             ) : undefined
           }
         >
-          {postsMes.length > 0 ? <CalendarioMes posts={postsMes} /> : null}
+          {/* A SEMANA VEM PRIMEIRO: é o que o cliente mais quer ver. */}
           {postsSemana.length > 0 ? (
-            <div className="mt-3 space-y-2">
+            <div className="space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
-                Essa semana vai ao ar
+                Essa semana
               </p>
               {postsSemana.map((p) => (
                 <CartaoPost key={p.id} post={p} />
               ))}
             </div>
-          ) : postsMes.length === 0 ? (
+          ) : null}
+          {/* O mês inteiro vem depois, como visão de contexto. */}
+          {postsMes.length > 0 ? (
+            <div className={postsSemana.length > 0 ? "mt-4" : ""}>
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                No mês
+              </p>
+              <CalendarioMes posts={postsMes} />
+            </div>
+          ) : null}
+          {postsSemana.length === 0 && postsMes.length === 0 ? (
             <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
               Nenhuma postagem programada ainda.
             </p>
