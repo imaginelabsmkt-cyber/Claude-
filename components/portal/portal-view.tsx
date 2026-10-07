@@ -1051,12 +1051,32 @@ export function PortalView({
               </div>
             ) : null}
 
-            {/* Já concluído */}
+            {/* Já concluído: aparece a LISTA do que já foi entregue (prova de
+                trabalho que o cliente quer ver), não só a contagem. */}
             {planoFeitos.length > 0 ? (
-              <p className="mt-3 text-xs font-medium text-green-700">
-                ✓ {planoFeitos.length} já concluído
-                {planoFeitos.length > 1 ? "s" : ""} neste plano
-              </p>
+              <div className="mt-3 rounded-2xl border border-green-200 bg-green-50/60 p-4 shadow-sm">
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">
+                  ✓ Já feito ({planoFeitos.length})
+                </h3>
+                <ul className="space-y-2">
+                  {planoFeitos.map((e) => (
+                    <li key={e.id} className="flex items-start gap-2 text-sm">
+                      <span
+                        aria-hidden
+                        className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-600 text-[10px] text-white"
+                      >
+                        ✓
+                      </span>
+                      <span className="text-gray-800">
+                        {e.title}
+                        {e.dateLabel ? (
+                          <span className="text-gray-400"> · {e.dateLabel}</span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
           </Colapsavel>
         ) : null}
