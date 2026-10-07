@@ -758,15 +758,7 @@ export function PortalView({
     emProducao,
     pausadosCancelados,
     planoAcao,
-    demandas,
   } = dados;
-
-  // Demandas agrupadas por área.
-  const grupos = new Map<string, typeof demandas>();
-  for (const d of demandas) {
-    const k = d.category?.trim() || "Geral";
-    grupos.set(k, [...(grupos.get(k) ?? []), d]);
-  }
 
   // Plano de ação SINTETIZADO pro painel: em vez de despejar a lista inteira,
   // mostramos o que a FAVIE está fazendo, resumido em "em andamento", "próximos"
@@ -1045,33 +1037,33 @@ export function PortalView({
 
         <ResumoMesCard resumo={resumoMes} />
 
-        <Secao
-          titulo="Essa semana vai ao ar"
+        <Colapsavel
+          titulo="Postagens"
           emoji="📅"
-          vazio={
-            postsSemana.length === 0
-              ? "Nenhum post programado para esta semana."
-              : undefined
-          }
-        >
-          {postsSemana.map((p) => (
-            <CartaoPost key={p.id} post={p} />
-          ))}
-        </Secao>
-
-        {postsMes.length > 0 ? (
-          <Colapsavel
-            titulo="Calendário de postagens"
-            emoji="🗓️"
-            badge={
+          badge={
+            postsMes.length > 0 ? (
               <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
                 {postsMes.length}
               </span>
-            }
-          >
-            <CalendarioMes posts={postsMes} />
-          </Colapsavel>
-        ) : null}
+            ) : undefined
+          }
+        >
+          {postsMes.length > 0 ? <CalendarioMes posts={postsMes} /> : null}
+          {postsSemana.length > 0 ? (
+            <div className="mt-3 space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                Essa semana vai ao ar
+              </p>
+              {postsSemana.map((p) => (
+                <CartaoPost key={p.id} post={p} />
+              ))}
+            </div>
+          ) : postsMes.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
+              Nenhuma postagem programada ainda.
+            </p>
+          ) : null}
+        </Colapsavel>
 
         {gravacoesSemana.length > 0 ? (
           <Secao titulo="Produções a fazer" emoji="🎥">
@@ -1103,45 +1095,8 @@ export function PortalView({
           </Secao>
         ) : null}
 
-        <Secao
-          titulo="O que estamos fazendo"
-          emoji="✅"
-          vazio={
-            demandas.length === 0
-              ? "Nenhuma tarefa em andamento agora."
-              : undefined
-          }
-        >
-          {[...grupos.entries()].map(([area, itens]) => (
-            <div
-              key={area}
-              className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm"
-            >
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
-                {area}
-              </p>
-              <ul className="mt-1.5 space-y-1.5">
-                {itens.map((d) => (
-                  <li
-                    key={d.id}
-                    className="flex items-center gap-2 text-sm text-gray-700"
-                  >
-                    <span
-                      className={
-                        "h-2 w-2 shrink-0 rounded-full " +
-                        (d.status === "Fazendo"
-                          ? "bg-amber-400"
-                          : "bg-gray-300")
-                      }
-                      aria-hidden
-                    />
-                    <span>{d.title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </Secao>
+        {/* "O que estamos fazendo" (demandas) foi removido: duplicava o que o
+            Plano de ação já mostra em "Em andamento". */}
 
         <ResultadoBloco token={token} resultado={resultado} />
 
