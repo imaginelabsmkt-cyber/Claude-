@@ -36,6 +36,20 @@ function fmtIntervalo(ini: string, fim: string): string {
   return `${String(di).padStart(2, "0")}/${NOMES_MES[mi - 1]} a ${String(df).padStart(2, "0")}/${NOMES_MES[mf - 1]}`;
 }
 
+/**
+ * Rótulo de data do item do plano. Se o item JÁ FOI FEITO, tira o "a confirmar"
+ * (e variações): não faz sentido um item concluído ainda dizer que a data está
+ * por confirmar. Se só sobrava isso, não mostra nada.
+ */
+function rotuloData(dateLabel: string | null, feito: boolean): string | null {
+  if (!dateLabel) return null;
+  if (!feito) return dateLabel;
+  const limpo = dateLabel
+    .replace(/\s*[-–·]?\s*a\s+(confirmar|definir|combinar|marcar)\b\.?\s*$/i, "")
+    .trim();
+  return limpo || null;
+}
+
 /** Chip colorido do formato (mesma linguagem visual do sistema). */
 function chipFormato(format: string | null): string {
   const f = (format ?? "").toLowerCase();
@@ -1009,10 +1023,10 @@ export function PortalView({
             >
               {e.title}
             </span>
-            {e.dateLabel ? (
+            {rotuloData(e.dateLabel, feito) ? (
               <span className={feito ? "text-amber-700/50" : "text-amber-700"}>
                 {" "}
-                · {e.dateLabel}
+                · {rotuloData(e.dateLabel, feito)}
               </span>
             ) : null}
             {e.description && !feito ? (
@@ -1232,8 +1246,11 @@ export function PortalView({
                       </span>
                       <span className="text-gray-800">
                         {e.title}
-                        {e.dateLabel ? (
-                          <span className="text-gray-400"> · {e.dateLabel}</span>
+                        {rotuloData(e.dateLabel, true) ? (
+                          <span className="text-gray-400">
+                            {" "}
+                            · {rotuloData(e.dateLabel, true)}
+                          </span>
                         ) : null}
                       </span>
                     </li>
