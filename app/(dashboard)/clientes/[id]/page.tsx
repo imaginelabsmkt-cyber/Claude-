@@ -27,7 +27,7 @@ import { ClientWeeklyReport } from "@/components/clients/client-weekly-report";
 import { listDemands, listDemandsFeitasCliente } from "@/lib/data/demands";
 import { ClientReportsTab } from "@/components/clients/client-reports-tab";
 import { ClientDiagnosticsTab } from "@/components/clients/client-diagnostics-tab";
-import { obterCliente } from "@/lib/data/clients";
+import { obterCliente, relatoriosSalvosDoCliente } from "@/lib/data/clients";
 import { listContents, listProfiles } from "@/lib/data/contents";
 import { listClientFiles } from "@/lib/data/client-files";
 import {
@@ -89,19 +89,28 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const cliente = await obterCliente(params.id);
   if (!cliente) notFound();
 
-  const [todos, perfis, arquivos, onboarding, relatorios, diagnosticos, demandas] =
-    await Promise.all([
-      listContents(
-        { client_id: cliente.id },
-        { incluirClientesInativos: true, excluirCapas: true }, // capa não é conteúdo
-      ),
-      listProfiles(),
-      listClientFiles(cliente.id),
-      getOnboarding(cliente.id),
-      listClientReports(cliente.id),
-      listClientDiagnostics(cliente.id),
-      listDemands(),
-    ]);
+  const [
+    todos,
+    perfis,
+    arquivos,
+    onboarding,
+    relatorios,
+    diagnosticos,
+    demandas,
+    relatoriosSalvos,
+  ] = await Promise.all([
+    listContents(
+      { client_id: cliente.id },
+      { incluirClientesInativos: true, excluirCapas: true }, // capa não é conteúdo
+    ),
+    listProfiles(),
+    listClientFiles(cliente.id),
+    getOnboarding(cliente.id),
+    listClientReports(cliente.id),
+    listClientDiagnostics(cliente.id),
+    listDemands(),
+    relatoriosSalvosDoCliente(cliente.id),
+  ]);
   const [planoAcao, checklistOnboard, checklistPlano] = await Promise.all([
     listActionPlan(cliente.id),
     listChecklist(cliente.id, "onboard"),
@@ -317,6 +326,8 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                 </p>
                 <ClientWeeklyReport
                   clienteNome={cliente.name}
+                  clientId={cliente.id}
+                  relatoriosSalvos={relatoriosSalvos}
                   publicados={todos
                     .filter((c) => c.status === "Publicado" && !ehCapa(c))
                     .map((c) => ({

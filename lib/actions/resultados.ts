@@ -92,6 +92,37 @@ export async function salvarPlanilhaTrafegoAction(
 }
 
 /**
+ * Salva o RELATÓRIO da semana editado à mão (sobrepõe o gerado automático).
+ * Texto vazio limpa a edição (volta a valer o automático).
+ */
+export async function salvarRelatorioSemanaAction(
+  clientId: string,
+  weekStart: string,
+  texto: string,
+): Promise<ResultadoResult> {
+  if (!clientId || !DATA_RE.test(weekStart)) {
+    return { ok: false, error: "Dados inválidos." };
+  }
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  const supabase = createClient();
+  const { error } = await supabase.from("client_monthly_results").upsert(
+    {
+      client_id: clientId,
+      week_start: weekStart,
+      report_text: texto.trim().slice(0, 20000) || null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "client_id,week_start" },
+  );
+  if (error) return { ok: false, error: "Não foi possível salvar o relatório." };
+
+  revalidatePath(`/clientes/${clientId}`);
+  return { ok: true };
+}
+
+/**
  * Cliente responde os resultados dele pelo painel (link secreto). Valida o
  * token, grava só os campos do cliente na SEMANA e avisa a coordenação.
  */

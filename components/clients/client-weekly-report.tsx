@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "@/lib/ui/toast";
+import { salvarRelatorioSemanaAction } from "@/lib/actions/resultados";
 import type { Demand } from "@/types";
 
 const NOMES_MES = [
@@ -39,15 +40,20 @@ function fmtDia(isoStr: string): string {
  */
 export function ClientWeeklyReport({
   clienteNome,
+  clientId,
   publicados = [],
   gravados = [],
   feitas,
+  relatoriosSalvos = {},
 }: {
   clienteNome: string;
+  clientId?: string;
   publicados?: ItemRelatorio[];
   gravados?: ItemRelatorio[];
   /** Demandas concluídas (Feita), inclusive arquivadas, data em updated_at. */
   feitas: Demand[];
+  /** Relatórios editados à mão, por semana (ISO): sobrepõem o automático. */
+  relatoriosSalvos?: Record<string, string>;
 }) {
   const [offset, setOffset] = useState(0); // 0 = semana atual, -1 = anterior…
 
@@ -114,19 +120,63 @@ export function ClientWeeklyReport({
     return linhas.join("\n").trim();
   }, [clienteNome, ini, fim, pub, grav, dem, grupos, temAlgo]);
 
-  // Edição do relatório: a pessoa pode ajustar o texto antes de copiar/enviar.
-  // O rascunho acompanha o texto gerado (ao trocar de semana, reseta).
+  // Edição do relatório, SALVA por semana: o texto editado à mão sobrepõe o
+  // gerado automático e fica guardado (volta igual ao recarregar).
   const [editando, setEditando] = useState(false);
-  const [rascunho, setRascunho] = useState(textoGerado);
+  const [salvos, setSalvos] =
+    useState<Record<string, string>>(relatoriosSalvos);
+  const [salvando, iniciar] = useTransition();
+  const editado = salvos[ini] != null;
+  const textoAtual = salvos[ini] ?? textoGerado;
+  const [rascunho, setRascunho] = useState(textoAtual);
   useEffect(() => {
-    setRascunho(textoGerado);
-  }, [textoGerado]);
+    setRascunho(salvos[ini] ?? textoGerado);
+  }, [ini, textoGerado, salvos]);
 
   const copiar = () => {
     navigator.clipboard
       .writeText(rascunho.trim())
       .then(() => toast.sucesso("Relatório copiado!"))
       .catch(() => toast.erro("Não foi possível copiar."));
+  };
+
+  const salvarRelatorio = () => {
+    if (!clientId) {
+      setEditando(false);
+      return;
+    }
+    iniciar(async () => {
+      const r = await salvarRelatorioSemanaAction(clientId, ini, rascunho);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível salvar.");
+        return;
+      }
+      setSalvos((m) => ({ ...m, [ini]: rascunho.trim() }));
+      toast.sucesso("Relatório salvo");
+      setEditando(false);
+    });
+  };
+
+  // Volta ao automático: apaga a edição salva desta semana.
+  const restaurar = () => {
+    if (!clientId) {
+      setRascunho(textoGerado);
+      return;
+    }
+    iniciar(async () => {
+      const r = await salvarRelatorioSemanaAction(clientId, ini, "");
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível restaurar.");
+        return;
+      }
+      setSalvos((m) => {
+        const novo = { ...m };
+        delete novo[ini];
+        return novo;
+      });
+      setRascunho(textoGerado);
+      toast.sucesso("Voltou ao relatório automático");
+    });
   };
 
   const Secao = ({
@@ -181,30 +231,60 @@ export function ClientWeeklyReport({
           </button>
         </div>
         <div className="flex items-center gap-2">
-          {editando ? (
-            <button
-              type="button"
-              onClick={() => setRascunho(textoGerado)}
-              className="rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50"
-              title="Voltar ao texto gerado automaticamente"
-            >
-              Restaurar
-            </button>
+          {editado && !editando ? (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+              editado
+            </span>
           ) : null}
-          <button
-            type="button"
-            onClick={() => setEditando((v) => !v)}
-            className="rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            {editando ? "✓ Pronto" : "✎ Editar"}
-          </button>
-          <button
-            type="button"
-            onClick={copiar}
-            className="rounded-md bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700"
-          >
-            Copiar relatório
-          </button>
+          {editando ? (
+            <>
+              <button
+                type="button"
+                onClick={restaurar}
+                disabled={salvando}
+                className="rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+                title="Apagar a edição e voltar ao texto automático"
+              >
+                Restaurar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRascunho(textoAtual);
+                  setEditando(false);
+                }}
+                disabled={salvando}
+                className="rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={salvarRelatorio}
+                disabled={salvando}
+                className="rounded-md bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+              >
+                {salvando ? "Salvando..." : "Salvar"}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setEditando(true)}
+                className="rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                ✎ Editar
+              </button>
+              <button
+                type="button"
+                onClick={copiar}
+                className="rounded-md bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700"
+              >
+                Copiar relatório
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -221,6 +301,10 @@ export function ClientWeeklyReport({
             Ao trocar de semana, o texto é regerado.
           </p>
         </div>
+      ) : editado ? (
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+          {rascunho}
+        </p>
       ) : !temAlgo ? (
         <p className="text-xs text-gray-400">
           Nada entregue nesta semana ainda. Conteúdos publicados/gravados e

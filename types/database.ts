@@ -393,6 +393,8 @@ export type ClientMonthlyResult = {
   sources_breakdown: Record<string, number>;
   client_comment: string | null;
   client_updated_at: ISODateString | null;
+  /** Relatório da semana editado à mão (sobrepõe o gerado automático). */
+  report_text: string | null;
   created_at: ISODateString;
   updated_at: ISODateString;
 };

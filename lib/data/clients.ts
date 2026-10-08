@@ -86,6 +86,26 @@ export async function obterCliente(id: string): Promise<Client | null> {
 }
 
 /**
+ * Relatórios da semana EDITADOS à mão deste cliente: mapa semana(ISO) -> texto.
+ * Usado pra sobrepor o relatório gerado automático com o que a pessoa salvou.
+ */
+export async function relatoriosSalvosDoCliente(
+  clientId: string,
+): Promise<Record<string, string>> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("client_monthly_results")
+    .select("week_start, report_text")
+    .eq("client_id", clientId)
+    .not("report_text", "is", null);
+  const mapa: Record<string, string> = {};
+  for (const r of data ?? []) {
+    if (r.week_start && r.report_text) mapa[r.week_start] = r.report_text;
+  }
+  return mapa;
+}
+
+/**
  * Garante que existe o "cliente" interno da favie (conteúdo próprio) e o
  * devolve. Provisionado automaticamente na primeira vez, a pessoa nunca
  * cadastra isso. A favie fica escondida da lista de Clientes e das métricas.
