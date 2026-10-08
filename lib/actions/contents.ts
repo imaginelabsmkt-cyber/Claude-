@@ -94,7 +94,9 @@ function normalizar(v: ParsedContent) {
     objective: toNull(v.objective),
     planned_date: toNull(v.planned_date),
     actual_post_date: toNull(v.actual_post_date),
-    requires_recording: v.requires_recording,
+    // Marcou data de gravação? então precisa de gravação (aparece em Produções
+    // e vai pra Agenda). Evita o caso de marcar a data e o conteúdo não surgir.
+    requires_recording: v.requires_recording || !!toNull(v.recording_date),
     recording_date: toNull(v.recording_date),
     recording_location: toNull(v.recording_location),
     participants: toArray(v.participants),
@@ -1186,6 +1188,18 @@ export async function atualizarProducaoConteudoAction(
   }
 
   revalidarConteudos(id);
+
+  // Marcou a data de gravação mas o Google está desconectado? avisa na hora
+  // (a produção aparece em Produções, mas não foi pra agenda).
+  const marcouDataAgenda = "recording_date" in patch && !!patch.recording_date;
+  if (marcouDataAgenda && !(await googleSincronizavel())) {
+    return {
+      ok: true,
+      id,
+      avisoGoogle:
+        "Salvo e na aba Produções, mas o Google Agenda está desconectado — reconecte em Configurações pra ir pra agenda.",
+    };
+  }
   return { ok: true, id };
 }
 

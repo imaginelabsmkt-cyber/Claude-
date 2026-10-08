@@ -40,8 +40,12 @@ function useSalvar() {
   const salvar = (id: string, patch: ContentStagePatch) =>
     iniciar(async () => {
       const r = await atualizarProducaoConteudoAction(id, patch);
-      if (!r.ok) toast.erro(r.error ?? "Não foi possível salvar.");
-      else toast.sucesso("Salvo");
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível salvar.");
+      } else {
+        toast.sucesso("Salvo");
+        if (r.avisoGoogle) toast.erro(r.avisoGoogle);
+      }
       router.refresh();
     });
   return { salvar, salvando };
