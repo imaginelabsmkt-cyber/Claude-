@@ -8,7 +8,8 @@ import {
 } from "@/lib/actions/contents";
 import { toast } from "@/lib/ui/toast";
 import { ehArte } from "@/lib/rules/contents";
-import { COL_DELIM } from "@/lib/import/planning-parser";
+import { COL_DELIM, parsePlanejamento } from "@/lib/import/planning-parser";
+import { parseRoteiroDoc, roteiroDocParaScript } from "@/lib/import/roteiro-doc";
 
 interface ContentScriptPanelProps {
   id: string;
@@ -694,6 +695,7 @@ function RoteiroEditavel({
   const [telaCheia, setTelaCheia] = useState(false);
   const [importando, setImportando] = useState(false);
   const [txtImport, setTxtImport] = useState("");
+  const [lendoArquivo, setLendoArquivo] = useState(false);
   const [linhas, setLinhas] = useState<LinhaEdicao[]>(() =>
     parseParaEdicao(roteiroLinhas),
   );
@@ -761,26 +763,71 @@ function RoteiroEditavel({
     setEditando(true);
   };
 
-  // Importa um roteiro ALTERADO: cola o texto e substitui. Converte colunas
-  // coladas (TAB) pro separador da tabela fiel (FALA | CENAS). Mantém a legenda
-  // e o direcionamento de stories atuais, a menos que o texto colado traga os
-  // seus próprios.
+  // Lê o documento escolhido (PDF ou texto) e põe o conteúdo na caixa.
+  const aoEscolherArquivo = async (file: File) => {
+    setLendoArquivo(true);
+    try {
+      let txt = "";
+      if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
+        const { lerTextoPdf } = await import("@/lib/import/ler-pdf");
+        txt = await lerTextoPdf(file);
+      } else {
+        txt = await file.text();
+      }
+      if (!txt.trim()) {
+        toast.erro("Não consegui ler o documento. Tente colar o texto.");
+        return;
+      }
+      setTxtImport(txt);
+      toast.sucesso("Documento lido — confira e clique em Importar.");
+    } catch {
+      toast.erro("Não consegui ler o documento. Tente colar o texto.");
+    } finally {
+      setLendoArquivo(false);
+    }
+  };
+
+  // Importa um roteiro ALTERADO (colado ou de documento) e substitui o atual.
+  // Entende o MODELO de roteiro (tabela FALA/LETTERING | CENAS com cabeçalho),
+  // o bloco de planejamento (CONTEÚDO N:, DATA:, LOCAL:…) ou texto colado puro.
+  // Mantém a legenda/stories atuais, a menos que o texto traga os próprios.
   const importar = () =>
     iniciar(async () => {
-      const convertido = txtImport
-        .replace(/\r\n/g, "\n")
-        .split("\n")
-        .map((l) => l.replace(/\t+/g, COL_DELIM).replace(/\s+$/, ""))
-        .join("\n")
-        .trim();
-      if (!convertido) {
+      const bruto = txtImport.replace(/\r\n/g, "\n").trim();
+      if (!bruto) {
         setImportando(false);
         return;
       }
-      const sec = separarSecoes(convertido);
-      const novoRoteiro = sec.roteiro.join("\n");
-      const novaLegenda = sec.legenda.length ? sec.legenda : legenda;
-      const novasStories = sec.stories.length ? sec.stories : stories;
+
+      let novoRoteiro = "";
+      let legImport: string[] = [];
+      let storiesImport: string[] = [];
+
+      const doc = parseRoteiroDoc(bruto);
+      if (doc) {
+        novoRoteiro = roteiroDocParaScript(doc);
+      } else {
+        const itens = parsePlanejamento(bruto, new Date().getFullYear());
+        const comRoteiro = itens.find((i) => i.roteiro?.trim());
+        if (comRoteiro?.roteiro) {
+          novoRoteiro = comRoteiro.roteiro;
+          if (comRoteiro.legenda?.trim())
+            legImport = comRoteiro.legenda.split("\n");
+        } else {
+          const convertido = bruto
+            .split("\n")
+            .map((l) => l.replace(/\t+/g, COL_DELIM).replace(/\s+$/, ""))
+            .join("\n")
+            .trim();
+          const sec = separarSecoes(convertido);
+          novoRoteiro = sec.roteiro.join("\n");
+          legImport = sec.legenda;
+          storiesImport = sec.stories;
+        }
+      }
+
+      const novaLegenda = legImport.length ? legImport : legenda;
+      const novasStories = storiesImport.length ? storiesImport : stories;
       const partes = [novoRoteiro.trim()];
       if (novaLegenda.length) partes.push(`LEGENDA: ${novaLegenda.join("\n")}`);
       if (novasStories.length)
@@ -872,11 +919,25 @@ function RoteiroEditavel({
       {importando ? (
         <div className="space-y-2">
           <p className="text-xs text-gray-500">
-            Cole o roteiro alterado e clique em Importar — ele substitui o atual.
-            Se vier em 2 colunas (copiado de uma tabela), o sistema separa
-            FALA | CENAS sozinho. A legenda e os stories atuais são mantidos (a
-            menos que o texto colado traga os próprios).
+            Escolha o documento (PDF) do roteiro <strong>ou</strong> cole o texto
+            abaixo e clique em Importar — substitui o roteiro atual. O sistema
+            entende o modelo FALA | CENAS, tira o cabeçalho (CONTEÚDO, DATA,
+            LOCAL…) e remonta a tabela. A legenda/stories atuais são mantidos.
           </p>
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-50">
+            {lendoArquivo ? "Lendo documento…" : "📄 Escolher documento (PDF)"}
+            <input
+              type="file"
+              accept=".pdf,.txt,application/pdf,text/plain"
+              disabled={lendoArquivo || salvando}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) aoEscolherArquivo(f);
+                e.target.value = "";
+              }}
+              className="hidden"
+            />
+          </label>
           <textarea
             value={txtImport}
             onChange={(e) => setTxtImport(e.target.value)}
