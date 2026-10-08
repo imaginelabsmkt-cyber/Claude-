@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "@/lib/ui/toast";
 import type { Demand } from "@/types";
 
@@ -83,7 +83,8 @@ export function ClientWeeklyReport({
     };
   }, [offset, publicados, gravados, feitas]);
 
-  const copiar = () => {
+  // Texto do relatório gerado dos dados. Serve de base para edição e cópia.
+  const textoGerado = useMemo(() => {
     const linhas = [
       `Relatório, ${clienteNome}`,
       `Semana de ${fmtDia(ini)} a ${fmtDia(fim)}`,
@@ -110,8 +111,20 @@ export function ClientWeeklyReport({
         }
       }
     }
+    return linhas.join("\n").trim();
+  }, [clienteNome, ini, fim, pub, grav, dem, grupos, temAlgo]);
+
+  // Edição do relatório: a pessoa pode ajustar o texto antes de copiar/enviar.
+  // O rascunho acompanha o texto gerado (ao trocar de semana, reseta).
+  const [editando, setEditando] = useState(false);
+  const [rascunho, setRascunho] = useState(textoGerado);
+  useEffect(() => {
+    setRascunho(textoGerado);
+  }, [textoGerado]);
+
+  const copiar = () => {
     navigator.clipboard
-      .writeText(linhas.join("\n").trim())
+      .writeText(rascunho.trim())
       .then(() => toast.sucesso("Relatório copiado!"))
       .catch(() => toast.erro("Não foi possível copiar."));
   };
@@ -167,16 +180,48 @@ export function ClientWeeklyReport({
             →
           </button>
         </div>
-        <button
-          type="button"
-          onClick={copiar}
-          className="rounded-md bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700"
-        >
-          Copiar relatório
-        </button>
+        <div className="flex items-center gap-2">
+          {editando ? (
+            <button
+              type="button"
+              onClick={() => setRascunho(textoGerado)}
+              className="rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+              title="Voltar ao texto gerado automaticamente"
+            >
+              Restaurar
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setEditando((v) => !v)}
+            className="rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            {editando ? "✓ Pronto" : "✎ Editar"}
+          </button>
+          <button
+            type="button"
+            onClick={copiar}
+            className="rounded-md bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700"
+          >
+            Copiar relatório
+          </button>
+        </div>
       </div>
 
-      {!temAlgo ? (
+      {editando ? (
+        <div>
+          <textarea
+            value={rascunho}
+            onChange={(e) => setRascunho(e.target.value)}
+            rows={Math.max(6, rascunho.split("\n").length + 1)}
+            className="w-full resize-y rounded-lg border border-brand-400 p-3 font-mono text-[13px] leading-relaxed text-gray-800 outline-none focus:ring-1 focus:ring-brand-500"
+          />
+          <p className="mt-1 text-[11px] text-gray-400">
+            Edite à vontade antes de copiar. “Restaurar” volta ao texto gerado.
+            Ao trocar de semana, o texto é regerado.
+          </p>
+        </div>
+      ) : !temAlgo ? (
         <p className="text-xs text-gray-400">
           Nada entregue nesta semana ainda. Conteúdos publicados/gravados e
           demandas concluídas aparecem aqui.

@@ -359,7 +359,7 @@ export function DemandsBoard({
         {etapas.length > 0 ? (
           <>
             <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
-              Etapas {feitas}/{etapas.length}
+              Itens {feitas}/{etapas.length}
             </p>
             <ul className="space-y-1">
               {etapas.map((s, idx) => (
