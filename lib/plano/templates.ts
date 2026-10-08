@@ -92,7 +92,20 @@ export function modeloParaItem(titulo: string): ModeloTarefa {
     };
   }
 
-  if (/google|perfil da empresa|ranque|ranqueamento|destaques|\bbio\b/.test(t)) {
+  // Bio / destaques / perfil do Instagram -> Instagram (não é Google).
+  if (/\bbio\b|destaques?|highlights|instagram|feed\b/.test(t)) {
+    return {
+      kind: "demanda",
+      category: "Instagram",
+      steps: passos(
+        "Levantar o que precisa",
+        "Executar",
+        "Revisar e confirmar",
+      ),
+    };
+  }
+
+  if (/google|perfil da empresa|ranque|ranqueamento|meu negocio/.test(t)) {
     return {
       kind: "demanda",
       category: "Google Meu Negócio",

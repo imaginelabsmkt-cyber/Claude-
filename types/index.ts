@@ -193,6 +193,7 @@ export const FONTES_CONTATO = [
 /** Áreas/tipos de demanda, para organizar o acompanhamento por cliente. */
 export const DEMAND_CATEGORIES = [
   "Conteúdo",
+  "Instagram",
   "Google Meu Negócio",
   "Facebook",
   "Tráfego",

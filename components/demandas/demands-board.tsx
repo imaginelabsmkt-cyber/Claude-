@@ -269,23 +269,23 @@ export function DemandsBoard({
 
         {/* Metadados: descem pra própria linha no celular, ficam inline no PC. */}
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          {/* Área só aparece por linha na visão geral (no cliente vira grupo). */}
-          {!clienteFixo ? (
-            <input
-              aria-label="Área"
-              list="areas-demanda"
-              key={`${d.id}-cat-${d.category ?? ""}`}
-              defaultValue={d.category ?? ""}
-              disabled={salvando}
-              placeholder="Área"
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v !== (d.category ?? ""))
-                  salvar(d.id, { category: v || null });
-              }}
-              className="w-28 rounded-md border border-gray-200 bg-transparent px-2 py-1.5 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none"
-            />
-          ) : null}
+          {/* Área editável também na visão do cliente: ao mudar, a demanda
+              pula pro grupo certo (ex.: tirar "bio/destaques" do Google e pôr
+              em Instagram). */}
+          <input
+            aria-label="Área"
+            list="areas-demanda"
+            key={`${d.id}-cat-${d.category ?? ""}`}
+            defaultValue={d.category ?? ""}
+            disabled={salvando}
+            placeholder="Área"
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v !== (d.category ?? ""))
+                salvar(d.id, { category: v || null });
+            }}
+            className="w-28 rounded-md border border-gray-200 bg-transparent px-2 py-1.5 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none"
+          />
 
           <RespPicker
             profiles={profiles}
