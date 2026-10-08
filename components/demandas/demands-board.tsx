@@ -415,6 +415,22 @@ export function DemandsBoard({
         >
           + adicionar etapa
         </button>
+
+        {/* Anotações da demanda: lugar pra textos/detalhes (ex.: a nova bio,
+            o conteúdo de cada destaque). Salva ao sair do campo. */}
+        <textarea
+          key={`${d.id}-desc-${d.description ?? ""}`}
+          defaultValue={d.description ?? ""}
+          disabled={salvando}
+          placeholder="Anotações / textos — ex.: a nova bio, o conteúdo dos destaques…"
+          onBlur={(e) => {
+            const v = e.target.value.trim();
+            if (v !== (d.description ?? ""))
+              salvar(d.id, { description: v || null });
+          }}
+          rows={2}
+          className="mt-2 w-full resize-y rounded-md border border-gray-200 bg-transparent px-2 py-1.5 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+        />
       </div>
       </div>
     );
