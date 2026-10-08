@@ -568,10 +568,18 @@ export function urgenciaConteudo(
     Pausado: "",
     Cancelado: "",
   };
-  // Foto/ensaio é produção, não "gravação": o verbo vira "Fotografar".
+  // O verbo "Gravar" só vale pra vídeo. Carrossel/post (arte) não se grava:
+  // o que falta é a ARTE/FOTOS. Ensaio/foto vira "Fotografar".
   const ehFoto = /foto|ensaio/i.test(content.format ?? "");
   const vBase = VERBO[content.status] || "Entregar";
-  const v = ehFoto && vBase === "Gravar" ? "Fotografar" : vBase;
+  const v =
+    vBase === "Gravar"
+      ? ehArte(content.format)
+        ? "Arte"
+        : ehFoto
+          ? "Fotografar"
+          : "Gravar"
+      : vBase;
 
   // Urgente manual fura a fila.
   if (content.priority === "Urgente") {

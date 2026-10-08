@@ -32,7 +32,9 @@ import {
   estaAtrasado,
   entregaEmAlerta,
   ehCapa,
+  ehArte,
 } from "@/lib/rules/contents";
+import { rotuloAcao } from "@/lib/ui/rotulos-arte";
 import { formatarData } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -113,7 +115,9 @@ export default async function ConteudoPage({ params }: PageProps) {
             <QuickPriority id={conteudo.id} priority={conteudo.priority} />
           </Item>
           <Item rotulo="Formato">{conteudo.format ?? "·"}</Item>
-          <Item rotulo="Próxima ação">{proximaAcao(conteudo.status)}</Item>
+          <Item rotulo="Próxima ação">
+            {rotuloAcao(proximaAcao(conteudo.status), ehArte(conteudo.format))}
+          </Item>
           <Item rotulo="Responsável atual">{responsavel}</Item>
           <Item rotulo="Prazo principal">
             {formatarData(prazoPrincipal(conteudo))}
