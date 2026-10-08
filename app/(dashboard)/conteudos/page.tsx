@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { ContentsToolbar } from "@/components/contents/contents-toolbar";
 import { EditableContentsTable } from "@/components/contents/editable-contents-table";
+import { QuickContentButton } from "@/components/contents/quick-content-button";
 import {
   listContents,
   listClientOptions,
@@ -54,6 +55,7 @@ export default async function ConteudosPage({ searchParams }: PageProps) {
         tom="indigo"
         acao={
           <div className="flex flex-wrap gap-2">
+            <QuickContentButton clientes={clientes} />
             <Link href="/conteudos/novo">
               <Button>Novo conteúdo</Button>
             </Link>

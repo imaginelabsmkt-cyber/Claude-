@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   contentFormSchema,
+  CONTENT_FORM_PADRAO,
   type ContentFormValues,
 } from "@/lib/validation/content";
 import {
@@ -126,6 +127,41 @@ function primeirosErros(fe: Record<string, string[] | undefined>) {
     if (msgs && msgs.length) saida[campo] = msgs[0];
   }
   return saida;
+}
+
+/**
+ * Cria um conteúdo RÁPIDO colando o roteiro: só cliente + título + roteiro, com
+ * padrões sensatos pro resto. Opcionalmente já entra na fila de edição. É o
+ * atalho pra "me manda o roteiro que eu crio" sem abrir o formulário inteiro.
+ */
+export async function criarConteudoRapidoAction(input: {
+  clientId: string;
+  title: string;
+  script?: string;
+  caption?: string;
+  format?: string;
+  paraFilaEdicao?: boolean;
+}): Promise<ActionResult> {
+  const title = (input.title ?? "").trim();
+  if (!input.clientId) return { ok: false, error: "Escolha o cliente." };
+  if (!title) return { ok: false, error: "Dê um título ao conteúdo." };
+
+  const hoje = hojeISO();
+  const dia = Number(hoje.slice(8, 10)) || 1;
+  const values: ContentFormValues = {
+    ...CONTENT_FORM_PADRAO,
+    client_id: input.clientId,
+    title: title.slice(0, 200),
+    format: (input.format ?? "Reel").trim() || "Reel",
+    status: input.paraFilaEdicao ? "Fila de edição" : "Roteiro pronto",
+    priority: "Média",
+    reference_month: hoje.slice(0, 7),
+    planned_week: String(Math.min(6, Math.max(1, Math.ceil(dia / 7)))),
+    script: (input.script ?? "").trim(),
+    caption: (input.caption ?? "").trim(),
+    requires_recording: false,
+  };
+  return criarConteudoAction(values);
 }
 
 export async function criarConteudoAction(
