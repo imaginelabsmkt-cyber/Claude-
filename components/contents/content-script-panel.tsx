@@ -692,6 +692,8 @@ function RoteiroEditavel({
   const router = useRouter();
   const [editando, setEditando] = useState(false);
   const [telaCheia, setTelaCheia] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const [txtImport, setTxtImport] = useState("");
   const [linhas, setLinhas] = useState<LinhaEdicao[]>(() =>
     parseParaEdicao(roteiroLinhas),
   );
@@ -759,6 +761,48 @@ function RoteiroEditavel({
     setEditando(true);
   };
 
+  // Importa um roteiro ALTERADO: cola o texto e substitui. Converte colunas
+  // coladas (TAB) pro separador da tabela fiel (FALA | CENAS). Mantém a legenda
+  // e o direcionamento de stories atuais, a menos que o texto colado traga os
+  // seus próprios.
+  const importar = () =>
+    iniciar(async () => {
+      const convertido = txtImport
+        .replace(/\r\n/g, "\n")
+        .split("\n")
+        .map((l) => l.replace(/\t+/g, COL_DELIM).replace(/\s+$/, ""))
+        .join("\n")
+        .trim();
+      if (!convertido) {
+        setImportando(false);
+        return;
+      }
+      const sec = separarSecoes(convertido);
+      const novoRoteiro = sec.roteiro.join("\n");
+      const novaLegenda = sec.legenda.length ? sec.legenda : legenda;
+      const novasStories = sec.stories.length ? sec.stories : stories;
+      const partes = [novoRoteiro.trim()];
+      if (novaLegenda.length) partes.push(`LEGENDA: ${novaLegenda.join("\n")}`);
+      if (novasStories.length)
+        partes.push(`DIRECIONAMENTO DE STORIES\n${novasStories.join("\n")}`);
+      const full = partes.filter(Boolean).join("\n");
+
+      const r = await atualizarRoteiroAction(id, full);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível importar o roteiro.");
+        return;
+      }
+      const novasLinhas = novoRoteiro
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      setOverride({ linhas: novasLinhas, blocos: interpretar(novasLinhas) });
+      toast.sucesso("Roteiro importado");
+      setImportando(false);
+      setTxtImport("");
+      router.refresh();
+    });
+
   const onCampo = (i: number, campo: "rotulo" | "conteudo", valor: string) =>
     setLinhas((ls) =>
       ls.map((l, idx) => (idx === i ? { ...l, [campo]: valor } : l)),
@@ -804,6 +848,14 @@ function RoteiroEditavel({
           />
         ) : null}
         <BotaoSec onClick={iniciarEdicao}>✎ Editar</BotaoSec>
+        <BotaoSec
+          onClick={() => {
+            setTxtImport("");
+            setImportando(true);
+          }}
+        >
+          ⤵ Importar
+        </BotaoSec>
         {compacto ? null : (
           <BotaoSec onClick={() => setTelaCheia(true)}>⛶ Tela cheia</BotaoSec>
         )}
@@ -817,7 +869,40 @@ function RoteiroEditavel({
         <Botoes />
       </div>
 
-      {editando ? (
+      {importando ? (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500">
+            Cole o roteiro alterado e clique em Importar — ele substitui o atual.
+            Se vier em 2 colunas (copiado de uma tabela), o sistema separa
+            FALA | CENAS sozinho. A legenda e os stories atuais são mantidos (a
+            menos que o texto colado traga os próprios).
+          </p>
+          <textarea
+            value={txtImport}
+            onChange={(e) => setTxtImport(e.target.value)}
+            rows={12}
+            placeholder="Cole aqui o roteiro alterado..."
+            className="w-full resize-y rounded-lg border border-brand-400 p-3 text-sm leading-relaxed text-gray-800 outline-none focus:ring-1 focus:ring-brand-500"
+          />
+          <div className="flex items-center gap-2">
+            <BotaoSec
+              variante="primario"
+              onClick={importar}
+              disabled={salvando || !txtImport.trim()}
+            >
+              Importar
+            </BotaoSec>
+            <BotaoSec
+              onClick={() => {
+                setImportando(false);
+                setTxtImport("");
+              }}
+            >
+              Cancelar
+            </BotaoSec>
+          </div>
+        </div>
+      ) : editando ? (
         temTabelaDoc ? (
           <TabelaDocEdicao
             estado={doc}
