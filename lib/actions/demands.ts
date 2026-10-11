@@ -10,11 +10,86 @@ import {
   notificarPlannerEUsuarios,
   notificarUsuarios,
 } from "@/lib/push/eventos";
+import type { ItemDemandaImport } from "@/lib/import/demandas-parser";
 
 export interface ActionResult {
   ok: boolean;
   error?: string;
   id?: string;
+}
+
+function normNome(s: string): string {
+  return (s ?? "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Importa uma LISTA de demandas de uma vez (ex.: a planilha da nova gestão).
+ * clientId = null => demandas INTERNAS (da FAVIE); com clientId => do cliente.
+ * O "Responsável" é mapeado pelos nomes dos perfis (Vitória/Fran/As duas).
+ */
+export async function importarDemandasAction(
+  itens: ItemDemandaImport[],
+  clientId: string | null,
+): Promise<ActionResult & { criadas?: number }> {
+  const userId = await usuarioAtualId();
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+  const lista = (itens ?? []).filter((i) => i?.title?.trim());
+  if (lista.length === 0) {
+    return { ok: false, error: "Nenhuma demanda encontrada para importar." };
+  }
+  if (lista.length > 300) {
+    return { ok: false, error: "Muitas demandas de uma vez (máx. 300)." };
+  }
+
+  const supabase = createClient();
+  const { data: perfis } = await supabase.from("profiles").select("id, name");
+  const acharPerfil = (frag: string) =>
+    (perfis ?? []).find((p) => normNome(p.name).includes(frag))?.id;
+  const vitoria = acharPerfil("vit");
+  const fran = acharPerfil("fran");
+  const resolverResp = (r: string | null): string[] => {
+    const n = normNome(r ?? "");
+    if (!n) return [];
+    const duas =
+      n.includes("as duas") ||
+      n.includes("ambas") ||
+      (n.includes("vit") && n.includes("fran"));
+    if (duas) return [vitoria, fran].filter(Boolean) as string[];
+    if (n.includes("vit")) return [vitoria].filter(Boolean) as string[];
+    if (n.includes("fran")) return [fran].filter(Boolean) as string[];
+    return [];
+  };
+
+  const rows = lista.map((i) => ({
+    title: i.title.trim().slice(0, 300),
+    description: i.prontoQuando?.trim()
+      ? `Pronto quando: ${i.prontoQuando.trim()}`
+      : null,
+    category: i.area?.trim() || null,
+    assignee_ids: resolverResp(i.responsavel),
+    client_id: clientId || null,
+    due_date:
+      i.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
+    status: DEMAND_STATUS_OPTIONS.includes(i.status as DemandStatus)
+      ? (i.status as DemandStatus)
+      : "A fazer",
+    steps: [] as DemandStep[],
+    created_by: userId,
+  }));
+
+  const { data, error } = await supabase
+    .from("demands")
+    .insert(rows)
+    .select("id");
+  if (error) {
+    return { ok: false, error: "Não foi possível importar as demandas." };
+  }
+  revalidar();
+  return { ok: true, criadas: data?.length ?? rows.length };
 }
 
 function revalidar() {

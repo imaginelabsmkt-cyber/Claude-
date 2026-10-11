@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { DemandsBoard } from "@/components/demandas/demands-board";
+import { ImportDemandas } from "@/components/demandas/import-demandas";
 import { listDemands } from "@/lib/data/demands";
 import { listProfiles, listClientOptions } from "@/lib/data/contents";
 
@@ -20,6 +21,7 @@ export default async function DemandasPage() {
         descricao="Tarefas gerais do time (fora do fluxo de conteúdo). Crie, atribua e acompanhe."
         icone="demandas"
         tom="indigo"
+        acao={<ImportDemandas clientes={clientes} />}
       />
       <DemandsBoard demands={demands} profiles={profiles} clientes={clientes} />
     </>

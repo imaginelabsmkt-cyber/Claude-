@@ -200,6 +200,16 @@ export const DEMAND_CATEGORIES = [
   "Relatório",
   "Estratégia",
   "Preciso do cliente",
+  // Áreas internas da FAVIE (gestão/implementação da agência).
+  "Gestão",
+  "Produção",
+  "Atendimento",
+  "Comercial",
+  "Marketing FAVIE",
+  "Edição",
+  "Financeiro",
+  "Planejamento",
+  "Time",
   "Outro",
 ] as const;
 export type DemandCategory = (typeof DEMAND_CATEGORIES)[number];
