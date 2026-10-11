@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { ComercialTabs } from "@/components/comercial/comercial-tabs";
-import { Stat } from "@/components/interno/stat";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { listarLeads, obterCarteira } from "@/lib/data/comercial";
 import { valorDoFunil } from "@/lib/comercial/funil";
@@ -18,9 +17,9 @@ interface PageProps {
 /**
  * Comercial: a carteira de clientes e o quanto ela cobre do custo fixo.
  *
- * O funil de leads e as propostas vêm na próxima etapa (precisam de
- * tabelas novas). Esta tela já funciona com o que existe: os clientes,
- * as mensalidades recorrentes e o custo fixo da empresa.
+ * A tela abre com UMA frase em vez de quatro números soltos. "Clientes
+ * ativos", "receita recorrente", "custo fixo" e "falta para cobrir" diziam
+ * a mesma coisa que a barra logo abaixo — agora são a própria barra.
  */
 export default async function ComercialPage({ searchParams }: PageProps) {
   const mes =
@@ -35,6 +34,7 @@ export default async function ComercialPage({ searchParams }: PageProps) {
     ? carteira.recorrente / carteira.custoFixo
     : 0;
   const falta = carteira.custoFixo - carteira.recorrente;
+  const clientesQueFaltam = Math.ceil(falta / (carteira.ticketMedio || 1));
 
   return (
     <>
@@ -46,55 +46,42 @@ export default async function ComercialPage({ searchParams }: PageProps) {
 
       <ComercialTabs />
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat
-          rotulo="Clientes ativos"
-          valor={String(carteira.ativos.length)}
-          detalhe={
-            carteira.inativos.length > 0
-              ? `${carteira.inativos.length} já saíram`
-              : undefined
-          }
-        />
-        <Stat
-          rotulo="Receita recorrente"
-          valor={formatarMoeda(carteira.recorrente)}
-          detalhe="Se todos pagarem"
-        />
-        <Stat
-          rotulo="Custo fixo"
-          valor={formatarMoeda(carteira.custoFixo)}
-          origem="financeiro"
-        />
-        <Stat
-          rotulo={falta > 0 ? "Falta para cobrir" : "Sobra por mês"}
-          valor={formatarMoeda(Math.abs(falta))}
-          alerta={falta > 0}
-        />
-      </div>
-
       <div className="mb-5 rounded-xl border border-gray-200 bg-white p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold text-gray-900">
-            A carteira cobre {formatarPercentual(Math.min(cobertura, 1))} do custo fixo
-          </h2>
-          <span className="text-xs text-gray-500">
-            {formatarMoeda(carteira.recorrente)} de {formatarMoeda(carteira.custoFixo)}
-          </span>
-        </div>
-        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-gray-100">
+        <h2 className="text-base font-semibold text-gray-900">
+          {carteira.ativos.length} cliente(s) ativo(s) pagam{" "}
+          {formatarMoeda(carteira.recorrente)} por mês
+        </h2>
+
+        <div className="mt-3 h-3 overflow-hidden rounded-full bg-gray-100">
           <div
-            className="h-full rounded-full bg-area"
+            className={
+              "h-full rounded-full " + (falta > 0 ? "bg-alerta" : "bg-area")
+            }
             style={{ width: `${Math.min(cobertura * 100, 100)}%` }}
           />
         </div>
-        {falta > 0 ? (
-          <p className="mt-2 text-xs text-gray-600">
-            Faltam {formatarMoeda(falta)} por mês — cerca de{" "}
-            {Math.ceil(falta / (carteira.ticketMedio || 1))} cliente(s) do tamanho médio
-            da carteira ({formatarMoeda(carteira.ticketMedio)}).
-          </p>
-        ) : null}
+
+        <p className="mt-2 text-sm text-gray-600">
+          {falta > 0 ? (
+            <>
+              Cobre {formatarPercentual(Math.min(cobertura, 1))} do custo fixo de{" "}
+              {formatarMoeda(carteira.custoFixo)}.{" "}
+              <strong className="font-semibold text-alerta">
+                Faltam {formatarMoeda(falta)} por mês
+              </strong>{" "}
+              — cerca de {clientesQueFaltam} cliente(s) do tamanho médio da carteira (
+              {formatarMoeda(carteira.ticketMedio)}).
+            </>
+          ) : (
+            <>
+              Cobre o custo fixo de {formatarMoeda(carteira.custoFixo)} e{" "}
+              <strong className="font-semibold text-gray-900">
+                sobram {formatarMoeda(Math.abs(falta))} por mês
+              </strong>
+              .
+            </>
+          )}
+        </p>
       </div>
 
       <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
@@ -135,11 +122,14 @@ export default async function ComercialPage({ searchParams }: PageProps) {
       )}
 
       {carteira.inativos.length > 0 ? (
-        <>
-          <h2 className="mb-2 mt-6 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Já foram — {formatarMoeda(carteira.perdidoPorMes)} por mês que deixaram de entrar
-          </h2>
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <details className="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <summary className="cursor-pointer px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
+            <span className="font-semibold text-gray-900">
+              {carteira.inativos.length} já foram
+            </span>{" "}
+            — {formatarMoeda(carteira.perdidoPorMes)} por mês que deixaram de entrar
+          </summary>
+          <ul className="divide-y divide-gray-100 border-t border-gray-200">
             {carteira.inativos.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center gap-x-3 px-4 py-2.5">
                 <span className="min-w-0 flex-1 text-sm text-gray-600">{c.nome}</span>
@@ -152,7 +142,7 @@ export default async function ComercialPage({ searchParams }: PageProps) {
               </li>
             ))}
           </ul>
-        </>
+        </details>
       ) : null}
 
       <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4">

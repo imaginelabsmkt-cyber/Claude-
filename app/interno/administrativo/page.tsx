@@ -48,7 +48,7 @@ export default async function AdministrativoPage({ searchParams }: PageProps) {
         acao={<MonthNav mes={mes} />}
       />
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
           rotulo="Do mês"
           valor={formatarMoeda(recorte.realizado + recorte.pendente)}
@@ -57,12 +57,6 @@ export default async function AdministrativoPage({ searchParams }: PageProps) {
           rotulo="Ferramentas fixas"
           valor={formatarMoeda(recorte.mensal)}
           detalhe="Assinaturas recorrentes"
-        />
-        <Stat rotulo="Itens no mês" valor={String(recorte.lancamentos.length)} />
-        <Stat
-          rotulo="Documentos"
-          valor={String(documentos.length + contratos.length)}
-          detalhe={`${contratos.length} contrato(s) de cliente`}
         />
       </div>
 

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { MonthActions } from "@/components/financeiro/month-actions";
@@ -9,8 +8,6 @@ import { MoneyStat } from "@/components/financeiro/money-stat";
 import { contarRecorrenciasPendentes, obterPainelMes } from "@/lib/data/financeiro";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
 import { formatarData, formatarMoeda, formatarPercentual } from "@/lib/utils";
-import { FINANCIAL_STATUS_TONE } from "@/types";
-import type { TotalCategoria } from "@/lib/financeiro/calculo";
 
 export const dynamic = "force-dynamic";
 
@@ -18,47 +15,14 @@ interface PageProps {
   searchParams: { mes?: string };
 }
 
-/** Barra proporcional ao maior valor da lista (leitura rápida do peso). */
-function BarraCategoria({
-  itens,
-  cor,
-}: {
-  itens: TotalCategoria[];
-  cor: "verde" | "vermelho";
-}) {
-  const maior = Math.max(...itens.map((i) => i.previsto), 1);
-  const fundo = cor === "verde" ? "bg-green-500" : "bg-red-500";
-
-  return (
-    <ul className="space-y-3">
-      {itens.map((item) => (
-        <li key={item.categoriaId}>
-          <div className="flex items-baseline justify-between gap-3 text-sm">
-            <span className="min-w-0 truncate text-gray-700">{item.nome}</span>
-            <span className="shrink-0 font-medium text-gray-900">
-              {formatarMoeda(item.realizado)}
-            </span>
-          </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-gray-100">
-            <div
-              className={`h-full rounded-full ${fundo}`}
-              style={{ width: `${Math.max((item.realizado / maior) * 100, 1)}%` }}
-            />
-          </div>
-          {item.pendente > 0 ? (
-            <p className="mt-1 text-xs text-amber-600">
-              + {formatarMoeda(item.pendente)} em aberto
-            </p>
-          ) : null}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 /**
  * Painel do mês: a fotografia do caixa — quanto entrou, quanto saiu, o que
  * ainda falta receber/pagar e como o mês fecha.
+ *
+ * Quatro números e duas listas, de propósito. A quebra por categoria vive
+ * no Fluxo de caixa (com os lançamentos dentro de cada uma) e a visão por
+ * cliente vive na Rentabilidade — repetir aqui só faria a tela crescer sem
+ * dizer nada novo.
  */
 export default async function FinanceiroPage({ searchParams }: PageProps) {
   const mes =
@@ -77,6 +41,11 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
         ? "sem receita no mês anterior"
         : undefined;
 
+  const projecao =
+    resumo.saldoFinalPrevisto !== resumo.saldoFinal
+      ? `${formatarMoeda(resumo.saldoFinalPrevisto)} se tudo em aberto se confirmar`
+      : undefined;
+
   return (
     <>
       <AreaHeader
@@ -91,34 +60,26 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
         <MonthActions mes={mes} recorrenciasPendentes={recorrenciasPendentes} />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <MoneyStat rotulo="Saldo inicial" valor={resumo.saldoInicial} tom="cinza" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MoneyStat
-          rotulo="Receitas recebidas"
+          rotulo="Entrou"
           valor={resumo.receitas}
           tom="verde"
           detalhe={variacao}
         />
-        <MoneyStat rotulo="Despesas pagas" valor={resumo.despesas} tom="vermelho" />
+        <MoneyStat rotulo="Saiu" valor={resumo.despesas} tom="vermelho" />
         <MoneyStat
-          rotulo="Resultado do mês"
+          rotulo="Sobrou no mês"
           valor={resumo.resultado}
           tom="indigo"
           colorirPeloSinal
-          detalhe={`Margem ${formatarPercentual(resumo.margem)}`}
         />
         <MoneyStat
-          rotulo="Saldo final"
+          rotulo="Em caixa no fim"
           valor={resumo.saldoFinal}
           tom="azul"
           colorirPeloSinal
-        />
-        <MoneyStat
-          rotulo="Projeção do mês"
-          valor={resumo.saldoFinalPrevisto}
-          tom="ambar"
-          colorirPeloSinal
-          detalhe="Se tudo que está em aberto se confirmar"
+          detalhe={projecao}
         />
       </div>
 
@@ -203,67 +164,20 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Receitas por categoria</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {painel.receitasPorCategoria.length === 0 ? (
-              <p className="text-sm text-gray-500">Nenhuma receita lançada no mês.</p>
-            ) : (
-              <BarraCategoria itens={painel.receitasPorCategoria} cor="verde" />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Despesas por categoria</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {painel.despesasPorCategoria.length === 0 ? (
-              <p className="text-sm text-gray-500">Nenhuma despesa lançada no mês.</p>
-            ) : (
-              <BarraCategoria itens={painel.despesasPorCategoria} cor="vermelho" />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Faturamento por cliente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {painel.porCliente.length === 0 ? (
-              <p className="text-sm text-gray-500">Nenhuma receita lançada no mês.</p>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {painel.porCliente.slice(0, 10).map((c) => (
-                  <li
-                    key={c.clienteId ?? "sem-cliente"}
-                    className="flex items-center justify-between gap-3 py-2"
-                  >
-                    <span className="min-w-0 truncate text-sm text-gray-800">
-                      {c.nome}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-2">
-                      {c.pendente > 0 ? (
-                        <Badge tom={FINANCIAL_STATUS_TONE.Pendente}>
-                          {formatarMoeda(c.pendente)} em aberto
-                        </Badge>
-                      ) : null}
-                      <span className="text-sm font-medium text-gray-900">
-                        {formatarMoeda(c.total)}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
+        <Link
+          href={`/interno/financeiro/fluxo-caixa?mes=${mes}`}
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Ver por categoria →
+        </Link>
+        <Link
+          href={`/interno/comercial/rentabilidade?mes=${mes}`}
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Ver por cliente →
+        </Link>
+      </p>
     </>
   );
 }

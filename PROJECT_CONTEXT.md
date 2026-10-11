@@ -197,7 +197,7 @@ das recorrências vigentes.
 | `/financeiro/fluxo-caixa`     | O mês linha a linha, no formato da planilha        |
 | `/financeiro/resumo-anual`    | Matriz categoria × mês do ano inteiro              |
 | `/financeiro/recorrencias`    | Mensalidades e custos fixos                        |
-| `/financeiro/categorias`      | Categorias + saldo inicial da série                |
+| `/financeiro/categorias`      | Configuração: categorias + saldo inicial da série  |
 
 Vale a mesma regra do pipeline: **cada página tem uma responsabilidade**.
 O CRUD do lançamento vive só em `/financeiro/lancamentos`; as demais telas
@@ -442,6 +442,45 @@ Compara com o mês anterior.
 
 A folha de impressão (`@media print` em `globals.css`) esconde menu e
 botões, então Ctrl+P sai limpo em papel ou PDF — sem biblioteca de PDF.
+
+## 5.8 A regra do número que se paga
+
+A Fran pediu um sistema "mais intuitivo e usual, somente coisas
+necessárias e que realmente vamos utilizar". O menu de sete áreas ficou
+como estava — a escolha foi **limpar por dentro**, sob uma regra única:
+
+> **Um número só fica na tela se mudar o que você faz hoje.**
+
+O que isso exclui, por definição:
+
+- **Porcentagem que repete um valor.** "Sobrou R$ 3.000" e "margem 18%"
+  dizem a mesma coisa; só um precisa estar lá. Saíram a margem líquida do
+  fluxo de caixa e o "do custo fixo" de Pessoas.
+- **Contagem de cadastro.** "Prazos cadastrados: 4", "Documentos: 12",
+  "Itens no mês: 9" — a lista logo abaixo já conta. Saíram.
+- **O mesmo dado em duas telas do mesmo mês.** O painel do mês mostrava
+  receitas/despesas por categoria em barras; o fluxo de caixa mostra as
+  mesmas categorias com os lançamentos dentro. Ficou só no fluxo de caixa,
+  com um link "Ver por categoria →" no painel. Idem "faturamento por
+  cliente", que vive na Rentabilidade.
+- **Quatro números que são uma frase.** O Comercial abria com "clientes
+  ativos / receita recorrente / custo fixo / falta para cobrir" e, logo
+  abaixo, uma barra dizendo exatamente isso. Agora é só a barra, com a
+  frase: "6 clientes ativos pagam R$ 11.150 por mês — cobre 78% do custo
+  fixo; faltam R$ 3.036, cerca de 2 clientes do tamanho médio".
+
+Nada de acesso foi perdido: a configuração (categorias e saldo inicial)
+saiu das abas do dia a dia e virou um link discreto à direita, porque se
+mexe nela uma vez, não todo dia.
+
+### A única função que saiu de verdade
+
+**"Copiar mês anterior"** foi removida (botão e `copiarMesAction`). Ela
+repetia *todos* os lançamentos do mês passado como pendentes — inclusive o
+que foi compra única, que então precisaria ser apagado à mão. O "Gerar do
+plano fixo" cobre o que de fato repete e **não duplica**, porque o banco
+garante `unique (recurrence_id, reference_month)`. Dois botões parecidos
+lado a lado, um deles perigoso por hábito, é pior que um botão só.
 
 ## 6. Convenções de código
 

@@ -3,9 +3,9 @@ import { Stat } from "@/components/interno/stat";
 import { PessoasPanel } from "@/components/pessoas/pessoas-panel";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { listarPessoas } from "@/lib/data/pessoas";
-import { obterPainelInterno, obterRecorteArea } from "@/lib/data/interno";
+import { obterRecorteArea } from "@/lib/data/interno";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
-import { formatarMoeda, formatarPercentual } from "@/lib/utils";
+import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -24,14 +24,12 @@ export default async function PessoasPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
-  const [pessoas, recorte, painel] = await Promise.all([
+  const [pessoas, recorte] = await Promise.all([
     listarPessoas(mes),
     obterRecorteArea("pessoas", mes),
-    obterPainelInterno(mes),
   ]);
 
   const total = recorte.realizado + recorte.pendente;
-  const fatia = painel.custoFixo ? recorte.mensal / painel.custoFixo : 0;
   const ativas = pessoas.filter((p) => p.active);
   // Quanto do custo de pessoas já tem dono identificado.
   const identificado = pessoas.reduce((t, p) => t + p.noMes + p.emAberto, 0);
@@ -45,7 +43,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
         acao={<MonthNav mes={mes} />}
       />
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
           rotulo="Custo do mês"
           valor={formatarMoeda(total)}
@@ -60,16 +58,6 @@ export default async function PessoasPage({ searchParams }: PageProps) {
           rotulo="Na equipe"
           valor={String(ativas.length)}
           detalhe={`${ativas.filter((p) => p.kind === "Sócia").length} sócia(s)`}
-        />
-        <Stat
-          rotulo="Fixo por mês"
-          valor={formatarMoeda(recorte.mensal)}
-          detalhe="Pró-labore recorrente"
-        />
-        <Stat
-          rotulo="Do custo fixo"
-          valor={formatarPercentual(fatia)}
-          detalhe={`de ${formatarMoeda(painel.custoFixo)}`}
         />
       </div>
 

@@ -5,7 +5,7 @@ import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterPainelMes } from "@/lib/data/financeiro";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
-import { formatarMoeda, formatarPercentual } from "@/lib/utils";
+import { formatarMoeda } from "@/lib/utils";
 import { FINANCIAL_STATUS_TONE } from "@/types";
 import type { FinancialEntryWithRelations } from "@/types";
 import type { TotalCategoria } from "@/lib/financeiro/calculo";
@@ -138,14 +138,14 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {secao("💰 Receitas", receitas, resumo.receitas, resumo.aReceber, "verde")}
-        {secao("📤 Despesas", despesas, resumo.despesas, resumo.aPagar, "vermelho")}
+        {secao("Receitas", receitas, resumo.receitas, resumo.aReceber, "verde")}
+        {secao("Despesas", despesas, resumo.despesas, resumo.aPagar, "vermelho")}
       </div>
 
       <Card className="mt-4 overflow-hidden">
         <div className="bg-gray-50 px-4 py-3">
           <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700">
-            📊 Resultado do mês
+            Resultado do mês
           </h2>
         </div>
         <dl className="divide-y divide-gray-100">
@@ -177,12 +177,6 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
               </dd>
             </div>
           ))}
-          <div className="flex items-center justify-between px-4 py-3">
-            <dt className="text-sm text-gray-600">Margem líquida</dt>
-            <dd className="text-base font-semibold text-gray-900">
-              {formatarPercentual(resumo.margem)}
-            </dd>
-          </div>
         </dl>
       </Card>
     </>

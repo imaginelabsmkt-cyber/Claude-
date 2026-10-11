@@ -37,7 +37,7 @@ export default async function ContabilPage({ searchParams }: PageProps) {
         acao={<MonthNav mes={mes} />}
       />
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
           rotulo="Do mês"
           valor={formatarMoeda(recorte.realizado + recorte.pendente)}
@@ -47,13 +47,6 @@ export default async function ContabilPage({ searchParams }: PageProps) {
           valor={formatarMoeda(recorte.pendente)}
           alerta={recorte.pendente > 0}
           detalhe={`${emAberto.length} obrigação(ões)`}
-        />
-        <Stat rotulo="Fixo por mês" valor={formatarMoeda(recorte.mensal)} />
-        <Stat
-          rotulo="Prazos cadastrados"
-          valor={String(obrigacoes.length)}
-          alerta={atrasadas > 0}
-          detalhe={atrasadas > 0 ? `${atrasadas} atrasada(s)` : "nenhuma atrasada"}
         />
       </div>
 
@@ -70,9 +63,16 @@ export default async function ContabilPage({ searchParams }: PageProps) {
         cadastrados, aparecem todo mês sem ninguém precisar lembrar.
       </p>
 
-      <h2 className="mb-2 mt-7 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Prazos que não são despesa
-      </h2>
+      <div className="mb-2 mt-7 flex items-baseline gap-3">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+          Prazos que não são despesa
+        </h2>
+        {atrasadas > 0 ? (
+          <span className="text-xs font-semibold text-alerta">
+            {atrasadas} atrasada(s)
+          </span>
+        ) : null}
+      </div>
       <ObrigacoesPanel obrigacoes={obrigacoes} area="contabil" />
     </>
   );

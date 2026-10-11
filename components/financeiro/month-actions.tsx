@@ -1,15 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import {
-  copiarMesAction,
-  gerarLancamentosDoMesAction,
-} from "@/lib/actions/financeiro";
-import { mesAnterior, rotuloMes } from "@/lib/financeiro/meses";
+import { gerarLancamentosDoMesAction } from "@/lib/actions/financeiro";
+import { rotuloMes } from "@/lib/financeiro/meses";
 import { toast } from "@/lib/ui/toast";
 
 interface MonthActionsProps {
@@ -19,17 +15,18 @@ interface MonthActionsProps {
 }
 
 /**
- * Ações de montagem do mês:
- *  - "Gerar do plano fixo": cria os lançamentos das recorrências ativas;
- *  - "Copiar mês anterior": repete os lançamentos do mês passado.
+ * Ações de montagem do mês. Duas, e só duas:
+ *  - "Novo lançamento": o que é avulso;
+ *  - "Gerar do plano fixo": o que repete todo mês, a partir das recorrências.
  *
- * Juntas substituem o trabalho manual de recriar a aba do mês na planilha.
+ * Existia também um "Copiar mês anterior". Saiu: ele repetia TUDO do mês
+ * passado, inclusive o que foi compra única, e o plano fixo já cobre o que
+ * de fato repete — sem risco de duplicar (uma recorrência só gera uma vez
+ * por mês, garantido pelo banco).
  */
 export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) {
   const router = useRouter();
-  const [copiando, setCopiando] = useState(false);
   const [processando, iniciar] = useTransition();
-  const anterior = mesAnterior(mes);
 
   function gerar() {
     iniciar(async () => {
@@ -47,19 +44,6 @@ export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) 
     });
   }
 
-  function copiar() {
-    iniciar(async () => {
-      const r = await copiarMesAction(anterior, mes);
-      if (!r.ok) {
-        toast.erro(r.error ?? "Não foi possível copiar o mês.");
-        return;
-      }
-      setCopiando(false);
-      toast.sucesso(`${r.criados} lançamento(s) copiado(s) como pendentes.`);
-      router.refresh();
-    });
-  }
-
   return (
     <div className="flex flex-wrap gap-2">
       <Link href={`/interno/financeiro/lancamentos/novo?mes=${mes}`}>
@@ -71,24 +55,6 @@ export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) 
           ? "Processando..."
           : `Gerar do plano fixo${recorrenciasPendentes ? ` (${recorrenciasPendentes})` : ""}`}
       </Button>
-
-      <Button
-        variante="secundaria"
-        onClick={() => setCopiando(true)}
-        disabled={processando}
-      >
-        Copiar mês anterior
-      </Button>
-
-      <ConfirmDialog
-        aberto={copiando}
-        titulo={`Copiar ${rotuloMes(anterior)} para ${rotuloMes(mes)}?`}
-        descricao="Todos os lançamentos do mês anterior serão recriados aqui como PENDENTES, mantendo valores e dia de vencimento. Nada é sobrescrito — os lançamentos que já existem neste mês permanecem."
-        textoConfirmar="Copiar"
-        carregando={processando}
-        aoConfirmar={copiar}
-        aoCancelar={() => setCopiando(false)}
-      />
     </div>
   );
 }

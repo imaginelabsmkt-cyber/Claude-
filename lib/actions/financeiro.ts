@@ -176,52 +176,6 @@ export async function excluirLancamentoAction(id: string): Promise<ActionResult>
   return { ok: true };
 }
 
-/**
- * Duplica os lançamentos de um mês para outro — o atalho de quem repetia
- * a aba do mês anterior na planilha. Os valores vão como "Pendente",
- * porque ainda não aconteceram.
- */
-export async function copiarMesAction(
-  mesOrigem: string,
-  mesDestino: string,
-): Promise<ActionResult & { criados?: number }> {
-  if (mesOrigem === mesDestino) {
-    return { ok: false, error: "Escolha um mês de destino diferente." };
-  }
-
-  const supabase = createClient();
-  const { data: origem, error } = await supabase
-    .from("financial_entries")
-    .select("kind, category_id, client_id, description, amount, due_date, payment_method, notes")
-    .eq("reference_month", mesOrigem);
-
-  if (error) return { ok: false, error: "Não foi possível ler o mês de origem." };
-  if (!origem || origem.length === 0) {
-    return { ok: false, error: "O mês de origem não tem lançamentos." };
-  }
-
-  const novos: FinancialEntryInsert[] = origem.map((l) => ({
-    reference_month: mesDestino,
-    kind: l.kind,
-    category_id: l.category_id,
-    client_id: l.client_id,
-    description: l.description,
-    amount: Number(l.amount),
-    status: "Pendente" as const,
-    // Mantém o dia do vencimento, deslocado para o mês de destino.
-    due_date: l.due_date ? dataVencimento(mesDestino, Number(l.due_date.slice(8, 10))) : null,
-    paid_date: null,
-    payment_method: l.payment_method,
-    notes: l.notes,
-  }));
-
-  const { error: erroInsert } = await supabase.from("financial_entries").insert(novos);
-  if (erroInsert) return { ok: false, error: "Não foi possível copiar os lançamentos." };
-
-  revalidarFinanceiro();
-  return { ok: true, criados: novos.length };
-}
-
 // -------------------------------------------------------------
 // Recorrências
 // -------------------------------------------------------------
