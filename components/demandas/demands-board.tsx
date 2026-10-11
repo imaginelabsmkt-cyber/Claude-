@@ -154,9 +154,44 @@ export function DemandsBoard({
 
   const hoje = hojeISO();
 
+  // Escopo (só na visão geral): todas / internas (FAVIE) / de clientes.
+  const [escopo, setEscopo] = useState<"todas" | "internas" | "clientes">(
+    "todas",
+  );
   const visiveis = clienteFixo
     ? aplicadas.filter((d) => d.client_id === clienteFixo)
-    : aplicadas;
+    : aplicadas.filter((d) =>
+        escopo === "internas"
+          ? !d.client_id
+          : escopo === "clientes"
+            ? !!d.client_id
+            : true,
+      );
+
+  // Painel de evolução (visão geral): progresso + quebra por área.
+  const resumo = useMemo(() => {
+    const feita = visiveis.filter((d) => d.status === "Feita").length;
+    const fazendo = visiveis.filter((d) => d.status === "Fazendo").length;
+    const total = visiveis.length;
+    const porArea = new Map<string, { total: number; feita: number }>();
+    for (const d of visiveis) {
+      const k = d.category?.trim() || "Sem área";
+      const cur = porArea.get(k) ?? { total: 0, feita: 0 };
+      cur.total += 1;
+      if (d.status === "Feita") cur.feita += 1;
+      porArea.set(k, cur);
+    }
+    return {
+      total,
+      feita,
+      fazendo,
+      aFazer: total - feita - fazendo,
+      pct: total ? Math.round((feita / total) * 100) : 0,
+      internas: aplicadas.filter((d) => !d.client_id).length,
+      deClientes: aplicadas.filter((d) => !!d.client_id).length,
+      porArea: [...porArea.entries()].sort((a, b) => b[1].total - a[1].total),
+    };
+  }, [visiveis, aplicadas]);
 
   // Agrupa por ÁREA só quando estamos dentro de um cliente (acompanhamento).
   const grupos = useMemo(() => {
@@ -303,10 +338,16 @@ export function DemandsBoard({
             }}
           />
 
-          {!clienteFixo && d.client_id ? (
-            <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] text-gray-600">
-              {nomeCli(d.client_id) ?? "Cliente"}
-            </span>
+          {!clienteFixo ? (
+            d.client_id ? (
+              <span className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-medium text-sky-700">
+                👤 {nomeCli(d.client_id) ?? "Cliente"}
+              </span>
+            ) : (
+              <span className="rounded-full bg-violet-100 px-2 py-1 text-[11px] font-medium text-violet-700">
+                🏠 Interna
+              </span>
+            )
           ) : null}
 
           <input
@@ -438,6 +479,86 @@ export function DemandsBoard({
 
   return (
     <div className="space-y-4">
+      {/* Painel de evolução (só na visão geral). */}
+      {!clienteFixo ? (
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          {/* Filtro: todas / internas / de clientes */}
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            {(
+              [
+                ["todas", `Todas (${resumo.internas + resumo.deClientes})`],
+                ["internas", `🏠 Internas (${resumo.internas})`],
+                ["clientes", `👤 De clientes (${resumo.deClientes})`],
+              ] as const
+            ).map(([val, txt]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setEscopo(val)}
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                  escopo === val
+                    ? "bg-brand-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                )}
+              >
+                {txt}
+              </button>
+            ))}
+          </div>
+
+          {/* Progresso */}
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-semibold text-gray-800">
+              Andamento
+            </span>
+            <span className="text-sm font-bold text-brand-700">
+              {resumo.feita}/{resumo.total} feitas ({resumo.pct}%)
+            </span>
+          </div>
+          <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full bg-brand-500 transition-all"
+              style={{ width: `${resumo.pct}%` }}
+            />
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-medium">
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">
+              A fazer {resumo.aFazer}
+            </span>
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">
+              Fazendo {resumo.fazendo}
+            </span>
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700">
+              Feitas {resumo.feita}
+            </span>
+          </div>
+
+          {/* Por área */}
+          {resumo.porArea.length > 0 ? (
+            <div className="mt-3 border-t border-gray-100 pt-2">
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                Por tipo
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {resumo.porArea.map(([area, s]) => (
+                  <span
+                    key={area}
+                    className="rounded-md border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600"
+                    title={`${s.feita} de ${s.total} feitas`}
+                  >
+                    {area}{" "}
+                    <span className="font-semibold text-gray-800">
+                      {s.feita}/{s.total}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Nova demanda */}
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
         <div className="flex flex-wrap items-end gap-2">
