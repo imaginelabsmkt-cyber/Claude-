@@ -30,6 +30,7 @@ import {
   cancelarCapaDoVideo,
 } from "@/lib/content/covers";
 import { puxarEdicoesDoGoogle } from "@/lib/google/pull-edicao";
+import { criarDemandaAction } from "@/lib/actions/demands";
 import { formatarData } from "@/lib/utils";
 import { aposResposta } from "@/lib/after";
 import { notificarPlanner, notificarProducer } from "@/lib/push/eventos";
@@ -416,7 +417,7 @@ export async function marcarComoGravadoAction(
   const supabase = createClient();
   const { data: antigo } = await supabase
     .from("contents")
-    .select("status, recording_date")
+    .select("status, recording_date, format, title, client_id")
     .eq("id", id)
     .maybeSingle();
   // Não sobrescreve a data agendada (evita mexer no evento do lote no Google).
@@ -433,6 +434,26 @@ export async function marcarComoGravadoAction(
   await registrarHistorico(id, [
     { field: "Status", old: antigo?.status ?? null, new: "Gravado" },
   ]);
+
+  // Ensaio/foto feito: fotos não entram na fila de edição de VÍDEO — vira uma
+  // DEMANDA de edição das fotos, pra Fran tratar e entregar. Só na transição
+  // (não recria se já estava "Gravado").
+  const ehFoto = /foto|ensaio/i.test(antigo?.format ?? "");
+  if (ehFoto && antigo && antigo.status !== "Gravado") {
+    const tituloFoto = (antigo.title ?? "Ensaio").trim();
+    aposResposta(() =>
+      criarDemandaAction({
+        title: `Editar fotos — ${tituloFoto}`.slice(0, 300),
+        category: "Conteúdo",
+        client_id: antigo.client_id ?? null,
+        steps: [
+          { label: "Selecionar as melhores fotos", done: false },
+          { label: "Editar / tratar as fotos", done: false },
+          { label: "Entregar as fotos editadas", done: false },
+        ],
+      }),
+    );
+  }
 
   const podeGoogle = await googleSincronizavel();
   aposResposta(() => sincronizarGravacao(id));
