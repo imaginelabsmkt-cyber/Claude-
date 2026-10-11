@@ -93,6 +93,10 @@ revoke insert, delete on public.profiles from authenticated, anon;
 --     "conta não liberada" saberia seu nome); ver os colegas exige
 --     estar liberado.
 drop policy if exists "profiles_select_authenticated" on public.profiles;
+-- Também o nome novo: sem este drop, rodar a migration duas vezes
+-- falha com "policy already exists" — e o guia de deploy manda rodar
+-- de novo se algo parar no meio.
+drop policy if exists "profiles_select_liberado" on public.profiles;
 create policy "profiles_select_liberado"
   on public.profiles for select
   to authenticated
@@ -149,6 +153,8 @@ $$;
 drop policy if exists "content_history_select_authenticated" on public.content_history;
 drop policy if exists "content_history_insert_authenticated" on public.content_history;
 drop policy if exists "content_history_liberado" on public.content_history;
+drop policy if exists "content_history_select_liberado" on public.content_history;
+drop policy if exists "content_history_insert_liberado" on public.content_history;
 
 create policy "content_history_select_liberado"
   on public.content_history for select

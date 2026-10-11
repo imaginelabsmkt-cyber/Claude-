@@ -7,7 +7,7 @@ contém **apenas o schema** — nenhuma tela depende disto ainda.
 supabase/
 ├── migrations/
 │   └── 20260714120000_initial_schema.sql   # schema completo
-├── schema_completo.sql                      # as 20 migrations num arquivo só
+├── schema_completo.sql                      # as 22 migrations num arquivo só
 ├── seed.sql                                 # usuários de exemplo (opcional)
 ├── seed_financeiro.sql                      # carga da planilha 2026 (opcional)
 └── README.md                               # este arquivo
@@ -32,6 +32,8 @@ supabase/
 | `company_obligations`   | Prazos que não são despesa (declaração, alvará).        |
 | `obligation_completions`| Um registro por período cumprido.                      |
 | `team_members`          | Quem recebe da agência (≠ `profiles`, que faz login).   |
+| `personal_entries`      | **PRIVADA.** Gastos pessoais de cada login.             |
+| `personal_recurrences`  | **PRIVADA.** Plano fixo pessoal de cada login.          |
 
 ### Tipos ENUM
 
@@ -248,15 +250,57 @@ duas sócias apenas se a tabela estiver vazia.
 
 ## schema_completo.sql
 
-É a **junção das 20 migrations na ordem**, gerada a partir de
+É a **junção das 22 migrations na ordem**, gerada a partir de
 `migrations/`. Serve para colar uma vez no SQL Editor do Supabase em vez
-de rodar vinte arquivos.
+de rodar vinte e dois arquivos.
 
-Não edite à mão: mexa na migration correspondente e gere de novo.
+Não edite à mão: mexa na migration correspondente e rode
+`node scripts/gerar-schema.mjs`.
 
-Verificado num Postgres limpo: as 20 rodam do zero sem erro, o arquivo
-único idem, rodar duas vezes é inofensivo, e o resultado é 23 tabelas com
-RLS ligado em todas e os dois buckets privados.
+Verificado num Postgres limpo: as 22 rodam do zero sem erro, o arquivo
+único roda **três vezes seguidas** sem erro, e o resultado é 25 tabelas
+com RLS ligado em todas e os dois buckets privados.
+
+> Até a versão anterior esta promessa de "rodar de novo é inofensivo"
+> era FALSA: três `create policy` (`profiles_select_liberado`,
+> `content_history_select_liberado`, `content_history_insert_liberado`)
+> não tinham o `drop policy if exists` do próprio nome, então a segunda
+> execução parava com *policy already exists*. Corrigido — e agora um
+> teste de três passadas guarda isso.
+
+## Privacidade — as duas tabelas que NÃO são compartilhadas
+
+Migration: `20261011120000_pessoal.sql`.
+
+`personal_entries` e `personal_recurrences` são as únicas tabelas do
+sistema interno em que uma sócia não vê o dado da outra. Todas as
+demais usam `using (public.usuario_aprovado())` — acesso igual para
+quem está liberado, que é o certo para o caixa da empresa. Estas duas
+usam o padrão das `google_*`:
+
+```sql
+using      (user_id = auth.uid() and public.usuario_aprovado())
+with check (user_id = auth.uid() and public.usuario_aprovado())
+```
+
+Três camadas, todas no banco:
+
+| Camada                              | O que impede                                   |
+| ----------------------------------- | ---------------------------------------------- |
+| `user_id` com `default auth.uid()`  | o app escolher de quem é a linha                |
+| `using (user_id = auth.uid())`      | ler o que é da outra                            |
+| `with check (user_id = auth.uid())` | gravar no nome da outra, ou transferir uma linha|
+
+Verificado num Postgres real com duas contas liberadas: a conta B vê
+`0` linhas da conta A, e um `update ... where true` / `delete ... where
+true` da conta B afeta **0 linhas**, com os dados da conta A intactos.
+Um `insert` com o `user_id` da outra é recusado por violação de policy.
+
+**O limite honesto:** isso vale para quem entra pelo sistema. Quem tem
+acesso ao painel do Supabase (ou à chave `service_role`) passa por cima
+de qualquer RLS — é o dono do banco. Como as duas sócias dividem o mesmo
+projeto, as duas são donas. A privacidade é entre as telas, não contra o
+administrador do banco.
 
 ## Segurança — conta liberada
 

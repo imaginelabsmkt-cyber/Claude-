@@ -26,7 +26,8 @@ export type AreaId =
   | "financeiro"
   | "pessoas"
   | "contabil"
-  | "administrativo";
+  | "administrativo"
+  | "pessoal";
 
 export interface Area {
   id: AreaId;
@@ -40,7 +41,10 @@ export interface Area {
   cor: string;
 }
 
-/** Ordem do menu: do dia a dia para o que tem prazo. */
+/** Áreas cujo conteúdo é privado de cada login. */
+export const AREAS_PRIVADAS: AreaId[] = ["pessoal"];
+
+/** Ordem do menu: do dia a dia para o que tem prazo, e o pessoal por último. */
 export const AREAS: Area[] = [
   {
     id: "inicio",
@@ -98,10 +102,36 @@ export const AREAS: Area[] = [
     pergunta: "O que a empresa assina e paga?",
     cor: "#8a5a16",
   },
+  {
+    id: "pessoal",
+    label: "Meus gastos",
+    href: "/interno/meus-gastos",
+    contexto: "Só você vê",
+    pergunta: "Como está o MEU mês?",
+    cor: "#a62a6a",
+  },
 ];
 
 /** Áreas do menu, exceto o Início (que abre o grupo). */
 export const AREAS_MENU: Area[] = AREAS.filter((a) => a.id !== "inicio");
+
+/**
+ * As áreas que são da EMPRESA: as duas sócias veem exatamente o mesmo
+ * dado nelas, e isso é o esperado.
+ */
+export const AREAS_EMPRESA: Area[] = AREAS_MENU.filter(
+  (a) => !AREAS_PRIVADAS.includes(a.id),
+);
+
+/**
+ * As áreas PRIVADAS por login. Cada uma vê só o que é dela — garantido
+ * pelo RLS do Postgres (`user_id = auth.uid()`), não pela tela. Ficam
+ * separadas no menu por uma linha, porque a diferença importa: tudo
+ * acima é "nosso", tudo aqui é "meu".
+ */
+export const AREAS_PESSOAIS: Area[] = AREAS_MENU.filter((a) =>
+  AREAS_PRIVADAS.includes(a.id),
+);
 
 /** Busca uma área pelo id. */
 export function area(id: AreaId): Area {

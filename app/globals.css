@@ -78,6 +78,14 @@ textarea:focus-visible,
   --area: #8a5a16;
   --area-soft: #f8ecd7;
 }
+/* A única área privada por login. Rosa-magenta: é o vão que sobrou
+   na roda de cores (entre o vinho do Comercial e o roxo de Pessoas),
+   e justamente por não parecer com nenhuma das áreas da empresa ela
+   avisa, sem texto, que ali o dado é só seu. */
+[data-area="pessoal"] {
+  --area: #a62a6a;
+  --area-soft: #fae2f0;
+}
 
 /* =============================================================
    IMPRESSÃO — o relatório do mês é feito para virar papel ou PDF.

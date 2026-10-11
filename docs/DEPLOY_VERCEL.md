@@ -169,8 +169,30 @@ Um roteiro rápido para saber que está tudo no lugar:
 | `/interno/comercial` | A carteira e quanto ela cobre do custo fixo |
 | `/interno/pessoas` | Fran e Vitória, com o pró-labore ligado a cada uma |
 | `/interno/relatorio` | O fechamento do mês; Ctrl+P deve sair sem o menu |
+| `/interno/meus-gastos` | A aba pessoal, com o aviso "Só você vê esta tela" |
 | ⌘K (Ctrl+K) | A busca abre e acha um cliente pelo nome |
 
 Se o upload de arquivo reclamar de *"Armazenamento não ativado"*, faltou
 rodar o schema completo — os buckets `client-files` e `company-files` são
 criados por ele.
+
+### Testando a privacidade dos gastos pessoais
+
+Vale fazer uma vez, porque é a única parte do sistema em que vocês duas
+veem coisas diferentes:
+
+1. Entre com o **seu** login, abra `/interno/meus-gastos` e lance um
+   gasto qualquer (pode apagar depois).
+2. Saia e entre com o login da **Vitória**. Abra a mesma tela.
+3. O gasto que você lançou **não pode aparecer**. A tela dela deve estar
+   vazia (ou só com o que ela lançou).
+
+Se aparecer, algo saiu errado no schema — me avise, porque isso quer
+dizer que a policy `user_id = auth.uid()` não foi criada.
+
+> **O que esse teste NÃO cobre:** quem abre o painel do Supabase vê
+> todas as linhas de todas as tabelas, porque é o dono do banco. Vocês
+> duas têm esse acesso. A privacidade é entre as telas do sistema, não
+> contra o administrador do Supabase. Se um dia isso importar de
+> verdade, a saída é cada uma ter o próprio projeto — e aí não é mais o
+> mesmo sistema.

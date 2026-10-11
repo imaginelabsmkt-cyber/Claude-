@@ -109,6 +109,43 @@ despesa do freela ou do tráfego.
 onde foi, quem mais rendeu e o que entra no mês seguinte, comparado com o
 mês anterior. Ctrl+P imprime sem o menu — vira PDF para o contador.
 
+### Meus gastos — a única tela que não é compartilhada
+
+**Meus gastos** (`/interno/meus-gastos`) é a aba pessoal de cada sócia:
+entrou, saiu, sobrou e para onde foi, no mês. A Fran não vê a da
+Vitória e a Vitória não vê a da Fran.
+
+Quem garante isso é o **banco**, não a tela: `personal_entries` e
+`personal_recurrences` têm policy `user_id = auth.uid()`. Verificado num
+Postgres real com duas contas — a outra conta vê zero linhas, e um
+`update`/`delete` sem filtro afeta zero linhas.
+
+No menu, essas áreas ficam abaixo da linha **"Só você vê"**: acima é
+"nosso", abaixo é "meu".
+
+Três coisas pensadas para o uso diário:
+
+- **Lançar é uma linha, sempre aberta no topo.** Gasto pessoal se anota
+  na hora; abrir modal para isso mata o hábito. Dia, anotação e "ainda
+  não paguei" ficam atrás de *mais opções*.
+- **Categoria é texto livre com autocompletar**, que aprende com o que
+  você já usou. "mercado" e "Mercado" somam na mesma linha.
+- **Nasce pago**, ao contrário da conta da empresa: aqui o normal é
+  anotar o que já aconteceu.
+
+O **plano fixo** (aluguel, academia, assinaturas) funciona como as
+recorrências da empresa — cadastra uma vez, um clique por mês, e clicar
+duas vezes não duplica.
+
+Se você disser **qual pessoa da equipe você é** (uma vez), o pró-labore
+que a agência te paga aparece aqui sozinho, lido do financeiro — em vez
+de você digitar o próprio salário todo mês.
+
+> **O limite honesto:** isso vale para quem entra pelo sistema. Quem
+> abre o painel do Supabase é dono do banco e vê tudo. Como vocês duas
+> dividem o mesmo projeto, as duas são donas — a privacidade é entre as
+> telas, não contra o administrador do banco.
+
 ### Pessoas e renovações
 
 **Pessoas** deixou de ser só um total: agora tem o cadastro de quem recebe
@@ -174,6 +211,7 @@ sem as fórmulas que quebram quando alguém insere uma linha.
 | `/interno/financeiro/resumo-anual` | O ano inteiro: categoria × mês, com saldo acumulado    |
 | `/interno/financeiro/recorrencias` | Mensalidades e custos fixos que se repetem             |
 | `/interno/financeiro/categorias` | Categorias e saldo inicial da série                    |
+| `/interno/meus-gastos`     | **Privada.** Os gastos pessoais de quem está logada    |
 
 ### O que muda em relação à planilha
 

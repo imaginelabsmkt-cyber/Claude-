@@ -482,6 +482,86 @@ plano fixo" cobre o que de fato repete e **não duplica**, porque o banco
 garante `unique (recurrence_id, reference_month)`. Dois botões parecidos
 lado a lado, um deles perigoso por hábito, é pior que um botão só.
 
+## 5.9 Meus gastos — a única área privada
+
+A Fran pediu: *"quero que cada uma tenha uma aba própria para controlar
+os próprios gastos, mas eu não vou ter acesso à dela e ela não vai ter
+acesso à minha."*
+
+Isso quebra a premissa de todo o resto do sistema interno. Até aqui, a
+regra era: **as duas sócias veem exatamente o mesmo dado** — mesmo
+caixa, mesma carteira, mesmos contratos. Era o certo, porque é uma
+empresa de duas pessoas e esconder o caixa de uma delas não faria
+sentido. Gasto pessoal é o oposto.
+
+### Uma aba, não duas
+
+O menu tem **um** item "Meus gastos" (`/interno/meus-gastos`), não dois
+("Fran" e "Vitória"). A tela é a mesma; o conteúdo é de quem está
+logada. Isso não é economia de código, é a diferença entre privado e
+"escondido atrás de um link": com duas abas, uma delas mostraria o dado
+da outra para quem abrisse.
+
+No menu as áreas ficam em dois grupos, separados pela linha **"Só você
+vê"**. Acima é "nosso", abaixo é "meu" — e a cor rosa-magenta
+(`#a62a6a`, 6,6:1 de contraste) não parece com nenhuma área da empresa
+justamente para reforçar isso sem texto.
+
+### Por que o filtro NÃO está no código
+
+`lib/data/pessoal.ts` não tem um único `.eq("user_id", ...)`. Isso é de
+propósito e está escrito lá: o filtro é a policy do Postgres. Se
+estivesse no código, um esquecimento numa query futura vazaria o gasto
+de uma sócia para a outra. Do jeito que está, **esquecer não vaza**: o
+banco devolve só as linhas de quem está logada.
+
+Pelo mesmo motivo, nenhuma action escreve `user_id`. A coluna tem
+`default auth.uid()` e o `with check` da policy rejeita id alheio — não
+escrever o campo é o que torna impossível errar.
+
+### O modelo é diferente do caixa da empresa, de propósito
+
+| | Empresa | Pessoal |
+| --- | --- | --- |
+| Pergunta | "quanto sobra no fim do mês?" | "como foi o MEU mês?" |
+| Saldo | encadeado (final de um = inicial do outro) | **não existe** |
+| Categoria | tabela cadastrada (`financial_categories`) | texto livre com autocompletar |
+| Status | `Pago` / `Pendente`, nasce pendente | `paid` boolean, **nasce pago** |
+
+Os dois últimos são os que mais mudam o uso. Categoria livre porque
+ninguém quer cadastrar "Padaria" antes de lançar R$ 12; o autocompletar
+aprende com o que a pessoa já usou e `agruparPorCategoriaPessoal`
+normaliza caixa e espaços, então "mercado" e "Mercado" somam na mesma
+linha em vez de virarem duas. E nasce **pago** porque gasto pessoal se
+anota depois de acontecer — ao contrário da conta da empresa, que se
+agenda antes.
+
+Saldo encadeado não existe porque ninguém controla gasto pessoal
+somando janeiro até dezembro. O mês fecha em si: entrou, saiu, sobrou.
+
+### O pró-labore vem da empresa, não da digitação
+
+`team_members.profile_id` existia desde a migration de Pessoas e nunca
+era preenchido. Agora a aba pessoal pergunta uma vez *"qual pessoa da
+equipe é você?"* e, com o vínculo feito, mostra o pró-labore que a
+agência pagou no mês — lido do financeiro da empresa.
+
+Isso não revela nada novo: é o seu próprio pagamento, que já aparece em
+`/interno/pessoas` para as duas. O que evita é digitar o próprio salário
+todo mês.
+
+A função `vincular_me_a_pessoa` roda no banco e só aceita uma pessoa sem
+dono (ou a que já é sua) — reivindicar a da outra sócia levanta exceção.
+
+### O limite honesto desta privacidade
+
+Ela vale para quem entra **pelo sistema**. Quem tem o painel do Supabase
+ou a chave `service_role` passa por cima de qualquer RLS: é o dono do
+banco. Como as duas dividem o mesmo projeto Supabase, as duas são donas.
+Privacidade aqui é entre as telas, não contra o administrador — e isso
+está dito em `supabase/migrations/20261011120000_pessoal.sql`, no topo,
+para ninguém descobrir depois.
+
 ## 6. Convenções de código
 
 - **Rotas/arquivos:** `kebab-case`.
@@ -544,6 +624,11 @@ Todas as policies exigem `public.usuario_aprovado()` — uma função
 `security definer` (precisa ser, senão a policy de `profiles` que a
 chama entraria em recursão). Conta não liberada enxerga **só o próprio
 profile**, e nada mais.
+
+> **Exceção que confirma a regra:** `personal_entries` e
+> `personal_recurrences` (e as `google_*`) exigem `usuario_aprovado()`
+> **e** `user_id = auth.uid()`. Conta liberada não basta ali: tem que
+> ser a dona da linha. Ver 5.9.
 
 ### Ninguém se promove sozinho
 

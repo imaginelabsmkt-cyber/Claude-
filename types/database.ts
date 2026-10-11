@@ -681,6 +681,87 @@ export type ObligationCompletionInsert = Omit<
 export type TeamKind = "Sócia" | "Freelancer" | "Prestador";
 
 /**
+ * personal_entries — gastos e receitas PESSOAIS.
+ *
+ * Única família de tabelas do sistema interno que NÃO é compartilhada
+ * entre as sócias: cada linha pertence a um login (`user_id`) e o RLS
+ * do Postgres garante que a outra pessoa não a enxerga. Por isso não
+ * existe `user_id` nos tipos de Insert — o banco preenche com
+ * `auth.uid()`, e o app nunca escolhe de quem é a linha.
+ */
+export type PersonalEntry = {
+  id: UUID;
+  user_id: UUID;
+  reference_month: MonthString;
+  kind: FinancialKind;
+  /** Categoria em texto livre — pessoal não precisa de cadastro. */
+  category: string;
+  description: string;
+  amount: number;
+  entry_date: DateString | null;
+  /** Aqui nasce pago: o normal é lançar o que já aconteceu. */
+  paid: boolean;
+  notes: string | null;
+  recurrence_id: UUID | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+export type PersonalEntryInsert = Omit<
+  PersonalEntry,
+  | "id"
+  | "user_id"
+  | "created_at"
+  | "updated_at"
+  | "kind"
+  | "entry_date"
+  | "paid"
+  | "notes"
+  | "recurrence_id"
+> & {
+  id?: UUID;
+  kind?: FinancialKind;
+  entry_date?: DateString | null;
+  paid?: boolean;
+  notes?: string | null;
+  recurrence_id?: UUID | null;
+};
+
+/** personal_recurrences — o plano fixo pessoal (aluguel, assinaturas). */
+export type PersonalRecurrence = {
+  id: UUID;
+  user_id: UUID;
+  kind: FinancialKind;
+  category: string;
+  description: string;
+  amount: number;
+  due_day: number | null;
+  start_month: MonthString;
+  end_month: MonthString | null;
+  active: boolean;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+export type PersonalRecurrenceInsert = Omit<
+  PersonalRecurrence,
+  | "id"
+  | "user_id"
+  | "created_at"
+  | "updated_at"
+  | "kind"
+  | "due_day"
+  | "end_month"
+  | "active"
+> & {
+  id?: UUID;
+  kind?: FinancialKind;
+  due_day?: number | null;
+  end_month?: MonthString | null;
+  active?: boolean;
+};
+
+/**
  * team_members — quem RECEBE dinheiro da agência.
  * Diferente de `Profile`, que é quem FAZ LOGIN; `profile_id` liga as
  * duas quando é a mesma pessoa.
@@ -942,6 +1023,18 @@ export interface Database {
         Update: Partial<ObligationCompletionInsert>;
         Relationships: [];
       };
+      personal_entries: {
+        Row: PersonalEntry;
+        Insert: PersonalEntryInsert;
+        Update: Partial<PersonalEntryInsert>;
+        Relationships: [];
+      };
+      personal_recurrences: {
+        Row: PersonalRecurrence;
+        Insert: PersonalRecurrenceInsert;
+        Update: Partial<PersonalRecurrenceInsert>;
+        Relationships: [];
+      };
       team_members: {
         Row: TeamMember;
         Insert: TeamMemberInsert;
@@ -950,7 +1043,17 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      /**
+       * Liga a pessoa da equipe ao login de quem chama (e só a ele).
+       * O guard está no banco: reivindicar a pessoa já ligada a outro
+       * login levanta exceção.
+       */
+      vincular_me_a_pessoa: {
+        Args: { pessoa: UUID };
+        Returns: undefined;
+      };
+    };
     Enums: {
       user_role: UserRole;
       content_status: ContentStatus;

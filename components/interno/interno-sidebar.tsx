@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AREAS_MENU, areaDaRota } from "@/lib/interno/areas";
+import {
+  AREAS_EMPRESA,
+  AREAS_PESSOAIS,
+  areaDaRota,
+  type Area,
+} from "@/lib/interno/areas";
 import { cn } from "@/lib/utils";
 
 interface InternoSidebarProps {
@@ -14,11 +19,37 @@ interface InternoSidebarProps {
  * Menu do sistema interno. Cada área carrega a própria cor — a bolinha
  * sempre, e o fundo quando é a área aberta. É o mesmo código de cor que
  * aparece nas tarjas das listas.
+ *
+ * O menu tem dois grupos, e a separação é informação, não enfeite:
+ * acima da linha é a EMPRESA (as duas sócias veem o mesmo dado);
+ * abaixo é PESSOAL (cada uma vê só o seu, garantido por RLS no banco).
  */
 export function InternoSidebar({ aberta = false, aoFechar }: InternoSidebarProps) {
   const pathname = usePathname();
   const ativa = areaDaRota(pathname);
   const noInicio = pathname === "/interno";
+
+  const item = (a: Area) => {
+    const on = ativa === a.id;
+    return (
+      <Link
+        key={a.id}
+        href={a.href}
+        onClick={aoFechar}
+        data-area={a.id}
+        aria-current={on ? "page" : undefined}
+        className={cn(
+          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+          on
+            ? "bg-area-soft font-semibold text-area"
+            : "text-gray-600 hover:bg-gray-50",
+        )}
+      >
+        <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-area" />
+        {a.label}
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -64,27 +95,16 @@ export function InternoSidebar({ aberta = false, aoFechar }: InternoSidebarProps
 
           <div className="my-2 h-px bg-gray-200" />
 
-          {AREAS_MENU.map((a) => {
-            const on = ativa === a.id;
-            return (
-              <Link
-                key={a.id}
-                href={a.href}
-                onClick={aoFechar}
-                data-area={a.id}
-                aria-current={on ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                  on
-                    ? "bg-area-soft font-semibold text-area"
-                    : "text-gray-600 hover:bg-gray-50",
-                )}
-              >
-                <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-area" />
-                {a.label}
-              </Link>
-            );
-          })}
+          {AREAS_EMPRESA.map(item)}
+
+          <div className="mt-4 flex items-center gap-2 px-3 pb-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-400">
+              Só você vê
+            </span>
+            <span className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          {AREAS_PESSOAIS.map(item)}
         </nav>
 
         <div className="border-t border-gray-200 p-3">
