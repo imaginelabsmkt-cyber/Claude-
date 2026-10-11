@@ -124,6 +124,13 @@ function normalizar(v: ParsedContent) {
   };
 }
 
+/** Soma N dias a uma data ISO (YYYY-MM-DD) e devolve em ISO. */
+function somarDiasISO(iso: string, n: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, (d ?? 1) + n);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
 function primeirosErros(fe: Record<string, string[] | undefined>) {
   const saida: Record<string, string> = {};
   for (const [campo, msgs] of Object.entries(fe)) {
@@ -436,23 +443,29 @@ export async function marcarComoGravadoAction(
   ]);
 
   // Ensaio/foto feito: fotos não entram na fila de edição de VÍDEO — vira uma
-  // DEMANDA de edição das fotos, pra Fran tratar e entregar. Só na transição
-  // (não recria se já estava "Gravado").
+  // DEMANDA de edição das fotos, atribuída à Produção (Fran) e com prazo de 3
+  // dias após o ensaio. Só na transição (não recria se já estava "Gravado").
   const ehFoto = /foto|ensaio/i.test(antigo?.format ?? "");
   if (ehFoto && antigo && antigo.status !== "Gravado") {
     const tituloFoto = (antigo.title ?? "Ensaio").trim();
-    aposResposta(() =>
-      criarDemandaAction({
-        title: `Editar fotos — ${tituloFoto}`.slice(0, 300),
-        category: "Conteúdo",
-        client_id: antigo.client_id ?? null,
-        steps: [
-          { label: "Selecionar as melhores fotos", done: false },
-          { label: "Editar / tratar as fotos", done: false },
-          { label: "Entregar as fotos editadas", done: false },
-        ],
-      }),
-    );
+    const prazoFotos = somarDiasISO(recording_date, 3);
+    const { data: prod } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "producer");
+    const responsaveis = (prod ?? []).map((p) => p.id);
+    await criarDemandaAction({
+      title: `Editar fotos — ${tituloFoto}`.slice(0, 300),
+      category: "Conteúdo",
+      client_id: antigo.client_id ?? null,
+      due_date: prazoFotos,
+      assignee_ids: responsaveis,
+      steps: [
+        { label: "Selecionar as melhores fotos", done: false },
+        { label: "Editar / tratar as fotos", done: false },
+        { label: "Entregar as fotos editadas", done: false },
+      ],
+    });
   }
 
   const podeGoogle = await googleSincronizavel();
