@@ -185,6 +185,17 @@ export function DemandsBoard({
 
   const hoje = hojeISO();
 
+  // Detalhes (checklist + anotações) recolhidos por padrão: a lista fica
+  // enxuta e a pessoa abre só o que quer ver.
+  const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
+  const alternarDetalhe = (id: string) =>
+    setExpandidos((atual) => {
+      const novo = new Set(atual);
+      if (novo.has(id)) novo.delete(id);
+      else novo.add(id);
+      return novo;
+    });
+
   // Escopo (só na visão geral): todas / internas (FAVIE) / de clientes.
   const [escopo, setEscopo] = useState<"todas" | "internas" | "clientes">(
     "todas",
@@ -315,6 +326,7 @@ export function DemandsBoard({
     const feita = d.status === "Feita";
     const etapas = d.steps ?? [];
     const feitas = etapas.filter((s) => s.done).length;
+    const aberto = expandidos.has(d.id);
     return (
       <div
         className={cn(
@@ -449,9 +461,31 @@ export function DemandsBoard({
         </div>
       </div>
 
-      {/* Etapas (checklist) da demanda: editável — marcar, renomear, remover,
-          adicionar. */}
+      {/* Detalhes (checklist + anotações): recolhidos por padrão pra lista
+          ficar enxuta. Fechado mostra um resumo clicável; aberto, o editor. */}
       <div className="px-3 pb-2.5 pl-12">
+        {!aberto ? (
+          <button
+            type="button"
+            onClick={() => alternarDetalhe(d.id)}
+            className="flex w-full flex-wrap items-center gap-2 text-left text-[11px] text-gray-400 hover:text-gray-600"
+          >
+            {etapas.length > 0 ? (
+              <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-500">
+                ✓ {feitas}/{etapas.length}
+              </span>
+            ) : null}
+            {d.description ? (
+              <span className="min-w-0 flex-1 truncate text-gray-500">
+                {d.description.replace(/^Pronto quando:\s*/i, "")}
+              </span>
+            ) : null}
+            <span className="shrink-0 font-semibold text-brand-700">
+              {etapas.length || d.description ? "detalhes ▾" : "+ detalhes ▾"}
+            </span>
+          </button>
+        ) : (
+          <>
         {etapas.length > 0 ? (
           <>
             <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
@@ -527,6 +561,15 @@ export function DemandsBoard({
           rows={2}
           className="mt-2 w-full resize-y rounded-md border border-gray-200 bg-transparent px-2 py-1.5 text-xs text-gray-600 hover:border-gray-300 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
+        <button
+          type="button"
+          onClick={() => alternarDetalhe(d.id)}
+          className="mt-1 text-[11px] font-semibold text-gray-400 hover:text-gray-600"
+        >
+          ocultar ▴
+        </button>
+          </>
+        )}
       </div>
       </div>
     );
