@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/ui/toast";
-import { cn } from "@/lib/utils";
+import { cn, formatarData } from "@/lib/utils";
 import { hojeISO } from "@/lib/rules/contents";
 import {
   criarDemandaAction,
@@ -195,6 +195,10 @@ export function DemandsBoard({
       else novo.add(id);
       return novo;
     });
+
+  // Modo de visualização (só na visão geral): lista ou quadro (kanban).
+  const [vista, setVista] = useState<"lista" | "quadro">("lista");
+  const [arrastando, setArrastando] = useState<string | null>(null);
 
   // Escopo (só na visão geral): todas / internas (FAVIE) / de clientes.
   const [escopo, setEscopo] = useState<"todas" | "internas" | "clientes">(
@@ -575,6 +579,100 @@ export function DemandsBoard({
     );
   };
 
+  // Cartão do QUADRO (kanban): enxuto, arrastável entre as colunas de status.
+  const CartaoKanban = ({ d }: { d: Demand }) => {
+    const feita = d.status === "Feita";
+    const atrasada = !feita && !!d.due_date && d.due_date < hoje;
+    const etapas = d.steps ?? [];
+    const feitas = etapas.filter((s) => s.done).length;
+    const responsaveis = (d.assignee_ids ?? [])
+      .map((id) => profiles.find((p) => p.id === id)?.name)
+      .filter(Boolean)
+      .map((n) => primeiroNome(n as string))
+      .join(", ");
+    return (
+      <div
+        draggable
+        onDragStart={() => setArrastando(d.id)}
+        onDragEnd={() => setArrastando(null)}
+        className={cn(
+          "cursor-grab rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm active:cursor-grabbing",
+          arrastando === d.id && "opacity-40",
+        )}
+      >
+        <div className="flex items-start justify-between gap-1.5">
+          <p
+            className={cn(
+              "text-[13px] font-medium leading-snug",
+              feita ? "text-gray-400 line-through" : "text-gray-900",
+            )}
+          >
+            {d.title}
+          </p>
+          <button
+            type="button"
+            onClick={() => excluir(d.id)}
+            title="Arquivar"
+            className="shrink-0 text-gray-300 hover:text-gray-600"
+          >
+            🗄️
+          </button>
+        </div>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px]">
+          <span
+            className={cn(
+              "rounded-full px-1.5 py-0.5 font-medium",
+              d.client_id
+                ? "bg-sky-100 text-sky-700"
+                : "bg-violet-100 text-violet-700",
+            )}
+          >
+            {d.client_id ? `👤 ${nomeCli(d.client_id) ?? "Cliente"}` : "🏠 Interna"}
+          </span>
+          {d.category ? (
+            <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-gray-600">
+              {d.category}
+            </span>
+          ) : null}
+          {etapas.length > 0 ? (
+            <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-gray-600">
+              ✓ {feitas}/{etapas.length}
+            </span>
+          ) : null}
+          {responsaveis ? (
+            <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-medium text-brand-700">
+              {responsaveis}
+            </span>
+          ) : null}
+          {d.due_date ? (
+            <span
+              className={cn(
+                "ml-auto font-medium",
+                atrasada ? "text-red-600" : "text-gray-400",
+              )}
+            >
+              {formatarData(d.due_date)}
+            </span>
+          ) : null}
+        </div>
+        {/* Mover status sem arrastar (celular). */}
+        <div className="mt-2 flex flex-wrap gap-1">
+          {DEMAND_STATUS_OPTIONS.filter((s) => s !== d.status).map((s) => (
+            <button
+              key={s}
+              type="button"
+              disabled={salvando}
+              onClick={() => salvar(d.id, { status: s })}
+              className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-60"
+            >
+              → {s}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Painel de evolução (só na visão geral). */}
@@ -604,20 +702,20 @@ export function DemandsBoard({
               </button>
             ))}
             <span className="mx-1 h-4 w-px bg-gray-200" aria-hidden />
+            {/* Lista x Quadro (kanban) */}
             {(
               [
-                ["mes", "Por mês"],
-                ["area", "Por tipo"],
-                ["lista", "Lista"],
+                ["lista", "☰ Lista"],
+                ["quadro", "▦ Quadro"],
               ] as const
             ).map(([val, txt]) => (
               <button
                 key={val}
                 type="button"
-                onClick={() => setAgrupar(val)}
+                onClick={() => setVista(val)}
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
-                  agrupar === val
+                  vista === val
                     ? "bg-gray-900 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
                 )}
@@ -625,6 +723,33 @@ export function DemandsBoard({
                 {txt}
               </button>
             ))}
+            {/* Agrupamento só faz sentido na Lista. */}
+            {vista === "lista" ? (
+              <>
+                <span className="mx-1 h-4 w-px bg-gray-200" aria-hidden />
+                {(
+                  [
+                    ["mes", "Por mês"],
+                    ["area", "Por tipo"],
+                    ["lista", "Sem grupo"],
+                  ] as const
+                ).map(([val, txt]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setAgrupar(val)}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                      agrupar === val
+                        ? "bg-brand-100 text-brand-700"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                    )}
+                  >
+                    {txt}
+                  </button>
+                ))}
+              </>
+            ) : null}
           </div>
 
           {/* Progresso */}
@@ -781,8 +906,61 @@ export function DemandsBoard({
         </div>
       </div>
 
-      {/* Lista */}
-      {visiveis.length === 0 ? (
+      {/* QUADRO (kanban): colunas por status, cartões arrastáveis. */}
+      {!clienteFixo && vista === "quadro" ? (
+        visiveis.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
+            Nenhuma demanda por aqui. Crie a primeira acima. 👆
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {(["A fazer", "Fazendo", "Feita"] as const).map((col) => {
+              const daCol = visiveis.filter((d) => d.status === col);
+              return (
+                <div
+                  key={col}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => {
+                    if (arrastando) {
+                      salvar(arrastando, { status: col });
+                      setArrastando(null);
+                    }
+                  }}
+                  className="rounded-xl border border-gray-200 bg-gray-50/70 p-2"
+                >
+                  <h3 className="mb-2 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <span
+                      className={cn(
+                        "inline-block h-2 w-2 rounded-full",
+                        col === "A fazer"
+                          ? "bg-gray-400"
+                          : col === "Fazendo"
+                            ? "bg-amber-400"
+                            : "bg-green-500",
+                      )}
+                    />
+                    {col}
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-gray-600">
+                      {daCol.length}
+                    </span>
+                  </h3>
+                  <div className="space-y-2">
+                    {daCol.map((d) => (
+                      <CartaoKanban key={d.id} d={d} />
+                    ))}
+                    {daCol.length === 0 ? (
+                      <p className="rounded-lg border border-dashed border-gray-200 px-2 py-4 text-center text-[11px] text-gray-400">
+                        arraste pra cá
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : /* Lista */
+      visiveis.length === 0 ? (
         <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
           Nenhuma demanda por aqui. Crie a primeira acima. 👆
         </p>
