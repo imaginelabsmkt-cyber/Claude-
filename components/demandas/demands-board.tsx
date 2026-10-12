@@ -9,6 +9,7 @@ import {
   criarDemandaAction,
   atualizarDemandaAction,
   arquivarDemandaAction,
+  excluirDemandasAction,
   type DemandaPatch,
 } from "@/lib/actions/demands";
 import {
@@ -162,6 +163,24 @@ export function DemandsBoard({
       else toast.sucesso("Demanda arquivada");
       router.refresh();
     });
+
+  // Exclui em lote as demandas que estão à vista (ex.: desfazer import errado).
+  const excluirLista = (ids: string[]) => {
+    if (ids.length === 0) return;
+    const ok = window.confirm(
+      `Excluir ${ids.length} demanda(s) desta lista? Isso é definitivo.`,
+    );
+    if (!ok) return;
+    iniciar(async () => {
+      const r = await excluirDemandasAction(ids);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível excluir.");
+        return;
+      }
+      toast.sucesso(`${r.excluidas ?? ids.length} demanda(s) excluída(s).`);
+      router.refresh();
+    });
+  };
 
   const hoje = hojeISO();
 
@@ -565,13 +584,26 @@ export function DemandsBoard({
           </div>
 
           {/* Progresso */}
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-baseline justify-between gap-2">
             <span className="text-sm font-semibold text-gray-800">
               Andamento
             </span>
-            <span className="text-sm font-bold text-brand-700">
-              {resumo.feita}/{resumo.total} feitas ({resumo.pct}%)
-            </span>
+            <div className="flex items-center gap-3">
+              {visiveis.length > 0 ? (
+                <button
+                  type="button"
+                  disabled={salvando}
+                  onClick={() => excluirLista(visiveis.map((d) => d.id))}
+                  className="text-[11px] font-semibold text-red-600 hover:underline disabled:opacity-60"
+                  title="Excluir de vez as demandas que estão nesta lista (ex.: desfazer um import errado)"
+                >
+                  🗑 Excluir estas {visiveis.length}
+                </button>
+              ) : null}
+              <span className="text-sm font-bold text-brand-700">
+                {resumo.feita}/{resumo.total} feitas ({resumo.pct}%)
+              </span>
+            </div>
           </div>
           <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-100">
             <div

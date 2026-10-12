@@ -158,6 +158,27 @@ export async function criarDemandaAction(
   return { ok: true, id: data?.id };
 }
 
+/**
+ * Exclui VÁRIAS demandas de uma vez (ex.: desfazer uma importação errada).
+ * Exclusão definitiva — use com a lista de ids que estão à vista.
+ */
+export async function excluirDemandasAction(
+  ids: string[],
+): Promise<ActionResult & { excluidas?: number }> {
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  const lista = (ids ?? []).filter(Boolean);
+  if (lista.length === 0) return { ok: false, error: "Nada para excluir." };
+  if (lista.length > 500) return { ok: false, error: "Muitas de uma vez." };
+
+  const supabase = createClient();
+  const { error } = await supabase.from("demands").delete().in("id", lista);
+  if (error) return { ok: false, error: "Não foi possível excluir." };
+  revalidar();
+  return { ok: true, excluidas: lista.length };
+}
+
 export interface DemandaPatch {
   title?: string;
   description?: string | null;
