@@ -164,20 +164,21 @@ export function DemandsBoard({
       router.refresh();
     });
 
-  // Exclui em lote as demandas que estão à vista (ex.: desfazer import errado).
-  const excluirLista = (ids: string[]) => {
+  // Arquiva em lote as demandas que estão à vista (ex.: desfazer import errado).
+  // É reversível (arquivar, não apagar). O escopo atual entra na confirmação.
+  const excluirLista = (ids: string[], escopoTxt: string) => {
     if (ids.length === 0) return;
     const ok = window.confirm(
-      `Excluir ${ids.length} demanda(s) desta lista? Isso é definitivo.`,
+      `Arquivar ${ids.length} demanda(s) de "${escopoTxt}"? Elas saem da lista, mas dá pra recuperar depois.`,
     );
     if (!ok) return;
     iniciar(async () => {
       const r = await excluirDemandasAction(ids);
       if (!r.ok) {
-        toast.erro(r.error ?? "Não foi possível excluir.");
+        toast.erro(r.error ?? "Não foi possível arquivar.");
         return;
       }
-      toast.sucesso(`${r.excluidas ?? ids.length} demanda(s) excluída(s).`);
+      toast.sucesso(`${r.excluidas ?? ids.length} demanda(s) arquivada(s).`);
       router.refresh();
     });
   };
@@ -589,15 +590,22 @@ export function DemandsBoard({
               Andamento
             </span>
             <div className="flex items-center gap-3">
-              {visiveis.length > 0 ? (
+              {/* Só quando um escopo está escolhido (Internas/Clientes), pra
+                  não arquivar tudo sem querer. Arquivar é reversível. */}
+              {escopo !== "todas" && visiveis.length > 0 ? (
                 <button
                   type="button"
                   disabled={salvando}
-                  onClick={() => excluirLista(visiveis.map((d) => d.id))}
-                  className="text-[11px] font-semibold text-red-600 hover:underline disabled:opacity-60"
-                  title="Excluir de vez as demandas que estão nesta lista (ex.: desfazer um import errado)"
+                  onClick={() =>
+                    excluirLista(
+                      visiveis.map((d) => d.id),
+                      escopo === "internas" ? "Internas" : "De clientes",
+                    )
+                  }
+                  className="text-[11px] font-semibold text-amber-700 hover:underline disabled:opacity-60"
+                  title="Arquivar as demandas desta lista (reversível) — ex.: desfazer um import"
                 >
-                  🗑 Excluir estas {visiveis.length}
+                  🗄 Arquivar estas {visiveis.length}
                 </button>
               ) : null}
               <span className="text-sm font-bold text-brand-700">

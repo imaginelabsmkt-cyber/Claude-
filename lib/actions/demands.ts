@@ -159,8 +159,9 @@ export async function criarDemandaAction(
 }
 
 /**
- * Exclui VÁRIAS demandas de uma vez (ex.: desfazer uma importação errada).
- * Exclusão definitiva — use com a lista de ids que estão à vista.
+ * ARQUIVA várias demandas de uma vez (ex.: desfazer uma importação errada).
+ * É reversível: as demandas saem da lista ativa mas NÃO são apagadas — dá pra
+ * desarquivar depois. (Antes isso apagava de vez; agora nunca mais.)
  */
 export async function excluirDemandasAction(
   ids: string[],
@@ -169,12 +170,15 @@ export async function excluirDemandasAction(
     return { ok: false, error: "Sessão expirada. Entre novamente." };
   }
   const lista = (ids ?? []).filter(Boolean);
-  if (lista.length === 0) return { ok: false, error: "Nada para excluir." };
+  if (lista.length === 0) return { ok: false, error: "Nada para arquivar." };
   if (lista.length > 500) return { ok: false, error: "Muitas de uma vez." };
 
   const supabase = createClient();
-  const { error } = await supabase.from("demands").delete().in("id", lista);
-  if (error) return { ok: false, error: "Não foi possível excluir." };
+  const { error } = await supabase
+    .from("demands")
+    .update({ archived_at: new Date().toISOString() })
+    .in("id", lista);
+  if (error) return { ok: false, error: "Não foi possível arquivar." };
   revalidar();
   return { ok: true, excluidas: lista.length };
 }
