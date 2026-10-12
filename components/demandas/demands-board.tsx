@@ -28,6 +28,17 @@ function primeiroNome(nome: string): string {
   return nome.trim().split(/\s+/)[0];
 }
 
+const MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+/** "2026-10" -> "Outubro de 2026"; "9999-99" -> "Sem data". */
+function rotuloMesGrupo(ym: string): string {
+  if (ym === "9999-99") return "Sem data";
+  const [y, m] = ym.split("-").map(Number);
+  return `${MESES[(m ?? 1) - 1] ?? m} de ${y}`;
+}
+
 /** Chips de responsáveis (liga/desliga; pode marcar mais de uma). */
 function RespPicker({
   profiles,
@@ -192,6 +203,30 @@ export function DemandsBoard({
       porArea: [...porArea.entries()].sort((a, b) => b[1].total - a[1].total),
     };
   }, [visiveis, aplicadas]);
+
+  // Como agrupar a lista geral: por mês (prazo), por tipo (área) ou lista pura.
+  const [agrupar, setAgrupar] = useState<"mes" | "area" | "lista">("mes");
+  const gruposGerais = useMemo(() => {
+    if (clienteFixo || agrupar === "lista") return null;
+    const mapa = new Map<string, Demand[]>();
+    for (const d of visiveis) {
+      const chave =
+        agrupar === "mes"
+          ? d.due_date
+            ? d.due_date.slice(0, 7)
+            : "9999-99" // sem data vai pro fim
+          : d.category?.trim() || "Sem área";
+      mapa.set(chave, [...(mapa.get(chave) ?? []), d]);
+    }
+    const entries = [...mapa.entries()];
+    if (agrupar === "mes") {
+      entries.sort((a, b) => a[0].localeCompare(b[0]));
+    } else {
+      const ordem = [...DEMAND_CATEGORIES, "Sem área"];
+      entries.sort((a, b) => ordem.indexOf(a[0]) - ordem.indexOf(b[0]));
+    }
+    return entries;
+  }, [clienteFixo, visiveis, agrupar]);
 
   // Agrupa por ÁREA só quando estamos dentro de um cliente (acompanhamento).
   const grupos = useMemo(() => {
@@ -505,6 +540,28 @@ export function DemandsBoard({
                 {txt}
               </button>
             ))}
+            <span className="mx-1 h-4 w-px bg-gray-200" aria-hidden />
+            {(
+              [
+                ["mes", "Por mês"],
+                ["area", "Por tipo"],
+                ["lista", "Lista"],
+              ] as const
+            ).map(([val, txt]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setAgrupar(val)}
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                  agrupar === val
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                )}
+              >
+                {txt}
+              </button>
+            ))}
           </div>
 
           {/* Progresso */}
@@ -664,6 +721,28 @@ export function DemandsBoard({
               </div>
             </div>
           ))}
+        </div>
+      ) : gruposGerais ? (
+        // Visão geral agrupada: por mês (prazo) ou por tipo (área).
+        <div className="space-y-4">
+          {gruposGerais.map(([chave, itens]) => {
+            const feitasGrupo = itens.filter((d) => d.status === "Feita").length;
+            return (
+              <div key={chave}>
+                <h3 className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  {agrupar === "mes" ? rotuloMesGrupo(chave) : chave}
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                    {feitasGrupo}/{itens.length}
+                  </span>
+                </h3>
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                  {ordenar(itens).map((d, i) => (
+                    <Linha key={d.id} d={d} i={i} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         // Visão geral: lista única.
