@@ -34,6 +34,12 @@ function fmtIntervalo(ini: string, fim: string): string {
   const [, mf, df] = fim.split("-").map(Number);
   return `${String(di).padStart(2, "0")}/${NOMES_MES[mi - 1]} a ${String(df).padStart(2, "0")}/${NOMES_MES[mf - 1]}`;
 }
+/** "2026-10-12" + 6 dias -> "2026-10-18". */
+function somaDias(iso: string, n: number): string {
+  const [a, m, d] = iso.split("-").map(Number);
+  const dt = new Date(a, m - 1, d + n);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
 
 /**
  * Rótulo de data do item do plano. Se o item JÁ FOI FEITO, tira o "a confirmar"
@@ -406,7 +412,15 @@ function ResultadoBloco({
     });
 
   return (
-    <Colapsavel titulo="Resultados da semana" icone={<IcoResultados />}>
+    <Colapsavel
+      titulo="Resultados da semana"
+      icone={<IcoResultados />}
+      badge={
+        <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
+          {fmtIntervalo(resultado.weekStart, somaDias(resultado.weekStart, 6))}
+        </span>
+      }
+    >
       {/* Tráfego pago — "atualiza a favie" (o cliente só vê) */}
       <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between gap-2">
