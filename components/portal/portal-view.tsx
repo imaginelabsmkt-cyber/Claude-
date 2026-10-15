@@ -674,32 +674,28 @@ function ResumoSemanaCard({
           <TileResumo n={producoes.length} rotulo="Produções" />
           <TileResumo n={emEdicao.length} rotulo="Em edição" />
         </div>
-        <p className="mt-2 text-xs text-gray-500">
-          {posts.length === 0
-            ? "Nada programado para esta semana."
-            : [
-                publicados > 0 ? `${publicados} no ar` : null,
-                aCaminho > 0 ? `${aCaminho} a caminho` : null,
-              ]
-                .filter(Boolean)
-                .join(" · ") + " esta semana."}
-        </p>
+        {posts.length > 0 ? (
+          <p className="mt-2 text-xs text-gray-500">
+            Das {posts.length} postagens:{" "}
+            {publicados > 0 ? `${publicados} já publicada${publicados > 1 ? "s" : ""}` : "nenhuma publicada ainda"}
+            {aCaminho > 0
+              ? ` e ${aCaminho} a caminho`
+              : ""}
+            .
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-gray-400">
+            Nada programado para esta semana.
+          </p>
+        )}
       </div>
     </Colapsavel>
   );
 }
 
 function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
-  const total = resumo.meta ?? resumo.planejados;
-
-  const Tile = ({ n, rotulo }: { n: number | string; rotulo: string }) => (
-    <div className="flex-1 rounded-xl bg-white/70 px-3 py-2 text-center">
-      <p className="text-xl font-bold text-brand-800">{n}</p>
-      <p className="text-[11px] uppercase tracking-wide text-gray-500">
-        {rotulo}
-      </p>
-    </div>
-  );
+  const total = resumo.planejados; // total planejado do mês
+  const pct = total ? Math.round((resumo.publicados / total) * 100) : 0;
 
   return (
     <Colapsavel
@@ -707,22 +703,33 @@ function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
       emoji="✅"
       defaultAberto
       badge={
-        resumo.jaFeitos.length > 0 ? (
+        resumo.publicados > 0 ? (
           <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
-            {resumo.jaFeitos.length} no ar
+            {resumo.publicados} publicada{resumo.publicados > 1 ? "s" : ""}
           </span>
         ) : undefined
       }
     >
       <div className="rounded-2xl border border-black/5 bg-brand-50 p-4 shadow-sm">
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-brand-700">
-          {resumo.label}
-        </p>
-        <div className="flex gap-2">
-          <Tile n={`${resumo.publicados}/${total}`} rotulo="No ar" />
-          <Tile n={resumo.restantes} rotulo="A publicar" />
-          <Tile n={resumo.planejados} rotulo="No plano" />
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+            {resumo.label}
+          </span>
+          <span className="text-sm font-bold text-brand-800">
+            {resumo.publicados} de {total} publicadas
+          </span>
         </div>
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/70">
+          <div
+            className="h-full rounded-full bg-green-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        {resumo.restantes > 0 ? (
+          <p className="mt-1.5 text-xs text-gray-500">
+            Faltam {resumo.restantes} pra publicar este mês.
+          </p>
+        ) : null}
         {/* O que JÁ foi ao ar no mês — aparece aberto, não some ao trocar a
             semana (é a prova do volume de trabalho do mês). */}
         {resumo.jaFeitos.length > 0 ? (
