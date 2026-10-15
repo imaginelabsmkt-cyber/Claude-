@@ -93,7 +93,10 @@ function paraPost(c: Content): PortalPost {
     title: limparTitulo(c.title),
     format: c.format,
     status: c.status,
-    data: c.actual_post_date ?? c.planned_date,
+    // Dia mostrado = data PLANEJADA (mesma do calendário do sistema), caindo
+    // pra data real só se não houver planejada. Evita a postagem publicada
+    // "pular" de dia no painel quando saiu num dia diferente do planejado.
+    data: c.planned_date ?? c.actual_post_date,
     caption: limparLegenda(c.caption),
     resumo: limparLegenda(c.description), // descrição vira "resumo" pro cliente
     aguardaAprovacao: c.status === "Aprovação do cliente",
@@ -141,7 +144,8 @@ export async function carregarPortal(
 
   const postsSemana = visiveis
     .filter((c) => {
-      const d = c.actual_post_date ?? c.planned_date;
+      // Dia = data planejada (a que a Fran confirma). Cai pra real só se faltar.
+      const d = c.planned_date ?? c.actual_post_date;
       return d && d >= iniISO && d <= fimISO;
     })
     .sort((a, b) =>
@@ -157,12 +161,12 @@ export async function carregarPortal(
   const mesExibido = `${midMes.getFullYear()}-${String(midMes.getMonth() + 1).padStart(2, "0")}`;
   const postsMes = visiveis
     .filter((c) => {
-      const d = c.actual_post_date ?? c.planned_date;
+      const d = c.planned_date ?? c.actual_post_date;
       return !!d && d.slice(0, 7) === mesExibido;
     })
     .sort((a, b) =>
-      (a.actual_post_date ?? a.planned_date ?? "").localeCompare(
-        b.actual_post_date ?? b.planned_date ?? "",
+      (a.planned_date ?? a.actual_post_date ?? "").localeCompare(
+        b.planned_date ?? b.actual_post_date ?? "",
       ),
     )
     .map(paraPost);
@@ -262,8 +266,8 @@ export async function carregarPortal(
     meta: cliente.monthly_goal ?? null,
     jaFeitos: publicadosMes
       .sort((a, b) =>
-        (b.actual_post_date ?? b.planned_date ?? "").localeCompare(
-          a.actual_post_date ?? a.planned_date ?? "",
+        (b.planned_date ?? b.actual_post_date ?? "").localeCompare(
+          a.planned_date ?? a.actual_post_date ?? "",
         ),
       )
       .map(paraPost),
