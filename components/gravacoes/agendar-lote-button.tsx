@@ -10,8 +10,58 @@ import {
 import { toast } from "@/lib/ui/toast";
 import { estiloFormato } from "@/lib/ui/formato";
 import { formatarData } from "@/lib/utils";
+import { organizarRoteiro } from "@/lib/portal/roteiro";
 import type { Content } from "@/types";
 import type { OpcaoCliente } from "@/lib/data/contents";
+
+/** Roteiro formatado (tabela FALA | CENAS) pra pré-visualizar no lote. */
+function RoteiroMini({ script }: { script: string }) {
+  const r = organizarRoteiro(script);
+  if (!r || (r.linhas.length === 0 && r.paragrafos.length === 0)) {
+    return (
+      <p className="mt-0.5 max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-gray-200 bg-white p-2 text-xs leading-relaxed text-gray-700">
+        {script}
+      </p>
+    );
+  }
+  if (r.linhas.length > 0) {
+    return (
+      <div className="mt-0.5 max-h-48 overflow-y-auto rounded border border-gray-200">
+        <table className="w-full table-fixed border-collapse text-left text-xs">
+          <thead>
+            <tr className="bg-gray-50 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+              <th className="w-1/2 border-r border-gray-100 px-2 py-1">
+                {r.colEsq}
+              </th>
+              <th className="w-1/2 px-2 py-1">{r.colDir}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {r.linhas.map((l, i) => (
+              <tr key={i} className="border-t border-gray-100 align-top">
+                <td className="whitespace-pre-wrap break-words border-r border-gray-100 px-2 py-1 leading-relaxed text-gray-800">
+                  {l.esq || "·"}
+                </td>
+                <td className="whitespace-pre-wrap break-words px-2 py-1 italic leading-relaxed text-gray-500">
+                  {l.dir || "·"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-0.5 max-h-48 space-y-1 overflow-y-auto rounded border border-gray-200 bg-white p-2 text-xs text-gray-700">
+      {r.paragrafos.map((p, i) => (
+        <p key={i} className="whitespace-pre-wrap leading-relaxed">
+          {p}
+        </p>
+      ))}
+    </div>
+  );
+}
 
 /** Uma linha de detalhe (rótulo + valor) do roteiro, só se houver valor. */
 function Detalhe({ rotulo, valor }: { rotulo: string; valor: string | null }) {
@@ -289,9 +339,7 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
                                 <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                                   Roteiro
                                 </p>
-                                <p className="mt-0.5 max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-gray-200 bg-white p-2 text-xs leading-relaxed text-gray-700">
-                                  {c.script}
-                                </p>
+                                <RoteiroMini script={c.script} />
                               </div>
                             ) : null}
                             {!c.recording_location &&
