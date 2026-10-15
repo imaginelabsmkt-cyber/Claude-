@@ -140,7 +140,8 @@ export async function executarLembretes(
       c.requires_recording &&
       !ehArte(c.format) &&
       c.status !== "Cancelado" &&
-      c.status !== "Publicado",
+      c.status !== "Publicado" &&
+      c.status !== "Pausado",
   );
 
   const { data: demandas } = await admin

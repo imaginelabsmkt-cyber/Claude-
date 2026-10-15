@@ -68,8 +68,11 @@ export default async function DashboardPage({
       !PLANNING_ENTREGUE.includes(p.status),
   ).length;
 
+  // Pausado não está "pendente": fora de urgentes, a agendar, sem data etc.
   const naoFinal = (c: Content) =>
-    c.status !== "Publicado" && c.status !== "Cancelado";
+    c.status !== "Publicado" &&
+    c.status !== "Cancelado" &&
+    c.status !== "Pausado";
   const conta = (s: Content["status"]) =>
     contents.filter((c) => c.status === s).length;
 
