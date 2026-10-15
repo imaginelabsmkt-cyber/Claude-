@@ -133,13 +133,22 @@ export default async function MinhasTarefasPage() {
 
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
-  // Demandas gerais atribuídas a mim e ainda não concluídas.
+  // Demandas gerais atribuídas a mim (todas: a fazer, fazendo e feitas), pra
+  // dar pra ver numa lista o que falta, o que está em andamento e o que já saiu.
   const minhasDemandas = demands.filter(
     (d) =>
-      !!ctx.profile?.id &&
-      (d.assignee_ids ?? []).includes(ctx.profile.id) &&
-      d.status !== "Feita",
+      !!ctx.profile?.id && (d.assignee_ids ?? []).includes(ctx.profile.id),
   );
+  const porPrazo = (a: (typeof minhasDemandas)[number], b: (typeof minhasDemandas)[number]) =>
+    (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99");
+  const demFazendo = minhasDemandas.filter((d) => d.status === "Fazendo").sort(porPrazo);
+  const demAFazer = minhasDemandas.filter((d) => d.status === "A fazer").sort(porPrazo);
+  const demFeitas = minhasDemandas
+    .filter((d) => d.status === "Feita")
+    .sort((a, b) => porPrazo(b, a)); // concluídas: mais recentes primeiro
+  const demFeitasMostrar = demFeitas.slice(0, 8);
+  const feitasExtras = demFeitas.length - demFeitasMostrar.length;
+  const demandasPendentes = demFazendo.length + demAFazer.length;
 
   const role = (ctx.profile?.role ?? "admin") as PapelDemanda | "admin";
   const nome = ctx.profile?.name ?? "você";
@@ -204,7 +213,7 @@ export default async function MinhasTarefasPage() {
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
                 Minhas demandas
                 <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  {minhasDemandas.length}
+                  {demandasPendentes}
                 </span>
                 <Link
                   href="/demandas"
@@ -213,47 +222,75 @@ export default async function MinhasTarefasPage() {
                   ver todas →
                 </Link>
               </h3>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {minhasDemandas.map((d) => {
-                  const cli = d.client_id
-                    ? clientesById.get(d.client_id)
-                    : null;
-                  const atrasada = !!d.due_date && d.due_date < hojeStr;
-                  return (
-                    <Link
-                      key={d.id}
-                      href="/demandas"
-                      className="block rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm hover:border-brand-300"
-                      style={{ borderLeftColor: cli?.color ?? "#9a77ad" }}
-                    >
-                      <p className="text-sm font-semibold text-gray-900">
-                        {d.title}
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                {[
+                  { rotulo: "Em andamento", itens: demFazendo },
+                  { rotulo: "A fazer", itens: demAFazer },
+                  { rotulo: "Concluídas", itens: demFeitasMostrar },
+                ]
+                  .filter((g) => g.itens.length > 0)
+                  .map((g) => (
+                    <div key={g.rotulo}>
+                      <p className="border-t border-gray-100 bg-gray-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-500 first:border-t-0">
+                        {g.rotulo} ({g.itens.length})
                       </p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
-                        <span
-                          className={`rounded-full px-2 py-0.5 font-semibold ${DEMAND_STATUS_TONE[d.status]}`}
-                        >
-                          {d.status}
-                        </span>
-                        {cli ? (
-                          <span className="text-gray-500">{cli.name}</span>
-                        ) : null}
-                        {d.due_date ? (
-                          <span
-                            className={
-                              atrasada
-                                ? "font-semibold text-red-600"
-                                : "text-gray-500"
-                            }
+                      {g.itens.map((d) => {
+                        const cli = d.client_id
+                          ? clientesById.get(d.client_id)
+                          : null;
+                        const atrasada =
+                          d.status !== "Feita" &&
+                          !!d.due_date &&
+                          d.due_date < hojeStr;
+                        return (
+                          <Link
+                            key={d.id}
+                            href="/demandas"
+                            className="flex items-center gap-3 border-t border-gray-100 px-3 py-2.5 hover:bg-gray-50"
                           >
-                            {atrasada ? "Atrasada · " : "Até "}
-                            {formatarData(d.due_date)}
-                          </span>
-                        ) : null}
-                      </div>
-                    </Link>
-                  );
-                })}
+                            <span
+                              className="h-2.5 w-2.5 shrink-0 rounded-full border border-gray-200"
+                              style={{ backgroundColor: cli?.color ?? "#e5e7eb" }}
+                              aria-hidden="true"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={`truncate text-sm font-medium ${d.status === "Feita" ? "text-gray-400 line-through" : "text-gray-900"}`}
+                              >
+                                {d.title}
+                              </p>
+                              {cli ? (
+                                <p className="truncate text-[11px] text-gray-400">
+                                  {cli.name}
+                                </p>
+                              ) : null}
+                            </div>
+                            <span
+                              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${DEMAND_STATUS_TONE[d.status]}`}
+                            >
+                              {d.status}
+                            </span>
+                            {d.due_date ? (
+                              <span
+                                className={`hidden shrink-0 text-[11px] sm:block ${atrasada ? "font-semibold text-red-600" : "text-gray-400"}`}
+                              >
+                                {atrasada ? "Atrasada · " : ""}
+                                {formatarData(d.due_date)}
+                              </span>
+                            ) : null}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ))}
+                {feitasExtras > 0 ? (
+                  <Link
+                    href="/demandas"
+                    className="block border-t border-gray-100 px-3 py-2 text-center text-xs text-brand-600 hover:underline"
+                  >
+                    +{feitasExtras} concluídas — ver todas
+                  </Link>
+                ) : null}
               </div>
             </section>
           ) : null}
