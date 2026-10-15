@@ -1032,7 +1032,7 @@ function SecaoProximos({
   if (total === 0) return null;
   return (
     <Secao
-      titulo="Próximos conteúdos"
+      titulo="Para produção"
       icone={<IcoProximos />}
       badge={
         <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
