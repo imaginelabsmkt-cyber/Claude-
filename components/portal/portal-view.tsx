@@ -631,7 +631,6 @@ function ResultadoBloco({
 }
 
 function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
-  const [aberto, setAberto] = useState(false);
   const total = resumo.meta ?? resumo.planejados;
 
   const Tile = ({ n, rotulo }: { n: number | string; rotulo: string }) => (
@@ -644,26 +643,35 @@ function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
   );
 
   return (
-    <Colapsavel titulo={resumo.label} emoji="📊">
-    <div className="rounded-2xl border border-black/5 bg-brand-50 p-4 shadow-sm">
-      <div className="flex gap-2">
-        <Tile n={`${resumo.publicados}/${total}`} rotulo="Publicados" />
-        <Tile n={resumo.restantes} rotulo="A publicar" />
-        <Tile n={resumo.planejados} rotulo="Planejados" />
-      </div>
-      {resumo.jaFeitos.length > 0 ? (
-        <>
-          <button
-            type="button"
-            onClick={() => setAberto((v) => !v)}
-            className="mt-3 text-xs font-semibold text-brand-700 hover:underline"
-          >
-            {aberto
-              ? "Ocultar o que já foi ao ar"
-              : `Ver o que já foi ao ar (${resumo.jaFeitos.length})`}
-          </button>
-          {aberto ? (
-            <ul className="mt-2 space-y-1.5 border-t border-brand-200 pt-2">
+    <Colapsavel
+      titulo="Entregas do mês"
+      emoji="✅"
+      defaultAberto
+      badge={
+        resumo.jaFeitos.length > 0 ? (
+          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
+            {resumo.jaFeitos.length} no ar
+          </span>
+        ) : undefined
+      }
+    >
+      <div className="rounded-2xl border border-black/5 bg-brand-50 p-4 shadow-sm">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-brand-700">
+          {resumo.label}
+        </p>
+        <div className="flex gap-2">
+          <Tile n={`${resumo.publicados}/${total}`} rotulo="No ar" />
+          <Tile n={resumo.restantes} rotulo="A publicar" />
+          <Tile n={resumo.planejados} rotulo="No plano" />
+        </div>
+        {/* O que JÁ foi ao ar no mês — aparece aberto, não some ao trocar a
+            semana (é a prova do volume de trabalho do mês). */}
+        {resumo.jaFeitos.length > 0 ? (
+          <div className="mt-3 border-t border-brand-200 pt-2">
+            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-brand-700">
+              Já publicado este mês
+            </p>
+            <ul className="space-y-1.5">
               {resumo.jaFeitos.map((p) => (
                 <li
                   key={p.id}
@@ -679,10 +687,9 @@ function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
                 </li>
               ))}
             </ul>
-          ) : null}
-        </>
-      ) : null}
-    </div>
+          </div>
+        ) : null}
+      </div>
     </Colapsavel>
   );
 }
@@ -1146,6 +1153,10 @@ export function PortalView({
           </Colapsavel>
         ) : null}
 
+        {/* Entregas do mês logo no topo: mostra o volume do que já foi feito e
+            NÃO some ao avançar a semana. */}
+        <ResumoMesCard resumo={resumoMes} />
+
         {planoFavie.length > 0 ? (
           <Colapsavel titulo="Plano de ação" emoji="🎯">
             {/* Progresso do mês */}
@@ -1260,8 +1271,6 @@ export function PortalView({
             ) : null}
           </Colapsavel>
         ) : null}
-
-        <ResumoMesCard resumo={resumoMes} />
 
         <Colapsavel
           titulo="Postagens"
