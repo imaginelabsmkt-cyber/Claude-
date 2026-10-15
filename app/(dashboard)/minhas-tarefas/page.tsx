@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
   MinhasTarefasLista,
+  type GrupoLista,
   type ItemLista,
   type SecaoLista,
 } from "@/components/tarefas/minhas-tarefas-lista";
@@ -141,14 +142,40 @@ export default async function MinhasTarefasPage() {
     a: (typeof minhasDemandas)[number],
     b: (typeof minhasDemandas)[number],
   ) => (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99");
-  const demFazendo = minhasDemandas.filter((d) => d.status === "Fazendo").sort(porPrazo);
-  const demAFazer = minhasDemandas.filter((d) => d.status === "A fazer").sort(porPrazo);
+  const demPendentes = minhasDemandas.filter((d) => d.status !== "Feita");
   const demFeitas = minhasDemandas
     .filter((d) => d.status === "Feita")
     .sort((a, b) => porPrazo(b, a));
   const demFeitasMostrar = demFeitas.slice(0, 15);
   const feitasExtras = demFeitas.length - demFeitasMostrar.length;
-  const demandasPendentes = demFazendo.length + demAFazer.length;
+
+  // Demandas pendentes agrupadas por MÊS da entrega. Atrasadas no topo; meses a
+  // 2+ de distância (ex.: ano que vem) começam recolhidos, pra não poluir.
+  const idxMes = (s: string) => {
+    const [y, m] = s.split("-").map(Number);
+    return y * 12 + (m - 1);
+  };
+  const idxAtual = hoje.getFullYear() * 12 + hoje.getMonth();
+  const rotuloMes = (ym: string) => {
+    const [y, m] = ym.split("-").map(Number);
+    const s = new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+    }).format(new Date(y, m - 1, 1));
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+  const demAtrasadas = demPendentes
+    .filter((d) => d.due_date && d.due_date < hojeStr)
+    .sort(porPrazo);
+  const demSemData = demPendentes.filter((d) => !d.due_date);
+  const demFuturas = demPendentes
+    .filter((d) => d.due_date && d.due_date >= hojeStr)
+    .sort(porPrazo);
+  const mesesMap = new Map<string, typeof demFuturas>();
+  for (const d of demFuturas) {
+    const k = d.due_date!.slice(0, 7);
+    mesesMap.set(k, [...(mesesMap.get(k) ?? []), d]);
+  }
 
   const role = (ctx.profile?.role ?? "admin") as PapelDemanda | "admin";
   const nome = ctx.profile?.name ?? "você";
@@ -201,33 +228,52 @@ export default async function MinhasTarefasPage() {
       cliente: cli?.name ?? "Interna (FAVIE)",
       cor: cli?.color ?? null,
       meta: d.due_date
-        ? `${atrasada ? "Atrasada · " : "Até "}${formatarData(d.due_date)}`
-        : null,
+        ? `${atrasada ? "Atrasada · " : ""}${formatarData(d.due_date)}`
+        : "sem data",
       alerta: atrasada,
       feito: d.status === "Feita",
       concluivel: true,
       proximo: null,
+      dataEditavel: true,
+      dataISO: d.due_date ?? null,
       href: "/demandas",
     };
   };
 
   if (minhasDemandas.length > 0) {
+    const gruposDem: GrupoLista[] = [];
+    if (demAtrasadas.length > 0) {
+      gruposDem.push({ rotulo: "Atrasadas", itens: demAtrasadas.map(itemDemanda) });
+    }
+    for (const ym of [...mesesMap.keys()].sort()) {
+      gruposDem.push({
+        rotulo: rotuloMes(ym),
+        itens: (mesesMap.get(ym) ?? []).map(itemDemanda),
+        inicialFechado: idxMes(ym) - idxAtual >= 2,
+      });
+    }
+    if (demSemData.length > 0) {
+      gruposDem.push({
+        rotulo: "Sem data marcada",
+        itens: demSemData.map(itemDemanda),
+      });
+    }
+    if (demFeitas.length > 0) {
+      gruposDem.push({
+        rotulo: "Concluídas",
+        itens: demFeitasMostrar.map(itemDemanda),
+        inicialFechado: true,
+        extra:
+          feitasExtras > 0
+            ? { label: `+${feitasExtras} concluídas — ver todas`, href: "/demandas" }
+            : undefined,
+      });
+    }
     secoes.push({
       titulo: "Minhas demandas",
       href: "/demandas",
-      contador: demandasPendentes,
-      grupos: [
-        { rotulo: "A fazer", itens: demAFazer.map(itemDemanda) },
-        { rotulo: "Fazendo", itens: demFazendo.map(itemDemanda) },
-        {
-          rotulo: "Feitas",
-          itens: demFeitasMostrar.map(itemDemanda),
-          extra:
-            feitasExtras > 0
-              ? { label: `+${feitasExtras} concluídas — ver todas`, href: "/demandas" }
-              : undefined,
-        },
-      ],
+      contador: demPendentes.length,
+      grupos: gruposDem,
     });
   }
 
