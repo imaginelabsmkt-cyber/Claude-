@@ -579,7 +579,14 @@ function ResultadoBloco({
                     key={fonte}
                     className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-1.5"
                   >
-                    <span className="text-sm text-gray-700">{rotuloFonte(fonte)}</span>
+                    <span className="text-sm text-gray-700">
+                      {rotuloFonte(fonte)}
+                      {fonte === "Anúncio" ? (
+                        <span className="block text-[11px] font-semibold text-brand-600">
+                          ↑ resultado do tráfego pago
+                        </span>
+                      ) : null}
+                    </span>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
