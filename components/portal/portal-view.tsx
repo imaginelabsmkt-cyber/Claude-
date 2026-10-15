@@ -630,6 +630,65 @@ function ResultadoBloco({
   );
 }
 
+function TileResumo({ n, rotulo }: { n: number | string; rotulo: string }) {
+  return (
+    <div className="flex-1 rounded-xl bg-white/70 px-3 py-2 text-center">
+      <p className="text-xl font-bold text-brand-800">{n}</p>
+      <p className="text-[11px] uppercase tracking-wide text-gray-500">
+        {rotulo}
+      </p>
+    </div>
+  );
+}
+
+/** Snapshot rápido da SEMANA exibida (postagens, produções, em edição). */
+function ResumoSemanaCard({
+  ini,
+  fim,
+  posts,
+  producoes,
+  emEdicao,
+}: {
+  ini: string;
+  fim: string;
+  posts: PortalPost[];
+  producoes: PortalGravacao[];
+  emEdicao: PortalPost[];
+}) {
+  const publicados = posts.filter((p) => p.status === "Publicado").length;
+  const aCaminho = posts.length - publicados;
+  return (
+    <Colapsavel
+      titulo="Resumo da semana"
+      emoji="🗓️"
+      defaultAberto
+      badge={
+        <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
+          {fmtIntervalo(ini, fim)}
+        </span>
+      }
+    >
+      <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+        <div className="flex gap-2">
+          <TileResumo n={posts.length} rotulo="Postagens" />
+          <TileResumo n={producoes.length} rotulo="Produções" />
+          <TileResumo n={emEdicao.length} rotulo="Em edição" />
+        </div>
+        <p className="mt-2 text-xs text-gray-500">
+          {posts.length === 0
+            ? "Nada programado para esta semana."
+            : [
+                publicados > 0 ? `${publicados} no ar` : null,
+                aCaminho > 0 ? `${aCaminho} a caminho` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") + " esta semana."}
+        </p>
+      </div>
+    </Colapsavel>
+  );
+}
+
 function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
   const total = resumo.meta ?? resumo.planejados;
 
@@ -960,6 +1019,8 @@ export function PortalView({
 }) {
   const {
     cliente,
+    iniISO,
+    fimISO,
     resumoMes,
     resultado,
     postsSemana,
@@ -1153,8 +1214,15 @@ export function PortalView({
           </Colapsavel>
         ) : null}
 
-        {/* Entregas do mês logo no topo: mostra o volume do que já foi feito e
-            NÃO some ao avançar a semana. */}
+        {/* Resumo da SEMANA (snapshot rápido) + Entregas do MÊS (volume que
+            não some ao avançar a semana) — os dois no topo. */}
+        <ResumoSemanaCard
+          ini={iniISO}
+          fim={fimISO}
+          posts={postsSemana}
+          producoes={gravacoesSemana}
+          emEdicao={emProducao}
+        />
         <ResumoMesCard resumo={resumoMes} />
 
         {planoFavie.length > 0 ? (
