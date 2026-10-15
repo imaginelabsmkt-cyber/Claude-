@@ -118,7 +118,7 @@ export async function carregarPortal(
 
   const { data: cliente } = await admin
     .from("clients")
-    .select("id, name, color, monthly_goal")
+    .select("id, name, color, monthly_goal, results_sheet_url")
     .eq("portal_token", token)
     .eq("portal_enabled", true)
     .eq("is_internal", false)
@@ -371,6 +371,7 @@ export async function carregarPortal(
 
   return {
     cliente,
+    resultsSheetUrl: cliente.results_sheet_url ?? null,
     semanaISO: iniISO,
     iniISO,
     fimISO,

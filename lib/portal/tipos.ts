@@ -150,6 +150,8 @@ export interface PortalEstrategia {
 
 export interface DadosPortal {
   cliente: { id: string; name: string; color: string | null };
+  /** Link da planilha de resultados (Google Sheets), se já criada e compartilhada. */
+  resultsSheetUrl: string | null;
   semanaISO: string; // segunda-feira da semana exibida
   iniISO: string;
   fimISO: string;

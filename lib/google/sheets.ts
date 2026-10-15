@@ -348,6 +348,24 @@ async function garantirPlanilha(
   const id = j.spreadsheetId;
   if (!id) return null;
 
+  // Deixa a planilha "quem tem o link, vê" pra ela poder ser aberta pelo
+  // cliente a partir do painel (botão "Abrir planilha"). Melhor esforço.
+  try {
+    await fetch(
+      `https://www.googleapis.com/drive/v3/files/${id}/permissions`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role: "reader", type: "anyone" }),
+      },
+    );
+  } catch {
+    /* sem permissão de Drive ainda: a planilha é criada mesmo assim */
+  }
+
   await admin
     .from("clients")
     .update({ results_sheet_id: id, results_sheet_url: j.spreadsheetUrl ?? null })

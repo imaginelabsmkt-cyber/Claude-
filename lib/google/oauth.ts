@@ -22,6 +22,8 @@ export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/tasks",
   // Planilha de resultados por cliente (cria e preenche no Drive da conta).
   "https://www.googleapis.com/auth/spreadsheets",
+  // Compartilhar a planilha por link (só arquivos criados pelo app).
+  "https://www.googleapis.com/auth/drive.file",
   "https://www.googleapis.com/auth/userinfo.email",
 ].join(" ");
 

@@ -49,6 +49,54 @@ function rotuloData(dateLabel: string | null, feito: boolean): string | null {
   return limpo || null;
 }
 
+// --------------------------------------------------------------------------
+// Ícones de linha (discretos, profissionais — no lugar de emojis). Herdam a
+// cor do texto do cabeçalho (currentColor).
+// --------------------------------------------------------------------------
+const SVG = "h-[18px] w-[18px] shrink-0";
+function IcoAcao() {
+  return (
+    <svg className={SVG} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4.5" y="4.5" width="15" height="16" rx="2.5" />
+      <rect x="8.5" y="2.5" width="7" height="4" rx="1.5" />
+      <path d="M8.7 12.4l2.3 2.3 4.3-4.6" />
+    </svg>
+  );
+}
+function IcoPosts() {
+  return (
+    <svg className={SVG} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+      <path d="M3.5 9.5h17M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+function IcoProximos() {
+  return (
+    <svg className={SVG} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.5" y="6.5" width="13" height="11" rx="2.5" />
+      <path d="M15.5 10.2l5.5-3.2v10l-5.5-3.2z" />
+    </svg>
+  );
+}
+function IcoPlano() {
+  return (
+    <svg className={SVG} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function IcoResultados() {
+  return (
+    <svg className={SVG} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4v16h16" />
+      <path d="M7.5 14.5l3.5-4 3 2.8 4.5-6" />
+    </svg>
+  );
+}
+
 /** Chip colorido do formato (mesma linguagem visual do sistema). */
 function chipFormato(format: string | null): string {
   const f = (format ?? "").toLowerCase();
@@ -72,11 +120,10 @@ function corDot(format: string | null): string {
 /**
  * Calendário do mês com as postagens no dia certo. No celular fica compacto
  * (só pontinhos coloridos por postagem); no computador mostra o título em cada
- * dia. É uma visão SECUNDÁRIA — a semana vem primeiro. Clicar numa postagem
- * (ou num dia, no celular) abre uma janelinha com TUDO sobre ela.
+ * dia. Clicar numa postagem (ou num dia, no celular) abre uma janelinha com
+ * TUDO sobre ela.
  */
 function CalendarioMes({ posts }: { posts: PortalPost[] }) {
-  // Postagens abertas na janelinha de detalhe (as do dia/chip clicado).
   const [detalhe, setDetalhe] = useState<PortalPost[] | null>(null);
 
   const comData = posts.filter((p) => p.data);
@@ -115,7 +162,6 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
               {d ? (
                 <p className="text-[10px] font-semibold text-gray-400">{d}</p>
               ) : null}
-              {/* Computador: título em cada dia — clicável, abre o detalhe. */}
               <div className="mt-0.5 hidden space-y-0.5 sm:block">
                 {doDia.slice(0, 3).map((p) => (
                   <button
@@ -138,7 +184,6 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
                   </button>
                 ) : null}
               </div>
-              {/* Celular: toca o dia pra ver as postagens dele. */}
               {doDia.length > 0 ? (
                 <button
                   type="button"
@@ -159,7 +204,6 @@ function CalendarioMes({ posts }: { posts: PortalPost[] }) {
         })}
       </div>
 
-      {/* Janelinha por cima com tudo sobre a(s) postagem(ns) clicada(s). */}
       {detalhe ? (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
@@ -201,8 +245,6 @@ function CartaoPost({
   expandida = false,
 }: {
   post: PortalPost;
-  // Na janelinha de detalhe, a legenda já aparece aberta (é a "informação"
-  // do carrossel/post) em vez de ficar escondida atrás de "Ver legenda".
   expandida?: boolean;
 }) {
   const [aberto, setAberto] = useState(expandida);
@@ -235,8 +277,6 @@ function CartaoPost({
         {post.title}
       </h3>
 
-      {/* Resumo do conteúdo (campo Descrição): aparece no detalhe, antes da
-          legenda, pra o cliente entender do que é o post. */}
       {expandida && post.resumo ? (
         <div className="mt-2 rounded-xl border border-brand-100 bg-brand-50/50 p-3">
           <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
@@ -250,7 +290,6 @@ function CartaoPost({
 
       {temLegenda ? (
         <>
-          {/* No detalhe (expandida) a legenda já vem aberta, sem botão. */}
           {expandida ? null : (
             <button
               type="button"
@@ -307,9 +346,11 @@ const EXPLICACAO_METRICA: Record<string, string> = {
 function ResultadoBloco({
   token,
   resultado,
+  planilhaUrl,
 }: {
   token: string;
   resultado: ResultadoPortal;
+  planilhaUrl: string | null;
 }) {
   const router = useRouter();
   const [closed, setClosed] = useState(
@@ -317,7 +358,6 @@ function ResultadoBloco({
   );
   const [sources] = useState(resultado.sources ?? "");
   const [comment, setComment] = useState(resultado.comment ?? "");
-  // Contatos por fonte (contagem) — jeito rápido de informar de onde vieram.
   const [fontes, setFontes] = useState<Record<string, number>>(() => ({
     ...resultado.sourcesBreakdown,
   }));
@@ -326,19 +366,13 @@ function ResultadoBloco({
   const totalContatos = Object.values(fontes).reduce((a, b) => a + (b || 0), 0);
   const [enviando, iniciar] = useTransition();
   const [explicando, setExplicando] = useState<string | null>(null);
-  // Formulário aberto por padrão só quando ainda não respondeu; depois vira
-  // uma visão de dashboard com botão "Atualizar".
   const [editando, setEditando] = useState(!resultado.respondido);
 
-  // O dashboard aparece SEMPRE: com os números quando a equipe sobe o relatório,
-  // ou com as métricas em branco (—) antes do tráfego começar, pra já dar a cara
-  // do painel. Os extras da planilha que não estão no padrão entram no fim.
   const semDados = resultado.metrics.length === 0;
   const metricasExibir = semDados
     ? DASHBOARD_PADRAO.map((label) => ({ label, value: "" }))
     : resultado.metrics;
 
-  // Funil: conversas iniciadas (Meta) x quantos o cliente fechou.
   const conversao = (() => {
     const m = resultado.metrics.find((x) =>
       x.label.toLowerCase().includes("conversas"),
@@ -366,24 +400,22 @@ function ResultadoBloco({
         toast.erro(r.error ?? "Não foi possível enviar.");
         return;
       }
-      toast.sucesso("Enviado! Obrigada 💛");
+      toast.sucesso("Enviado! Obrigada.");
       setEditando(false);
       router.refresh();
     });
 
   return (
-    <Colapsavel titulo="Resultados da semana" emoji="📈">
-      {/* Dashboard do tráfego pago — sempre visível */}
+    <Colapsavel titulo="Resultados da semana" icone={<IcoResultados />}>
+      {/* Tráfego pago — "atualiza a favie" (o cliente só vê) */}
       <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
             Tráfego pago (anúncios)
           </p>
-          {semDados ? (
-            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
-              começa em breve
-            </span>
-          ) : null}
+          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
+            {semDados ? "começa em breve" : "atualiza a favie"}
+          </span>
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -415,7 +447,6 @@ function ResultadoBloco({
           })}
         </div>
 
-        {/* Explicação da métrica tocada */}
         {explicando && EXPLICACAO_METRICA[explicando] ? (
           <div className="mt-2 rounded-xl bg-brand-50 px-3 py-2 text-[13px] leading-relaxed text-brand-800">
             <span className="font-semibold">{explicando}:</span>{" "}
@@ -455,18 +486,22 @@ function ResultadoBloco({
         ) : null}
       </div>
 
-      {/* Seus resultados — entram no dashboard e viram relatório */}
+      {/* Origem dos contatos + retorno — "você preenche" (o cliente) */}
       <div className="mt-3 rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
-        <p className="text-sm font-semibold text-brand-800">
-          Seus resultados desta semana 💬
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-brand-800">
+            Seus resultados desta semana
+          </p>
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+            você preenche
+          </span>
+        </div>
         <p className="mt-0.5 text-xs text-gray-600">
-          Quantos viraram cliente e de onde vieram. Isso completa o dashboard.
+          Quantos viraram cliente e de onde vieram. Isso completa o painel.
         </p>
 
         {resultado.respondido && !editando ? (
           <>
-            {/* Visão dashboard da resposta do cliente */}
             {(() => {
               const entradas = Object.entries(resultado.sourcesBreakdown).filter(
                 ([, v]) => v > 0,
@@ -488,7 +523,7 @@ function ResultadoBloco({
                         {resultado.closedCount ?? "—"}
                       </p>
                       <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
-                        Fecharam
+                        Viraram cliente
                       </p>
                     </div>
                   </div>
@@ -544,7 +579,7 @@ function ResultadoBloco({
                     key={fonte}
                     className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-1.5"
                   >
-                    <span className="text-sm text-gray-700">{fonte}</span>
+                    <span className="text-sm text-gray-700">{rotuloFonte(fonte)}</span>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
@@ -589,13 +624,13 @@ function ResultadoBloco({
             />
 
             <label className="mt-3 block text-xs font-medium text-gray-600">
-              Comentário (opcional)
+              Um recado da semana? (opcional)
             </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
-              placeholder="Como foi o mês? O que funcionou, o que podemos melhorar…"
+              placeholder="Como foi a semana? O que funcionou, o que podemos melhorar…"
               className="mt-1 w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-relaxed outline-none focus:border-brand-500"
             />
 
@@ -625,97 +660,72 @@ function ResultadoBloco({
           </>
         )}
       </div>
+
+      {/* Planilha detalhada (Google Sheets) — pro cliente que quer ver mais. */}
+      {planilhaUrl ? (
+        <a
+          href={planilhaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-brand-200 bg-white px-4 py-3 text-sm font-semibold text-brand-700 shadow-sm hover:bg-brand-50"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="3" width="16" height="18" rx="2" />
+            <path d="M4 9h16M4 15h16M10 3v18" />
+          </svg>
+          Abrir planilha de resultados
+        </a>
+      ) : null}
     </Colapsavel>
   );
 }
 
-function TileResumo({ n, rotulo }: { n: number | string; rotulo: string }) {
-  return (
-    <div className="flex-1 rounded-xl bg-white/70 px-3 py-2 text-center">
-      <p className="text-xl font-bold text-brand-800">{n}</p>
-      <p className="text-[11px] uppercase tracking-wide text-gray-500">
-        {rotulo}
-      </p>
-    </div>
-  );
+/** Rótulo claro de cada fonte de contato pro cliente entender. */
+function rotuloFonte(fonte: string): string {
+  if (fonte === "Anúncio") return "Anúncio (Facebook/Instagram)";
+  if (fonte === "Instagram") return "Instagram (direct)";
+  return fonte;
 }
 
-/** Snapshot rápido da SEMANA exibida (postagens, produções, em edição). */
-function ResumoSemanaCard({
+/** Seção "Seus posts": junta o resumo do mês, a semana e o calendário do mês. */
+function SecaoPosts({
   ini,
   fim,
-  posts,
-  producoes,
-  emEdicao,
+  resumo,
+  postsSemana,
+  postsMes,
 }: {
   ini: string;
   fim: string;
-  posts: PortalPost[];
-  producoes: PortalGravacao[];
-  emEdicao: PortalPost[];
+  resumo: ResumoMes;
+  postsSemana: PortalPost[];
+  postsMes: PortalPost[];
 }) {
-  const publicados = posts.filter((p) => p.status === "Publicado").length;
-  const aCaminho = posts.length - publicados;
-  return (
-    <Colapsavel
-      titulo="Resumo da semana"
-      emoji="🗓️"
-      defaultAberto
-      badge={
-        <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
-          {fmtIntervalo(ini, fim)}
-        </span>
-      }
-    >
-      <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-        <div className="flex gap-2">
-          <TileResumo n={posts.length} rotulo="Postagens" />
-          <TileResumo n={producoes.length} rotulo="Produções" />
-          <TileResumo n={emEdicao.length} rotulo="Em edição" />
-        </div>
-        {posts.length > 0 ? (
-          <p className="mt-2 text-xs text-gray-500">
-            Das {posts.length} postagens:{" "}
-            {publicados > 0 ? `${publicados} já publicada${publicados > 1 ? "s" : ""}` : "nenhuma publicada ainda"}
-            {aCaminho > 0
-              ? ` e ${aCaminho} a caminho`
-              : ""}
-            .
-          </p>
-        ) : (
-          <p className="mt-2 text-xs text-gray-400">
-            Nada programado para esta semana.
-          </p>
-        )}
-      </div>
-    </Colapsavel>
-  );
-}
-
-function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
-  const total = resumo.planejados; // total planejado do mês
+  const [aba, setAba] = useState<"sem" | "mes">("sem");
+  const total = resumo.planejados;
   const pct = total ? Math.round((resumo.publicados / total) * 100) : 0;
 
   return (
     <Colapsavel
-      titulo="Entregas do mês"
-      emoji="✅"
+      titulo="Seus posts"
+      icone={<IcoPosts />}
       defaultAberto
       badge={
-        resumo.publicados > 0 ? (
+        total > 0 ? (
           <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
-            {resumo.publicados} publicada{resumo.publicados > 1 ? "s" : ""}
+            {resumo.publicados} de {total} no ar
           </span>
         ) : undefined
       }
     >
+      {/* Progresso do mês (volume que não some ao avançar a semana) */}
       <div className="rounded-2xl border border-black/5 bg-brand-50 p-4 shadow-sm">
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
             {resumo.label}
           </span>
           <span className="text-sm font-bold text-brand-800">
-            {resumo.publicados} de {total} publicadas
+            {resumo.publicados} de {total} publicados
           </span>
         </div>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/70">
@@ -729,32 +739,73 @@ function ResumoMesCard({ resumo }: { resumo: ResumoMes }) {
             Faltam {resumo.restantes} pra publicar este mês.
           </p>
         ) : null}
-        {/* O que JÁ foi ao ar no mês — aparece aberto, não some ao trocar a
-            semana (é a prova do volume de trabalho do mês). */}
-        {resumo.jaFeitos.length > 0 ? (
-          <div className="mt-3 border-t border-brand-200 pt-2">
-            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-brand-700">
-              Já publicado este mês
-            </p>
-            <ul className="space-y-1.5">
-              {resumo.jaFeitos.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center gap-2 text-sm text-gray-700"
-                >
-                  <span className="text-green-600">✓</span>
-                  <span className="min-w-0 flex-1 truncate">{p.title}</span>
-                  {p.data ? (
-                    <span className="shrink-0 text-xs text-gray-400">
-                      {fmtDia(p.data)}
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
       </div>
+
+      {/* Alternador semana / mês */}
+      <div className="mt-3 flex gap-1.5 rounded-xl bg-brand-100/60 p-1">
+        <button
+          type="button"
+          onClick={() => setAba("sem")}
+          className={`flex-1 rounded-lg px-3 py-1.5 text-[13px] font-bold transition-colors ${aba === "sem" ? "bg-white text-brand-700 shadow-sm" : "text-gray-500"}`}
+        >
+          Esta semana
+        </button>
+        <button
+          type="button"
+          onClick={() => setAba("mes")}
+          className={`flex-1 rounded-lg px-3 py-1.5 text-[13px] font-bold transition-colors ${aba === "mes" ? "bg-white text-brand-700 shadow-sm" : "text-gray-500"}`}
+        >
+          Mês todo
+        </button>
+      </div>
+
+      {aba === "sem" ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+            {fmtIntervalo(ini, fim)}
+          </p>
+          {postsSemana.length > 0 ? (
+            postsSemana.map((p) => <CartaoPost key={p.id} post={p} />)
+          ) : (
+            <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
+              Nada programado para esta semana.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="mt-3">
+          {postsMes.length > 0 ? (
+            <CalendarioMes posts={postsMes} />
+          ) : (
+            <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
+              Nenhuma postagem no mês ainda.
+            </p>
+          )}
+          {resumo.jaFeitos.length > 0 ? (
+            <div className="mt-3 rounded-2xl border border-green-200 bg-green-50/60 p-4">
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-green-700">
+                Já publicado este mês
+              </p>
+              <ul className="space-y-1.5">
+                {resumo.jaFeitos.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center gap-2 text-sm text-gray-700"
+                  >
+                    <span className="text-green-600">✓</span>
+                    <span className="min-w-0 flex-1 truncate">{p.title}</span>
+                    {p.data ? (
+                      <span className="shrink-0 text-xs text-gray-400">
+                        {fmtDia(p.data)}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      )}
     </Colapsavel>
   );
 }
@@ -790,11 +841,11 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           </span>
         ) : null}
         <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
-          {ehFoto ? "📷 Fotos" : "🎥 Gravação"}
+          {ehFoto ? "Fotos" : "Gravação"}
         </span>
         {grav.situacao === "gravado" ? (
           <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
-            ✓ Já gravado
+            Já gravado
           </span>
         ) : grav.situacao === "a_agendar" ? (
           <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
@@ -806,7 +857,7 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
           </span>
         ) : (
           <span className="rounded-full bg-green-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
-            ✅ {ehFoto ? "Ensaio marcado" : "Agendado"}
+            {ehFoto ? "Ensaio marcado" : "Agendado"}
           </span>
         )}
         <span
@@ -814,7 +865,7 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
         >
           {grav.situacao === "a_remarcar" || grav.situacao === "a_agendar"
             ? "data a combinar"
-            : `📅 ${fmtDia(grav.data)}${grav.hora ? ` · ${grav.hora}` : ""}`}
+            : `${fmtDia(grav.data)}${grav.hora ? ` · ${grav.hora}` : ""}`}
         </span>
       </div>
 
@@ -822,10 +873,9 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
         {grav.title}
       </h3>
       {grav.local ? (
-        <p className="mt-0.5 text-xs text-gray-500">📍 {grav.local}</p>
+        <p className="mt-0.5 text-xs text-gray-500">Local: {grav.local}</p>
       ) : null}
 
-      {/* Orientações pro cliente (o que vestir, quem vai, ideias do ensaio). */}
       {temOrientacoes ? (
         <>
           <button
@@ -833,7 +883,7 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
             onClick={() => setVerOrientacoes((v) => !v)}
             className="mt-2 text-xs font-semibold text-brand-700 hover:underline"
           >
-            {verOrientacoes ? "Ocultar orientações" : "📋 Ver orientações"}
+            {verOrientacoes ? "Ocultar orientações" : "Ver orientações"}
           </button>
           {verOrientacoes ? (
             <div className="mt-2 space-y-2 rounded-xl border border-brand-100 bg-brand-50/50 p-3">
@@ -882,7 +932,7 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
                 >
-                  🎬 Ver storyboard do ensaio
+                  Ver storyboard do ensaio
                 </a>
               ) : null}
             </div>
@@ -949,17 +999,47 @@ function CartaoGravacao({ grav }: { grav: PortalGravacao }) {
   );
 }
 
+/** Seção "Próximos conteúdos": junta o que falta gravar + o que está em edição. */
+function SecaoProximos({
+  gravacoes,
+  emProducao,
+}: {
+  gravacoes: PortalGravacao[];
+  emProducao: PortalPost[];
+}) {
+  const total = gravacoes.length + emProducao.length;
+  if (total === 0) return null;
+  return (
+    <Secao
+      titulo="Próximos conteúdos"
+      icone={<IcoProximos />}
+      badge={
+        <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
+          {total} a caminho
+        </span>
+      }
+    >
+      {gravacoes.map((g) => (
+        <CartaoGravacao key={g.id} grav={g} />
+      ))}
+      {emProducao.map((p) => (
+        <CartaoPost key={p.id} post={p} />
+      ))}
+    </Secao>
+  );
+}
+
 /** Seção recolhível: toque no título pra minimizar/abrir. */
 function Colapsavel({
   titulo,
-  emoji,
+  icone,
   cor = "text-brand-800",
   defaultAberto = false,
   badge,
   children,
 }: {
   titulo: string;
-  emoji: string;
+  icone: React.ReactNode;
   cor?: string;
   defaultAberto?: boolean;
   badge?: React.ReactNode;
@@ -973,7 +1053,9 @@ function Colapsavel({
         onClick={() => setAberto((v) => !v)}
         className={`mb-2 flex w-full items-center gap-2 text-sm font-bold uppercase tracking-wide ${cor}`}
       >
-        <span aria-hidden>{emoji}</span>
+        <span aria-hidden className="shrink-0">
+          {icone}
+        </span>
         <span className="flex-1 text-left">{titulo}</span>
         {badge}
         <span
@@ -990,19 +1072,19 @@ function Colapsavel({
 
 function Secao({
   titulo,
-  emoji,
+  icone,
   vazio,
   badge,
   children,
 }: {
   titulo: string;
-  emoji: string;
+  icone: React.ReactNode;
   vazio?: string;
   badge?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <Colapsavel titulo={titulo} emoji={emoji} badge={badge}>
+    <Colapsavel titulo={titulo} icone={icone} badge={badge}>
       {vazio ? (
         <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
           {vazio}
@@ -1033,14 +1115,13 @@ export function PortalView({
     postsMes,
     gravacoesSemana,
     emProducao,
-    pausadosCancelados,
     planoAcao,
+    resultsSheetUrl,
   } = dados;
 
-  // Plano de ação SINTETIZADO pro painel: em vez de despejar a lista inteira,
-  // mostramos o que a FAVIE está fazendo, resumido em "em andamento", "próximos"
-  // e quantos já foram concluídos, com uma barra de progresso. O que depende do
-  // cliente vai pro bloco destacado "O que precisamos de você".
+  // Plano de ação: o que a FAVIE está fazendo (em andamento, próximos, e a
+  // LISTA do que já foi entregue). O que depende do cliente vai pro bloco
+  // destacado "O que precisamos de você".
   const planoFavie = planoAcao.filter((e) => e.owner !== "Cliente");
   const porData = (a: (typeof planoAcao)[number], b: (typeof planoAcao)[number]) =>
     (a.dateLabel ? 0 : 1) - (b.dateLabel ? 0 : 1);
@@ -1053,8 +1134,8 @@ export function PortalView({
     planoFavie.length > 0
       ? Math.round((planoFeitos.length / planoFavie.length) * 100)
       : 0;
-  // O que precisamos do cliente: TODOS os itens do cliente (feitos e a fazer),
-  // pra ele poder dar check no que já resolveu. Check otimista + salva por token.
+
+  // O que precisamos do cliente: TODOS os itens do cliente (feitos e a fazer).
   const [feitoCliente, setFeitoCliente] = useState<Record<string, boolean>>({});
   const [, iniciarCheck] = useTransition();
   const estaFeito = (e: (typeof planoAcao)[number]) =>
@@ -1065,7 +1146,7 @@ export function PortalView({
     iniciarCheck(async () => {
       const r = await marcarPlanoClienteAction(token, e.id, novo);
       if (!r.ok) {
-        setFeitoCliente((m) => ({ ...m, [e.id]: !novo })); // desfaz
+        setFeitoCliente((m) => ({ ...m, [e.id]: !novo }));
         toast.erro(r.error ?? "Não foi possível salvar.");
       }
     });
@@ -1074,7 +1155,7 @@ export function PortalView({
   const itensCliente = planoAcao.filter((e) => e.owner === "Cliente");
   const clientePendentes = itensCliente.filter((e) => !estaFeito(e));
   const clienteFeitos = itensCliente.filter((e) => estaFeito(e));
-  const precisamosVoce = itensCliente; // usado só pra decidir se mostra a seção
+  const precisamosVoce = itensCliente;
 
   const LinhaCliente = ({ e }: { e: (typeof planoAcao)[number] }) => {
     const feito = estaFeito(e);
@@ -1126,33 +1207,32 @@ export function PortalView({
           <p className="mt-1 text-sm text-white/80">
             Acompanhe de perto tudo que está sendo feito pela sua marca.
           </p>
+          <p className="mt-2 text-xs text-white/50">Atualizado hoje</p>
         </div>
       </header>
 
       <div className="mx-auto max-w-2xl px-5 pt-6">
-        {/* O que precisamos de você (itens do cliente — pode dar check) */}
+        {/* 1. O que precisamos de você */}
         {precisamosVoce.length > 0 ? (
           <Colapsavel
             titulo="O que precisamos de você"
-            emoji="🙌"
+            icone={<IcoAcao />}
             cor="text-amber-800"
-            badge={
-              (() => {
-                const pend = precisamosVoce.filter((e) => !estaFeito(e)).length;
-                return pend > 0 ? (
-                  <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-900">
-                    {pend} a fazer
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
-                    tudo ok
-                  </span>
-                );
-              })()
-            }
+            defaultAberto
+            badge={(() => {
+              const pend = precisamosVoce.filter((e) => !estaFeito(e)).length;
+              return pend > 0 ? (
+                <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-900">
+                  {pend} a fazer
+                </span>
+              ) : (
+                <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
+                  tudo em dia
+                </span>
+              );
+            })()}
           >
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-              {/* A fazer */}
               {clientePendentes.length > 0 ? (
                 <>
                   <p className="mb-2 text-[11px] text-amber-700">
@@ -1166,11 +1246,10 @@ export function PortalView({
                 </>
               ) : (
                 <p className="text-sm font-medium text-green-700">
-                  ✓ Tudo resolvido por aqui, obrigada!
+                  ✓ Tudo em dia por aqui, obrigada!
                 </p>
               )}
 
-              {/* Já feito (recolhível) */}
               {clienteFeitos.length > 0 ? (
                 <div className="mt-3 border-t border-amber-200 pt-2">
                   <button
@@ -1181,7 +1260,7 @@ export function PortalView({
                     <span aria-hidden className={verFeitosCliente ? "" : "-rotate-90"}>
                       ⌄
                     </span>
-                    ✓ Já feito ({clienteFeitos.length})
+                    Já feito ({clienteFeitos.length})
                   </button>
                   {verFeitosCliente ? (
                     <ul className="mt-1.5 space-y-1.5">
@@ -1196,24 +1275,25 @@ export function PortalView({
           </Colapsavel>
         ) : null}
 
-        {/* Resumo da SEMANA (snapshot rápido) + Entregas do MÊS (volume que
-            não some ao avançar a semana) — os dois no topo. */}
-        <ResumoSemanaCard
+        {/* 2. Seus posts (semana + mês + entregas do mês) */}
+        <SecaoPosts
           ini={iniISO}
           fim={fimISO}
-          posts={postsSemana}
-          producoes={gravacoesSemana}
-          emEdicao={emProducao}
+          resumo={resumoMes}
+          postsSemana={postsSemana}
+          postsMes={postsMes}
         />
-        <ResumoMesCard resumo={resumoMes} />
 
+        {/* 3. Próximos conteúdos (a gravar + em edição) */}
+        <SecaoProximos gravacoes={gravacoesSemana} emProducao={emProducao} />
+
+        {/* 4. Plano de ação */}
         {planoFavie.length > 0 ? (
-          <Colapsavel titulo="Plano de ação" emoji="🎯">
-            {/* Progresso do mês */}
+          <Colapsavel titulo="Plano de ação" icone={<IcoPlano />}>
             <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
               <div className="flex items-baseline justify-between">
                 <span className="text-sm font-semibold text-gray-800">
-                  Andamento do mês
+                  Andamento
                 </span>
                 <span className="text-sm font-bold text-brand-700">
                   {planoFeitos.length}/{planoFavie.length} concluídos
@@ -1227,7 +1307,6 @@ export function PortalView({
               </div>
             </div>
 
-            {/* Em andamento agora */}
             {planoAndamento.length > 0 ? (
               <div className="mt-3">
                 <h3 className="mb-1.5 text-xs font-bold uppercase tracking-wide text-amber-700">
@@ -1260,7 +1339,6 @@ export function PortalView({
               </div>
             ) : null}
 
-            {/* Próximos passos */}
             {planoProximos.length > 0 ? (
               <div className="mt-3 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-700">
@@ -1289,12 +1367,10 @@ export function PortalView({
               </div>
             ) : null}
 
-            {/* Já concluído: aparece a LISTA do que já foi entregue (prova de
-                trabalho que o cliente quer ver), não só a contagem. */}
             {planoFeitos.length > 0 ? (
               <div className="mt-3 rounded-2xl border border-green-200 bg-green-50/60 p-4 shadow-sm">
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">
-                  ✓ Já feito ({planoFeitos.length})
+                  Já feito ({planoFeitos.length})
                 </h3>
                 <ul className="space-y-2">
                   {planoFeitos.map((e) => (
@@ -1322,89 +1398,15 @@ export function PortalView({
           </Colapsavel>
         ) : null}
 
-        <Colapsavel
-          titulo="Postagens"
-          emoji="📅"
-          badge={
-            postsMes.length > 0 ? (
-              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
-                {postsMes.length}
-              </span>
-            ) : undefined
-          }
-        >
-          {/* A SEMANA VEM PRIMEIRO: é o que o cliente mais quer ver. */}
-          {postsSemana.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
-                Essa semana
-              </p>
-              {postsSemana.map((p) => (
-                <CartaoPost key={p.id} post={p} />
-              ))}
-            </div>
-          ) : null}
-          {/* O mês inteiro vem depois, como visão de contexto. */}
-          {postsMes.length > 0 ? (
-            <div className={postsSemana.length > 0 ? "mt-4" : ""}>
-              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-400">
-                No mês
-              </p>
-              <CalendarioMes posts={postsMes} />
-            </div>
-          ) : null}
-          {postsSemana.length === 0 && postsMes.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
-              Nenhuma postagem programada ainda.
-            </p>
-          ) : null}
-        </Colapsavel>
-
-        {gravacoesSemana.length > 0 ? (
-          <Secao
-            titulo="Produções a fazer"
-            emoji="🎥"
-            badge={
-              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
-                {gravacoesSemana.length}
-              </span>
-            }
-          >
-            {gravacoesSemana.map((g) => (
-              <CartaoGravacao key={g.id} grav={g} />
-            ))}
-          </Secao>
-        ) : null}
-
-        <Secao
-          titulo="Em edição"
-          emoji="🎬"
-          vazio={
-            emProducao.length === 0
-              ? "Nada em edição no momento."
-              : undefined
-          }
-        >
-          {emProducao.map((p) => (
-            <CartaoPost key={p.id} post={p} />
-          ))}
-        </Secao>
-
-        {pausadosCancelados.length > 0 ? (
-          <Secao titulo="Pausados ou cancelados" emoji="⏸️">
-            {pausadosCancelados.map((p) => (
-              <CartaoPost key={p.id} post={p} />
-            ))}
-          </Secao>
-        ) : null}
-
-        {/* "O que estamos fazendo" (demandas) foi removido: duplicava o que o
-            Plano de ação já mostra em "Em andamento". */}
-
-        <ResultadoBloco token={token} resultado={resultado} />
+        {/* 5. Resultados */}
+        <ResultadoBloco
+          token={token}
+          resultado={resultado}
+          planilhaUrl={resultsSheetUrl}
+        />
 
         <p className="mt-10 text-center text-xs text-gray-400">
-          Feito com carinho pela favie 💛
+          favie · acompanhamento de resultados
         </p>
       </div>
     </main>
