@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "@/lib/ui/toast";
@@ -1130,31 +1129,7 @@ export function PortalView({
         </div>
       </header>
 
-      <div className="mx-auto max-w-2xl px-5">
-        {/* Navegação de semana */}
-        <div className="-mt-4 flex items-center justify-between gap-2 rounded-2xl border border-black/5 bg-white px-4 py-3 shadow-sm">
-          <Link
-            href={hrefSemana.anterior}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-          >
-            ←
-          </Link>
-          <div className="text-center">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">
-              Semana
-            </p>
-            <p className="text-sm font-bold text-gray-900">
-              {fmtIntervalo(dados.iniISO, dados.fimISO)}
-            </p>
-          </div>
-          <Link
-            href={hrefSemana.proximo}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-          >
-            →
-          </Link>
-        </div>
-
+      <div className="mx-auto max-w-2xl px-5 pt-6">
         {/* O que precisamos de você (itens do cliente — pode dar check) */}
         {precisamosVoce.length > 0 ? (
           <Colapsavel
