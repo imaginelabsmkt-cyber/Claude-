@@ -23,9 +23,16 @@ export default async function FilaEdicaoPage() {
   ]);
 
   // Só EDIÇÃO DE VÍDEO (Fran). Capas e artes (Vitória) ficam na aba Artes.
+  // Ensaio/foto também NÃO entra aqui: a edição das fotos vira a demanda
+  // "Editar fotos" (fila de edição é de vídeo).
+  const ehFoto = (f: string | null) => /foto|ensaio/i.test(f ?? "");
   const itens = ordenarFilaFinal(
     todos.filter(
-      (c) => STATUS_FILA.includes(c.status) && !ehCapa(c) && !ehArte(c.format),
+      (c) =>
+        STATUS_FILA.includes(c.status) &&
+        !ehCapa(c) &&
+        !ehArte(c.format) &&
+        !ehFoto(c.format),
     ),
   );
 

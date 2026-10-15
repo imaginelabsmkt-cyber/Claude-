@@ -218,7 +218,9 @@ export function RecordingCard({
             </Button>
           ) : null}
 
-          {gravado ? (
+          {/* Ensaio/foto não vai pra fila de edição de vídeo: a edição das
+              fotos é a demanda "Editar fotos" (criada ao marcar como feito). */}
+          {gravado && !ehFoto ? (
             <Button
               tamanho="sm"
               disabled={processando}
