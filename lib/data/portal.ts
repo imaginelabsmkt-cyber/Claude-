@@ -138,8 +138,15 @@ export async function carregarPortal(
     .select("*")
     .eq("client_id", cliente.id);
 
+  // Capa é arte INTERNA (miniatura/capa de outro conteúdo) e nunca vai pro
+  // cliente. Detecta pelo vínculo (cover_source_id) E pelo título "Capa: ...",
+  // porque capa avulsa (criada à mão, sem vínculo) não tem cover_source_id.
+  // Mesma regra do sistema (lib/data/contents.ts).
+  const ehCapaInterna = (c: Content) =>
+    ehCapa(c) || /^\s*capa\s*:/i.test(c.title ?? "");
+
   const visiveis = (contents ?? []).filter(
-    (c) => !OCULTOS.includes(c.status) && !ehCapa(c),
+    (c) => !OCULTOS.includes(c.status) && !ehCapaInterna(c),
   );
 
   const postsSemana = visiveis
@@ -247,7 +254,7 @@ export async function carregarPortal(
   const pausadosCancelados = (contents ?? [])
     .filter(
       (c) =>
-        !ehCapa(c) &&
+        !ehCapaInterna(c) &&
         (c.status === "Pausado" || c.status === "Cancelado") &&
         mesEfetivo(c) === mesRef,
     )
