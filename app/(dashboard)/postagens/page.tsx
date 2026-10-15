@@ -116,8 +116,11 @@ export default async function PostagensPage({ searchParams }: PageProps) {
       `/postagens?view=semana&ref=${hojeISO(addDays(inicio, delta))}`;
 
     // Seções
+    // Pausado também não está "pendente": não é atrasado nem fica em "sem data".
     const naoFinal = (c: Content) =>
-      c.status !== "Publicado" && c.status !== "Cancelado";
+      c.status !== "Publicado" &&
+      c.status !== "Cancelado" &&
+      c.status !== "Pausado";
     const atrasadas = comData.filter(
       (c) => naoFinal(c) && difEmDias(parseData(c.planned_date)!, hoje) < 0,
     );
