@@ -1,18 +1,22 @@
-import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { TaskCard } from "@/components/tarefas/task-card";
+import {
+  MinhasTarefasLista,
+  type ItemLista,
+  type SecaoLista,
+} from "@/components/tarefas/minhas-tarefas-lista";
 import { getAuthContext } from "@/lib/auth";
 import { listContents, listAllClients } from "@/lib/data/contents";
 import { listPlannings } from "@/lib/data/plannings";
 import { listDemands } from "@/lib/data/demands";
-import { DEMAND_STATUS_TONE } from "@/types";
 import {
   classificarGravacao,
   estaGravado,
   ehArte,
   hojeISO,
   papelResponsavel,
+  prazoPrincipal,
+  statusAoConcluir,
   type PapelDemanda,
 } from "@/lib/rules/contents";
 import { PLANNING_ENTREGUE } from "@/types";
@@ -73,7 +77,6 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
     (c) =>
       c.requires_recording && !estaGravado(c.status) && c.status !== "Cancelado",
   );
-  // Exceção: produção de FOTOS de artes é da Fran (mesmo sendo arte da Vitória).
   const fotosArte = contents.filter(
     (c) =>
       ehArte(c.format) &&
@@ -81,10 +84,6 @@ function gruposProducer(contents: Content[], hoje: Date): Grupo[] {
       !estaGravado(c.status) &&
       c.status !== "Cancelado",
   );
-  // Ordem: primeiro o que está EM EDIÇÃO (trabalho ativo), depois a fila, os
-  // gravados e os ajustes. Gravações/fotos ficam no topo (captação).
-  // "Prontos para postar" NÃO entra aqui: depois de aprovado a edição acabou,
-  // a postagem é tratada na aba Postagens.
   return [
     { titulo: "Fotos a produzir (artes)", itens: fotosArte },
     {
@@ -133,20 +132,21 @@ export default async function MinhasTarefasPage() {
 
   const clientesById = new Map(clientes.map((c) => [c.id, c]));
 
-  // Demandas gerais atribuídas a mim (todas: a fazer, fazendo e feitas), pra
-  // dar pra ver numa lista o que falta, o que está em andamento e o que já saiu.
+  // Demandas atribuídas a mim (todas), agrupadas por status.
   const minhasDemandas = demands.filter(
     (d) =>
       !!ctx.profile?.id && (d.assignee_ids ?? []).includes(ctx.profile.id),
   );
-  const porPrazo = (a: (typeof minhasDemandas)[number], b: (typeof minhasDemandas)[number]) =>
-    (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99");
+  const porPrazo = (
+    a: (typeof minhasDemandas)[number],
+    b: (typeof minhasDemandas)[number],
+  ) => (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99");
   const demFazendo = minhasDemandas.filter((d) => d.status === "Fazendo").sort(porPrazo);
   const demAFazer = minhasDemandas.filter((d) => d.status === "A fazer").sort(porPrazo);
   const demFeitas = minhasDemandas
     .filter((d) => d.status === "Feita")
-    .sort((a, b) => porPrazo(b, a)); // concluídas: mais recentes primeiro
-  const demFeitasMostrar = demFeitas.slice(0, 8);
+    .sort((a, b) => porPrazo(b, a));
+  const demFeitasMostrar = demFeitas.slice(0, 15);
   const feitasExtras = demFeitas.length - demFeitasMostrar.length;
   const demandasPendentes = demFazendo.length + demAFazer.length;
 
@@ -154,8 +154,6 @@ export default async function MinhasTarefasPage() {
   const nome = ctx.profile?.name ?? "você";
 
   // Planejamentos a FAZER (planner): reunião já aconteceu e ainda não entregou.
-  // Ordenados por prazo de entrega (fila de prioridade: quem entrega antes vem
-  // primeiro). A reunião em si não aparece, só a demanda de criar o plano.
   const planejamentosAFazer: Planning[] =
     role === "producer"
       ? []
@@ -171,11 +169,8 @@ export default async function MinhasTarefasPage() {
               b.delivery_deadline ?? "9999-99-99",
             ),
           );
-  const mostrarPlanej = planejamentosAFazer.length > 0;
   const etiquetaPlanej = (status: string) =>
-    status === "Em criação"
-      ? "Em criação de planejamento"
-      : "Reunião feita · aguardando planejamento";
+    status === "Em criação" ? "em criação" : "aguardando planejamento";
 
   const blocos: { rotulo: string; grupos: Grupo[] }[] =
     role === "planner"
@@ -192,188 +187,120 @@ export default async function MinhasTarefasPage() {
       ? "Visão completa (planejamento, artes e produção)"
       : `Tarefas de ${nome}`;
 
-  const totalItens = blocos.reduce(
-    (acc, b) => acc + b.grupos.reduce((a, g) => a + g.itens.length, 0),
-    0,
-  );
+  // --- Monta as seções da lista (com caixinha de concluir) ---
+  const secoes: SecaoLista[] = [];
+
+  const itemDemanda = (d: (typeof minhasDemandas)[number]): ItemLista => {
+    const cli = d.client_id ? clientesById.get(d.client_id) : null;
+    const atrasada =
+      d.status !== "Feita" && !!d.due_date && d.due_date < hojeStr;
+    return {
+      id: d.id,
+      tipo: "demanda",
+      titulo: d.title,
+      cliente: cli?.name ?? "Interna (FAVIE)",
+      cor: cli?.color ?? null,
+      meta: d.due_date
+        ? `${atrasada ? "Atrasada · " : "Até "}${formatarData(d.due_date)}`
+        : null,
+      alerta: atrasada,
+      feito: d.status === "Feita",
+      concluivel: true,
+      proximo: null,
+      href: "/demandas",
+    };
+  };
+
+  if (minhasDemandas.length > 0) {
+    secoes.push({
+      titulo: "Minhas demandas",
+      href: "/demandas",
+      contador: demandasPendentes,
+      grupos: [
+        { rotulo: "A fazer", itens: demAFazer.map(itemDemanda) },
+        { rotulo: "Fazendo", itens: demFazendo.map(itemDemanda) },
+        {
+          rotulo: "Feitas",
+          itens: demFeitasMostrar.map(itemDemanda),
+          extra:
+            feitasExtras > 0
+              ? { label: `+${feitasExtras} concluídas — ver todas`, href: "/demandas" }
+              : undefined,
+        },
+      ],
+    });
+  }
+
+  if (planejamentosAFazer.length > 0) {
+    secoes.push({
+      titulo: "Planejamentos a fazer",
+      contador: planejamentosAFazer.length,
+      grupos: [
+        {
+          rotulo: "Fila de entrega",
+          itens: planejamentosAFazer.map((p, i): ItemLista => {
+            const cli = clientesById.get(p.client_id);
+            return {
+              id: p.id,
+              tipo: "conteudo",
+              titulo: `${i + 1}º · Fazer planejamento (${etiquetaPlanej(p.status)})`,
+              cliente: cli?.name ?? "Cliente",
+              cor: cli?.color ?? null,
+              meta: p.delivery_deadline
+                ? `Entregar até ${formatarData(p.delivery_deadline)}`
+                : `Reunião: ${formatarData(p.meeting_date)}`,
+              alerta: false,
+              feito: false,
+              concluivel: false,
+              proximo: null,
+              href: "/planejamentos",
+            };
+          }),
+        },
+      ],
+    });
+  }
+
+  for (const bloco of blocos) {
+    const grupos = bloco.grupos
+      .filter((g) => g.itens.length > 0)
+      .map((g) => ({
+        rotulo: g.titulo,
+        itens: g.itens.map((c): ItemLista => {
+          const cli = clientesById.get(c.client_id);
+          const prazo = prazoPrincipal(c);
+          const proximo = statusAoConcluir(c.status);
+          return {
+            id: c.id,
+            tipo: "conteudo",
+            titulo: c.title,
+            cliente: cli?.name ?? "·",
+            cor: cli?.color ?? null,
+            meta: prazo ? `Prazo: ${formatarData(prazo)}` : null,
+            alerta: false,
+            feito: false,
+            concluivel: !!proximo,
+            proximo,
+            href: `/conteudos/${c.id}`,
+          };
+        }),
+      }));
+    if (grupos.length > 0) {
+      secoes.push({ titulo: bloco.rotulo || "Minhas etapas", grupos });
+    }
+  }
 
   return (
     <>
       <PageHeader titulo="Minhas tarefas" descricao={descricao} icone="tarefas" tom="indigo" />
 
-      {totalItens === 0 && !mostrarPlanej && minhasDemandas.length === 0 ? (
+      {secoes.length === 0 ? (
         <EmptyState
           titulo="Nada pendente por aqui"
-          descricao="Quando houver conteúdos nas suas etapas, eles aparecerão aqui."
+          descricao="Quando houver tarefas nas suas etapas, elas aparecerão aqui."
         />
       ) : (
-        <div className="space-y-10">
-          {minhasDemandas.length > 0 ? (
-            <section>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                Minhas demandas
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  {demandasPendentes}
-                </span>
-                <Link
-                  href="/demandas"
-                  className="ml-auto text-xs font-medium text-brand-600 hover:underline"
-                >
-                  ver todas →
-                </Link>
-              </h3>
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                {[
-                  { rotulo: "Em andamento", itens: demFazendo },
-                  { rotulo: "A fazer", itens: demAFazer },
-                  { rotulo: "Concluídas", itens: demFeitasMostrar },
-                ]
-                  .filter((g) => g.itens.length > 0)
-                  .map((g) => (
-                    <div key={g.rotulo}>
-                      <p className="border-t border-gray-100 bg-gray-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-500 first:border-t-0">
-                        {g.rotulo} ({g.itens.length})
-                      </p>
-                      {g.itens.map((d) => {
-                        const cli = d.client_id
-                          ? clientesById.get(d.client_id)
-                          : null;
-                        const atrasada =
-                          d.status !== "Feita" &&
-                          !!d.due_date &&
-                          d.due_date < hojeStr;
-                        return (
-                          <Link
-                            key={d.id}
-                            href="/demandas"
-                            className="flex items-center gap-3 border-t border-gray-100 px-3 py-2.5 hover:bg-gray-50"
-                          >
-                            <span
-                              className="h-2.5 w-2.5 shrink-0 rounded-full border border-gray-200"
-                              style={{ backgroundColor: cli?.color ?? "#e5e7eb" }}
-                              aria-hidden="true"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p
-                                className={`truncate text-sm font-medium ${d.status === "Feita" ? "text-gray-400 line-through" : "text-gray-900"}`}
-                              >
-                                {d.title}
-                              </p>
-                              {cli ? (
-                                <p className="truncate text-[11px] text-gray-400">
-                                  {cli.name}
-                                </p>
-                              ) : null}
-                            </div>
-                            <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${DEMAND_STATUS_TONE[d.status]}`}
-                            >
-                              {d.status}
-                            </span>
-                            {d.due_date ? (
-                              <span
-                                className={`hidden shrink-0 text-[11px] sm:block ${atrasada ? "font-semibold text-red-600" : "text-gray-400"}`}
-                              >
-                                {atrasada ? "Atrasada · " : ""}
-                                {formatarData(d.due_date)}
-                              </span>
-                            ) : null}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ))}
-                {feitasExtras > 0 ? (
-                  <Link
-                    href="/demandas"
-                    className="block border-t border-gray-100 px-3 py-2 text-center text-xs text-brand-600 hover:underline"
-                  >
-                    +{feitasExtras} concluídas — ver todas
-                  </Link>
-                ) : null}
-              </div>
-            </section>
-          ) : null}
-          {mostrarPlanej ? (
-            <section>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                Planejamentos a fazer
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  {planejamentosAFazer.length}
-                </span>
-              </h3>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {planejamentosAFazer.map((p, i) => {
-                  const cli = clientesById.get(p.client_id);
-                  return (
-                    <Link
-                      key={p.id}
-                      href="/planejamentos"
-                      className="block rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm hover:border-brand-300"
-                      style={{ borderLeftColor: cli?.color ?? "#a855f7" }}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span
-                            className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
-                            style={{ backgroundColor: cli?.color ?? "#e5e7eb" }}
-                            aria-hidden="true"
-                          />
-                          {cli?.name ?? "Cliente"}
-                        </div>
-                        <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          {i + 1}º
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-sm font-semibold text-gray-900">
-                        Fazer planejamento
-                      </p>
-                      <p className="mt-1 text-[11px] text-gray-500">
-                        {p.delivery_deadline
-                          ? `Entregar até ${formatarData(p.delivery_deadline)}`
-                          : `Reunião: ${formatarData(p.meeting_date)}`}
-                      </p>
-                      <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                        {etiquetaPlanej(p.status)}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-          {blocos.map((bloco, bi) => (
-            <div key={bi} className="space-y-8">
-              {bloco.rotulo ? (
-                <h2 className="border-b border-gray-200 pb-2 text-base font-bold text-gray-900">
-                  {bloco.rotulo}
-                </h2>
-              ) : null}
-              {bloco.grupos.map((g) =>
-                g.itens.length === 0 ? null : (
-                  <section key={bloco.rotulo + g.titulo}>
-                    <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                      {g.titulo}
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                        {g.itens.length}
-                      </span>
-                    </h3>
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {g.itens.map((c) => (
-                        <TaskCard
-                          key={c.id}
-                          content={c}
-                          clienteNome={clientesById.get(c.client_id)?.name ?? "·"}
-                          cor={clientesById.get(c.client_id)?.color}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                ),
-              )}
-            </div>
-          ))}
-        </div>
+        <MinhasTarefasLista secoes={secoes} />
       )}
     </>
   );
