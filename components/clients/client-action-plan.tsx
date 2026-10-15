@@ -147,8 +147,28 @@ export function ClientActionPlan({
         return;
       }
       toast.sucesso("Item salvo");
-      setForm(null);
-      router.refresh();
+      const id = form.id;
+      if (id) {
+        // Edição de item existente: aplica na hora (otimista) e NÃO recarrega
+        // a página inteira do cliente (era isso que demorava).
+        const patch: Partial<ActionPlanItem> = {
+          title: form.title,
+          type: form.type,
+          status: form.status,
+          description: form.description || null,
+          due_date: form.due_date || null,
+          assignee_id: form.assignee_id || null,
+          owner: form.owner,
+          stage: form.stage || null,
+          date_label: form.date_label || null,
+        };
+        setOtim((o) => ({ ...o, [id]: { ...o[id], ...patch } }));
+        setForm(null);
+      } else {
+        // Item novo precisa do refresh pra aparecer.
+        setForm(null);
+        router.refresh();
+      }
     });
 
   // Muda o status NA HORA (otimista) e salva no servidor em segundo plano, SEM
