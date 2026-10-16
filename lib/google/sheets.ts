@@ -141,7 +141,7 @@ async function escrever(
 /** As 3 linhas de cabeçalho (título, faixas de seção, nomes das colunas). */
 function cabecalho(clienteNome: string, aba: string): (string | number)[][] {
   const linhaTitulo = new Array(N_COLS).fill("");
-  linhaTitulo[0] = `Resultados — ${clienteNome} · ${aba}`;
+  linhaTitulo[0] = `Resultados de ${clienteNome} · ${aba}`;
 
   const linhaSecoes = new Array(N_COLS).fill("");
   linhaSecoes[IDX_SEMANA] = "Semana";
@@ -341,7 +341,7 @@ async function garantirPlanilha(
   if (cli.results_sheet_id) return { id: cli.results_sheet_id, nome: cli.name };
 
   const resp = await gapi(token, SHEETS, "POST", {
-    properties: { title: `Resultados — ${cli.name} · favie` },
+    properties: { title: `Resultados de ${cli.name} · favie` },
   });
   if (!resp.ok) return null;
   const j = (await resp.json()) as {

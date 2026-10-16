@@ -779,7 +779,7 @@ function RoteiroEditavel({
         return;
       }
       setTxtImport(txt);
-      toast.sucesso("Documento lido — confira e clique em Importar.");
+      toast.sucesso("Documento lido. Confira e clique em Importar.");
     } catch {
       toast.erro("Não consegui ler o documento. Tente colar o texto.");
     } finally {
@@ -920,7 +920,7 @@ function RoteiroEditavel({
         <div className="space-y-2">
           <p className="text-xs text-gray-500">
             Escolha o documento (PDF) do roteiro <strong>ou</strong> cole o texto
-            abaixo e clique em Importar — substitui o roteiro atual. O sistema
+            abaixo e clique em Importar. Isso substitui o roteiro atual. O sistema
             entende o modelo FALA | CENAS, tira o cabeçalho (CONTEÚDO, DATA,
             LOCAL…) e remonta a tabela. A legenda/stories atuais são mantidos.
           </p>

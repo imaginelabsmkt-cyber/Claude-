@@ -123,7 +123,7 @@ export function QuickContentButton({ clientes }: { clientes: OpcaoCliente[] }) {
 
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-gray-500">
-                  Título (opcional — se vazio, usa a 1ª linha do roteiro)
+                  Título (opcional; se vazio, usa a 1ª linha do roteiro)
                 </span>
                 <input
                   value={titulo}

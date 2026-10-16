@@ -488,7 +488,7 @@ function ResultadoBloco({
                   </span>
                 ) : null}
                 <p className="text-lg font-extrabold leading-tight text-brand-800">
-                  {m.value || "—"}
+                  {m.value || "·"}
                 </p>
                 <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
                   {m.label}
@@ -563,7 +563,7 @@ function ResultadoBloco({
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <div className="rounded-xl bg-white p-3 text-center ring-1 ring-brand-100">
                       <p className="text-lg font-extrabold leading-tight text-brand-800">
-                        {totContatos || "—"}
+                        {totContatos || "·"}
                       </p>
                       <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
                         Contatos
@@ -571,7 +571,7 @@ function ResultadoBloco({
                     </div>
                     <div className="rounded-xl bg-white p-3 text-center ring-1 ring-brand-100">
                       <p className="text-lg font-extrabold leading-tight text-brand-800">
-                        {resultado.closedCount ?? "—"}
+                        {resultado.closedCount ?? "·"}
                       </p>
                       <p className="mt-0.5 text-[10px] font-medium uppercase leading-tight tracking-wide text-gray-500">
                         Viraram cliente
@@ -658,7 +658,7 @@ function ResultadoBloco({
               </p>
               <p className="mt-0.5 text-[11px] text-gray-400">
                 Quem de fato virou aluno/cliente (agendou, fez aula experimental
-                ou fechou) — separe por origem pra medir o retorno do anúncio.
+                ou fechou). Separe por origem pra medir o retorno do anúncio.
               </p>
               <div className="mt-2 space-y-1.5">
                 <LinhaNumero

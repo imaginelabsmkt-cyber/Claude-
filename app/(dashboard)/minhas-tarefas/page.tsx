@@ -265,7 +265,7 @@ export default async function MinhasTarefasPage() {
         inicialFechado: true,
         extra:
           feitasExtras > 0
-            ? { label: `+${feitasExtras} concluídas — ver todas`, href: "/demandas" }
+            ? { label: `+${feitasExtras} concluídas · ver todas`, href: "/demandas" }
             : undefined,
       });
     }

@@ -239,7 +239,7 @@ export function ClientActionPlan({
       }
       toast.sucesso(
         r.kind === "ensaio"
-          ? "Virou ensaio — já está nas Produções"
+          ? "Virou ensaio. Já está nas Produções"
           : "Virou demanda com etapas",
       );
       router.refresh();

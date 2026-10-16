@@ -177,7 +177,7 @@ export function AgendarLoteButton({ clientes, candidatos }: Props) {
       toast.sucesso(
         data
           ? "Ensaio de fotos criado e agendado."
-          : "Ensaio de fotos criado — marque a data quando quiser.",
+          : "Ensaio de fotos criado. Marque a data quando quiser.",
       );
       if (r.avisoGoogle) toast.erro(r.avisoGoogle);
       router.refresh(); // o ensaio aparece na lista de produções do cliente

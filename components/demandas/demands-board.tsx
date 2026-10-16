@@ -556,7 +556,7 @@ export function DemandsBoard({
           key={`${d.id}-desc-${d.description ?? ""}`}
           defaultValue={d.description ?? ""}
           disabled={salvando}
-          placeholder="Anotações / textos — ex.: a nova bio, o conteúdo dos destaques…"
+          placeholder="Anotações / textos. Ex.: a nova bio, o conteúdo dos destaques…"
           onBlur={(e) => {
             const v = e.target.value.trim();
             if (v !== (d.description ?? ""))
@@ -771,7 +771,7 @@ export function DemandsBoard({
                     )
                   }
                   className="text-[11px] font-semibold text-amber-700 hover:underline disabled:opacity-60"
-                  title="Arquivar as demandas desta lista (reversível) — ex.: desfazer um import"
+                  title="Arquivar as demandas desta lista (reversível). Ex.: desfazer um import"
                 >
                   🗄 Arquivar estas {visiveis.length}
                 </button>

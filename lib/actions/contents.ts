@@ -462,7 +462,7 @@ export async function marcarComoGravadoAction(
       .eq("role", "producer");
     const responsaveis = (prod ?? []).map((p) => p.id);
     await criarDemandaAction({
-      title: `Editar fotos — ${tituloFoto}`.slice(0, 300),
+      title: `Editar fotos: ${tituloFoto}`.slice(0, 300),
       category: "Conteúdo",
       client_id: antigo.client_id ?? null,
       due_date: prazoFotos,
@@ -484,7 +484,7 @@ export async function marcarComoGravadoAction(
       ok: true,
       id,
       avisoGoogle:
-        "Marcado como gravado, mas o Google Agenda está desconectado — reconecte em Configurações para sincronizar.",
+        "Marcado como gravado, mas o Google Agenda está desconectado. Reconecte em Configurações para sincronizar.",
     };
   }
   return { ok: true, id };
@@ -538,7 +538,7 @@ export async function alterarDataGravacaoAction(
     return {
       ok: true,
       avisoGoogle:
-        "Data salva, mas o Google Agenda está desconectado — reconecte em Configurações para a gravação ir pra agenda.",
+        "Data salva, mas o Google Agenda está desconectado. Reconecte em Configurações para a gravação ir pra agenda.",
     };
   }
   return { ok: true, id };
@@ -639,7 +639,7 @@ export async function agendarGravacoesEmLoteAction(
       ok: true,
       quantidade: ids.length,
       avisoGoogle:
-        "Gravações agendadas, mas o Google Agenda está desconectado — reconecte em Configurações para irem pra agenda.",
+        "Gravações agendadas, mas o Google Agenda está desconectado. Reconecte em Configurações para irem pra agenda.",
     };
   }
   return { ok: true, quantidade: ids.length };
@@ -669,7 +669,7 @@ export async function reenviarGravacaoGoogleAction(
     return {
       ok: false,
       error:
-        "Esta produção não tem data marcada — marque a data primeiro (é só com data que vai pra agenda).",
+        "Esta produção não tem data marcada. Marque a data primeiro (é só com data que vai pra agenda).",
     };
   }
   if (!(await googleSincronizavel())) {
@@ -777,7 +777,7 @@ export async function criarEnsaioFotosAction(input: {
       ok: true,
       id: novo.id,
       avisoGoogle:
-        "Ensaio criado, mas o Google Agenda está desconectado — reconecte em Configurações pra ir pra agenda.",
+        "Ensaio criado, mas o Google Agenda está desconectado. Reconecte em Configurações pra ir pra agenda.",
     };
   }
   return { ok: true, id: novo.id };
@@ -1258,7 +1258,7 @@ export async function atualizarProducaoConteudoAction(
       ok: true,
       id,
       avisoGoogle:
-        "Salvo e na aba Produções, mas o Google Agenda está desconectado — reconecte em Configurações pra ir pra agenda.",
+        "Salvo e na aba Produções, mas o Google Agenda está desconectado. Reconecte em Configurações pra ir pra agenda.",
     };
   }
   return { ok: true, id };
