@@ -112,12 +112,18 @@ export async function listClientOptions(): Promise<OpcaoCliente[]> {
   return data ?? [];
 }
 
-/** Todos os clientes (id, nome, cor), inclusive inativos, para exibição. */
+/**
+ * Clientes ATIVOS (id, nome, cor) para os filtros/dropdowns e para resolver o
+ * nome nos cards das telas de trabalho. Cliente desativado não aparece mais no
+ * sistema (só volta se for reativado na aba Clientes). O conteúdo de cliente
+ * inativo já é escondido por listContents, então não precisa do nome dele aqui.
+ */
 export async function listAllClients(): Promise<OpcaoCliente[]> {
   const supabase = createClient();
   const { data } = await supabase
     .from("clients")
     .select("id, name, color")
+    .eq("active", true)
     .order("name", { ascending: true });
   return data ?? [];
 }
