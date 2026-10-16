@@ -45,6 +45,8 @@ export function ClientWeeklyReport({
   gravados = [],
   feitas,
   relatoriosSalvos = {},
+  retorno = null,
+  semanaRetorno,
 }: {
   clienteNome: string;
   clientId?: string;
@@ -54,6 +56,13 @@ export function ClientWeeklyReport({
   feitas: Demand[];
   /** Relatórios editados à mão, por semana (ISO): sobrepõem o automático. */
   relatoriosSalvos?: Record<string, string>;
+  /** Retorno do tráfego da semana (só da semana atual). */
+  retorno?: {
+    investimento: string | null;
+    clientesAnuncio: number | null;
+    clientesOrganico: number | null;
+  } | null;
+  semanaRetorno?: string;
 }) {
   const [offset, setOffset] = useState(0); // 0 = semana atual, -1 = anterior…
 
@@ -117,8 +126,19 @@ export function ClientWeeklyReport({
         }
       }
     }
+    // Retorno do tráfego (só da semana atual, quando há dados).
+    if (retorno && semanaRetorno === ini) {
+      linhas.push("");
+      linhas.push("Retorno do tráfego (anúncios):");
+      if (retorno.investimento)
+        linhas.push(`  • Investimento: ${retorno.investimento}`);
+      linhas.push(
+        `  • Viraram cliente pelo anúncio: ${retorno.clientesAnuncio ?? 0}`,
+      );
+      linhas.push(`  • Pelo orgânico: ${retorno.clientesOrganico ?? 0}`);
+    }
     return linhas.join("\n").trim();
-  }, [clienteNome, ini, fim, pub, grav, dem, grupos, temAlgo]);
+  }, [clienteNome, ini, fim, pub, grav, dem, grupos, temAlgo, retorno, semanaRetorno]);
 
   // Edição do relatório, SALVA por semana: o texto editado à mão sobrepõe o
   // gerado automático e fica guardado (volta igual ao recarregar).
@@ -287,6 +307,17 @@ export function ClientWeeklyReport({
           )}
         </div>
       </div>
+
+      {retorno && semanaRetorno === ini && !editando ? (
+        <div className="mb-2 rounded-lg border border-amber-100 bg-amber-50/60 px-3 py-2 text-xs text-gray-700">
+          <span className="font-semibold text-amber-800">
+            Retorno do tráfego:
+          </span>{" "}
+          {retorno.investimento ? `${retorno.investimento} investido · ` : ""}
+          <strong>{retorno.clientesAnuncio ?? 0}</strong> cliente(s) do anúncio ·{" "}
+          <strong>{retorno.clientesOrganico ?? 0}</strong> orgânico
+        </div>
+      ) : null}
 
       {editando ? (
         <div>

@@ -143,6 +143,22 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     cliente.id,
     semanaInicioISO,
   );
+  // Resumo do retorno do tráfego da semana (pro relatório): investimento +
+  // quantos viraram cliente pelo anúncio x orgânico.
+  const investSemana =
+    resultadoSemana?.metrics?.find((m) => /investimento/i.test(m.label))?.value ??
+    null;
+  const retornoTrafego =
+    resultadoSemana &&
+    (resultadoSemana.closed_traffic != null ||
+      resultadoSemana.closed_organic != null ||
+      !!investSemana)
+      ? {
+          investimento: investSemana,
+          clientesAnuncio: resultadoSemana.closed_traffic,
+          clientesOrganico: resultadoSemana.closed_organic,
+        }
+      : null;
 
   // Mês (para a meta contratual e para apagar planejamento)
   const mes = `${meioSemana.getFullYear()}-${String(meioSemana.getMonth() + 1).padStart(2, "0")}`;
@@ -332,6 +348,8 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                   clienteNome={cliente.name}
                   clientId={cliente.id}
                   relatoriosSalvos={relatoriosSalvos}
+                  retorno={retornoTrafego}
+                  semanaRetorno={semanaInicioISO}
                   publicados={todos
                     .filter((c) => c.status === "Publicado" && !ehCapa(c))
                     .map((c) => ({
