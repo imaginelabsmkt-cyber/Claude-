@@ -187,7 +187,8 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
     });
   }
 
-  const porDia = (iso: string) => itens.filter((c) => c.planned_date === iso);
+  const porDia = (iso: string) =>
+    itens.filter((c) => (c.planned_date ?? c.actual_post_date) === iso);
 
   return (
     <DndContext sensors={sensors} onDragEnd={aoSoltar}>

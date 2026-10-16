@@ -41,14 +41,16 @@ export default async function PostagensPage({ searchParams }: PageProps) {
     listAllClients(),
   ]);
 
-  // Cancelado não aparece no calendário/lista de postagens.
+  // Data no calendário = prevista; se não houver (ex.: post publicado que só
+  // tem a data real), cai na data real. Cancelado não aparece.
+  const dataCal = (c: Content) => c.planned_date ?? c.actual_post_date;
   const comData = contents.filter(
-    (c) => c.planned_date && c.status !== "Cancelado",
+    (c) => dataCal(c) && c.status !== "Cancelado",
   );
   const contagem = new Map<string, number>();
   for (const c of comData) {
-    if (c.planned_date)
-      contagem.set(c.planned_date, (contagem.get(c.planned_date) ?? 0) + 1);
+    const d = dataCal(c);
+    if (d) contagem.set(d, (contagem.get(d) ?? 0) + 1);
   }
 
   return (
@@ -109,7 +111,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
     const fimIso = hojeISO(addDays(inicio, 6));
     const inicioIso = hojeISO(inicio);
     const daSemana = comData.filter(
-      (c) => c.planned_date! >= inicioIso && c.planned_date! <= fimIso,
+      (c) => dataCal(c)! >= inicioIso && dataCal(c)! <= fimIso,
     );
 
     const hrefSemana = (delta: number) =>
@@ -122,7 +124,10 @@ export default async function PostagensPage({ searchParams }: PageProps) {
       c.status !== "Cancelado" &&
       c.status !== "Pausado";
     const atrasadas = comData.filter(
-      (c) => naoFinal(c) && difEmDias(parseData(c.planned_date)!, hoje) < 0,
+      (c) =>
+        naoFinal(c) &&
+        !!c.planned_date &&
+        difEmDias(parseData(c.planned_date)!, hoje) < 0,
     );
     const semData = contents.filter((c) => !c.planned_date && naoFinal(c));
     const antecipaveis = contents.filter((c) => c.status === "Aprovado");
@@ -209,7 +214,7 @@ export default async function PostagensPage({ searchParams }: PageProps) {
 
     const diaSel = searchParams.day;
     const doDia = diaSel
-      ? comData.filter((c) => c.planned_date === diaSel)
+      ? comData.filter((c) => dataCal(c) === diaSel)
       : [];
 
     return (

@@ -161,13 +161,16 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     };
   });
 
+  // Dia no calendário = data prevista; se não houver (ex.: post publicado que
+  // só tem a data real), cai na data real da publicação. Assim um conteúdo
+  // publicado sem data prevista não some do calendário.
   const itensCalendario: ItemCalendario[] = todos
-    .filter((c) => c.planned_date && c.status !== "Cancelado")
+    .filter((c) => (c.planned_date || c.actual_post_date) && c.status !== "Cancelado")
     .map((c) => ({
       id: c.id,
       title: c.title,
       format: c.format,
-      iso: c.planned_date!,
+      iso: (c.planned_date ?? c.actual_post_date)!,
     }));
 
   const fim = addDays(inicioSemana, 6);
