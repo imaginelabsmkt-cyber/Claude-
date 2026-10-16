@@ -203,10 +203,15 @@ export async function enviarResultadoClienteAction(
       .from("profiles")
       .select("id")
       .in("role", ["planner", "admin", "producer"]);
+    const totalContatos = Object.values(breakdown).reduce(
+      (a, b) => a + (Number(b) || 0),
+      0,
+    );
     const resumo =
       closed != null
-        ? `${cliente.name} fechou ${closed} esta semana.`
-        : `${cliente.name} respondeu os resultados da semana.`;
+        ? `${cliente.name}: ${totalContatos} contato(s), ${closed} virou/viraram cliente` +
+          `${closedTraffic != null ? ` (${closedTraffic} do anúncio)` : ""}.`
+        : `${cliente.name} enviou os resultados da semana.`;
     for (const p of coord ?? []) {
       await enviarPushParaUsuario(admin, p.id, {
         title: "📈 Resultado do cliente",

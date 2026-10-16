@@ -14,12 +14,14 @@ import {
 } from "@/lib/data/contents";
 import { listarIdsInternos } from "@/lib/data/clients";
 import { listPlannings } from "@/lib/data/plannings";
+import { listarRespostasSemana } from "@/lib/data/resultados";
 import {
   estaAtrasado,
   estaGravado,
   ehArte,
   ehCapa,
   hojeISO,
+  inicioDaSemana,
   mesEfetivo,
   mesmaSemana,
   parseData,
@@ -59,6 +61,12 @@ export default async function DashboardPage({
   // A favie (interno) não entra nos rankings/rollups por cliente.
   const idsInternos = new Set(await listarIdsInternos());
   const clientesReais = clientes.filter((c) => !idsInternos.has(c.id));
+
+  // Respostas que os clientes enviaram esta semana (pra gestora analisar).
+  const semanaIni = hojeISO(inicioDaSemana(hoje));
+  const respostasSemana = (await listarRespostasSemana(semanaIni))
+    .map((r) => ({ ...r, cliente: clientesById.get(r.client_id) }))
+    .filter((r) => r.cliente && !idsInternos.has(r.client_id));
 
   // Planejamentos a fazer: reunião já aconteceu e ainda não foi entregue.
   const planejAFazer = plannings.filter(
@@ -219,6 +227,58 @@ export default async function DashboardPage({
           <StatCard key={c.rotulo} {...c} />
         ))}
       </div>
+
+      {/* Resultados que os clientes enviaram esta semana (pra analisar o tráfego) */}
+      {respostasSemana.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
+            Resultados enviados pelos clientes esta semana
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
+              {respostasSemana.length}
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {respostasSemana.map((r) => {
+              const totalContatos = Object.values(
+                r.sources_breakdown ?? {},
+              ).reduce((a, b) => a + (Number(b) || 0), 0);
+              return (
+                <Link
+                  key={r.client_id}
+                  href={`/clientes/${r.client_id}`}
+                  className="block rounded-xl border border-l-4 border-gray-200 bg-white p-3 shadow-sm hover:border-brand-300"
+                  style={{ borderLeftColor: r.cliente!.color ?? "#6a2336" }}
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-800">
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-full border border-gray-200"
+                      style={{ backgroundColor: r.cliente!.color ?? "#e5e7eb" }}
+                      aria-hidden="true"
+                    />
+                    {r.cliente!.name}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold">
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">
+                      {totalContatos} contatos
+                    </span>
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-800">
+                      Cliente p/ anúncio: {r.closed_traffic ?? 0}
+                    </span>
+                    <span className="rounded-full bg-brand-50 px-2 py-0.5 text-brand-700 ring-1 ring-brand-100">
+                      Orgânico: {r.closed_organic ?? 0}
+                    </span>
+                  </div>
+                  {r.client_comment ? (
+                    <p className="mt-1.5 truncate text-[11px] italic text-gray-500">
+                      “{r.client_comment}”
+                    </p>
+                  ) : null}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {/* Agora: o que cada uma está fazendo neste momento */}
       <div className="mt-8">

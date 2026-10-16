@@ -330,13 +330,27 @@ export function ClientResults({
         </h3>
         {respCliente?.client_updated_at ? (
           <div className="mt-2 space-y-2 text-sm text-gray-700">
-            <p>
-              <span className="font-semibold">Fechou na semana:</span>{" "}
-              {respCliente.closed_count ?? "não informado"}
-            </p>
+            {/* Viraram cliente: tráfego (anúncio) x orgânico — o que importa
+                pra você analisar o retorno do tráfego pago. */}
+            <div>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                Viraram cliente
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                  Anúncio (tráfego): {respCliente.closed_traffic ?? 0}
+                </span>
+                <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                  Orgânico: {respCliente.closed_organic ?? 0}
+                </span>
+                <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                  Total: {respCliente.closed_count ?? 0}
+                </span>
+              </div>
+            </div>
             {respCliente.sources ? (
               <p>
-                <span className="font-semibold">De onde vieram:</span>{" "}
+                <span className="font-semibold">De onde vieram os contatos:</span>{" "}
                 {respCliente.sources}
               </p>
             ) : null}
