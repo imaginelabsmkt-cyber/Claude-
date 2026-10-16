@@ -54,31 +54,24 @@ function Cartao({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "rounded-md border bg-white p-2 shadow-sm",
+        "cursor-grab touch-none select-none rounded-md border bg-white p-2 shadow-sm active:cursor-grabbing",
         isDragging
           ? "border-brand-400 ring-2 ring-brand-200"
           : "border-gray-200",
       )}
+      {...attributes}
+      {...listeners}
     >
       <div className="flex items-center gap-1 text-[11px] text-gray-500">
-        {/* Alça de arrastar: só ela move o card (evita conflito com o link). */}
-        <button
-          type="button"
-          className="-ml-1 flex cursor-grab touch-none items-center rounded px-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
-          aria-label="Arraste para mudar a data"
-          title="Arraste para mudar a data"
-          {...attributes}
-          {...listeners}
-        >
-          <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-            <circle cx="7" cy="5" r="1.4" />
-            <circle cx="13" cy="5" r="1.4" />
-            <circle cx="7" cy="10" r="1.4" />
-            <circle cx="13" cy="10" r="1.4" />
-            <circle cx="7" cy="15" r="1.4" />
-            <circle cx="13" cy="15" r="1.4" />
-          </svg>
-        </button>
+        {/* Pontinhos: dica visual de que o card inteiro pode ser arrastado. */}
+        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-gray-300" aria-hidden="true">
+          <circle cx="7" cy="5" r="1.4" />
+          <circle cx="13" cy="5" r="1.4" />
+          <circle cx="7" cy="10" r="1.4" />
+          <circle cx="13" cy="10" r="1.4" />
+          <circle cx="7" cy="15" r="1.4" />
+          <circle cx="13" cy="15" r="1.4" />
+        </svg>
         <span
           className="inline-block h-2 w-2 rounded-full border border-gray-200"
           style={{ backgroundColor: cliente?.color ?? "#e5e7eb" }}
@@ -88,6 +81,7 @@ function Cartao({
       </div>
       <Link
         href={`/conteudos/${content.id}`}
+        onPointerDown={(e) => e.stopPropagation()}
         className="mt-0.5 block text-sm font-medium text-gray-900 hover:text-brand-700"
       >
         {content.title}
@@ -173,11 +167,15 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
     if (!over) return;
     const novoDia = String(over.id);
     const alvo = itens.find((c) => c.id === active.id);
-    if (!alvo || alvo.planned_date === novoDia) return;
-    // otimista
+    if (!alvo || dataEfetiva(alvo) === novoDia) return;
+    // otimista: mexe na data que o card usa pra se posicionar (publicado = real).
     setItens((lista) =>
       lista.map((c) =>
-        c.id === active.id ? { ...c, planned_date: novoDia } : c,
+        c.id === active.id
+          ? c.status === "Publicado"
+            ? { ...c, planned_date: novoDia, actual_post_date: novoDia }
+            : { ...c, planned_date: novoDia }
+          : c,
       ),
     );
     iniciar(async () => {
@@ -200,8 +198,8 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
           <circle cx="7" cy="15" r="1.4" />
           <circle cx="13" cy="15" r="1.4" />
         </svg>
-        Arraste pelo ícone para mudar a data da postagem, atualiza no sistema e
-        no Google Agenda.
+        Arraste o card para mudar a data da postagem. Atualiza no sistema e no
+        Google Agenda.
       </p>
       <div className="overflow-x-auto">
         <div className="grid min-w-[900px] grid-cols-7 gap-2">
