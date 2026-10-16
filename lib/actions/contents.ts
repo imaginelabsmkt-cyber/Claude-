@@ -260,7 +260,7 @@ export async function definirStatusConteudoAction(
   const { data: antigo } = await supabase
     .from("contents")
     .select(
-      "status, actual_post_date, recording_date, format, requires_recording, reference_month, title",
+      "status, actual_post_date, planned_date, recording_date, format, requires_recording, reference_month, title",
     )
     .eq("id", id)
     .maybeSingle();
@@ -277,6 +277,7 @@ export async function definirStatusConteudoAction(
     status: ContentStatus;
     editing_queue_position?: number | null;
     actual_post_date?: string | null;
+    planned_date?: string | null;
     recording_date?: string | null;
     reference_month?: string | null;
   } = { status };
@@ -295,6 +296,12 @@ export async function definirStatusConteudoAction(
     const dataReal = dados.actual_post_date ?? antigo?.actual_post_date ?? null;
     if (dataReal && antigo?.reference_month !== dataReal.slice(0, 7)) {
       dados.reference_month = dataReal.slice(0, 7);
+    }
+    // Se o post foi publicado sem nunca ter tido DATA PREVISTA, preenche a
+    // prevista com a data real. Assim ele aparece no calendário e no painel
+    // (que se baseiam na data prevista) sem ficar invisível.
+    if (dataReal && !antigo?.planned_date) {
+      dados.planned_date = dataReal;
     }
   }
 
