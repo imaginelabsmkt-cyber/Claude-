@@ -898,27 +898,47 @@ export async function alterarDataPostagemAction(
   }
   const supabase = createClient();
 
-  // Valor anterior (para o histórico)
+  // Valores anteriores (para o histórico) + status (define qual data mexer).
   const { data: atual } = await supabase
     .from("contents")
-    .select("planned_date")
+    .select("status, planned_date, actual_post_date")
     .eq("id", id)
     .maybeSingle();
   const anterior = atual?.planned_date ?? null;
+  const publicado = atual?.status === "Publicado";
 
-  const { error } = await supabase
-    .from("contents")
-    .update({ planned_date: novaData })
-    .eq("id", id);
+  // Arrastar move a DATA EFETIVA. Pra manter tudo consistente (calendário do
+  // cliente, Postagens e painel), gravamos a prevista sempre; e, se já foi
+  // publicado, também a data REAL e o mês de referência — senão o publicado
+  // "voltava" pro dia antigo (o calendário o posiciona pela data real).
+  const dados: {
+    planned_date: string | null;
+    actual_post_date?: string | null;
+    reference_month?: string | null;
+  } = { planned_date: novaData };
+  if (publicado) {
+    dados.actual_post_date = novaData;
+    if (novaData) dados.reference_month = novaData.slice(0, 7);
+  }
+
+  const { error } = await supabase.from("contents").update(dados).eq("id", id);
   if (error) return { ok: false, error: "Não foi possível alterar a data." };
 
-  await registrarHistorico(id, [
+  const hist = [
     {
       field: "Data prevista",
       old: anterior ? formatarData(anterior) : "·",
       new: novaData ? formatarData(novaData) : "·",
     },
-  ]);
+  ];
+  if (publicado) {
+    hist.push({
+      field: "Data real da postagem",
+      old: atual?.actual_post_date ? formatarData(atual.actual_post_date) : "·",
+      new: novaData ? formatarData(novaData) : "·",
+    });
+  }
+  await registrarHistorico(id, hist);
 
   aposResposta(() => sincronizarPostagem(id)); // data de postagem => calendário de Postagens
 
