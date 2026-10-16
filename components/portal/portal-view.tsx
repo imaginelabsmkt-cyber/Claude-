@@ -349,6 +349,44 @@ const EXPLICACAO_METRICA: Record<string, string> = {
   "Custo por resultado": "Quanto custou, em média, cada resultado.",
 };
 
+/** Linha com campo de NÚMERO (digita a quantidade — nada de ficar apertando +). */
+function LinhaNumero({
+  rotulo,
+  sub,
+  valor,
+  onChange,
+}: {
+  rotulo: string;
+  sub?: string;
+  valor: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
+      <span className="min-w-0 text-sm text-gray-700">
+        {rotulo}
+        {sub ? (
+          <span className="block text-[11px] font-semibold text-brand-600">
+            {sub}
+          </span>
+        ) : null}
+      </span>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        value={valor ? String(valor) : ""}
+        onChange={(e) => {
+          const n = parseInt(e.target.value, 10);
+          onChange(Number.isFinite(n) && n >= 0 ? n : 0);
+        }}
+        placeholder="0"
+        className="w-20 shrink-0 rounded-lg border border-gray-300 px-2 py-1.5 text-right text-sm font-semibold text-gray-800 outline-none focus:border-brand-500"
+      />
+    </div>
+  );
+}
+
 function ResultadoBloco({
   token,
   resultado,
@@ -359,16 +397,14 @@ function ResultadoBloco({
   planilhaUrl: string | null;
 }) {
   const router = useRouter();
-  const [closed, setClosed] = useState(
-    resultado.closedCount != null ? String(resultado.closedCount) : "",
-  );
+  const [closedTrafego, setClosedTrafego] = useState(resultado.closedTraffic ?? 0);
+  const [closedOrganico, setClosedOrganico] = useState(resultado.closedOrganic ?? 0);
+  const totalFechou = closedTrafego + closedOrganico;
   const [sources] = useState(resultado.sources ?? "");
   const [comment, setComment] = useState(resultado.comment ?? "");
   const [fontes, setFontes] = useState<Record<string, number>>(() => ({
     ...resultado.sourcesBreakdown,
   }));
-  const ajustarFonte = (fonte: string, delta: number) =>
-    setFontes((f) => ({ ...f, [fonte]: Math.max(0, (f[fonte] ?? 0) + delta) }));
   const totalContatos = Object.values(fontes).reduce((a, b) => a + (b || 0), 0);
   const [enviando, iniciar] = useTransition();
   const [explicando, setExplicando] = useState<string | null>(null);
@@ -397,7 +433,8 @@ function ResultadoBloco({
   const enviar = () =>
     iniciar(async () => {
       const r = await enviarResultadoClienteAction(token, resultado.weekStart, {
-        closedCount: closed,
+        closedTraffic: String(closedTrafego),
+        closedOrganic: String(closedOrganico),
         sources,
         comment,
         sourcesBreakdown: fontes,
@@ -541,6 +578,17 @@ function ResultadoBloco({
                       </p>
                     </div>
                   </div>
+                  {resultado.closedTraffic != null ||
+                  resultado.closedOrganic != null ? (
+                    <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
+                        Do anúncio: {resultado.closedTraffic ?? 0}
+                      </span>
+                      <span className="rounded-full bg-brand-50 px-2.5 py-1 text-brand-700 ring-1 ring-brand-100">
+                        Orgânico: {resultado.closedOrganic ?? 0}
+                      </span>
+                    </div>
+                  ) : null}
                   {entradas.length > 0 ? (
                     <div className="mt-2 rounded-xl bg-white p-3 ring-1 ring-brand-100">
                       <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-gray-500">
@@ -583,66 +631,51 @@ function ResultadoBloco({
           <>
             <label className="mt-3 block text-xs font-medium text-gray-600">
               De onde vieram os contatos?{" "}
-              <span className="text-gray-400">(toque no + pra contar)</span>
+              <span className="text-gray-400">(digite a quantidade)</span>
             </label>
             <div className="mt-1.5 space-y-1.5">
-              {FONTES_CONTATO.map((fonte) => {
-                const qtd = fontes[fonte] ?? 0;
-                return (
-                  <div
-                    key={fonte}
-                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-1.5"
-                  >
-                    <span className="text-sm text-gray-700">
-                      {rotuloFonte(fonte)}
-                      {fonte === "Anúncio" ? (
-                        <span className="block text-[11px] font-semibold text-brand-600">
-                          ↑ resultado do tráfego pago
-                        </span>
-                      ) : null}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => ajustarFonte(fonte, -1)}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50"
-                        aria-label={`Menos ${fonte}`}
-                      >
-                        −
-                      </button>
-                      <span className="w-6 text-center text-sm font-bold text-brand-800">
-                        {qtd}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => ajustarFonte(fonte, 1)}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-brand-300 bg-brand-50 text-brand-700 hover:bg-brand-100"
-                        aria-label={`Mais ${fonte}`}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              {FONTES_CONTATO.map((fonte) => (
+                <LinhaNumero
+                  key={fonte}
+                  rotulo={rotuloFonte(fonte)}
+                  sub={
+                    fonte === "Anúncio"
+                      ? "↑ resultado do tráfego pago"
+                      : undefined
+                  }
+                  valor={fontes[fonte] ?? 0}
+                  onChange={(v) => setFontes((f) => ({ ...f, [fonte]: v }))}
+                />
+              ))}
             </div>
             <p className="mt-1.5 text-xs text-gray-500">
               Total de contatos: <strong>{totalContatos}</strong>
             </p>
 
-            <label className="mt-3 block text-xs font-medium text-gray-600">
-              Desses, quantos viraram cliente?{" "}
-              <span className="text-gray-400">
-                (consulta, agendamento ou fechamento)
-              </span>
-            </label>
-            <input
-              inputMode="numeric"
-              value={closed}
-              onChange={(e) => setClosed(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="Ex.: 5"
-              className="mt-1 w-32 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
-            />
+            <div className="mt-3 rounded-xl border border-brand-100 bg-white p-3">
+              <p className="text-xs font-semibold text-gray-700">
+                Desses, quantos viraram cliente?
+              </p>
+              <p className="mt-0.5 text-[11px] text-gray-400">
+                Quem de fato virou aluno/cliente (agendou, fez aula experimental
+                ou fechou) — separe por origem pra medir o retorno do anúncio.
+              </p>
+              <div className="mt-2 space-y-1.5">
+                <LinhaNumero
+                  rotulo="Pelo anúncio (tráfego)"
+                  valor={closedTrafego}
+                  onChange={setClosedTrafego}
+                />
+                <LinhaNumero
+                  rotulo="Orgânico (perfil, indicação…)"
+                  valor={closedOrganico}
+                  onChange={setClosedOrganico}
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-gray-500">
+                Total que viraram cliente: <strong>{totalFechou}</strong>
+              </p>
+            </div>
 
             <label className="mt-3 block text-xs font-medium text-gray-600">
               Um recado da semana? (opcional)

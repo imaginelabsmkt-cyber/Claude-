@@ -130,7 +130,8 @@ export async function enviarResultadoClienteAction(
   token: string,
   weekStart: string,
   dados: {
-    closedCount: string;
+    closedTraffic: string;
+    closedOrganic: string;
     sources: string;
     comment: string;
     sourcesBreakdown?: Record<string, number>;
@@ -151,8 +152,17 @@ export async function enviarResultadoClienteAction(
     .maybeSingle();
   if (!cliente) return { ok: false, error: "Link indisponível." };
 
-  const n = parseInt(dados.closedCount, 10);
-  const closed = Number.isFinite(n) && n >= 0 ? n : null;
+  const parseNao0 = (s: string) => {
+    const n = parseInt(s, 10);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+  const closedTraffic = parseNao0(dados.closedTraffic);
+  const closedOrganic = parseNao0(dados.closedOrganic);
+  // Total = soma dos dois (quando algum foi informado).
+  const closed =
+    closedTraffic != null || closedOrganic != null
+      ? (closedTraffic ?? 0) + (closedOrganic ?? 0)
+      : null;
 
   // Breakdown por fonte: só guarda os positivos; monta um resumo legível pro
   // campo `sources` (texto), que a equipe já exibe e os dados antigos usam.
@@ -172,6 +182,8 @@ export async function enviarResultadoClienteAction(
       client_id: cliente.id,
       week_start: weekStart,
       closed_count: closed,
+      closed_traffic: closedTraffic,
+      closed_organic: closedOrganic,
       sources,
       sources_breakdown: breakdown,
       client_comment: dados.comment.trim().slice(0, 2000) || null,

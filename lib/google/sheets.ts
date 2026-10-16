@@ -41,7 +41,8 @@ function colsCliente(): string[] {
   return [
     ...FONTES_CONTATO.map((f) => `Contatos: ${f}`),
     "Total de contatos",
-    "Viraram cliente",
+    "Viraram cliente (tráfego)",
+    "Viraram cliente (orgânico)",
     "Comentário do cliente",
   ];
 }
@@ -161,7 +162,8 @@ function montarLinha(
   res: {
     metrics?: MetricaTrafego[] | null;
     sources_breakdown?: Record<string, number> | null;
-    closed_count?: number | null;
+    closed_traffic?: number | null;
+    closed_organic?: number | null;
     client_comment?: string | null;
     team_note?: string | null;
   } | null,
@@ -181,7 +183,8 @@ function montarLinha(
     // cliente (origem dos contatos + retorno)
     ...FONTES_CONTATO.map((f) => Number(bd[f] ?? 0)),
     total,
-    res?.closed_count ?? "",
+    res?.closed_traffic ?? "",
+    res?.closed_organic ?? "",
     res?.client_comment ?? "",
     // controle
     new Date().toISOString().slice(0, 10),
@@ -259,7 +262,7 @@ function requestsFormato(gid: number) {
     // Formatos de número: moeda no Investimento, número nos demais.
     numFmt(IDX_FAVIE_INI, IDX_FAVIE_INI + 1, '"R$" #,##0.00'),
     numFmt(IDX_FAVIE_INI + 1, IDX_FAVIE_INI + 5, "#,##0"),
-    numFmt(IDX_CLI_INI, IDX_CLI_INI + N_FONTES + 2, "#,##0"),
+    numFmt(IDX_CLI_INI, IDX_CLI_INI + N_FONTES + 3, "#,##0"),
     // Larguras.
     largura(IDX_SEMANA, IDX_SEMANA + 1, 110),
     largura(IDX_FAVIE_INI, IDX_FAVIE_INI + 5, 115),
@@ -398,7 +401,7 @@ export async function sincronizarResultadoSheets(
     const { data: res } = await admin
       .from("client_monthly_results")
       .select(
-        "metrics, sources_breakdown, closed_count, client_comment, team_note",
+        "metrics, sources_breakdown, closed_traffic, closed_organic, client_comment, team_note",
       )
       .eq("client_id", clientId)
       .eq("week_start", weekStart)

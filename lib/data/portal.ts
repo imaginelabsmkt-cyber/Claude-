@@ -288,6 +288,8 @@ export async function carregarPortal(
     table: res?.traffic_table ?? null,
     teamNote: res?.team_note ?? null,
     closedCount: res?.closed_count ?? null,
+    closedTraffic: res?.closed_traffic ?? null,
+    closedOrganic: res?.closed_organic ?? null,
     sources: res?.sources ?? null,
     sourcesBreakdown: res?.sources_breakdown ?? {},
     comment: res?.client_comment ?? null,

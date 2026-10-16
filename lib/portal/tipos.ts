@@ -129,6 +129,8 @@ export interface ResultadoPortal {
   table: string[][] | null; // planilha extraída (tem prioridade sobre metrics)
   teamNote: string | null;
   closedCount: number | null;
+  closedTraffic: number | null;
+  closedOrganic: number | null;
   sources: string | null;
   sourcesBreakdown: Record<string, number>;
   comment: string | null;

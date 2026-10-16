@@ -388,6 +388,9 @@ export type ClientMonthlyResult = {
   traffic_file_name: string | null;
   team_note: string | null;
   closed_count: number | null;
+  /** Viraram cliente vindos do tráfego (anúncio) e do orgânico (demais fontes). */
+  closed_traffic: number | null;
+  closed_organic: number | null;
   sources: string | null;
   /** De onde vieram os contatos, por fonte: { "Anúncio": 3, "Link da bio": 2 }. */
   sources_breakdown: Record<string, number>;
@@ -408,6 +411,8 @@ export type ClientMonthlyResultInsert = {
   traffic_file_name?: string | null;
   team_note?: string | null;
   closed_count?: number | null;
+  closed_traffic?: number | null;
+  closed_organic?: number | null;
   sources?: string | null;
   sources_breakdown?: Record<string, number>;
   client_comment?: string | null;
