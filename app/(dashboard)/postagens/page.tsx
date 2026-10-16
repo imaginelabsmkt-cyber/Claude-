@@ -15,6 +15,7 @@ import {
   parseData,
   difEmDias,
   estaGravado,
+  dataEfetiva,
 } from "@/lib/rules/contents";
 import { cn } from "@/lib/utils";
 import type { Content } from "@/types";
@@ -41,9 +42,9 @@ export default async function PostagensPage({ searchParams }: PageProps) {
     listAllClients(),
   ]);
 
-  // Data no calendário = prevista; se não houver (ex.: post publicado que só
-  // tem a data real), cai na data real. Cancelado não aparece.
-  const dataCal = (c: Content) => c.planned_date ?? c.actual_post_date;
+  // Data no calendário = efetiva: publicado mostra a data REAL; o resto, a
+  // prevista. Cancelado não aparece.
+  const dataCal = (c: Content) => dataEfetiva(c);
   const comData = contents.filter(
     (c) => dataCal(c) && c.status !== "Cancelado",
   );

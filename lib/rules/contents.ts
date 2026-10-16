@@ -101,6 +101,21 @@ export function hojeISO(hoje: Date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
+/**
+ * Data que vale pro conteúdo no calendário/painel: se JÁ FOI PUBLICADO, a data
+ * REAL da postagem (actual_post_date); senão, a data PREVISTA (planned_date).
+ * Cai na outra quando a principal está vazia, pra nunca sumir do calendário.
+ */
+export function dataEfetiva(c: {
+  status: ContentStatus;
+  planned_date: string | null;
+  actual_post_date: string | null;
+}): string | null {
+  return c.status === "Publicado"
+    ? (c.actual_post_date ?? c.planned_date)
+    : (c.planned_date ?? c.actual_post_date);
+}
+
 // -------------------------------------------------------------
 // 1. Próxima ação (mapa status -> ação)
 // -------------------------------------------------------------

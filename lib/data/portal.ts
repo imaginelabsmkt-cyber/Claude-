@@ -8,6 +8,7 @@ import {
   ehArte,
   estaGravado,
   mesEfetivo,
+  dataEfetiva,
 } from "@/lib/rules/contents";
 import { organizarRoteiro } from "@/lib/portal/roteiro";
 import { formatarData } from "@/lib/utils";
@@ -93,10 +94,9 @@ function paraPost(c: Content): PortalPost {
     title: limparTitulo(c.title),
     format: c.format,
     status: c.status,
-    // Dia mostrado = data PLANEJADA (mesma do calendário do sistema), caindo
-    // pra data real só se não houver planejada. Evita a postagem publicada
-    // "pular" de dia no painel quando saiu num dia diferente do planejado.
-    data: c.planned_date ?? c.actual_post_date,
+    // Dia mostrado = data efetiva: publicado mostra a data REAL; o resto, a
+    // PREVISTA (mesma regra do calendário do sistema, pra não divergir).
+    data: dataEfetiva(c),
     caption: limparLegenda(c.caption),
     resumo: limparLegenda(c.description), // descrição vira "resumo" pro cliente
     aguardaAprovacao: c.status === "Aprovação do cliente",
@@ -151,12 +151,11 @@ export async function carregarPortal(
 
   const postsSemana = visiveis
     .filter((c) => {
-      // Dia = data planejada (a que a Fran confirma). Cai pra real só se faltar.
-      const d = c.planned_date ?? c.actual_post_date;
+      const d = dataEfetiva(c);
       return d && d >= iniISO && d <= fimISO;
     })
     .sort((a, b) =>
-      (a.planned_date ?? "").localeCompare(b.planned_date ?? ""),
+      (dataEfetiva(a) ?? "").localeCompare(dataEfetiva(b) ?? ""),
     )
     .map(paraPost);
 
@@ -168,13 +167,11 @@ export async function carregarPortal(
   const mesExibido = `${midMes.getFullYear()}-${String(midMes.getMonth() + 1).padStart(2, "0")}`;
   const postsMes = visiveis
     .filter((c) => {
-      const d = c.planned_date ?? c.actual_post_date;
+      const d = dataEfetiva(c);
       return !!d && d.slice(0, 7) === mesExibido;
     })
     .sort((a, b) =>
-      (a.planned_date ?? a.actual_post_date ?? "").localeCompare(
-        b.planned_date ?? b.actual_post_date ?? "",
-      ),
+      (dataEfetiva(a) ?? "").localeCompare(dataEfetiva(b) ?? ""),
     )
     .map(paraPost);
 
@@ -273,9 +270,7 @@ export async function carregarPortal(
     meta: cliente.monthly_goal ?? null,
     jaFeitos: publicadosMes
       .sort((a, b) =>
-        (b.planned_date ?? b.actual_post_date ?? "").localeCompare(
-          a.planned_date ?? a.actual_post_date ?? "",
-        ),
+        (dataEfetiva(b) ?? "").localeCompare(dataEfetiva(a) ?? ""),
       )
       .map(paraPost),
   };

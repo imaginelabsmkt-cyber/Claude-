@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { StatusContentBadge, PriorityBadge } from "@/components/shared/status-badge";
-import { ehArte } from "@/lib/rules/contents";
+import { ehArte, dataEfetiva } from "@/lib/rules/contents";
 import { alterarDataPostagemAction } from "@/lib/actions/contents";
 import { formatarData } from "@/lib/utils";
 import { toast } from "@/lib/ui/toast";
@@ -187,8 +187,7 @@ export function WeekBoard({ dias, contents, clientes }: WeekBoardProps) {
     });
   }
 
-  const porDia = (iso: string) =>
-    itens.filter((c) => (c.planned_date ?? c.actual_post_date) === iso);
+  const porDia = (iso: string) => itens.filter((c) => dataEfetiva(c) === iso);
 
   return (
     <DndContext sensors={sensors} onDragEnd={aoSoltar}>

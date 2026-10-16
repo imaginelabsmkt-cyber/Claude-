@@ -42,6 +42,7 @@ import {
   estaGravado,
   ehArte,
   ehCapa,
+  dataEfetiva,
 } from "@/lib/rules/contents";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -161,16 +162,16 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
     };
   });
 
-  // Dia no calendário = data prevista; se não houver (ex.: post publicado que
-  // só tem a data real), cai na data real da publicação. Assim um conteúdo
-  // publicado sem data prevista não some do calendário.
+  // Dia no calendário = data efetiva: publicado mostra a data REAL; o resto, a
+  // prevista. Assim um post publicado aparece no dia em que saiu, não some, e
+  // bate com o painel do cliente.
   const itensCalendario: ItemCalendario[] = todos
-    .filter((c) => (c.planned_date || c.actual_post_date) && c.status !== "Cancelado")
+    .filter((c) => dataEfetiva(c) && c.status !== "Cancelado")
     .map((c) => ({
       id: c.id,
       title: c.title,
       format: c.format,
-      iso: (c.planned_date ?? c.actual_post_date)!,
+      iso: dataEfetiva(c)!,
     }));
 
   const fim = addDays(inicioSemana, 6);
