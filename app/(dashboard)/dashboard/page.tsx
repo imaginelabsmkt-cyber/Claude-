@@ -62,8 +62,11 @@ export default async function DashboardPage({
   const idsInternos = new Set(await listarIdsInternos());
   const clientesReais = clientes.filter((c) => !idsInternos.has(c.id));
 
-  // Respostas que os clientes enviaram esta semana (pra gestora analisar).
-  const semanaIni = hojeISO(inicioDaSemana(hoje));
+  // Respostas que os clientes enviaram sobre a semana que já fechou (é dessa
+  // que eles recebem os números e respondem agora). Pra gestora analisar.
+  const refResultado = new Date(hoje);
+  refResultado.setDate(refResultado.getDate() - 7);
+  const semanaIni = hojeISO(inicioDaSemana(refResultado));
   const respostasSemana = (await listarRespostasSemana(semanaIni))
     .map((r) => ({ ...r, cliente: clientesById.get(r.client_id) }))
     .filter((r) => r.cliente && !idsInternos.has(r.client_id));
@@ -232,7 +235,7 @@ export default async function DashboardPage({
       {respostasSemana.length > 0 ? (
         <div className="mt-8">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-            Resultados enviados pelos clientes esta semana
+            Resultados enviados pelos clientes (semana passada)
             <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
               {respostasSemana.length}
             </span>

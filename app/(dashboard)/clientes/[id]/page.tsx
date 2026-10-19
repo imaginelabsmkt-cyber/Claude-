@@ -139,9 +139,15 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const inicioSemana = inicioDaSemana(base);
   const meioSemana = addDays(inicioSemana, 3); // referência do mês
   const semanaInicioISO = hojeISO(inicioSemana);
+  // Resultado do tráfego é informado toda segunda sobre a SEMANA ANTERIOR (a que
+  // já fechou). Não faz sentido pedir o resultado da semana em curso, que ainda
+  // nem acabou. Então a aba Resultados mira sempre a semana que já terminou
+  // (a exibida menos 7 dias) e acompanha as setas de semana junto com ela.
+  const inicioResultados = addDays(inicioSemana, -7);
+  const resultadoInicioISO = hojeISO(inicioResultados);
   const resultadoSemana = await obterResultadoSemana(
     cliente.id,
-    semanaInicioISO,
+    resultadoInicioISO,
   );
   // Resumo do retorno do tráfego da semana (pro relatório): investimento +
   // quantos viraram cliente pelo anúncio x orgânico.
@@ -196,6 +202,8 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
       d,
     );
   const tituloSemana = `${fmtDia(inicioSemana)} a ${fmtDia(fim)}`;
+  const fimResultados = addDays(inicioResultados, 6);
+  const tituloSemanaResultados = `${fmtDia(inicioResultados)} a ${fmtDia(fimResultados)}`;
   const tituloMes = new Intl.DateTimeFormat("pt-BR", {
     month: "long",
     year: "numeric",
@@ -349,7 +357,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                   clientId={cliente.id}
                   relatoriosSalvos={relatoriosSalvos}
                   retorno={retornoTrafego}
-                  semanaRetorno={semanaInicioISO}
+                  semanaRetorno={resultadoInicioISO}
                   publicados={todos
                     .filter((c) => c.status === "Publicado" && !ehCapa(c))
                     .map((c) => ({
@@ -423,29 +431,44 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
             ),
           },
           {
-            id: "relatorios",
-            label: "Relatórios",
-            icone: "report",
-            badge: relatorios.length,
-            conteudo: (
-              <ClientReportsTab
-                clientId={cliente.id}
-                relatorios={relatorios}
-              />
-            ),
-          },
-          {
             id: "resultados",
             label: "Resultados",
             icone: "chart",
+            badge: relatorios.length || undefined,
             conteudo: (
-              <ClientResults
-                clientId={cliente.id}
-                weekStart={semanaInicioISO}
-                intervalo={tituloSemana}
-                inicial={resultadoSemana}
-                sheetUrl={cliente.results_sheet_url}
-              />
+              <div className="space-y-6">
+                {/* Resultados da semana: números do tráfego que o cliente vê. */}
+                <ClientResults
+                  clientId={cliente.id}
+                  weekStart={resultadoInicioISO}
+                  intervalo={tituloSemanaResultados}
+                  inicial={resultadoSemana}
+                  sheetUrl={cliente.results_sheet_url}
+                />
+
+                {/* Relatório fechado do mês: leitura e análise interna. Mesma
+                    aba, porque é a mesma coisa (resultado do cliente), só que o
+                    de cima é o número semanal e este é o relatório do mês. */}
+                <div className="border-t border-gray-100 pt-5">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Relatório do mês (análise)
+                    </h3>
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      só a favie vê
+                    </span>
+                  </div>
+                  <p className="mb-3 text-xs text-gray-500">
+                    O relatório fechado do mês (PDF do Meta, por exemplo) para ler
+                    e analisar com IA. O número semanal que o cliente enxerga fica
+                    logo acima, em Tráfego pago.
+                  </p>
+                  <ClientReportsTab
+                    clientId={cliente.id}
+                    relatorios={relatorios}
+                  />
+                </div>
+              </div>
             ),
           },
         ]}

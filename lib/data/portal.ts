@@ -279,15 +279,18 @@ export async function carregarPortal(
       .map(paraPost),
   };
 
-  // Resultados da SEMANA (tráfego + retorno do cliente).
+  // Resultados do tráfego: informados toda segunda sobre a SEMANA ANTERIOR (a
+  // que já fechou). O painel mostra sempre a última semana concluída, não a em
+  // curso (que ainda nem tem número). Por isso usa a semana exibida menos 7.
+  const resIniISO = hojeISO(addDias(ini, -7));
   const { data: res } = await admin
     .from("client_monthly_results")
     .select("*")
     .eq("client_id", cliente.id)
-    .eq("week_start", iniISO)
+    .eq("week_start", resIniISO)
     .maybeSingle();
   const resultado = {
-    weekStart: iniISO,
+    weekStart: resIniISO,
     metrics: res?.metrics ?? [],
     table: res?.traffic_table ?? null,
     teamNote: res?.team_note ?? null,
