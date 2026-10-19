@@ -187,7 +187,11 @@ export async function carregarPortal(
     if (!c.requires_recording || ehArte(c.format) || estaGravado(c.status)) {
       return false;
     }
-    if (c.recording_date) return c.recording_date <= fimISO;
+    if (c.recording_date) {
+      // Desta semana ou atrasada, OU qualquer gravação do mês exibido, pra o
+      // cliente já ver a próxima gravação e reler o roteiro antes.
+      return c.recording_date <= fimISO || c.recording_date.slice(0, 7) === mesSemana;
+    }
     // Sem data: mostra como "a agendar" se for do mês exibido.
     return mesEfetivo(c) === mesSemana;
   };

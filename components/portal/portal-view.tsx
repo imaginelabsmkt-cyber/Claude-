@@ -1067,6 +1067,7 @@ function SecaoProximos({
     <Secao
       titulo="Para produção"
       icone={<IcoProximos />}
+      defaultAberto
       badge={
         <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
           {total}
@@ -1129,16 +1130,18 @@ function Secao({
   icone,
   vazio,
   badge,
+  defaultAberto = false,
   children,
 }: {
   titulo: string;
   icone: React.ReactNode;
   vazio?: string;
   badge?: React.ReactNode;
+  defaultAberto?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <Colapsavel titulo={titulo} icone={icone} badge={badge}>
+    <Colapsavel titulo={titulo} icone={icone} badge={badge} defaultAberto={defaultAberto}>
       {vazio ? (
         <p className="rounded-xl border border-dashed border-brand-200 bg-white/60 px-4 py-3 text-sm text-gray-400">
           {vazio}
