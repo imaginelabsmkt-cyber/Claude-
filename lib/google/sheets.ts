@@ -191,6 +191,96 @@ function montarLinha(
   ];
 }
 
+/** Linha de resultado de uma semana (do banco), pro resumo do mês. */
+interface LinhaResMes {
+  week_start: string;
+  metrics?: MetricaTrafego[] | null;
+  sources_breakdown?: Record<string, number> | null;
+  closed_traffic?: number | null;
+  closed_organic?: number | null;
+  client_comment?: string | null;
+  team_note?: string | null;
+}
+
+/** Última coluna (A1) a partir da contagem de colunas (1-based). */
+function colLetter(n: number): string {
+  let s = "";
+  let x = n;
+  while (x > 0) {
+    const r = (x - 1) % 26;
+    s = String.fromCharCode(65 + r) + s;
+    x = Math.floor((x - 1) / 26);
+  }
+  return s;
+}
+
+/** Lê um número em pt-BR ("R$ 1.234,56", "4.012", "3,5%") pra somar o mês. */
+function parseNumBR(v: string | number | null | undefined): number {
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  if (!v) return 0;
+  let t = String(v).replace(/\s/g, "").replace(/[^0-9.,-]/g, "");
+  if (!t || t === "-") return 0;
+  if (t.includes(",") && t.includes(".")) t = t.replace(/\./g, "").replace(",", ".");
+  else if (t.includes(",")) t = t.replace(",", ".");
+  else if (t.includes(".")) {
+    const partes = t.split(".");
+    if (partes.length > 2 || partes[partes.length - 1].length === 3)
+      t = t.replace(/\./g, "");
+  }
+  const n = parseFloat(t);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * Linha de TOTAL DO MÊS: soma as semanas (tráfego + retorno do cliente). Fecha
+ * o mês sozinho conforme as semanas vão entrando.
+ */
+function montarTotalMes(rows: LinhaResMes[]): (string | number)[] {
+  const somaMetrica = (label: string) =>
+    rows.reduce((acc, r) => {
+      const val = (r.metrics ?? []).find((m) => m.label === label)?.value;
+      return acc + parseNumBR(val);
+    }, 0);
+  const somaFonte = (f: string) =>
+    rows.reduce((a, r) => a + Number(r.sources_breakdown?.[f] ?? 0), 0);
+  const fontes = FONTES_CONTATO.map((f) => somaFonte(f));
+  const totalContatos = fontes.reduce((a, b) => a + b, 0);
+  const ct = rows.reduce((a, r) => a + Number(r.closed_traffic ?? 0), 0);
+  const co = rows.reduce((a, r) => a + Number(r.closed_organic ?? 0), 0);
+  return [
+    "Total do mês",
+    somaMetrica("Investimento"),
+    somaMetrica("Pessoas alcançadas"),
+    somaMetrica("Impressões"),
+    somaMetrica("Visitas à página"),
+    somaMetrica("Conversas iniciadas"),
+    "",
+    ...fontes,
+    totalContatos,
+    ct,
+    co,
+    "",
+    new Date().toISOString().slice(0, 10),
+  ];
+}
+
+/** Todas as semanas (do banco) que caem no mês da aba. */
+async function linhasDoMes(
+  admin: Admin,
+  clientId: string,
+  aba: string,
+): Promise<LinhaResMes[]> {
+  const { data } = await admin
+    .from("client_monthly_results")
+    .select(
+      "week_start, metrics, sources_breakdown, closed_traffic, closed_organic, client_comment, team_note",
+    )
+    .eq("client_id", clientId);
+  return ((data as LinhaResMes[] | null) ?? []).filter(
+    (r) => r.week_start && abaDoMes(r.week_start) === aba,
+  );
+}
+
 /** Requests de formatação da aba recém-criada (uma faixa, duas seções…). */
 function requestsFormato(gid: number) {
   const gridHeader = (sr: number, er: number, sc: number, ec: number) => ({
@@ -398,31 +488,55 @@ export async function sincronizarResultadoSheets(
     const gid = await garantirAbaMes(token, planilha.id, aba, planilha.nome);
     if (gid == null) return;
 
-    const { data: res } = await admin
-      .from("client_monthly_results")
-      .select(
-        "metrics, sources_breakdown, closed_traffic, closed_organic, client_comment, team_note",
-      )
-      .eq("client_id", clientId)
-      .eq("week_start", weekStart)
-      .maybeSingle();
-    const linha = montarLinha(weekStart, res);
+    // Reconstrói a aba do mês a partir do banco: uma linha por semana
+    // (ordenadas) + uma linha de TOTAL DO MÊS somando as semanas. Assim o
+    // resumo semanal e o mensal ficam na mesma planilha e o mês fecha sozinho.
+    const doMes = await linhasDoMes(admin, clientId, aba);
+    doMes.sort((a, b) => a.week_start.localeCompare(b.week_start));
+    const linhasSemana = doMes.map((r) => montarLinha(r.week_start, r));
+    const bloco: (string | number)[][] =
+      linhasSemana.length > 0
+        ? [...linhasSemana, montarTotalMes(doMes)]
+        : [];
 
-    // Procura a semana na coluna A (dados a partir da linha 4).
-    const getUrl = `${SHEETS}/${planilha.id}/values/${encodeURIComponent(range(aba, `A${LINHA_DADOS}:A1000`))}`;
-    const get = await gapi(token, getUrl, "GET");
-    let rowNum: number | null = null;
-    if (get.ok) {
-      const gj = (await get.json()) as { values?: string[][] };
-      const idx = (gj.values ?? []).findIndex((r) => r[0] === weekStart);
-      if (idx >= 0) rowNum = idx + LINHA_DADOS;
-    }
-
-    if (rowNum) {
-      await escrever(token, planilha.id, range(aba, `A${rowNum}`), [linha]);
-    } else {
-      const appendUrl = `${SHEETS}/${planilha.id}/values/${encodeURIComponent(range(aba, `A${LINHA_DADOS}`))}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-      await gapi(token, appendUrl, "POST", { values: [linha] });
+    // Limpa a área de dados e regrava o bloco (semanas + total).
+    const areaDados = range(aba, `A${LINHA_DADOS}:${colLetter(N_COLS)}1000`);
+    await gapi(
+      token,
+      `${SHEETS}/${planilha.id}/values/${encodeURIComponent(areaDados)}:clear`,
+      "POST",
+      {},
+    );
+    if (bloco.length > 0) {
+      await escrever(token, planilha.id, range(aba, `A${LINHA_DADOS}`), bloco);
+      // Destaca a linha de total do mês (negrito + faixa bege).
+      const totalRow0 = LINHA_DADOS - 1 + linhasSemana.length; // 0-based
+      await gapi(token, `${SHEETS}/${planilha.id}:batchUpdate`, "POST", {
+        requests: [
+          {
+            repeatCell: {
+              range: {
+                sheetId: gid,
+                startRowIndex: totalRow0,
+                endRowIndex: totalRow0 + 1,
+                startColumnIndex: 0,
+                endColumnIndex: N_COLS,
+              },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: COR_HEADER,
+                  textFormat: {
+                    bold: true,
+                    foregroundColor: TINTA,
+                    fontSize: 10,
+                  },
+                },
+              },
+              fields: "userEnteredFormat(backgroundColor,textFormat)",
+            },
+          },
+        ],
+      });
     }
   } catch (e) {
     console.error("sincronizarResultadoSheets:", e);
