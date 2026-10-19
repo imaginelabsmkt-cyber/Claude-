@@ -51,7 +51,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: { id: string };
-  searchParams: { semana?: string };
+  searchParams: { semana?: string; rsem?: string };
 }
 
 const NOMES_DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -139,11 +139,15 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const inicioSemana = inicioDaSemana(base);
   const meioSemana = addDays(inicioSemana, 3); // referência do mês
   const semanaInicioISO = hojeISO(inicioSemana);
-  // Resultado do tráfego é informado toda segunda sobre a SEMANA ANTERIOR (a que
-  // já fechou). Não faz sentido pedir o resultado da semana em curso, que ainda
-  // nem acabou. Então a aba Resultados mira sempre a semana que já terminou
-  // (a exibida menos 7 dias) e acompanha as setas de semana junto com ela.
-  const inicioResultados = addDays(inicioSemana, -7);
+  // Semana dos RESULTADOS do tráfego. A Fran escolhe qual semana importar/ver
+  // pelas setas da própria aba Resultados (?rsem=), independente do calendário
+  // de cima. Padrão: a semana que já fechou (a anterior a hoje), porque o
+  // resultado é informado toda segunda sobre a semana anterior.
+  const rsemValida = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.rsem ?? "");
+  const baseResultado = rsemValida
+    ? new Date(`${searchParams.rsem}T12:00:00`)
+    : addDays(inicioDaSemana(hoje), -7);
+  const inicioResultados = inicioDaSemana(baseResultado);
   const resultadoInicioISO = hojeISO(inicioResultados);
   const resultadoSemana = await obterResultadoSemana(
     cliente.id,
@@ -204,6 +208,18 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
   const tituloSemana = `${fmtDia(inicioSemana)} a ${fmtDia(fim)}`;
   const fimResultados = addDays(inicioResultados, 6);
   const tituloSemanaResultados = `${fmtDia(inicioResultados)} a ${fmtDia(fimResultados)}`;
+  // Navegação da semana de resultado (mantém a semana do calendário de cima).
+  const resultadoHref = (delta: number) => {
+    const alvo = hojeISO(addDays(inicioResultados, delta * 7));
+    const p = new URLSearchParams();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(searchParams.semana ?? ""))
+      p.set("semana", searchParams.semana!);
+    p.set("rsem", alvo);
+    return `/clientes/${cliente.id}?${p.toString()}`;
+  };
+  // Não deixa escolher semana no futuro (resultado é de semana que já passou
+  // ou da que está em curso).
+  const podeAvancarResultado = resultadoInicioISO < hojeISO(inicioDaSemana(hoje));
   const tituloMes = new Intl.DateTimeFormat("pt-BR", {
     month: "long",
     year: "numeric",
@@ -444,6 +460,10 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
                   intervalo={tituloSemanaResultados}
                   inicial={resultadoSemana}
                   sheetUrl={cliente.results_sheet_url}
+                  hrefAnterior={resultadoHref(-1)}
+                  hrefProximo={
+                    podeAvancarResultado ? resultadoHref(1) : undefined
+                  }
                 />
 
                 {/* Relatório fechado do mês: leitura e análise interna. Mesma

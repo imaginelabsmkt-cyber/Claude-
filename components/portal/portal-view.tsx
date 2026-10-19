@@ -342,7 +342,8 @@ const EXPLICACAO_METRICA: Record<string, string> = {
     "Quantas vezes os anúncios apareceram na tela (a mesma pessoa pode ver mais de uma vez).",
   "Visitas à página":
     "Quantas pessoas visitaram o seu perfil ou página vindas dos anúncios.",
-  "Cliques no link": "Quantas pessoas clicaram no link do anúncio.",
+  "Cliques no link":
+    "Quantas vezes clicaram num link do anúncio. O link pode levar a vários lugares (seu perfil, o WhatsApp, o site, a página do anúncio), então é o total de cliques, não pessoas diferentes.",
   "Conversas iniciadas":
     "Quantas pessoas começaram uma conversa com você pelos anúncios.",
   Resultados: "Quantas das ações que definimos como objetivo aconteceram.",

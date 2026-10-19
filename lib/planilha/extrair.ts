@@ -106,6 +106,27 @@ const CANON: { label: string; aliases: string[]; dinheiro?: boolean }[] = [
   { label: "Custo por resultado", aliases: ["custo por resultado", "cost per result", "custo por conversa"], dinheiro: true },
 ];
 
+/**
+ * Descobre o TIPO de resultado da campanha lendo a planilha (ex.: "Conversas
+ * iniciadas", "Leads"). O Meta repete esse tipo numa coluna em cada linha, mas
+ * a coluna de número vem como "Resultados" genérico. Assim o painel mostra o
+ * que o número realmente é, não só "Resultados".
+ */
+function tipoDeResultado(grid: string[][]): string | null {
+  for (const row of grid) {
+    for (const cell of row) {
+      const t = semAcento(cell);
+      if (!t) continue;
+      if (/conversa|mensage?ns? iniciad/.test(t)) return "Conversas iniciadas";
+      if (/\blead\b|cadastro|formulario/.test(t)) return "Leads";
+      if (/compra|purchase|conversoes?|vendas?/.test(t)) return "Compras";
+      if (/seguidor|follows?/.test(t)) return "Seguidores";
+      if (/engajament/.test(t)) return "Engajamento";
+    }
+  }
+  return null;
+}
+
 function achaLabel(txt: string): string | null {
   const t = semAcento(txt);
   if (!t) return null;
@@ -188,6 +209,14 @@ export function extrairKPIs(grid: string[][]): MetricaTrafego[] {
     }
   }
 
+  // "Resultados" é genérico. Se a planilha diz o tipo (ex.: conversas
+  // iniciadas), mostra o número com esse nome em vez de "Resultados".
+  const tipo = tipoDeResultado(grid);
+  if (tipo && out.has("Resultados") && !out.has(tipo)) {
+    out.set(tipo, out.get("Resultados")!);
+    out.delete("Resultados");
+  }
+
   return CANON.filter((c) => out.has(c.label)).map((c) => ({
     label: c.label,
     value: out.get(c.label)!,
@@ -213,14 +242,14 @@ export function explicarKPIs(metrics: MetricaTrafego[]): string {
     if (alc) compl.push(`alcançando ${alc} pessoas`);
     if (imp) compl.push(`${imp} impressões`);
     frases.push(
-      `Neste mês investimos ${invest} em anúncios` +
+      `Neste período investimos ${invest} em anúncios` +
         (compl.length ? `, ${compl.join(" e ")}.` : "."),
     );
   } else if (alc || imp) {
     const compl: string[] = [];
     if (alc) compl.push(`alcançamos ${alc} pessoas`);
     if (imp) compl.push(`tivemos ${imp} impressões`);
-    frases.push(`Neste mês ${compl.join(" e ")}.`);
+    frases.push(`Neste período ${compl.join(" e ")}.`);
   }
   if (vis) frases.push(`Foram ${vis} visitas à página.`);
   if (conv) {

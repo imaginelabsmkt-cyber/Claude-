@@ -38,12 +38,16 @@ export function ClientResults({
   intervalo,
   inicial,
   sheetUrl,
+  hrefAnterior,
+  hrefProximo,
 }: {
   clientId: string;
   weekStart: string; // segunda-feira (YYYY-MM-DD)
   intervalo: string; // "22/set a 28/set"
   inicial: ClientMonthlyResult | null;
   sheetUrl?: string | null; // planilha do cliente no Drive (preenchida sozinha)
+  hrefAnterior?: string; // troca pra semana de resultado anterior
+  hrefProximo?: string; // próxima semana (indefinido = já é a semana atual)
 }) {
   const router = useRouter();
   const [metrics, setMetrics] = useState<MetricaTrafego[]>(
@@ -154,10 +158,43 @@ export function ClientResults({
           <h3 className="text-sm font-semibold text-gray-900">
             Tráfego pago (anúncios)
           </h3>
-          <span className="text-xs font-medium text-gray-500">
-            Semana de {intervalo} · use as setas da semana acima para trocar
-          </span>
+          {/* Seletor da semana do resultado (independente do calendário). */}
+          <div className="flex items-center gap-1.5">
+            <span className="mr-1 text-[11px] uppercase tracking-wide text-gray-400">
+              Semana do resultado
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                hrefAnterior && router.push(hrefAnterior, { scroll: false })
+              }
+              disabled={!hrefAnterior}
+              aria-label="Semana anterior"
+              className="rounded-md border border-gray-300 px-2 py-0.5 text-sm leading-none text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+            >
+              ←
+            </button>
+            <span className="min-w-[104px] text-center text-xs font-semibold text-gray-700">
+              {intervalo}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                hrefProximo && router.push(hrefProximo, { scroll: false })
+              }
+              disabled={!hrefProximo}
+              aria-label="Próxima semana"
+              title={!hrefProximo ? "Já é a semana mais recente" : undefined}
+              className="rounded-md border border-gray-300 px-2 py-0.5 text-sm leading-none text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+            >
+              →
+            </button>
+          </div>
         </div>
+        <p className="mt-1 text-[11px] text-gray-400">
+          Escolha a semana nas setas acima e importe a planilha do Meta dessa
+          semana. Cada semana guarda seus próprios números.
+        </p>
         {sheetUrl ? (
           <a
             href={sheetUrl}
