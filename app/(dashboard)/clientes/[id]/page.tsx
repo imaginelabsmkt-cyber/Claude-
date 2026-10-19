@@ -455,6 +455,7 @@ export default async function ClientePage({ params, searchParams }: PageProps) {
               <div className="space-y-6">
                 {/* Resultados da semana: números do tráfego que o cliente vê. */}
                 <ClientResults
+                  key={resultadoInicioISO}
                   clientId={cliente.id}
                   weekStart={resultadoInicioISO}
                   intervalo={tituloSemanaResultados}

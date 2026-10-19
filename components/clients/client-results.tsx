@@ -68,6 +68,7 @@ export function ClientResults({
     inicial?.traffic_file_name ?? null,
   );
   const [lendo, setLendo] = useState(false);
+  const [limpando, setLimpando] = useState(false);
 
   // Só mostra no dashboard as métricas com valor preenchido.
   const preenchidas = metrics.filter((m) => m.value.trim());
@@ -134,6 +135,31 @@ export function ClientResults({
     setMetrics((arr) => [...arr, { label: "", value: "" }]);
   const removeMetric = (i: number) =>
     setMetrics((arr) => arr.filter((_, idx) => idx !== i));
+
+  // Apaga os números do tráfego desta semana (métricas, explicação e planilha).
+  // Mantém a resposta do cliente, que é dado dele.
+  const limparSemana = async () => {
+    if (
+      !window.confirm(
+        "Apagar os números do tráfego desta semana? A resposta do cliente é mantida.",
+      )
+    )
+      return;
+    setLimpando(true);
+    const a = await salvarPlanilhaTrafegoAction(clientId, weekStart, null, null);
+    const b = await salvarResultadosEquipeAction(clientId, weekStart, [], "");
+    setLimpando(false);
+    if (!a.ok || !b.ok) {
+      toast.erro(a.error ?? b.error ?? "Não foi possível apagar.");
+      return;
+    }
+    setMetrics(SUGESTOES.map((label) => ({ label, value: "" })));
+    setNote("");
+    setTabela(null);
+    setNomePlanilha(null);
+    toast.sucesso("Números desta semana apagados");
+    router.refresh();
+  };
 
   const salvar = () =>
     iniciar(async () => {
@@ -348,11 +374,23 @@ export function ClientResults({
           className="mt-1 w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm leading-relaxed outline-none focus:border-brand-500"
         />
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          {preenchidas.length > 0 || tabela || note.trim() ? (
+            <button
+              type="button"
+              onClick={limparSemana}
+              disabled={limpando || salvando}
+              className="text-xs font-semibold text-red-600 hover:underline disabled:opacity-60"
+            >
+              {limpando ? "Apagando…" : "Apagar os números desta semana"}
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             type="button"
             onClick={salvar}
-            disabled={salvando}
+            disabled={salvando || limpando}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
           >
             {salvando ? "Salvando…" : "Salvar resultados"}

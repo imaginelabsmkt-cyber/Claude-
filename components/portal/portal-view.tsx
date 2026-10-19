@@ -392,10 +392,12 @@ function ResultadoBloco({
   token,
   resultado,
   planilhaUrl,
+  hrefResultado,
 }: {
   token: string;
   resultado: ResultadoPortal;
   planilhaUrl: string | null;
+  hrefResultado: { anterior: string; proximo: string | null };
 }) {
   const router = useRouter();
   const [closedTrafego, setClosedTrafego] = useState(resultado.closedTraffic ?? 0);
@@ -453,12 +455,43 @@ function ResultadoBloco({
     <Colapsavel
       titulo="Resultados da semana"
       icone={<IcoResultados />}
+      defaultAberto
       badge={
         <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">
           {fmtIntervalo(resultado.weekStart, somaDias(resultado.weekStart, 6))}
         </span>
       }
     >
+      {/* Troca a semana do resultado. As semanas anteriores continuam
+          guardadas: é só voltar nas setas. Na próxima segunda aparece a semana
+          nova pra preencher. */}
+      <div className="mb-3 flex items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.push(hrefResultado.anterior, { scroll: false })}
+          aria-label="Semana anterior"
+          className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-sm leading-none text-gray-600 hover:bg-gray-50"
+        >
+          ←
+        </button>
+        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+          {fmtIntervalo(resultado.weekStart, somaDias(resultado.weekStart, 6))}
+        </span>
+        <button
+          type="button"
+          onClick={() =>
+            hrefResultado.proximo &&
+            router.push(hrefResultado.proximo, { scroll: false })
+          }
+          disabled={!hrefResultado.proximo}
+          aria-label="Próxima semana"
+          title={!hrefResultado.proximo ? "Semana mais recente" : undefined}
+          className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-sm leading-none text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+        >
+          →
+        </button>
+      </div>
+
       {/* Tráfego pago — "atualiza a favie" (o cliente só vê) */}
       <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between gap-2">
@@ -1157,10 +1190,12 @@ export function PortalView({
   token,
   dados,
   hrefSemana,
+  hrefResultado,
 }: {
   token: string;
   dados: DadosPortal;
   hrefSemana: { anterior: string; proximo: string; hoje: string };
+  hrefResultado: { anterior: string; proximo: string | null };
 }) {
   const {
     cliente,
@@ -1457,9 +1492,11 @@ export function PortalView({
 
         {/* 5. Resultados */}
         <ResultadoBloco
+          key={resultado.weekStart}
           token={token}
           resultado={resultado}
           planilhaUrl={resultsSheetUrl}
+          hrefResultado={hrefResultado}
         />
 
         <p className="mt-10 text-center text-xs text-gray-400">

@@ -111,6 +111,7 @@ function paraPost(c: Content): PortalPost {
 export async function carregarPortal(
   token: string,
   semana?: string,
+  semanaResultado?: string,
 ): Promise<DadosPortal | null> {
   noStore(); // nunca cacheia os dados do painel: sempre lê o estado atual
   const admin = createAdminClient();
@@ -280,9 +281,14 @@ export async function carregarPortal(
   };
 
   // Resultados do tráfego: informados toda segunda sobre a SEMANA ANTERIOR (a
-  // que já fechou). O painel mostra sempre a última semana concluída, não a em
-  // curso (que ainda nem tem número). Por isso usa a semana exibida menos 7.
-  const resIniISO = hojeISO(addDias(ini, -7));
+  // que já fechou). O cliente pode navegar entre semanas de resultado (?rsem),
+  // independente das postagens; o padrão é a última semana concluída (relativo
+  // a hoje, não à semana de postagens exibida). As semanas antigas continuam
+  // guardadas, é só voltar nas setas.
+  const resBase = /^\d{4}-\d{2}-\d{2}$/.test(semanaResultado ?? "")
+    ? new Date(`${semanaResultado}T12:00:00`)
+    : addDias(inicioDaSemana(new Date()), -7);
+  const resIniISO = hojeISO(inicioDaSemana(resBase));
   const { data: res } = await admin
     .from("client_monthly_results")
     .select("*")

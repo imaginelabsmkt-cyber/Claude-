@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 interface PageProps {
   params: { token: string };
-  searchParams: { semana?: string };
+  searchParams: { semana?: string; rsem?: string };
 }
 
 function addSemanas(iso: string, n: number): string {
@@ -20,9 +20,21 @@ function addSemanas(iso: string, n: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/** Segunda-feira (ISO) da semana que contém a data. */
+function segundaISO(d: Date): string {
+  const x = new Date(d);
+  const dow = (x.getDay() + 6) % 7; // 0 = segunda
+  x.setDate(x.getDate() - dow);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+}
+
 /** Painel do cliente, acesso por link secreto, visão limpa da semana. */
 export default async function PortalPage({ params, searchParams }: PageProps) {
-  const dados = await carregarPortal(params.token, searchParams.semana);
+  const dados = await carregarPortal(
+    params.token,
+    searchParams.semana,
+    searchParams.rsem,
+  );
 
   if (!dados) {
     return (
@@ -38,6 +50,20 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
     );
   }
 
+  // Navegação da semana de RESULTADO (independente das postagens). Mantém a
+  // semana de postagens (?semana) e só troca ?rsem. Não deixa passar da última
+  // semana já fechada (não tem resultado de semana que não acabou).
+  const rsemQS = (rsem: string) => {
+    const p = new URLSearchParams();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(searchParams.semana ?? ""))
+      p.set("semana", searchParams.semana!);
+    p.set("rsem", rsem);
+    return p.toString();
+  };
+  const ultimaFechadaISO = addSemanas(segundaISO(new Date()), -1);
+  const resISO = dados.resultado.weekStart;
+  const proximoResISO = addSemanas(resISO, 1);
+
   return (
     <PortalView
       token={params.token}
@@ -46,6 +72,13 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
         anterior: `/portal/${params.token}?semana=${addSemanas(dados.semanaISO, -1)}`,
         proximo: `/portal/${params.token}?semana=${addSemanas(dados.semanaISO, 1)}`,
         hoje: `/portal/${params.token}`,
+      }}
+      hrefResultado={{
+        anterior: `/portal/${params.token}?${rsemQS(addSemanas(resISO, -1))}`,
+        proximo:
+          proximoResISO <= ultimaFechadaISO
+            ? `/portal/${params.token}?${rsemQS(proximoResISO)}`
+            : null,
       }}
     />
   );
