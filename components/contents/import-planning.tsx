@@ -40,12 +40,18 @@ export function ImportPlanning({ clientes }: ImportPlanningProps) {
     fd.set("reference_month", mes);
 
     iniciar(async () => {
-      const r = await analisarPlanejamentoAction(fd);
-      if (!r.ok || !r.itens) {
-        setErro(r.error ?? "Falha ao ler o arquivo.");
-        return;
+      try {
+        const r = await analisarPlanejamentoAction(fd);
+        if (!r.ok || !r.itens) {
+          setErro(r.error ?? "Falha ao ler o arquivo.");
+          return;
+        }
+        setItens(r.itens);
+      } catch {
+        setErro(
+          "Não foi possível enviar o documento. Ele pode estar muito grande; tente um .docx de até 8 MB, ou exporte de novo pelo Word.",
+        );
       }
-      setItens(r.itens);
     });
   }
 
@@ -65,17 +71,23 @@ export function ImportPlanning({ clientes }: ImportPlanningProps) {
     if (!itens || itens.length === 0) return;
     setErro(null);
     iniciar(async () => {
-      const r = await importarConteudosAction({
-        clientId,
-        referenceMonth: mes,
-        itens,
-      });
-      if (!r.ok) {
-        setErro(r.error ?? "Falha ao criar os conteúdos.");
-        return;
+      try {
+        const r = await importarConteudosAction({
+          clientId,
+          referenceMonth: mes,
+          itens,
+        });
+        if (!r.ok) {
+          setErro(r.error ?? "Falha ao criar os conteúdos.");
+          return;
+        }
+        router.push(`/clientes/${clientId}`);
+        router.refresh();
+      } catch {
+        setErro(
+          "Não foi possível criar os conteúdos. Pode ser muito conteúdo de uma vez; tente de novo ou importe em partes.",
+        );
       }
-      router.push(`/clientes/${clientId}`);
-      router.refresh();
     });
   }
 
