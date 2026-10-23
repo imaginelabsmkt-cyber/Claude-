@@ -64,13 +64,16 @@ const LINHA_DADOS = 4; // 1ª linha de dados (1-based): 3 linhas de cabeçalho
 function rgb(r: number, g: number, b: number) {
   return { red: r / 255, green: g / 255, blue: b / 255 };
 }
-const COR_TITULO = rgb(123, 35, 64); // marsala
-const COR_FAVIE = rgb(243, 226, 232); // rosado claro
-const COR_CLIENTE = rgb(247, 233, 204); // dourado claro
-const COR_HEADER = rgb(239, 230, 218); // bege
-const COR_BANDA = rgb(250, 245, 238); // alternada
+const COR_TITULO = rgb(106, 35, 54); // marsala favie
+const COR_FAVIE = rgb(244, 225, 231); // rosado claro (seção favie)
+const COR_FAVIE_SUB = rgb(249, 238, 242); // rosado bem claro (nomes das colunas)
+const COR_CLIENTE = rgb(246, 229, 198); // dourado claro (seção cliente)
+const COR_CLIENTE_SUB = rgb(251, 243, 227); // dourado bem claro (nomes das colunas)
+const COR_HEADER = rgb(238, 228, 216); // bege (Semana / Atualizado)
+const COR_BANDA = rgb(250, 245, 238); // creme (linha alternada)
 const BRANCO = rgb(255, 255, 255);
-const TINTA = rgb(58, 16, 32);
+const TINTA = rgb(58, 16, 32); // vinho quase preto (texto)
+const FONTE = "Montserrat"; // fonte limpa e profissional (cai no padrão se faltar)
 
 /** Range em A1 com a aba entre aspas (nomes com espaço/acento). */
 function range(aba: string, a1: string): string {
@@ -141,7 +144,7 @@ async function escrever(
 /** As 3 linhas de cabeçalho (título, faixas de seção, nomes das colunas). */
 function cabecalho(clienteNome: string, aba: string): (string | number)[][] {
   const linhaTitulo = new Array(N_COLS).fill("");
-  linhaTitulo[0] = `Resultados de ${clienteNome} · ${aba}`;
+  linhaTitulo[0] = `favie · Resultados de ${clienteNome} · ${aba}`;
 
   const linhaSecoes = new Array(N_COLS).fill("");
   linhaSecoes[IDX_SEMANA] = "Semana";
@@ -292,16 +295,24 @@ function requestsFormato(gid: number) {
   });
   const cell = (
     bg: { red: number; green: number; blue: number },
-    opts: { bold?: boolean; size?: number; fg?: typeof BRANCO; center?: boolean; wrap?: boolean } = {},
+    opts: {
+      bold?: boolean;
+      size?: number;
+      fg?: typeof BRANCO;
+      center?: boolean;
+      wrap?: boolean;
+    } = {},
   ) => ({
     userEnteredFormat: {
       backgroundColor: bg,
       horizontalAlignment: opts.center ? "CENTER" : "LEFT",
       verticalAlignment: "MIDDLE",
       wrapStrategy: opts.wrap ? "WRAP" : "OVERFLOW_CELL",
+      padding: { top: 2, right: 8, bottom: 2, left: 8 },
       textFormat: {
         bold: !!opts.bold,
         fontSize: opts.size ?? 10,
+        fontFamily: FONTE,
         foregroundColor: opts.fg ?? TINTA,
       },
     },
@@ -319,6 +330,29 @@ function requestsFormato(gid: number) {
       fields: "userEnteredFormat.numberFormat",
     },
   });
+  // Estilo das células de DADOS (fonte, alinhamento, quebra), sem mexer no
+  // número nem no fundo (banda cuida do fundo).
+  const dados = (
+    sc: number,
+    ec: number,
+    center: boolean,
+    wrap = false,
+  ) => ({
+    repeatCell: {
+      range: gridHeader(LINHA_DADOS - 1, 1000, sc, ec),
+      cell: {
+        userEnteredFormat: {
+          horizontalAlignment: center ? "CENTER" : "LEFT",
+          verticalAlignment: "MIDDLE",
+          wrapStrategy: wrap ? "WRAP" : "OVERFLOW_CELL",
+          padding: { top: 2, right: 8, bottom: 2, left: 8 },
+          textFormat: { fontFamily: FONTE, fontSize: 10, foregroundColor: TINTA },
+        },
+      },
+      fields:
+        "userEnteredFormat(horizontalAlignment,verticalAlignment,wrapStrategy,padding,textFormat(fontFamily,fontSize,foregroundColor))",
+    },
+  });
   const largura = (sc: number, ec: number, px: number) => ({
     updateDimensionProperties: {
       range: { sheetId: gid, dimension: "COLUMNS", startIndex: sc, endIndex: ec },
@@ -326,15 +360,35 @@ function requestsFormato(gid: number) {
       fields: "pixelSize",
     },
   });
+  const altura = (sr: number, er: number, px: number) => ({
+    updateDimensionProperties: {
+      range: { sheetId: gid, dimension: "ROWS", startIndex: sr, endIndex: er },
+      properties: { pixelSize: px },
+      fields: "pixelSize",
+    },
+  });
 
   return [
-    // Congela as 3 linhas de cabeçalho e a 1ª coluna.
+    // Congela cabeçalho + 1ª coluna, esconde as linhas de grade e pinta a aba.
     {
       updateSheetProperties: {
-        properties: { sheetId: gid, gridProperties: { frozenRowCount: 3, frozenColumnCount: 1 } },
-        fields: "gridProperties(frozenRowCount,frozenColumnCount)",
+        properties: {
+          sheetId: gid,
+          tabColor: COR_TITULO,
+          gridProperties: {
+            frozenRowCount: 3,
+            frozenColumnCount: 1,
+            hideGridlines: true,
+          },
+        },
+        fields:
+          "tabColor,gridProperties(frozenRowCount,frozenColumnCount,hideGridlines)",
       },
     },
+    // Alturas das linhas de cabeçalho (título alto, nomes das colunas médio).
+    altura(0, 1, 44),
+    altura(1, 2, 24),
+    altura(2, 3, 38),
     // Merges: título, Semana (vertical), faixas das seções, Atualizado (vertical).
     { mergeCells: { range: gridHeader(0, 1, 0, N_COLS), mergeType: "MERGE_ALL" } },
     { mergeCells: { range: gridHeader(1, 3, IDX_SEMANA, IDX_SEMANA + 1), mergeType: "MERGE_ALL" } },
@@ -342,23 +396,50 @@ function requestsFormato(gid: number) {
     { mergeCells: { range: gridHeader(1, 2, IDX_CLI_INI, IDX_CLI_FIM), mergeType: "MERGE_ALL" } },
     { mergeCells: { range: gridHeader(1, 3, IDX_ATUAL, IDX_ATUAL + 1), mergeType: "MERGE_ALL" } },
     // Estilos das linhas de cabeçalho.
-    repeat(gridHeader(0, 1, 0, N_COLS), cell(COR_TITULO, { bold: true, size: 13, fg: BRANCO, center: true })),
+    repeat(gridHeader(0, 1, 0, N_COLS), cell(COR_TITULO, { bold: true, size: 14, fg: BRANCO, center: true })),
     repeat(gridHeader(1, 3, IDX_SEMANA, IDX_SEMANA + 1), cell(COR_HEADER, { bold: true, center: true, wrap: true })),
-    repeat(gridHeader(1, 2, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE, { bold: true, center: true })),
-    repeat(gridHeader(2, 3, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE, { bold: true, center: true, wrap: true })),
-    repeat(gridHeader(1, 2, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE, { bold: true, center: true })),
-    repeat(gridHeader(2, 3, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE, { bold: true, center: true, wrap: true })),
+    repeat(gridHeader(1, 2, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE, { bold: true, center: true, fg: COR_TITULO })),
+    repeat(gridHeader(2, 3, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE_SUB, { bold: true, center: true, wrap: true })),
+    repeat(gridHeader(1, 2, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE, { bold: true, center: true, fg: COR_TITULO })),
+    repeat(gridHeader(2, 3, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE_SUB, { bold: true, center: true, wrap: true })),
     repeat(gridHeader(1, 3, IDX_ATUAL, IDX_ATUAL + 1), cell(COR_HEADER, { bold: true, center: true, wrap: true })),
+    // Linhas zebradas nos dados (leitura mais fácil).
+    {
+      addBanding: {
+        bandedRange: {
+          range: gridHeader(LINHA_DADOS - 1, 1000, 0, N_COLS),
+          rowProperties: {
+            firstBandColor: BRANCO,
+            secondBandColor: COR_BANDA,
+          },
+        },
+      },
+    },
+    // Estilo dos dados: números centralizados; textos (nota/comentário) à
+    // esquerda e com quebra de linha.
+    dados(IDX_SEMANA, IDX_SEMANA + 1, true),
+    dados(IDX_FAVIE_INI, IDX_FAVIE_INI + 5, true), // investimento..conversas
+    dados(IDX_FAVIE_INI + 5, IDX_FAVIE_INI + 6, false, true), // nota da equipe
+    dados(IDX_CLI_INI, IDX_CLI_FIM - 1, true), // contatos + viraram cliente
+    dados(IDX_CLI_FIM - 1, IDX_CLI_FIM, false, true), // comentário
+    dados(IDX_ATUAL, IDX_ATUAL + 1, true),
     // Formatos de número: moeda no Investimento, número nos demais.
     numFmt(IDX_FAVIE_INI, IDX_FAVIE_INI + 1, '"R$" #,##0.00'),
     numFmt(IDX_FAVIE_INI + 1, IDX_FAVIE_INI + 5, "#,##0"),
     numFmt(IDX_CLI_INI, IDX_CLI_INI + N_FONTES + 3, "#,##0"),
+    // Linha fina marsala separando o cabeçalho dos dados.
+    {
+      updateBorders: {
+        range: gridHeader(2, 3, 0, N_COLS),
+        bottom: { style: "SOLID_MEDIUM", color: COR_TITULO },
+      },
+    },
     // Larguras.
     largura(IDX_SEMANA, IDX_SEMANA + 1, 110),
     largura(IDX_FAVIE_INI, IDX_FAVIE_INI + 5, 115),
-    largura(IDX_FAVIE_INI + 5, IDX_FAVIE_INI + 6, 210),
+    largura(IDX_FAVIE_INI + 5, IDX_FAVIE_INI + 6, 220),
     largura(IDX_CLI_INI, IDX_CLI_FIM - 1, 120),
-    largura(IDX_CLI_FIM - 1, IDX_CLI_FIM, 240),
+    largura(IDX_CLI_FIM - 1, IDX_CLI_FIM, 260),
     largura(IDX_ATUAL, IDX_ATUAL + 1, 110),
   ];
 }
@@ -509,7 +590,8 @@ export async function sincronizarResultadoSheets(
     );
     if (bloco.length > 0) {
       await escrever(token, planilha.id, range(aba, `A${LINHA_DADOS}`), bloco);
-      // Destaca a linha de total do mês (negrito + faixa bege).
+      // Destaca a linha de total do mês: faixa marsala clara, negrito marsala e
+      // uma linha fina em cima separando das semanas.
       const totalRow0 = LINHA_DADOS - 1 + linhasSemana.length; // 0-based
       await gapi(token, `${SHEETS}/${planilha.id}:batchUpdate`, "POST", {
         requests: [
@@ -524,15 +606,28 @@ export async function sincronizarResultadoSheets(
               },
               cell: {
                 userEnteredFormat: {
-                  backgroundColor: COR_HEADER,
+                  backgroundColor: COR_FAVIE,
                   textFormat: {
                     bold: true,
-                    foregroundColor: TINTA,
+                    foregroundColor: COR_TITULO,
                     fontSize: 10,
+                    fontFamily: FONTE,
                   },
                 },
               },
               fields: "userEnteredFormat(backgroundColor,textFormat)",
+            },
+          },
+          {
+            updateBorders: {
+              range: {
+                sheetId: gid,
+                startRowIndex: totalRow0,
+                endRowIndex: totalRow0 + 1,
+                startColumnIndex: 0,
+                endColumnIndex: N_COLS,
+              },
+              top: { style: "SOLID", color: COR_TITULO },
             },
           },
         ],
