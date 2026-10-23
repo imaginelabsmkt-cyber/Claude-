@@ -284,8 +284,8 @@ async function linhasDoMes(
   );
 }
 
-/** Requests de formatação da aba recém-criada (uma faixa, duas seções…). */
-function requestsFormato(gid: number) {
+/** Grupos de requests de formatação (um batch por grupo, resiliente). */
+function gruposFormato(gid: number) {
   const gridHeader = (sr: number, er: number, sc: number, ec: number) => ({
     sheetId: gid,
     startRowIndex: sr,
@@ -368,85 +368,188 @@ function requestsFormato(gid: number) {
     },
   });
 
+  // Grupos independentes: cada grupo vai num batch próprio, então se um falhar
+  // (ex.: uma propriedade nova não aceita), os OUTROS ainda são aplicados. Antes
+  // ia tudo num lote só e um erro derrubava a formatação inteira.
   return [
-    // Congela cabeçalho + 1ª coluna, esconde as linhas de grade e pinta a aba.
-    {
-      updateSheetProperties: {
-        properties: {
-          sheetId: gid,
-          tabColor: COR_TITULO,
-          gridProperties: {
-            frozenRowCount: 3,
-            frozenColumnCount: 1,
-            hideGridlines: true,
+    // 1) Propriedades da aba + alturas + larguras.
+    [
+      {
+        updateSheetProperties: {
+          properties: {
+            sheetId: gid,
+            tabColor: COR_TITULO,
+            gridProperties: {
+              frozenRowCount: 3,
+              frozenColumnCount: 1,
+              hideGridlines: true,
+            },
           },
-        },
-        fields:
-          "tabColor,gridProperties(frozenRowCount,frozenColumnCount,hideGridlines)",
-      },
-    },
-    // Alturas das linhas de cabeçalho (título alto, nomes das colunas médio).
-    altura(0, 1, 44),
-    altura(1, 2, 24),
-    altura(2, 3, 38),
-    // Merges: título, Semana (vertical), faixas das seções, Atualizado (vertical).
-    { mergeCells: { range: gridHeader(0, 1, 0, N_COLS), mergeType: "MERGE_ALL" } },
-    { mergeCells: { range: gridHeader(1, 3, IDX_SEMANA, IDX_SEMANA + 1), mergeType: "MERGE_ALL" } },
-    { mergeCells: { range: gridHeader(1, 2, IDX_FAVIE_INI, IDX_FAVIE_FIM), mergeType: "MERGE_ALL" } },
-    { mergeCells: { range: gridHeader(1, 2, IDX_CLI_INI, IDX_CLI_FIM), mergeType: "MERGE_ALL" } },
-    { mergeCells: { range: gridHeader(1, 3, IDX_ATUAL, IDX_ATUAL + 1), mergeType: "MERGE_ALL" } },
-    // Estilos das linhas de cabeçalho.
-    repeat(gridHeader(0, 1, 0, N_COLS), cell(COR_TITULO, { bold: true, size: 14, fg: BRANCO, center: true })),
-    repeat(gridHeader(1, 3, IDX_SEMANA, IDX_SEMANA + 1), cell(COR_HEADER, { bold: true, center: true, wrap: true })),
-    repeat(gridHeader(1, 2, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE, { bold: true, center: true, fg: COR_TITULO })),
-    repeat(gridHeader(2, 3, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE_SUB, { bold: true, center: true, wrap: true })),
-    repeat(gridHeader(1, 2, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE, { bold: true, center: true, fg: COR_TITULO })),
-    repeat(gridHeader(2, 3, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE_SUB, { bold: true, center: true, wrap: true })),
-    repeat(gridHeader(1, 3, IDX_ATUAL, IDX_ATUAL + 1), cell(COR_HEADER, { bold: true, center: true, wrap: true })),
-    // Linhas zebradas nos dados (leitura mais fácil).
-    {
-      addBanding: {
-        bandedRange: {
-          range: gridHeader(LINHA_DADOS - 1, 1000, 0, N_COLS),
-          rowProperties: {
-            firstBandColor: BRANCO,
-            secondBandColor: COR_BANDA,
-          },
+          fields:
+            "tabColor,gridProperties(frozenRowCount,frozenColumnCount,hideGridlines)",
         },
       },
-    },
-    // Estilo dos dados: números centralizados; textos (nota/comentário) à
-    // esquerda e com quebra de linha.
-    dados(IDX_SEMANA, IDX_SEMANA + 1, true),
-    dados(IDX_FAVIE_INI, IDX_FAVIE_INI + 5, true), // investimento..conversas
-    dados(IDX_FAVIE_INI + 5, IDX_FAVIE_INI + 6, false, true), // nota da equipe
-    dados(IDX_CLI_INI, IDX_CLI_FIM - 1, true), // contatos + viraram cliente
-    dados(IDX_CLI_FIM - 1, IDX_CLI_FIM, false, true), // comentário
-    dados(IDX_ATUAL, IDX_ATUAL + 1, true),
-    // Formatos de número: moeda no Investimento, número nos demais.
-    numFmt(IDX_FAVIE_INI, IDX_FAVIE_INI + 1, '"R$" #,##0.00'),
-    numFmt(IDX_FAVIE_INI + 1, IDX_FAVIE_INI + 5, "#,##0"),
-    numFmt(IDX_CLI_INI, IDX_CLI_INI + N_FONTES + 3, "#,##0"),
-    // Linha fina marsala separando o cabeçalho dos dados.
-    {
-      updateBorders: {
-        range: gridHeader(2, 3, 0, N_COLS),
-        bottom: { style: "SOLID_MEDIUM", color: COR_TITULO },
+      altura(0, 1, 44),
+      altura(1, 2, 24),
+      altura(2, 3, 38),
+      largura(IDX_SEMANA, IDX_SEMANA + 1, 110),
+      largura(IDX_FAVIE_INI, IDX_FAVIE_INI + 5, 115),
+      largura(IDX_FAVIE_INI + 5, IDX_FAVIE_INI + 6, 220),
+      largura(IDX_CLI_INI, IDX_CLI_FIM - 1, 120),
+      largura(IDX_CLI_FIM - 1, IDX_CLI_FIM, 260),
+      largura(IDX_ATUAL, IDX_ATUAL + 1, 110),
+    ],
+    // 2) Merges do cabeçalho.
+    [
+      { mergeCells: { range: gridHeader(0, 1, 0, N_COLS), mergeType: "MERGE_ALL" } },
+      { mergeCells: { range: gridHeader(1, 3, IDX_SEMANA, IDX_SEMANA + 1), mergeType: "MERGE_ALL" } },
+      { mergeCells: { range: gridHeader(1, 2, IDX_FAVIE_INI, IDX_FAVIE_FIM), mergeType: "MERGE_ALL" } },
+      { mergeCells: { range: gridHeader(1, 2, IDX_CLI_INI, IDX_CLI_FIM), mergeType: "MERGE_ALL" } },
+      { mergeCells: { range: gridHeader(1, 3, IDX_ATUAL, IDX_ATUAL + 1), mergeType: "MERGE_ALL" } },
+    ],
+    // 3) Estilos das linhas de cabeçalho.
+    [
+      repeat(gridHeader(0, 1, 0, N_COLS), cell(COR_TITULO, { bold: true, size: 14, fg: BRANCO, center: true })),
+      repeat(gridHeader(1, 3, IDX_SEMANA, IDX_SEMANA + 1), cell(COR_HEADER, { bold: true, center: true, wrap: true })),
+      repeat(gridHeader(1, 2, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE, { bold: true, center: true, fg: COR_TITULO })),
+      repeat(gridHeader(2, 3, IDX_FAVIE_INI, IDX_FAVIE_FIM), cell(COR_FAVIE_SUB, { bold: true, center: true, wrap: true })),
+      repeat(gridHeader(1, 2, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE, { bold: true, center: true, fg: COR_TITULO })),
+      repeat(gridHeader(2, 3, IDX_CLI_INI, IDX_CLI_FIM), cell(COR_CLIENTE_SUB, { bold: true, center: true, wrap: true })),
+      repeat(gridHeader(1, 3, IDX_ATUAL, IDX_ATUAL + 1), cell(COR_HEADER, { bold: true, center: true, wrap: true })),
+    ],
+    // 4) Estilo dos dados + formatos de número.
+    [
+      dados(IDX_SEMANA, IDX_SEMANA + 1, true),
+      dados(IDX_FAVIE_INI, IDX_FAVIE_INI + 5, true),
+      dados(IDX_FAVIE_INI + 5, IDX_FAVIE_INI + 6, false, true),
+      dados(IDX_CLI_INI, IDX_CLI_FIM - 1, true),
+      dados(IDX_CLI_FIM - 1, IDX_CLI_FIM, false, true),
+      dados(IDX_ATUAL, IDX_ATUAL + 1, true),
+      numFmt(IDX_FAVIE_INI, IDX_FAVIE_INI + 1, '"R$" #,##0.00'),
+      numFmt(IDX_FAVIE_INI + 1, IDX_FAVIE_INI + 5, "#,##0"),
+      numFmt(IDX_CLI_INI, IDX_CLI_INI + N_FONTES + 3, "#,##0"),
+    ],
+    // 5) Zebra nos dados.
+    [
+      {
+        addBanding: {
+          bandedRange: {
+            range: gridHeader(LINHA_DADOS - 1, 1000, 0, N_COLS),
+            rowProperties: {
+              firstBandColor: BRANCO,
+              secondBandColor: COR_BANDA,
+            },
+          },
+        },
       },
-    },
-    // Larguras.
-    largura(IDX_SEMANA, IDX_SEMANA + 1, 110),
-    largura(IDX_FAVIE_INI, IDX_FAVIE_INI + 5, 115),
-    largura(IDX_FAVIE_INI + 5, IDX_FAVIE_INI + 6, 220),
-    largura(IDX_CLI_INI, IDX_CLI_FIM - 1, 120),
-    largura(IDX_CLI_FIM - 1, IDX_CLI_FIM, 260),
-    largura(IDX_ATUAL, IDX_ATUAL + 1, 110),
+    ],
+    // 6) Linha fina marsala separando cabeçalho dos dados.
+    [
+      {
+        updateBorders: {
+          range: gridHeader(2, 3, 0, N_COLS),
+          bottom: { style: "SOLID_MEDIUM", color: COR_TITULO },
+        },
+      },
+    ],
   ];
+}
+
+/** Envia um batch de requests; registra erro sem derrubar o resto. */
+async function enviarBatch(
+  token: string,
+  sheetId: string,
+  requests: unknown[],
+): Promise<void> {
+  if (requests.length === 0) return;
+  try {
+    const r = await gapi(token, `${SHEETS}/${sheetId}:batchUpdate`, "POST", {
+      requests,
+    });
+    if (!r.ok) {
+      console.error(
+        "Sheets formato (batch) falhou:",
+        r.status,
+        await r.text().catch(() => ""),
+      );
+    }
+  } catch (e) {
+    console.error("Sheets formato (batch) erro:", e);
+  }
+}
+
+/** Ids das faixas zebradas (banding) já existentes nesta aba. */
+async function bandingsDaAba(
+  token: string,
+  sheetId: string,
+  gid: number,
+): Promise<number[]> {
+  const r = await gapi(
+    token,
+    `${SHEETS}/${sheetId}?fields=sheets(properties.sheetId,bandedRanges(bandedRangeId))`,
+    "GET",
+  );
+  if (!r.ok) return [];
+  const j = (await r.json()) as {
+    sheets?: {
+      properties?: { sheetId?: number };
+      bandedRanges?: { bandedRangeId?: number }[];
+    }[];
+  };
+  const aba = (j.sheets ?? []).find((s) => s.properties?.sheetId === gid);
+  return (aba?.bandedRanges ?? [])
+    .map((b) => b.bandedRangeId)
+    .filter((x): x is number => x != null);
+}
+
+/**
+ * (Re)aplica o cabeçalho e a formatação favie na aba. Funciona tanto numa aba
+ * nova quanto numa que já existe (auto-corrige o visual). Limpa merges e faixas
+ * antigas primeiro pra não conflitar, e aplica em grupos independentes, então um
+ * erro num grupo não impede os outros.
+ */
+async function aplicarFormato(
+  token: string,
+  sheetId: string,
+  gid: number,
+  aba: string,
+  clienteNome: string,
+): Promise<void> {
+  // Cabeçalho (atualiza também o título caso tenha mudado).
+  await escrever(token, sheetId, range(aba, "A1"), cabecalho(clienteNome, aba));
+
+  // Desfaz merges e faixas antigas do cabeçalho/dados pra reaplicar limpo.
+  await enviarBatch(token, sheetId, [
+    {
+      unmergeCells: {
+        range: {
+          sheetId: gid,
+          startRowIndex: 0,
+          endRowIndex: 3,
+          startColumnIndex: 0,
+          endColumnIndex: N_COLS,
+        },
+      },
+    },
+  ]);
+  const bandings = await bandingsDaAba(token, sheetId, gid);
+  if (bandings.length > 0) {
+    await enviarBatch(
+      token,
+      sheetId,
+      bandings.map((id) => ({ deleteBanding: { bandedRangeId: id } })),
+    );
+  }
+
+  // Aplica cada grupo em seu próprio batch.
+  for (const grupo of gruposFormato(gid)) {
+    await enviarBatch(token, sheetId, grupo as unknown[]);
+  }
 }
 
 /**
  * Garante que a aba do mês existe e está formatada. Devolve o gid (numérico) ou
- * null. Cria com cabeçalho + formatação e remove a aba padrão vazia.
+ * null. Cria se faltar e SEMPRE reaplica o visual favie (corrige abas antigas).
  */
 async function garantirAbaMes(
   token: string,
@@ -465,7 +568,13 @@ async function garantirAbaMes(
   };
   const abas = mj.sheets ?? [];
   const existente = abas.find((s) => s.properties?.title === aba);
-  if (existente?.properties?.sheetId != null) return existente.properties.sheetId;
+
+  if (existente?.properties?.sheetId != null) {
+    // Aba já existe: reaplica o visual (corrige o que ficou sem formatação).
+    const gid = existente.properties.sheetId;
+    await aplicarFormato(token, sheetId, gid, aba, clienteNome);
+    return gid;
+  }
 
   // Cria a aba do mês.
   const add = await gapi(token, `${SHEETS}/${sheetId}:batchUpdate`, "POST", {
@@ -478,18 +587,21 @@ async function garantirAbaMes(
   const gid = aj.replies?.[0]?.addSheet?.properties?.sheetId;
   if (gid == null) return null;
 
-  // Cabeçalho (3 linhas) e formatação.
-  await escrever(token, sheetId, range(aba, "A1"), cabecalho(clienteNome, aba));
-
-  const requests: unknown[] = requestsFormato(gid);
-  // Remove a aba padrão vazia ("Página1"/"Sheet1") deixada na criação.
+  // Remove a aba padrão vazia ("Página1"/"Sheet1"), em batch separado pra não
+  // arriscar a formatação.
   const padrao = abas.find(
-    (s) => s.properties?.title && /^(sheet1|página1|planilha1|page1)$/i.test(s.properties.title),
+    (s) =>
+      s.properties?.title &&
+      /^(sheet1|página1|planilha1|page1)$/i.test(s.properties.title),
   );
   if (padrao?.properties?.sheetId != null) {
-    requests.push({ deleteSheet: { sheetId: padrao.properties.sheetId } });
+    await enviarBatch(token, sheetId, [
+      { deleteSheet: { sheetId: padrao.properties.sheetId } },
+    ]);
   }
-  await gapi(token, `${SHEETS}/${sheetId}:batchUpdate`, "POST", { requests });
+
+  // Cabeçalho + formatação (resiliente, por grupos).
+  await aplicarFormato(token, sheetId, gid, aba, clienteNome);
 
   return gid;
 }

@@ -237,14 +237,25 @@ export function ClientResults({
           semana. Cada semana guarda seus próprios números.
         </p>
         {sheetUrl ? (
-          <a
-            href={sheetUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline"
-          >
-            📊 Abrir a planilha deste cliente no Drive
-          </a>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <a
+              href={sheetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline"
+            >
+              📊 Abrir a planilha deste cliente no Drive
+            </a>
+            <button
+              type="button"
+              onClick={criarPlanilha}
+              disabled={criandoPlanilha}
+              className="text-[11px] font-semibold text-gray-500 hover:text-brand-700 hover:underline disabled:opacity-60"
+              title="Reaplica o visual favie e atualiza os números da planilha"
+            >
+              {criandoPlanilha ? "Arrumando…" : "Arrumar o visual da planilha"}
+            </button>
+          </div>
         ) : (
           <div className="mt-1">
             <p className="text-[11px] text-gray-400">
