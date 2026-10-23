@@ -47,7 +47,10 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
     iniciar(async () => {
       try {
         const r = await reenviarTudoGoogleAction();
-        if (r.ok) toast.sucesso("Google conectado. Agenda sincronizada.");
+        if (r.ok)
+          toast.sucesso(
+            "Google conectado. Sincronizando a agenda em segundo plano.",
+          );
         else if (r.error) toast.erro(r.error);
       } catch {
         // melhor esforço; o botão manual continua disponível
@@ -76,7 +79,7 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
         return;
       }
       toast.sucesso(
-        `Reenviado: ${r.planejamentos ?? 0} planejamento(s) e ${r.conteudos ?? 0} conteúdo(s).`,
+        "Sincronização iniciada. Os eventos, tarefas e planilhas vão aparecer na agenda em alguns minutos.",
       );
       router.refresh();
     });
