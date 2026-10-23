@@ -13,6 +13,8 @@ interface Props {
   conectado: boolean;
   email: string | null;
   aviso?: string;
+  temPlanilhas?: boolean;
+  temDrive?: boolean;
 }
 
 const AVISOS: Record<string, { tipo: "ok" | "erro"; texto: string }> = {
@@ -30,7 +32,13 @@ const AVISOS: Record<string, { tipo: "ok" | "erro"; texto: string }> = {
 };
 
 /** Conectar / desconectar a conta Google (Agenda + Tarefas). */
-export function GoogleConnection({ conectado, email, aviso }: Props) {
+export function GoogleConnection({
+  conectado,
+  email,
+  aviso,
+  temPlanilhas,
+  temDrive,
+}: Props) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
   const msg = aviso ? AVISOS[aviso] : null;
@@ -107,6 +115,37 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
             <strong>eventos</strong> e as edições viram <strong>tarefas</strong>{" "}
             no seu Google.
           </p>
+
+          {/* Permissões concedidas (pra enxergar se faltou Planilhas/Drive). */}
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+            <p className="mb-1 font-semibold text-gray-600">Permissões ativas</p>
+            <ul className="space-y-0.5">
+              <li>✓ Agenda e Tarefas</li>
+              <li className={temPlanilhas ? "" : "text-red-600 font-medium"}>
+                {temPlanilhas ? "✓" : "✗"} Planilhas (cria a planilha de
+                resultados)
+              </li>
+              <li className={temDrive ? "" : "text-red-600 font-medium"}>
+                {temDrive ? "✓" : "✗"} Drive (gera o link da planilha pro
+                cliente)
+              </li>
+            </ul>
+          </div>
+
+          {!temPlanilhas || !temDrive ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <p className="font-semibold">
+                Falta a permissão de Planilhas/Drive.
+              </p>
+              <p className="mt-1">
+                Por isso a planilha de resultados e o link dela não estão sendo
+                criados. Se, ao conectar, o Google não pediu essas permissões, um
+                administrador precisa adicioná-las na “Tela de permissão OAuth”
+                do Google Cloud (escopos de Sheets e Drive) e aí você reconecta.
+                Se elas aparecem na hora de conectar, marque todas e autorize.
+              </p>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={reenviar} disabled={processando}>
               {processando ? "Reenviando..." : "Reenviar tudo ao Google"}

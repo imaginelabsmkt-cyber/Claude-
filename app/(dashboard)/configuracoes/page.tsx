@@ -47,6 +47,8 @@ export default async function ConfiguracoesPage({ searchParams }: PageProps) {
                 conectado={google.conectado}
                 email={google.email}
                 aviso={searchParams.google}
+                temPlanilhas={google.temPlanilhas}
+                temDrive={google.temDrive}
               />
             </CardContent>
           </Card>

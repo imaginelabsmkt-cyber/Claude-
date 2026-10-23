@@ -5,6 +5,11 @@ export interface ConexaoGoogle {
   email: string | null;
   /** Conectou antes, mas a conexão caiu (token revogado/expirado): reconectar. */
   revogado: boolean;
+  /** Permissões efetivamente concedidas (lidas do escopo guardado). */
+  temAgenda: boolean;
+  temTarefas: boolean;
+  temPlanilhas: boolean;
+  temDrive: boolean;
 }
 
 /**
@@ -22,18 +27,33 @@ export async function obterConexaoGoogle(
     } = await supabase.auth.getSession();
     uid = session?.user?.id;
   }
-  if (!uid) return { conectado: false, email: null, revogado: false };
+  if (!uid)
+    return {
+      conectado: false,
+      email: null,
+      revogado: false,
+      temAgenda: false,
+      temTarefas: false,
+      temPlanilhas: false,
+      temDrive: false,
+    };
 
   const { data } = await supabase
     .from("google_accounts")
-    .select("email, revoked_at")
+    .select("email, revoked_at, scope")
     .eq("user_id", uid)
     .maybeSingle();
 
   const revogado = Boolean(data?.revoked_at);
+  const scope = data?.scope ?? "";
+  const tem = (s: string) => scope.includes(s);
   return {
     conectado: Boolean(data) && !revogado,
     email: data?.email ?? null,
     revogado,
+    temAgenda: tem("/auth/calendar"),
+    temTarefas: tem("/auth/tasks"),
+    temPlanilhas: tem("/auth/spreadsheets"),
+    temDrive: tem("/auth/drive"),
   };
 }
