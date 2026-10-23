@@ -90,6 +90,27 @@ export async function reenviarTudoGoogleAction(): Promise<
   // pra segundo plano (waitUntil), em lotes paralelos pra terminar mais rápido.
   // A tela responde na hora e os itens vão aparecendo na agenda em seguida.
   aposResposta(async () => {
+    // Planilhas de resultados PRIMEIRO: é o que costuma faltar (o cliente
+    // respondeu com o Google desconectado) e é rápido. Fica antes da agenda
+    // (que é longa) pra garantir que o link nasça mesmo se o resto demorar.
+    const { data: rr } = await supabase
+      .from("client_monthly_results")
+      .select("client_id, week_start");
+    const vistosSheet = new Set<string>();
+    const semanasUnicas: { client_id: string; week_start: string }[] = [];
+    for (const r of rr ?? []) {
+      if (!r.client_id || !r.week_start) continue;
+      const [y, m, d] = r.week_start.split("-").map(Number);
+      const quinta = new Date(y, m - 1, d + 3); // a quinta define o mês da aba
+      const chave = `${r.client_id}|${quinta.getFullYear()}-${quinta.getMonth()}`;
+      if (vistosSheet.has(chave)) continue;
+      vistosSheet.add(chave);
+      semanasUnicas.push({ client_id: r.client_id, week_start: r.week_start });
+    }
+    await emLotes(semanasUnicas, 3, (s) =>
+      sincronizarResultadoSheets(s.client_id, s.week_start),
+    );
+
     // Não apaga nada: os vínculos de sincronização são mantidos, então cada
     // item é ATUALIZADO no evento que já existe (ou criado se faltar).
     const { data: ps } = await supabase
@@ -133,25 +154,6 @@ export async function reenviarTudoGoogleAction(): Promise<
       ),
       4,
       (c) => sincronizarEdicao(c.id, c.status as ContentStatus),
-    );
-
-    // Planilhas de resultados no Drive: uma por cliente/mês (refaz a aba toda).
-    const { data: rr } = await supabase
-      .from("client_monthly_results")
-      .select("client_id, week_start");
-    const vistos = new Set<string>();
-    const semanasUnicas: { client_id: string; week_start: string }[] = [];
-    for (const r of rr ?? []) {
-      if (!r.client_id || !r.week_start) continue;
-      const [y, m, d] = r.week_start.split("-").map(Number);
-      const quinta = new Date(y, m - 1, d + 3); // a quinta define o mês da aba
-      const chave = `${r.client_id}|${quinta.getFullYear()}-${quinta.getMonth()}`;
-      if (vistos.has(chave)) continue;
-      vistos.add(chave);
-      semanasUnicas.push({ client_id: r.client_id, week_start: r.week_start });
-    }
-    await emLotes(semanasUnicas, 3, (s) =>
-      sincronizarResultadoSheets(s.client_id, s.week_start),
     );
   });
 

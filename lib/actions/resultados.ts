@@ -17,6 +17,40 @@ export interface ResultadoResult {
 const DATA_RE = /^\d{4}-\d{2}-\d{2}$/; // segunda-feira da semana
 
 /**
+ * Cria (ou atualiza) a planilha de resultados deste cliente no Drive AGORA e
+ * devolve o link. Diferente do fluxo em segundo plano, aqui a pessoa espera e
+ * recebe o link na hora. Útil quando o cliente respondeu com o Google
+ * desconectado e o link não chegou a nascer.
+ */
+export async function garantirPlanilhaClienteAction(
+  clientId: string,
+  weekStart: string,
+): Promise<ResultadoResult & { url?: string }> {
+  if (!clientId || !DATA_RE.test(weekStart)) {
+    return { ok: false, error: "Dados inválidos." };
+  }
+  if (!(await usuarioAtualId())) {
+    return { ok: false, error: "Sessão expirada. Entre novamente." };
+  }
+  await sincronizarResultadoSheets(clientId, weekStart);
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("clients")
+    .select("results_sheet_url")
+    .eq("id", clientId)
+    .maybeSingle();
+  if (!data?.results_sheet_url) {
+    return {
+      ok: false,
+      error:
+        "Não consegui criar a planilha. Confira em Configurações se o Google está conectado com as permissões de Planilhas e Drive.",
+    };
+  }
+  revalidatePath(`/clientes/${clientId}`);
+  return { ok: true, url: data.results_sheet_url };
+}
+
+/**
  * Equipe salva os números de tráfego da SEMANA (métricas + explicação). Upsert
  * por cliente/semana, preservando o que o cliente já respondeu.
  */

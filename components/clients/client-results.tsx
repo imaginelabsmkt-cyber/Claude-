@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/icon";
 import {
   salvarResultadosEquipeAction,
   salvarPlanilhaTrafegoAction,
+  garantirPlanilhaClienteAction,
 } from "@/lib/actions/resultados";
 import {
   extrairPlanilha,
@@ -69,6 +70,20 @@ export function ClientResults({
   );
   const [lendo, setLendo] = useState(false);
   const [limpando, setLimpando] = useState(false);
+  const [criandoPlanilha, setCriandoPlanilha] = useState(false);
+
+  // Cria a planilha no Drive agora e já mostra o link (sem esperar o fundo).
+  const criarPlanilha = async () => {
+    setCriandoPlanilha(true);
+    const r = await garantirPlanilhaClienteAction(clientId, weekStart);
+    setCriandoPlanilha(false);
+    if (!r.ok || !r.url) {
+      toast.erro(r.error ?? "Não foi possível criar a planilha.");
+      return;
+    }
+    toast.sucesso("Planilha criada no Drive.");
+    router.refresh();
+  };
 
   // Só mostra no dashboard as métricas com valor preenchido.
   const preenchidas = metrics.filter((m) => m.value.trim());
@@ -231,11 +246,22 @@ export function ClientResults({
             📊 Abrir a planilha deste cliente no Drive
           </a>
         ) : (
-          <p className="mt-1 text-[11px] text-gray-400">
-            Ao salvar os resultados, uma planilha deste cliente é criada e
-            preenchida sozinha no seu Drive (precisa do Google conectado com a
-            permissão de Planilhas).
-          </p>
+          <div className="mt-1">
+            <p className="text-[11px] text-gray-400">
+              Uma planilha deste cliente é criada e preenchida sozinha no seu
+              Drive (precisa do Google conectado com as permissões de Planilhas
+              e Drive).
+            </p>
+            <button
+              type="button"
+              onClick={criarPlanilha}
+              disabled={criandoPlanilha}
+              className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline disabled:opacity-60"
+            >
+              <Icon nome="upload" className="h-3.5 w-3.5" />
+              {criandoPlanilha ? "Criando…" : "Criar a planilha no Drive agora"}
+            </button>
+          </div>
         )}
         <p className="mt-0.5 text-xs text-gray-500">
           Suba a planilha do Meta (Excel ou CSV) e o sistema extrai os números,
