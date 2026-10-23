@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,30 @@ export function GoogleConnection({ conectado, email, aviso }: Props) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
   const msg = aviso ? AVISOS[aviso] : null;
+
+  // Acabou de (re)conectar com sucesso: reenvia tudo sozinho pro Google, pra
+  // não ficar "reconectei e não foi". Assim gravações/postagens/edições que
+  // foram agendadas enquanto o Google estava desconectado caem na agenda
+  // agora, sem a pessoa precisar lembrar de clicar em "Reenviar tudo".
+  const autoFeito = useRef(false);
+  useEffect(() => {
+    if (autoFeito.current) return;
+    if (aviso !== "ok" || !conectado) return;
+    autoFeito.current = true;
+    iniciar(async () => {
+      try {
+        const r = await reenviarTudoGoogleAction();
+        if (r.ok) toast.sucesso("Google conectado. Agenda sincronizada.");
+        else if (r.error) toast.erro(r.error);
+      } catch {
+        // melhor esforço; o botão manual continua disponível
+      }
+      // Tira o ?google=ok da URL pra não re-sincronizar ao recarregar.
+      router.replace("/configuracoes");
+      router.refresh();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aviso, conectado]);
 
   function desconectar() {
     iniciar(async () => {
