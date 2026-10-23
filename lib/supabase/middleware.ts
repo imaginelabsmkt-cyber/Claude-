@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Rotas públicas (acessíveis sem autenticação). */
 const ROTAS_PUBLICAS = [
   "/login",
+  "/sobre", // página pública que explica o app (home da tela OAuth do Google)
+  "/privacidade", // política de privacidade pública (exigida pelo Google)
   "/sw.js", // service worker das notificações (precisa ser servido como JS)
   // Crons das notificações (protegidos por CRON_SECRET).
   "/api/push/lembretes",
