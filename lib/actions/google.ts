@@ -11,6 +11,7 @@ import {
   sincronizarEdicao,
 } from "@/lib/google/sync";
 import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
+import { sincronizarResultadoSheets } from "@/lib/google/sheets";
 import type { ActionResult } from "@/lib/actions/contents";
 import type { ContentStatus } from "@/types";
 
@@ -112,6 +113,24 @@ export async function reenviarTudoGoogleAction(): Promise<
   for (const c of conts) {
     if (!STATUS_EDICAO_REENVIO.includes(c.status as ContentStatus)) continue;
     await sincronizarEdicao(c.id, c.status as ContentStatus);
+  }
+
+  // 6) Planilhas de resultados no Drive: garante a planilha de cada cliente e
+  // preenche (cria o link se faltar). Essencial quando o cliente respondeu os
+  // resultados enquanto o Google estava desconectado, o link não tinha como
+  // nascer. Uma chamada por cliente/mês já refaz a aba inteira do mês.
+  const { data: rr } = await supabase
+    .from("client_monthly_results")
+    .select("client_id, week_start");
+  const vistos = new Set<string>();
+  for (const r of rr ?? []) {
+    if (!r.client_id || !r.week_start) continue;
+    const [y, m, d] = r.week_start.split("-").map(Number);
+    const quinta = new Date(y, m - 1, d + 3); // a quinta define o mês da aba
+    const chave = `${r.client_id}|${quinta.getFullYear()}-${quinta.getMonth()}`;
+    if (vistos.has(chave)) continue;
+    vistos.add(chave);
+    await sincronizarResultadoSheets(r.client_id, r.week_start);
   }
 
   revalidatePath("/configuracoes");
