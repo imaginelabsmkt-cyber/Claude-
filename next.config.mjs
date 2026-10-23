@@ -10,12 +10,13 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: "12mb",
     },
-    // Não reaproveitar páginas dinâmicas do cache do cliente ao navegar/voltar:
-    // sempre buscar dados frescos. Evita "cliquei, voltei e não atualizou"
-    // (o padrão do Next segurava a página por ~30s).
+    // Cache curto de navegação no cliente: clicar e voltar fica instantâneo
+    // (reaproveita a página por alguns segundos) sem perder a atualização, já
+    // que toda edição chama router.refresh() e revalida a tela na hora. Antes
+    // estava em 0 (sempre buscava do servidor), o que deixava tudo lento.
     staleTimes: {
-      dynamic: 0,
-      static: 0,
+      dynamic: 20,
+      static: 180,
     },
   },
 };
