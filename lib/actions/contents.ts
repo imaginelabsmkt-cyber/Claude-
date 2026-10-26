@@ -881,6 +881,26 @@ export async function reordenarFilaEdicaoAction(
   return { ok: true };
 }
 
+/**
+ * Volta a fila de edição para a ordem AUTOMÁTICA (por prazo): limpa a posição
+ * manual dos conteúdos informados.
+ */
+export async function limparOrdemFilaEdicaoAction(
+  ids: string[],
+): Promise<ActionResult> {
+  if (!Array.isArray(ids) || ids.length === 0) return { ok: true };
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("contents")
+    .update({ editing_queue_position: null })
+    .in("id", ids);
+  if (error) {
+    return { ok: false, error: "Não foi possível limpar a ordem." };
+  }
+  revalidarConteudos();
+  return { ok: true };
+}
+
 // -------------------------------------------------------------
 // Postagens: alterar a data prevista (registra no histórico)
 // -------------------------------------------------------------
