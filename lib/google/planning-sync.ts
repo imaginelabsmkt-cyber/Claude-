@@ -182,16 +182,34 @@ export async function sincronizarPlanejamentoGoogle(
       const base = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events`;
       // Envia o convite para a Vitória (participante). Só a reunião faz isso.
       const q = "?sendUpdates=all";
-      const resp = await fetch(
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+      let resp = await fetch(
         evExistente ? `${base}/${evExistente}${q}` : `${base}${q}`,
         {
-        method: evExistente ? "PATCH" : "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          method: evExistente ? "PATCH" : "POST",
+          headers,
+          body: JSON.stringify(corpo),
         },
-        body: JSON.stringify(corpo),
-      });
+      );
+      // Se falhou ao CRIAR (ex.: o convite para a Vitória foi recusado pelo
+      // Google), tenta de novo SEM convidado, pra a reunião cair na agenda
+      // mesmo assim (o importante é o evento existir).
+      if (
+        !resp.ok &&
+        resp.status !== 404 &&
+        !evExistente &&
+        Array.isArray(corpo.attendees) &&
+        (corpo.attendees as unknown[]).length > 0
+      ) {
+        resp = await fetch(`${base}?sendUpdates=none`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ ...corpo, attendees: [] }),
+        });
+      }
       if (resp.ok && !evExistente) {
         const json = (await resp.json()) as { id?: string };
         if (json.id) await salvarSync(sb, planningId, userId, "event", json.id);
