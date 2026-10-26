@@ -73,7 +73,14 @@ function tabelaParaTexto(tblXml: string): string {
  * linha com as colunas separadas por COL_DELIM.
  */
 export function extrairTextoDocx(bytes: Uint8Array): string {
-  const arquivos = unzipSync(bytes);
+  // Só descompacta o que a gente usa (o texto e os links). As IMAGENS do
+  // documento ficam de fora, então um .docx cheio de fotos é lido rápido e
+  // leve, sem estourar memória nem limite de tamanho.
+  const arquivos = unzipSync(bytes, {
+    filter: (f) =>
+      f.name === "word/document.xml" ||
+      f.name === "word/_rels/document.xml.rels",
+  });
   const doc = arquivos["word/document.xml"];
   if (!doc) {
     throw new Error("Arquivo .docx inválido (word/document.xml não encontrado).");

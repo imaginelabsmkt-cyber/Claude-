@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { FORMAT_OPTIONS, WEEK_OPTIONS } from "@/types";
+import { importarConteudosAction } from "@/lib/actions/import";
+import { extrairTextoDocx } from "@/lib/import/docx";
 import {
-  analisarPlanejamentoAction,
-  importarConteudosAction,
-} from "@/lib/actions/import";
-import type { ItemPlanejamento } from "@/lib/import/planning-parser";
+  parsePlanejamento,
+  type ItemPlanejamento,
+} from "@/lib/import/planning-parser";
 import type { OpcaoCliente } from "@/lib/data/contents";
 
 interface ImportPlanningProps {
@@ -34,22 +35,32 @@ export function ImportPlanning({ clientes }: ImportPlanningProps) {
     if (!clientId) return setErro("Selecione o cliente.");
     if (!/^\d{4}-\d{2}$/.test(mes)) return setErro("Selecione o mês de referência.");
     if (!arquivo) return setErro("Selecione o arquivo .docx do planejamento.");
-
-    const fd = new FormData();
-    fd.set("arquivo", arquivo);
-    fd.set("reference_month", mes);
+    if (!arquivo.name.toLowerCase().endsWith(".docx")) {
+      return setErro("Envie um arquivo no formato .docx (Word).");
+    }
+    // Leitura do documento acontece AQUI no navegador: o arquivo (mesmo cheio de
+    // fotos) não é enviado pro servidor, só os conteúdos reconhecidos. Isso tira
+    // o limite de tamanho do caminho. Teto alto só pra não travar o navegador.
+    if (arquivo.size > 60 * 1024 * 1024) {
+      return setErro("Arquivo muito grande (máx. 60 MB).");
+    }
 
     iniciar(async () => {
       try {
-        const r = await analisarPlanejamentoAction(fd);
-        if (!r.ok || !r.itens) {
-          setErro(r.error ?? "Falha ao ler o arquivo.");
+        const bytes = new Uint8Array(await arquivo.arrayBuffer());
+        const texto = extrairTextoDocx(bytes);
+        const ano = Number(mes.slice(0, 4));
+        const lidos = parsePlanejamento(texto, ano);
+        if (lidos.length === 0) {
+          setErro(
+            "Nenhum conteúdo reconhecido. Confira se o documento usa os marcadores (CONTEÚDO:, DATA:, SEMANA...).",
+          );
           return;
         }
-        setItens(r.itens);
+        setItens(lidos);
       } catch {
         setErro(
-          "Não foi possível enviar o documento. Ele pode estar muito grande; tente um .docx de até 8 MB, ou exporte de novo pelo Word.",
+          "Não foi possível ler o arquivo .docx. Confira se é um Word válido e tente exportar de novo.",
         );
       }
     });
