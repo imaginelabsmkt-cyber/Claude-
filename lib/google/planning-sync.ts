@@ -5,9 +5,6 @@
  * Melhor esforço: falha no Google não quebra o salvamento do planejamento.
  */
 import { createClient } from "@/lib/supabase/server";
-import { usuarioAtualId } from "@/lib/auth";
-import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
-import { marcarGoogleRevogado } from "@/lib/google/conta";
 import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 import {
@@ -15,29 +12,13 @@ import {
   acharEventoPorMarcador,
   marcadorTarefa,
   acharTarefaPorMarcador,
+  contaAgencia,
 } from "@/lib/google/sync";
 import { PLANNING_ENTREGUE } from "@/types";
 
 const TZ = "America/Boa_Vista";
 const OFFSET_LOCAL = "-04:00"; // Boa Vista / Roraima (UTC-4)
 type SB = ReturnType<typeof createClient>;
-
-async function tokenDoUsuario(sb: SB, userId: string): Promise<string | null> {
-  const { data } = await sb
-    .from("google_accounts")
-    .select("refresh_token, revoked_at")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (!data?.refresh_token || data.revoked_at) return null;
-  try {
-    return await renovarAccessToken(data.refresh_token);
-  } catch (e) {
-    if (e instanceof GoogleRevogadoError) {
-      await marcarGoogleRevogado(sb, userId);
-    }
-    return null;
-  }
-}
 
 function diaSeguinte(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -110,11 +91,10 @@ export async function sincronizarPlanejamentoGoogle(
   planningId: string,
 ): Promise<void> {
   try {
-    const userId = await usuarioAtualId();
-    if (!userId) return;
     const sb = createClient();
-    const token = await tokenDoUsuario(sb, userId);
-    if (!token) return;
+    const conta = await contaAgencia(sb);
+    if (!conta) return;
+    const { userId, token } = conta;
 
     const { data: p } = await sb
       .from("plannings")

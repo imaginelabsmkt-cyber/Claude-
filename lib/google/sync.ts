@@ -8,7 +8,6 @@
  * Empurra para a conta do usuário que está fazendo a ação (se conectado).
  */
 import { createClient } from "@/lib/supabase/server";
-import { usuarioAtualId } from "@/lib/auth";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { marcarGoogleRevogado } from "@/lib/google/conta";
 import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
@@ -64,16 +63,43 @@ export async function tokenDoUsuario(sb: SB, userId: string): Promise<string | n
 }
 
 /**
- * Diz se o Google está utilizável para sincronizar agora (conectado e com token
- * válido). Como passa pelo tokenDoUsuario, também marca a conexão como caída
- * (e mostra a faixa de aviso) quando o token expirou.
+ * Conta Google da AGÊNCIA (a que está conectada), INDEPENDENTE de quem está
+ * fazendo a ação. Assim, se a Vitória agenda e só a Fran conectou o Google, o
+ * evento vai pra agenda da agência do mesmo jeito (igual a planilha já faz).
+ * Devolve o user_id (dono da conexão, usado nos vínculos) e um access_token.
+ * Pega a conexão mais recente; numa agência costuma haver só uma.
+ */
+export async function contaAgencia(
+  sb: SB,
+): Promise<{ userId: string; token: string } | null> {
+  const { data } = await sb
+    .from("google_accounts")
+    .select("user_id, refresh_token, revoked_at, updated_at")
+    .is("revoked_at", null)
+    .not("refresh_token", "is", null)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+  const conta = data?.[0];
+  if (!conta?.refresh_token || !conta.user_id) return null;
+  try {
+    const token = await renovarAccessToken(conta.refresh_token);
+    return { userId: conta.user_id, token };
+  } catch (e) {
+    if (e instanceof GoogleRevogadoError) {
+      await marcarGoogleRevogado(sb, conta.user_id);
+    }
+    return null;
+  }
+}
+
+/**
+ * Diz se o Google está utilizável para sincronizar agora (a agência conectou e
+ * o token é válido). Vale pra qualquer pessoa da equipe, não só quem conectou.
  */
 export async function googleSincronizavel(): Promise<boolean> {
-  const userId = await usuarioAtualId();
-  if (!userId) return false;
   const sb = createClient();
-  const token = await tokenDoUsuario(sb, userId);
-  return Boolean(token);
+  const conta = await contaAgencia(sb);
+  return Boolean(conta);
 }
 
 async function idSync(
@@ -254,11 +280,10 @@ async function contarEventosSync(
 // -------------------------------------------------------------
 export async function sincronizarGravacao(contentId: string): Promise<void> {
   try {
-    const userId = await usuarioAtualId();
-    if (!userId) return;
     const sb = createClient();
-    const token = await tokenDoUsuario(sb, userId);
-    if (!token) return; // usuário não conectou o Google
+    const conta = await contaAgencia(sb);
+    if (!conta) return; // a agência não conectou o Google
+    const { userId, token } = conta;
 
     const { data: c } = await sb
       .from("contents")
@@ -439,11 +464,10 @@ export async function sincronizarGravacaoEmLote(
 ): Promise<void> {
   try {
     if (contentIds.length === 0) return;
-    const userId = await usuarioAtualId();
-    if (!userId) return;
     const sb = createClient();
-    const token = await tokenDoUsuario(sb, userId);
-    if (!token) return;
+    const conta = await contaAgencia(sb);
+    if (!conta) return;
+    const { userId, token } = conta;
 
     const { data: cs } = await sb
       .from("contents")
@@ -551,11 +575,10 @@ export async function sincronizarEdicao(
   novoStatus: ContentStatus,
 ): Promise<void> {
   try {
-    const userId = await usuarioAtualId();
-    if (!userId) return;
     const sb = createClient();
-    const token = await tokenDoUsuario(sb, userId);
-    if (!token) return;
+    const conta = await contaAgencia(sb);
+    if (!conta) return;
+    const { userId, token } = conta;
 
     let existente = await idSync(sb, contentId, userId, "task");
 
@@ -674,11 +697,10 @@ export async function sincronizarEdicao(
 // -------------------------------------------------------------
 export async function sincronizarPostagem(contentId: string): Promise<void> {
   try {
-    const userId = await usuarioAtualId();
-    if (!userId) return;
     const sb = createClient();
-    const token = await tokenDoUsuario(sb, userId);
-    if (!token) return;
+    const conta = await contaAgencia(sb);
+    if (!conta) return;
+    const { userId, token } = conta;
 
     const { data: c } = await sb
       .from("contents")
@@ -773,11 +795,10 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
 // -------------------------------------------------------------
 export async function sincronizarSessaoEdicao(contentId: string): Promise<void> {
   try {
-    const userId = await usuarioAtualId();
-    if (!userId) return;
     const sb = createClient();
-    const token = await tokenDoUsuario(sb, userId);
-    if (!token) return;
+    const conta = await contaAgencia(sb);
+    if (!conta) return;
+    const { userId, token } = conta;
 
     const { data: c } = await sb
       .from("contents")
@@ -887,11 +908,10 @@ export async function sincronizarSessaoEdicao(contentId: string): Promise<void> 
 // -------------------------------------------------------------
 export async function removerGoogleDoConteudo(contentId: string): Promise<void> {
   try {
-    const userId = await usuarioAtualId();
-    if (!userId) return;
     const sb = createClient();
-    const token = await tokenDoUsuario(sb, userId);
-    if (!token) return;
+    const conta = await contaAgencia(sb);
+    if (!conta) return;
+    const { userId, token } = conta;
 
     const evento = await idSync(sb, contentId, userId, "event");
     if (evento) {
