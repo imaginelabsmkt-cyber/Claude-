@@ -1082,6 +1082,40 @@ Pausada ou fora da vigência do mês, a linha aparece no grupo dela, com
 etiqueta, sem entrar em soma nenhuma. Sumir com ela faz a pessoa achar
 que foi apagada.
 
+## 5.18 O Painel do mês virou a aba do mês da planilha
+
+A tela mostrava quatro números grandes e, embaixo, só as PENDÊNCIAS:
+"a receber" e "a pagar". O mês inteiro ficava invisível. A pergunta
+mais básica que alguém faz abrindo o financeiro, "no que foi que o
+dinheiro saiu este mês", não tinha resposta ali: só duas telas adiante.
+
+Agora a tela é a aba mensal da planilha, que é o formato que a Fran já
+lê sem aprender nada:
+
+    Saldo no dia 1 · Sobrou no mês · Saldo no fim · Margem
+
+    ENTROU  R$ 13.150,00        SAIU  R$ 14.186,55
+      MENSALIDADES    13.150      PRÓ-LABORE        13.000
+        Kiku Sushi     2.200        Fran             6.500
+        ...                         Vitória          6.500
+                                  ASSINATURAS E FERRAMENTAS  940,60
+                                    Claude Max         454,10
+                                    ...
+
+Cada lado agrupado por categoria, com o total do grupo, e o status de
+cada linha. Dentro do grupo o que está em aberto vem primeiro, porque é
+o que ainda pede ação, e o vermelho só aparece em quem não foi baixado.
+
+### Dois detalhes que só a prévia mostrou
+
+"vence 10/11/2026" quebrava em duas linhas e dobrava a altura de cada
+lançamento. Dentro de um mês que a tela já nomeia no título, o dia
+basta: **"vence dia 10"**. Data de outro mês continua por extenso.
+
+E "Mensalidade Kiku Sushi · Kiku Sushi" repetia o cliente, porque a
+checagem era de igualdade exata. Agora o nome do cliente só aparece
+quando a descrição ainda não o diz.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

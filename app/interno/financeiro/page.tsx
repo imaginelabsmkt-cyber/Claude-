@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
+import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { MoneyStat } from "@/components/financeiro/money-stat";
+import { Secao } from "@/components/interno/secao";
 import { contarRecorrenciasPendentes, obterPainelMes } from "@/lib/data/financeiro";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
-import { formatarData, formatarMoeda, formatarPercentual } from "@/lib/utils";
+import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +16,16 @@ interface PageProps {
 }
 
 /**
- * Painel do mês: a fotografia do caixa — quanto entrou, quanto saiu, o que
- * ainda falta receber/pagar e como o mês fecha.
+ * Painel do mês, no formato da aba mensal da planilha da Fran.
  *
- * Quatro números e duas listas, de propósito. A quebra por categoria vive
- * no Fluxo de caixa (com os lançamentos dentro de cada uma) e a visão por
- * cliente vive na Rentabilidade — repetir aqui só faria a tela crescer sem
- * dizer nada novo.
+ * A planilha é a referência de propósito: saldo inicial em cima, o que
+ * entrou de um lado, o que saiu do outro, cada um agrupado por
+ * categoria com o total, e o fechamento embaixo (resultado, saldo
+ * final, margem). É o formato que ela já lê sem aprender nada.
+ *
+ * A tela antes mostrava quatro números e só as PENDÊNCIAS. O mês
+ * inteiro ficava invisível: "no que foi que o dinheiro saiu este mês"
+ * não tinha resposta aqui, só duas telas adiante.
  */
 export default async function FinanceiroPage({ searchParams }: PageProps) {
   const mes =
@@ -32,19 +35,14 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
     obterPainelMes(mes),
     contarRecorrenciasPendentes(mes),
   ]);
-  const { resumo, anterior } = painel;
+  const { resumo } = painel;
 
   const variacao =
     painel.variacaoReceita != null
-      ? `${painel.variacaoReceita >= 0 ? "+" : ""}${formatarPercentual(painel.variacaoReceita)} vs. mês anterior`
-      : anterior
-        ? "sem receita no mês anterior"
-        : undefined;
+      ? `${painel.variacaoReceita >= 0 ? "+" : ""}${formatarPercentual(painel.variacaoReceita)} contra o mês anterior`
+      : null;
 
-  const projecao =
-    resumo.saldoFinalPrevisto !== resumo.saldoFinal
-      ? `${formatarMoeda(resumo.saldoFinalPrevisto)} se tudo em aberto se confirmar`
-      : undefined;
+  const emAberto = resumo.aReceber + resumo.aPagar;
 
   return (
     <>
@@ -60,122 +58,118 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
         <MonthActions mes={mes} recorrenciasPendentes={recorrenciasPendentes} />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MoneyStat
-          rotulo="Entrou"
-          valor={resumo.receitas}
-          tom="verde"
-          detalhe={variacao}
-        />
-        <MoneyStat rotulo="Saiu" valor={resumo.despesas} tom="vermelho" />
-        <MoneyStat
-          rotulo="Sobrou no mês"
-          valor={resumo.resultado}
-          tom="indigo"
-          colorirPeloSinal
-        />
-        <MoneyStat
-          rotulo="Em caixa no fim"
-          valor={resumo.saldoFinal}
-          tom="azul"
-          colorirPeloSinal
-          detalhe={projecao}
-        />
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>A receber em {rotuloMes(mes)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4 text-2xl font-bold text-amber-600">
-              {formatarMoeda(resumo.aReceber)}
-            </p>
-            {painel.aReceber.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                Nada em aberto. Todas as receitas do mês já entraram.
+      <Secao
+        titulo={`O mês de ${rotuloMes(mes)}`}
+        explicacao="Começa com o que tinha em caixa no primeiro dia. É a mesma leitura da aba do mês na planilha."
+      >
+        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Saldo no dia 1
               </p>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {painel.aReceber.slice(0, 8).map((l) => (
-                  <li key={l.id} className="flex items-center justify-between gap-3 py-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-gray-800">{l.description}</p>
-                      <p className="text-xs text-gray-500">
-                        {l.client?.name ?? l.category?.name ?? ""} · venc.{" "}
-                        {formatarData(l.due_date)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-sm font-medium text-gray-900">
-                      {formatarMoeda(Number(l.amount))}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {painel.aReceber.length > 8 ? (
-              <Link
-                href={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Receita&status=Pendente`}
-                className="mt-3 inline-block text-sm font-medium text-brand-700 hover:underline"
+              <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
+                {formatarMoeda(resumo.saldoInicial)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                {resumo.resultado >= 0 ? "Sobrou no mês" : "Faltou no mês"}
+              </p>
+              <p
+                className={
+                  "mt-0.5 text-xl font-bold tabular-nums " +
+                  (resumo.resultado < 0 ? "text-alerta" : "text-gray-900")
+                }
               >
-                Ver todos os {painel.aReceber.length} lançamentos
-              </Link>
+                {formatarMoeda(Math.abs(resumo.resultado))}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Saldo no fim
+              </p>
+              <p
+                className={
+                  "mt-0.5 text-2xl font-bold tabular-nums " +
+                  (resumo.saldoFinal < 0 ? "text-alerta" : "text-gray-900")
+                }
+              >
+                {formatarMoeda(resumo.saldoFinal)}
+              </p>
+            </div>
+            {resumo.receitas > 0 ? (
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  Margem do mês
+                </p>
+                <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
+                  {formatarPercentual(resumo.margem)}
+                </p>
+              </div>
             ) : null}
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>A pagar em {rotuloMes(mes)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4 text-2xl font-bold text-red-600">
-              {formatarMoeda(resumo.aPagar)}
+          {emAberto > 0 || variacao ? (
+            <p className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
+              {emAberto > 0 ? (
+                <>
+                  Ainda falta movimentar{" "}
+                  <strong className="font-semibold text-gray-900">
+                    {formatarMoeda(emAberto)}
+                  </strong>{" "}
+                  deste mês. Se tudo se confirmar, o mês fecha em{" "}
+                  <strong className="font-semibold text-gray-900">
+                    {formatarMoeda(resumo.saldoFinalPrevisto)}
+                  </strong>
+                  .{" "}
+                </>
+              ) : null}
+              {variacao ? <>A receita está {variacao}.</> : null}
             </p>
-            {painel.aPagar.length === 0 ? (
-              <p className="text-sm text-gray-500">Nenhuma conta em aberto no mês.</p>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {painel.aPagar.slice(0, 8).map((l) => (
-                  <li key={l.id} className="flex items-center justify-between gap-3 py-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-gray-800">{l.description}</p>
-                      <p className="text-xs text-gray-500">
-                        {l.category?.name ?? ""} · venc. {formatarData(l.due_date)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-sm font-medium text-gray-900">
-                      {formatarMoeda(Number(l.amount))}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {painel.aPagar.length > 8 ? (
-              <Link
-                href={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Despesa&status=Pendente`}
-                className="mt-3 inline-block text-sm font-medium text-brand-700 hover:underline"
-              >
-                Ver todos os {painel.aPagar.length} lançamentos
-              </Link>
-            ) : null}
-          </CardContent>
-        </Card>
-      </div>
+          ) : null}
+        </div>
+      </Secao>
 
-      <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
+      <Secao
+        titulo="No que entrou e no que saiu"
+        explicacao="Cada lançamento do mês, dentro da categoria dele. Vermelho é o que ainda não foi baixado."
+      >
+        <FolhaDoMes
+          mes={mes}
+          aReceber={resumo.aReceber}
+          aPagar={resumo.aPagar}
+          lancamentos={painel.lancamentos.map((l) => ({
+            id: l.id,
+            description: l.description,
+            kind: l.kind,
+            amount: Number(l.amount),
+            status: l.status,
+            due_date: l.due_date,
+            categoria: l.category?.name ?? null,
+            cliente: l.client?.name ?? null,
+          }))}
+        />
+      </Secao>
+
+      <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
         <Link
           href={`/interno/financeiro/fluxo-caixa?mes=${mes}`}
           className="font-medium text-brand-700 hover:underline"
         >
-          Ver por categoria →
+          O caixa mês a mês
         </Link>
         <Link
           href={`/interno/financeiro/rentabilidade?mes=${mes}`}
           className="font-medium text-brand-700 hover:underline"
         >
-          Ver por cliente →
+          Quanto cada cliente deu
+        </Link>
+        <Link
+          href={`/interno/financeiro/recorrencias?mes=${mes}`}
+          className="font-medium text-brand-700 hover:underline"
+        >
+          O que se repete todo mês
         </Link>
       </p>
     </>
