@@ -86,9 +86,9 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
       obterCarteira(mes),
       listarLancamentos({ mes }),
       listarClientesFinanceiro(),
-      obterRecorteArea("pessoas", mes),
-      obterRecorteArea("contabil", mes),
-      obterRecorteArea("administrativo", mes),
+      obterRecorteArea("equipe", mes),
+      obterRecorteArea("prazos", mes),
+      obterRecorteArea("contratos", mes),
     ]);
 
   const r = painel.resumo;

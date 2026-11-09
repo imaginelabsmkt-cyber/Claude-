@@ -1,4 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
+import { EmpresaTabs } from "@/components/interno/empresa-tabs";
 import { Stat } from "@/components/interno/stat";
 import { RecorteLista } from "@/components/interno/recorte-lista";
 import { ObrigacoesPanel } from "@/components/empresa/obrigacoes-panel";
@@ -23,7 +24,7 @@ export default async function ContabilPage({ searchParams }: PageProps) {
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
   const [recorte, obrigacoes] = await Promise.all([
-    obterRecorteArea("contabil", mes),
+    obterRecorteArea("prazos", mes),
     listarObrigacoes("contabil"),
   ]);
   const atrasadas = obrigacoes.filter((o) => o.aberto?.situacao === "Atrasada").length;
@@ -32,10 +33,12 @@ export default async function ContabilPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Contábil e fiscal"
+        titulo="Prazos"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
+
+      <EmpresaTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat

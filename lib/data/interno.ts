@@ -5,7 +5,12 @@ import {
   obterPainelMes,
   type PainelMes,
 } from "@/lib/data/financeiro";
-import { areaDaCategoria, categoriasDaArea } from "@/lib/interno/classificacao";
+import {
+  areaDoAssunto,
+  assuntoDaCategoria,
+  categoriasDoAssunto,
+  type Assunto,
+} from "@/lib/interno/classificacao";
 import { listarObrigacoesUrgentes } from "@/lib/data/empresa";
 import {
   renovacoesProximas,
@@ -73,7 +78,7 @@ function comoCompromissos(lancamentos: FinancialEntryWithRelations[]): Compromis
       const dias = diasAte(l.due_date);
       return {
         id: l.id,
-        origem: areaDaCategoria(l.category?.name),
+        origem: areaDoAssunto(assuntoDaCategoria(l.category?.name)),
         titulo: l.description,
         descricao: l.client?.name ?? l.category?.name ?? "—",
         valor: Number(l.amount),
@@ -141,7 +146,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     .filter((o) => o.aberto !== null)
     .map((o) => ({
       id: `obrigacao-${o.id}`,
-      origem: o.area === "administrativo" ? "administrativo" : "contabil",
+      origem: o.area === "administrativo" ? "empresa" : "empresa",
       titulo: o.title,
       descricao: `${o.cadence} · ${rotuloPeriodo(o.aberto!.periodo)}`,
       valor: 0,
@@ -166,7 +171,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
 
   const daRenovacao: Compromisso[] = renovacoesProximas(contratos).map((r) => ({
     id: `renovacao-${r.id}`,
-    origem: "comercial" as const,
+    origem: "clientes" as const,
     titulo: r.description.replace(/^Mensalidade /, "Renovar contrato — "),
     descricao: `contrato vai até ${r.endMonth}`,
     valor: r.amount,
@@ -224,10 +229,10 @@ export interface RecorteArea {
  * Contábil e Administrativo existirem sem tabela própria.
  */
 export async function obterRecorteArea(
-  id: AreaId,
+  assunto: Assunto,
   mes: string,
 ): Promise<RecorteArea> {
-  const nomes = categoriasDaArea(id);
+  const nomes = categoriasDoAssunto(assunto);
   const ano = mes.slice(0, 4);
 
   const [categorias, doMes, doAno, supabaseRecorrencias] = await Promise.all([

@@ -39,7 +39,7 @@ export default async function ComercialPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Comercial"
+        titulo="Clientes"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />

@@ -1,42 +1,71 @@
 /**
- * De qual ÁREA é cada categoria financeira.
+ * De qual ASSUNTO é cada categoria financeira.
  *
  * O financeiro é a origem da maior parte dos números da empresa, e as
- * outras áreas são recortes dele: Pessoas é o pró-labore e os freelas,
- * Contábil é o DAS e a contabilidade, Administrativo são as ferramentas
- * e os equipamentos.
+ * outras telas são recortes dele: Equipe é o pró-labore e os freelas,
+ * Prazos é o DAS e a contabilidade, Contratos são as ferramentas e os
+ * equipamentos. Fazer esse mapa aqui, em vez de duplicar tabelas, é o
+ * que mantém um número só para a empresa inteira: mudou no Dinheiro,
+ * mudou em todas as telas.
  *
- * Fazer esse mapa aqui — em vez de duplicar tabelas — é o que mantém
- * um número só para a empresa inteira: mudou no financeiro, mudou em
- * todas as telas.
+ * ASSUNTO NÃO É ÁREA DO MENU, e já foi. Enquanto as duas coisas usavam
+ * o mesmo tipo, cada recorte de categoria precisava de um item de menu
+ * próprio, e foi assim que o menu chegou a sete itens mostrando o
+ * mesmo dado de quatro ângulos. Agora Equipe, Prazos e Contratos são
+ * três assuntos dentro de UMA área ("Empresa"), e o mapa não decide
+ * mais a navegação.
  *
- * Categoria que não estiver no mapa é tratada como do próprio financeiro.
+ * Categoria que não estiver no mapa é tratada como do próprio dinheiro.
  */
 
 import type { AreaId } from "@/lib/interno/areas";
 
-/** Categoria (pelo nome, como está no banco) -> área dona do assunto. */
-const POR_CATEGORIA: Record<string, AreaId> = {
-  "Pró-labore (sócias)": "pessoas",
-  "Freelancers / colaboradores": "pessoas",
-  "Contabilidade / MEI": "contabil",
-  "DAS - Simples Nacional": "contabil",
-  "Assinaturas e ferramentas digitais": "administrativo",
-  Equipamentos: "administrativo",
-  "Mensalidades / clientes recorrentes": "comercial",
-  "Projetos avulsos": "comercial",
-  "Produtos / cursos": "comercial",
+/** Recortes de categoria. Três deles moram na área "Empresa". */
+export type Assunto =
+  | "dinheiro"
+  | "clientes"
+  | "equipe"
+  | "prazos"
+  | "contratos";
+
+/** Categoria (pelo nome, como está no banco) -> assunto dono dela. */
+const POR_CATEGORIA: Record<string, Assunto> = {
+  "Pró-labore (sócias)": "equipe",
+  "Freelancers / colaboradores": "equipe",
+  "Contabilidade / MEI": "prazos",
+  "DAS - Simples Nacional": "prazos",
+  "Assinaturas e ferramentas digitais": "contratos",
+  Equipamentos: "contratos",
+  "Mensalidades / clientes recorrentes": "clientes",
+  "Projetos avulsos": "clientes",
+  "Produtos / cursos": "clientes",
 };
 
-/** Área responsável por uma categoria financeira. */
-export function areaDaCategoria(nomeCategoria: string | null | undefined): AreaId {
-  if (!nomeCategoria) return "financeiro";
-  return POR_CATEGORIA[nomeCategoria] ?? "financeiro";
+/** Assunto responsável por uma categoria financeira. */
+export function assuntoDaCategoria(
+  nomeCategoria: string | null | undefined,
+): Assunto {
+  if (!nomeCategoria) return "dinheiro";
+  return POR_CATEGORIA[nomeCategoria] ?? "dinheiro";
 }
 
-/** Nomes de categoria que pertencem a uma área. */
-export function categoriasDaArea(id: AreaId): string[] {
+/** Nomes de categoria que pertencem a um assunto. */
+export function categoriasDoAssunto(assunto: Assunto): string[] {
   return Object.entries(POR_CATEGORIA)
-    .filter(([, area]) => area === id)
+    .filter(([, a]) => a === assunto)
     .map(([nome]) => nome);
+}
+
+/** Em que ÁREA do menu um assunto aparece, para a tarja colorida. */
+export function areaDoAssunto(assunto: Assunto): AreaId {
+  switch (assunto) {
+    case "clientes":
+      return "clientes";
+    case "equipe":
+    case "prazos":
+    case "contratos":
+      return "empresa";
+    default:
+      return "dinheiro";
+  }
 }

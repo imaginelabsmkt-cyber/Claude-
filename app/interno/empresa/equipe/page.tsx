@@ -1,4 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
+import { EmpresaTabs } from "@/components/interno/empresa-tabs";
 import { Stat } from "@/components/interno/stat";
 import { PessoasPanel } from "@/components/pessoas/pessoas-panel";
 import { MonthNav } from "@/components/financeiro/month-nav";
@@ -26,7 +27,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
 
   const [pessoas, recorte] = await Promise.all([
     listarPessoas(mes),
-    obterRecorteArea("pessoas", mes),
+    obterRecorteArea("equipe", mes),
   ]);
 
   const total = recorte.realizado + recorte.pendente;
@@ -38,16 +39,18 @@ export default async function PessoasPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Pessoas"
+        titulo="Equipe"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
+
+      <EmpresaTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
           rotulo="Custo do mês"
           valor={formatarMoeda(total)}
-          origem="financeiro"
+          origem="dinheiro"
           detalhe={
             recorte.pendente > 0
               ? `${formatarMoeda(recorte.pendente)} em aberto`

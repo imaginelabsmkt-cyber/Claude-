@@ -619,6 +619,56 @@ gatilho no banco. Regras, verificadas em Postgres real:
 - **`contatosPorCliente` devolve `null` sem nenhum fechamento.** Um
   palpite ("costuma ser 100 para 1") seria pior que silêncio.
 
+## 5.11 De sete áreas para quatro
+
+A Fran, olhando o sistema pronto: *"está bem confuso, não está
+intuitivo, parece que tá tudo misturado"*.
+
+Estava mesmo, e o motivo era estrutural, não decorativo. O menu tinha
+sete itens, e quatro deles mostravam o MESMO dado:
+
+| Item do menu | O que mostrava de verdade |
+| --- | --- |
+| Financeiro | os lançamentos |
+| Pessoas | os lançamentos de pró-labore e freelas |
+| Contábil | os lançamentos de DAS e contabilidade |
+| Administrativo | os lançamentos de ferramentas e equipamentos |
+
+Quatro portas para a mesma sala. Quem abria não via quatro assuntos,
+via dinheiro quatro vezes sem entender a diferença.
+
+### A causa no código
+
+`classificacao.ts` mapeava categoria financeira para `AreaId`, o
+mesmo tipo que o menu usa. Enquanto recorte de categoria e item de
+menu fossem a mesma coisa, **todo recorte novo virava item de menu
+novo**. O menu crescia junto com o mapa de categorias, que é um
+detalhe contábil que ninguém devia ver no menu.
+
+A correção foi separar os dois tipos: `Assunto` (equipe, prazos,
+contratos, clientes, dinheiro) para recorte de categoria, e `AreaId`
+para navegação, com `areaDoAssunto()` ligando um ao outro. Agora um
+assunto novo não cria item de menu.
+
+### O menu agora
+
+Cada área responde uma pergunta que as outras não respondem:
+
+| Área | Pergunta | Abas dentro |
+| --- | --- | --- |
+| Início | Por onde eu começo hoje? | |
+| Dinheiro | Quanto entra e quanto sai? | Painel, Lançamentos, Fluxo de caixa, Resumo anual, Relatório, Recorrências |
+| Clientes | Quem paga hoje e quem pode pagar amanhã? | Carteira, Funil, Prospecção, Rentabilidade |
+| Empresa | O que a empresa tem, deve e precisa cumprir? | Equipe, Prazos, Contratos e ferramentas |
+| Meus gastos | Como está o MEU mês? | |
+
+"Relatório do mês" também deixou de ser item de menu: é uma leitura do
+dinheiro, virou aba. `areaDaRota` tem uma lista de rotas extras para
+ele continuar pegando a cor certa.
+
+Nada foi apagado. As três telas viraram abas em
+`/interno/empresa/{equipe,prazos,contratos}` e continuam inteiras.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

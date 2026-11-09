@@ -1,4 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
+import { EmpresaTabs } from "@/components/interno/empresa-tabs";
 import { Stat } from "@/components/interno/stat";
 import { RecorteLista } from "@/components/interno/recorte-lista";
 import { DocumentosPanel } from "@/components/empresa/documentos-panel";
@@ -29,7 +30,7 @@ export default async function AdministrativoPage({ searchParams }: PageProps) {
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
   const [recorte, documentos, contratos, obrigacoes] = await Promise.all([
-    obterRecorteArea("administrativo", mes),
+    obterRecorteArea("contratos", mes),
     listarDocumentosEmpresa(),
     listarContratos(),
     listarObrigacoes("administrativo"),
@@ -43,10 +44,12 @@ export default async function AdministrativoPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Administrativo"
+        titulo="Contratos e ferramentas"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
+
+      <EmpresaTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat

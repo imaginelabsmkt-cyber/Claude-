@@ -76,7 +76,7 @@ export async function buscarTudo(termo: string): Promise<ResultadoBusca[]> {
   for (const c of clientes.data ?? []) {
     saida.push({
       id: `cliente-${c.id}`,
-      origem: "comercial",
+      origem: "clientes",
       tipo: "Cliente",
       titulo: c.name,
       detalhe: c.active ? "ativo" : "inativo",
@@ -87,7 +87,7 @@ export async function buscarTudo(termo: string): Promise<ResultadoBusca[]> {
   for (const l of lancamentos.data ?? []) {
     saida.push({
       id: `lancamento-${l.id}`,
-      origem: "financeiro",
+      origem: "dinheiro",
       tipo: "Lançamento",
       titulo: l.description,
       detalhe: `${l.kind === "Receita" ? "+" : "−"} ${moeda(Number(l.amount))} · ${l.reference_month} · ${l.status}`,
@@ -98,7 +98,7 @@ export async function buscarTudo(termo: string): Promise<ResultadoBusca[]> {
   for (const l of leads.data ?? []) {
     saida.push({
       id: `lead-${l.id}`,
-      origem: "comercial",
+      origem: "clientes",
       tipo: "Oportunidade",
       titulo: l.name,
       detalhe: `${l.stage} · ${moeda(Number(l.estimated_monthly))}/mês`,
@@ -109,7 +109,7 @@ export async function buscarTudo(termo: string): Promise<ResultadoBusca[]> {
   for (const p of pessoas.data ?? []) {
     saida.push({
       id: `pessoa-${p.id}`,
-      origem: "pessoas",
+      origem: "empresa",
       tipo: "Pessoa",
       titulo: p.name,
       detalhe: [p.kind, p.role, p.active ? null : "inativa"]
@@ -122,7 +122,7 @@ export async function buscarTudo(termo: string): Promise<ResultadoBusca[]> {
   for (const o of obrigacoes.data ?? []) {
     saida.push({
       id: `obrigacao-${o.id}`,
-      origem: o.area === "administrativo" ? "administrativo" : "contabil",
+      origem: o.area === "administrativo" ? "empresa" : "empresa",
       tipo: "Obrigação",
       titulo: o.title,
       detalhe: o.cadence,
@@ -133,7 +133,7 @@ export async function buscarTudo(termo: string): Promise<ResultadoBusca[]> {
   for (const d of documentos.data ?? []) {
     saida.push({
       id: `documento-${d.id}`,
-      origem: "administrativo",
+      origem: "empresa",
       tipo: "Documento",
       titulo: d.name,
       detalhe: d.kind,

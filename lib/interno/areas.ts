@@ -2,42 +2,52 @@
  * =============================================================
  * ÁREAS DO SISTEMA INTERNO
  * =============================================================
- * Fonte única das áreas administrativas da empresa (comercial,
- * financeiro, pessoas, contábil e administrativo).
+ * Fonte única das áreas da empresa.
  *
- * Cada área tem uma COR, e a cor tem função: ela diz de onde a
- * informação vem. Numa lista misturada (a tela Início), a tarja
- * colorida identifica a origem sem precisar ler.
+ * O MENU TEM QUATRO ÁREAS, E JÁ TEVE SETE.
  *
- * As cores em si vivem no CSS (`app/globals.css`, seletor
- * `[data-area]`), porque o tema troca por atributo. Aqui ficam
- * apenas os metadados e a ordem do menu.
+ * As sete eram Comercial, Financeiro, Pessoas, Contábil,
+ * Administrativo, Relatório e Meus gastos. Parecia organizado, e não
+ * era: Pessoas, Contábil e Administrativo mostravam os MESMOS
+ * lançamentos do Financeiro, só filtrados por categoria. Quatro
+ * portas para o mesmo dado.
  *
- * ATENÇÃO: este módulo é do sistema INTERNO. O sistema de gestão
- * de demandas (conteúdos, gravações, edição, postagens) é outro,
- * e sua navegação continua em `lib/navigation.ts`.
+ * Quem usava abria quatro lugares diferentes e via dinheiro em todos,
+ * sem entender o que cada um tinha de diferente. A Fran resumiu:
+ * "parece que tá tudo misturado". Estava mesmo.
+ *
+ * Agora cada área responde uma pergunta que as outras não respondem:
+ *
+ *   Dinheiro  quanto entra e quanto sai
+ *   Clientes  quem paga hoje e quem pode pagar amanhã
+ *   Empresa   o que a empresa tem, deve e precisa cumprir
+ *   Meus gastos  o meu bolso, que ninguém mais vê
+ *
+ * Cada área tem uma COR, e a cor diz de onde a informação vem. Numa
+ * lista misturada (a tela Início), a tarja colorida identifica a
+ * origem sem precisar ler.
+ *
+ * As cores vivem no CSS (`app/globals.css`, seletor `[data-area]`),
+ * porque o tema troca por atributo. Aqui ficam os metadados e a ordem.
  * =============================================================
  */
 
 export type AreaId =
   | "inicio"
-  | "relatorio"
-  | "comercial"
-  | "financeiro"
-  | "pessoas"
-  | "contabil"
-  | "administrativo"
+  | "dinheiro"
+  | "clientes"
+  | "empresa"
   | "pessoal";
 
 export interface Area {
   id: AreaId;
   label: string;
   href: string;
-  /** Aparece no cabeçalho da tela, ao lado do título. */
+  /** Aparece embaixo do título da tela. */
   contexto: string;
-  /** A pergunta que a área responde — usada na porta de entrada. */
+  /** A pergunta que só esta área responde. */
   pergunta: string;
-  /** Cor da área em hex. Espelha `--area` no CSS; use só onde o CSS não alcança. */
+  /** Cor da área em hex. Espelha `--area` no CSS. */
   cor: string;
   /** Nome do ícone em `components/interno/icone.tsx`. */
   icone: string;
@@ -52,64 +62,37 @@ export const AREAS: Area[] = [
     id: "inicio",
     label: "Início",
     href: "/interno",
-    contexto: "Cruzamento",
+    contexto: "O que precisa de você",
     pergunta: "Por onde eu começo hoje?",
     cor: "#3f3a3c",
     icone: "inicio",
   },
   {
-    id: "relatorio",
-    label: "Relatório do mês",
-    href: "/interno/relatorio",
-    contexto: "Fechamento",
-    pergunta: "Como foi o mês que passou?",
-    cor: "#3f3a3c",
-    icone: "relatorio",
-  },
-  {
-    id: "comercial",
-    label: "Comercial",
-    href: "/interno/comercial",
-    contexto: "Carteira e funil",
-    pergunta: "De onde vem o próximo cliente?",
-    cor: "#7a2740",
-    icone: "comercial",
-  },
-  {
-    id: "financeiro",
-    label: "Financeiro",
+    id: "dinheiro",
+    label: "Dinheiro",
     href: "/interno/financeiro",
-    contexto: "Fluxo de caixa",
-    pergunta: "Quanto sobra no fim do mês?",
+    contexto: "Entradas e saídas",
+    pergunta: "Quanto entra e quanto sai?",
     cor: "#0f5d52",
-    icone: "financeiro",
+    icone: "dinheiro",
   },
   {
-    id: "pessoas",
-    label: "Pessoas",
-    href: "/interno/pessoas",
-    contexto: "Sócias e freelas",
-    pergunta: "Quanto custa a equipe?",
-    cor: "#6f4a9b",
-    icone: "pessoas",
+    id: "clientes",
+    label: "Clientes",
+    href: "/interno/comercial",
+    contexto: "Carteira e prospecção",
+    pergunta: "Quem paga hoje e quem pode pagar amanhã?",
+    cor: "#7a2740",
+    icone: "clientes",
   },
   {
-    id: "contabil",
-    label: "Contábil",
-    href: "/interno/contabil",
-    contexto: "Obrigações",
-    pergunta: "O que tem prazo com o governo?",
+    id: "empresa",
+    label: "Empresa",
+    href: "/interno/empresa/equipe",
+    contexto: "Equipe, prazos e contratos",
+    pergunta: "O que a empresa tem, deve e precisa cumprir?",
     cor: "#1d5a9e",
-    icone: "contabil",
-  },
-  {
-    id: "administrativo",
-    label: "Administrativo",
-    href: "/interno/administrativo",
-    contexto: "Contratos e ferramentas",
-    pergunta: "O que a empresa assina e paga?",
-    cor: "#8a5a16",
-    icone: "administrativo",
+    icone: "empresa",
   },
   {
     id: "pessoal",
@@ -126,15 +109,15 @@ export const AREAS: Area[] = [
 export const AREAS_MENU: Area[] = AREAS.filter((a) => a.id !== "inicio");
 
 /**
- * As áreas que são da EMPRESA: as duas sócias veem exatamente o mesmo
- * dado nelas, e isso é o esperado.
+ * As áreas da EMPRESA: as duas sócias veem exatamente o mesmo dado
+ * nelas, e isso é o esperado.
  */
 export const AREAS_EMPRESA: Area[] = AREAS_MENU.filter(
   (a) => !AREAS_PRIVADAS.includes(a.id),
 );
 
 /**
- * As áreas PRIVADAS por login. Cada uma vê só o que é dela — garantido
+ * As áreas PRIVADAS por login. Cada uma vê só o que é dela, garantido
  * pelo RLS do Postgres (`user_id = auth.uid()`), não pela tela. Ficam
  * separadas no menu por uma linha, porque a diferença importa: tudo
  * acima é "nosso", tudo aqui é "meu".
@@ -149,12 +132,28 @@ export function area(id: AreaId): Area {
 }
 
 /**
- * Descobre a área a partir da rota atual — usado pelo shell para
- * tingir a tela inteira com a cor certa.
+ * Rotas que pertencem a uma área mas não começam com o href dela.
+ * O relatório é uma leitura do dinheiro; não merece item de menu
+ * próprio, mas precisa da cor certa quando aberto.
+ */
+const ROTAS_EXTRAS: [string, AreaId][] = [
+  ["/interno/relatorio", "dinheiro"],
+  ["/interno/empresa", "empresa"],
+];
+
+/**
+ * Descobre a área a partir da rota atual, para o shell tingir a tela
+ * inteira com a cor certa.
  */
 export function areaDaRota(pathname: string): AreaId {
+  for (const [rota, id] of ROTAS_EXTRAS) {
+    if (pathname === rota || pathname.startsWith(`${rota}/`)) return id;
+  }
   const encontrada = AREAS_MENU.find(
     (a) => pathname === a.href || pathname.startsWith(`${a.href}/`),
   );
-  return encontrada?.id ?? "inicio";
+  if (encontrada) return encontrada.id;
+  // /interno/comercial/... e /interno/financeiro/... já caem acima;
+  // o que sobrar é a raiz.
+  return "inicio";
 }

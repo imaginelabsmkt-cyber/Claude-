@@ -19,7 +19,7 @@ import {
   type LancamentoFormValues,
 } from "@/lib/validation/financeiro";
 import { PAYMENT_METHOD_OPTIONS } from "@/types";
-import { categoriasDaArea } from "@/lib/interno/classificacao";
+import { categoriasDoAssunto } from "@/lib/interno/classificacao";
 import type {
   Client,
   FinancialCategory,
@@ -85,7 +85,7 @@ export function EntryForm({
   // Pró-labore e freelancers são pagamentos a pessoas: só nessas
   // categorias faz sentido perguntar a quem o lançamento se refere.
   const ehDePessoas = useMemo(() => {
-    const nomes = categoriasDaArea("pessoas");
+    const nomes = categoriasDoAssunto("equipe");
     const escolhida = categorias.find((c) => c.id === values.category_id);
     return Boolean(escolhida && nomes.includes(escolhida.name));
   }, [categorias, values.category_id]);

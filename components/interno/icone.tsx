@@ -10,6 +10,11 @@ import type { SVGProps } from "react";
 const CAMINHOS: Record<string, string> = {
   inicio: "M4 5h6v6H4zM14 5h6v4h-6zM14 13h6v6h-6zM4 15h6v4H4z",
   relatorio: "M3 3v18h18M8 17V9M13 17V5M18 17v-6",
+  dinheiro:
+    "M12 3v18M16 7.5C16 6.1 14.2 5 12 5S8 6.1 8 7.5 9.8 10 12 10s4 1.1 4 2.5-1.8 2.5-4 2.5-4-1.1-4-2.5",
+  clientes: "M3 4h18l-7 8v7l-4 2v-9z",
+  empresa:
+    "M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01",
   comercial: "M3 4h18l-7 8v7l-4 2v-9z",
   financeiro:
     "M12 3v18M16 7.5C16 6.1 14.2 5 12 5S8 6.1 8 7.5 9.8 10 12 10s4 1.1 4 2.5-1.8 2.5-4 2.5-4-1.1-4-2.5",

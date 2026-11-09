@@ -49,7 +49,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Financeiro"
+        titulo="Dinheiro"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />

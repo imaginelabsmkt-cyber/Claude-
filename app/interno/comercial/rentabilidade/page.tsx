@@ -77,17 +77,17 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
       </div>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat rotulo="Receita recebida" valor={formatarMoeda(r.receitaTotal)} origem="financeiro" />
+        <Stat rotulo="Receita recebida" valor={formatarMoeda(r.receitaTotal)} origem="dinheiro" />
         <Stat
           rotulo="Custo direto"
           valor={formatarMoeda(r.custoDiretoTotal)}
-          origem="financeiro"
+          origem="dinheiro"
           detalhe="Lançado com cliente"
         />
         <Stat
           rotulo="Custo indireto"
           valor={formatarMoeda(r.custoIndireto)}
-          origem="financeiro"
+          origem="dinheiro"
           detalhe="Pró-labore, ferramentas, impostos"
         />
         <Stat

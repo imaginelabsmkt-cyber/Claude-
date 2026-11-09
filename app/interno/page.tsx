@@ -62,25 +62,25 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
         <Stat
           rotulo="Em caixa"
           valor={formatarMoeda(financeiro.resumo.saldoInicial)}
-          origem="financeiro"
+          origem="dinheiro"
           detalhe="No início do mês"
         />
         <Stat
           rotulo="A receber"
           valor={formatarMoeda(financeiro.resumo.aReceber)}
-          origem="financeiro"
+          origem="dinheiro"
           detalhe={`${financeiro.aReceber.length} em aberto`}
         />
         <Stat
           rotulo="A pagar"
           valor={formatarMoeda(financeiro.resumo.aPagar)}
-          origem="financeiro"
+          origem="dinheiro"
           detalhe={`${financeiro.aPagar.length} em aberto`}
         />
         <Stat
           rotulo="Clientes ativos"
           valor={String(carteira.ativos)}
-          origem="comercial"
+          origem="clientes"
           detalhe={`${formatarMoeda(carteira.recorrente)} por mês`}
         />
       </div>
