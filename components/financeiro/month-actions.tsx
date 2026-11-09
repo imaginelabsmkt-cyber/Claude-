@@ -19,6 +19,9 @@ interface MonthActionsProps {
  *  - "Novo lançamento": o que é avulso;
  *  - "Gerar do plano fixo": o que repete todo mês, a partir das recorrências.
  *
+ * Mais o link para o cadastro dos fixos, que era aba no topo e desceu
+ * para cá, ao lado do botão que o consome.
+ *
  * Existia também um "Copiar mês anterior". Saiu: ele repetia TUDO do mês
  * passado, inclusive o que foi compra única, e o plano fixo já cobre o que
  * de fato repete — sem risco de duplicar (uma recorrência só gera uma vez
@@ -55,6 +58,16 @@ export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) 
           ? "Processando..."
           : `Gerar do plano fixo${recorrenciasPendentes ? ` (${recorrenciasPendentes})` : ""}`}
       </Button>
+
+      {/* O cadastro do que se repete fica aqui, ao lado do botão que o
+          usa, e não como aba no topo: é configuração, não uma vista do
+          dinheiro. */}
+      <Link
+        href="/interno/financeiro/recorrencias"
+        className="self-center text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline"
+      >
+        Fixos e ferramentas
+      </Link>
     </div>
   );
 }

@@ -57,7 +57,7 @@ export default async function RecorrenciasPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        contexto="O que se repete todo mês"
+        titulo="Fixos e ferramentas"
         acao={<MonthNav mes={mes} />}
       />
 

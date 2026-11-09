@@ -95,7 +95,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        contexto={`O ano de ${ano} inteiro, uma coluna por mês`}
+        titulo={`O ano de ${ano}`}
         acao={
           <div className="flex gap-2">
             <Link

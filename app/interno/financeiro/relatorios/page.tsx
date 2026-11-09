@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { mesAtual, mesValido, anoDoMes } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido } from "@/lib/financeiro/meses";
 
 export const dynamic = "force-dynamic";
 
@@ -26,48 +26,29 @@ interface PageProps {
  * tem uma chamada "Relatórios", e o resumo do ano é o primeiro item
  * dentro dela.
  *
- * Antes dela, cinco telas do financeiro não estavam em lugar nenhum:
- * existiam, mas só se chegava por um link escondido no pé de outra
- * tela. "Se eu quiser ver o anual, eu não vou conseguir ver o anual."
- * Agora todas moram aqui, cada uma com a pergunta que responde.
+ * Antes dela, essas telas não estavam em lugar nenhum: existiam, mas
+ * só se chegava por um link escondido no pé de outra tela.
+ *
+ * Sem frase embaixo do nome. A primeira versão tinha uma linha
+ * explicando cada relatório, e a Fran: "ele precisa daquelas frases
+ * que tu colocou, sendo que é um sistema, não é pra ter essas
+ * frases". Se o nome precisa de legenda, o nome está errado — então
+ * o trabalho é no nome.
  */
 interface Relatorio {
   titulo: string;
-  responde: string;
   href: string;
 }
 
 export default function RelatoriosPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
-  const ano = anoDoMes(mes);
 
   const RELATORIOS: Relatorio[] = [
-    {
-      titulo: `O ano de ${ano}`,
-      responde: "Quanto entrou e quanto saiu em cada mês, por categoria",
-      href: `/interno/financeiro/resumo-anual?mes=${mes}`,
-    },
-    {
-      titulo: "O caixa mês a mês",
-      responde: "Para onde o dinheiro está indo, do primeiro mês até hoje",
-      href: `/interno/financeiro/fluxo-caixa?mes=${mes}`,
-    },
-    {
-      titulo: "Quanto cada cliente rende",
-      responde: "O que cada cliente paga e o que ele custa",
-      href: `/interno/financeiro/rentabilidade?mes=${mes}`,
-    },
-    {
-      titulo: "Impostos e contabilidade",
-      responde: "O DAS e os honorários, mês a mês",
-      href: `/interno/financeiro/impostos?mes=${mes}`,
-    },
-    {
-      titulo: "Fechamento do mês",
-      responde: "A folha do mês no formato de imprimir",
-      href: `/interno/relatorio?mes=${mes}`,
-    },
+    { titulo: "O caixa mês a mês", href: `/interno/financeiro/fluxo-caixa?mes=${mes}` },
+    { titulo: "Quanto cada cliente rende", href: `/interno/financeiro/rentabilidade?mes=${mes}` },
+    { titulo: "Impostos e contabilidade", href: `/interno/financeiro/impostos?mes=${mes}` },
+    { titulo: "Fechamento do mês, para imprimir", href: `/interno/relatorio?mes=${mes}` },
   ];
 
   return (
@@ -85,9 +66,6 @@ export default function RelatoriosPage({ searchParams }: PageProps) {
             >
               <span className="block text-sm font-bold text-gray-900">
                 {r.titulo}
-              </span>
-              <span className="mt-0.5 block text-[13px] leading-snug text-gray-500">
-                {r.responde}
               </span>
             </Link>
           </li>
