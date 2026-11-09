@@ -1172,6 +1172,47 @@ O padrão é sempre o mesmo: o título da seção nomeia o período, e os
 rótulos dentro dela param de repetir. "ENTROU NO MÊS" embaixo de "O mês
 de Outubro/2026" é a mesma informação duas vezes; "ENTROU" basta.
 
+## 5.20 Lançamentos: a lista de trabalho, não de leitura
+
+A diferença entre esta tela e o Painel do mês é a PERGUNTA. O painel
+responde "como foi o mês", e por isso agrupa por categoria. Lançamentos
+responde "o que eu preciso resolver", e por isso a ordem é a urgência.
+
+`lib/financeiro/vencimento.ts` tem a conta, com teste: vencido primeiro,
+depois o que vence hoje, depois o que vai vencer (do mais próximo), e
+por último o que já foi baixado (do mais recente). Dias contados com
+`Date.UTC` dos dois lados, nunca `new Date(string)`, que em Boa Vista
+(UTC-4) devolve o dia anterior.
+
+### A coluna "Situação" dizia o que o botão já dizia
+
+A linha tinha uma etiqueta "Pendente" e, ao lado, um botão "Marcar
+pago". Mesma informação de dois jeitos, e nenhuma delas dizia o que
+importa: HÁ QUANTO TEMPO. Virou uma coluna de prazo em palavras:
+"venceu há 4 dias", "vence hoje", "vence em 11 dias", "pago". Vermelho
+só no que venceu ou vence hoje.
+
+### Vinte botões primários não destacam nada
+
+O botão de baixa era primário em toda linha: vinte linhas eram vinte
+botões vinho gritando juntos, e o olho não tinha para onde ir. Agora é
+um botão discreto de contorno, e só em quem ainda não foi baixado. Quem
+já foi baixado tem um "Reabrir" ainda mais apagado.
+
+### Os filtros viraram atalhos
+
+Eram quatro caixas de seleção iguais. As duas perguntas de todo dia,
+"o que está em aberto?" e "o que já venceu?", custavam dois cliques
+cada, dentro de uma lista. Agora são botões: Tudo · Em aberto ·
+Vencidos · Só o que entrou · Só o que saiu.
+
+Categoria e cliente continuam em caixa de seleção, porque são listas
+longas e a pergunta é mais rara. Tudo continua vivendo na URL, então o
+recorte é compartilhável e sobrevive à recarga.
+
+O "Vencidos" não existe no banco: é calculado com a mesma função pura
+da ordenação, sobre os lançamentos do mês, que é um punhado de linhas.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

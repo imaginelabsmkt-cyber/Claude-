@@ -12,10 +12,27 @@ interface EntriesToolbarProps {
   clientes: Pick<Client, "id" | "name">[];
 }
 
+/** Os recortes que a pessoa pede todo dia, em um clique cada. */
+const ATALHOS: { rotulo: string; params: Record<string, string> }[] = [
+  { rotulo: "Tudo", params: { situacao: "", tipo: "" } },
+  { rotulo: "Em aberto", params: { situacao: "aberto", tipo: "" } },
+  { rotulo: "Vencidos", params: { situacao: "vencido", tipo: "" } },
+  { rotulo: "Só o que entrou", params: { situacao: "", tipo: "Receita" } },
+  { rotulo: "Só o que saiu", params: { situacao: "", tipo: "Despesa" } },
+];
+
 /**
- * Filtros da listagem de lançamentos. Todo o estado vive na URL, então o
- * recorte é compartilhável e sobrevive à recarga (mesma ideia da tela de
- * clientes).
+ * Filtros da lista de lançamentos.
+ *
+ * Eram quatro caixas de seleção iguais, e as duas perguntas de todo dia
+ * ("o que está em aberto?", "o que já venceu?") precisavam de dois
+ * cliques cada uma, numa lista de opções. Viraram atalhos de um clique.
+ *
+ * Categoria e cliente continuam em caixa de seleção: são listas longas
+ * e a pergunta é mais rara.
+ *
+ * Todo o estado vive na URL, então o recorte é compartilhável e
+ * sobrevive à recarga.
  */
 export function EntriesToolbar({ categorias, clientes }: EntriesToolbarProps) {
   const router = useRouter();
@@ -40,40 +57,44 @@ export function EntriesToolbar({ categorias, clientes }: EntriesToolbarProps) {
 
   const valor = (chave: string) => searchParams.get(chave) ?? "todos";
 
+  const situacaoAtual = searchParams.get("situacao") ?? "";
+  const tipoAtual = searchParams.get("tipo") ?? "";
+  const ativo = (a: (typeof ATALHOS)[number]) =>
+    a.params.situacao === situacaoAtual && a.params.tipo === tipoAtual;
+
   return (
     <div className="mb-4 space-y-3">
-      <form onSubmit={aoBuscar} className="flex gap-2">
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar na descrição..."
-          aria-label="Buscar lançamento"
-        />
-        <Button type="submit" variante="secundaria">
-          Buscar
-        </Button>
-      </form>
+      <div className="flex flex-wrap gap-2">
+        {ATALHOS.map((a) => (
+          <button
+            key={a.rotulo}
+            type="button"
+            onClick={() => aplicar(a.params)}
+            aria-pressed={ativo(a)}
+            className={
+              "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors " +
+              (ativo(a)
+                ? "border-brand-600 bg-brand-600 text-white"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50")
+            }
+          >
+            {a.rotulo}
+          </button>
+        ))}
+      </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <Select
-          aria-label="Filtrar por tipo"
-          value={valor("tipo")}
-          onChange={(e) => aplicar({ tipo: e.target.value })}
-        >
-          <option value="todos">Todos os tipos</option>
-          <option value="Receita">Somente receitas</option>
-          <option value="Despesa">Somente despesas</option>
-        </Select>
-
-        <Select
-          aria-label="Filtrar por situação"
-          value={valor("status")}
-          onChange={(e) => aplicar({ status: e.target.value })}
-        >
-          <option value="todos">Todas as situações</option>
-          <option value="Pago">Pagos</option>
-          <option value="Pendente">Pendentes</option>
-        </Select>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <form onSubmit={aoBuscar} className="flex gap-2">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Procurar pelo nome..."
+            aria-label="Procurar lançamento"
+          />
+          <Button type="submit" variante="secundaria">
+            Ir
+          </Button>
+        </form>
 
         <Select
           aria-label="Filtrar por categoria"

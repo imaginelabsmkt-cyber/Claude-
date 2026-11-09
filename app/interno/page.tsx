@@ -233,7 +233,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
         acao={
           painel.compromissos.length > 10 ? (
             <Link
-              href={`/interno/financeiro/lancamentos?mes=${mes}&status=Pendente`}
+              href={`/interno/financeiro/lancamentos?mes=${mes}&situacao=aberto`}
               className="font-medium text-gray-600 hover:underline"
             >
               Ver todos os {painel.compromissos.length}

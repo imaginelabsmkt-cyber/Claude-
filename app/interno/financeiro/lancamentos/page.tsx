@@ -1,6 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Card } from "@/components/ui/card";
 import { EntriesTable } from "@/components/financeiro/entries-table";
 import { EntriesToolbar } from "@/components/financeiro/entries-toolbar";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
@@ -13,6 +12,11 @@ import {
   listarLancamentos,
 } from "@/lib/data/financeiro";
 import { somar } from "@/lib/financeiro/calculo";
+import {
+  contarUrgentes,
+  ordenarPorUrgencia,
+  situacaoDoLancamento,
+} from "@/lib/financeiro/vencimento";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 import type { FinancialKind, FinancialStatus } from "@/types";
@@ -24,13 +28,22 @@ interface PageProps {
     mes?: string;
     tipo?: string;
     status?: string;
+    situacao?: string;
     categoria?: string;
     cliente?: string;
     q?: string;
   };
 }
 
-/** Listagem de lançamentos do mês, com filtros e baixa rápida. */
+/**
+ * Lançamentos: a lista de TRABALHO do financeiro.
+ *
+ * A diferença entre esta tela e o Painel do mês é a pergunta. O painel
+ * responde "como foi o mês" e por isso agrupa por categoria. Esta
+ * responde "o que eu preciso resolver", e por isso a ordem é a
+ * urgência: vencido primeiro, depois o que vence hoje, depois o que vai
+ * vencer, e por último o que já foi baixado.
+ */
 export default async function LancamentosPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
@@ -39,12 +52,21 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
     searchParams.tipo === "Receita" || searchParams.tipo === "Despesa"
       ? (searchParams.tipo as FinancialKind)
       : undefined;
-  const status =
-    searchParams.status === "Pago" || searchParams.status === "Pendente"
-      ? (searchParams.status as FinancialStatus)
-      : undefined;
+  // "situacao" é o atalho da barra: aberto, vencido ou pago. O "status"
+  // antigo continua funcionando, porque links velhos apontam para ele.
+  const situacao = searchParams.situacao;
+  const status: FinancialStatus | undefined =
+    situacao === "pago"
+      ? "Pago"
+      : situacao === "aberto" || situacao === "vencido"
+        ? "Pendente"
+        : searchParams.status === "Pago" || searchParams.status === "Pendente"
+          ? (searchParams.status as FinancialStatus)
+          : undefined;
 
-  const [lancamentos, categorias, clientes, recorrenciasPendentes] = await Promise.all([
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  const [brutos, categorias, clientes, recorrenciasPendentes] = await Promise.all([
     listarLancamentos({
       mes,
       kind: tipo,
@@ -58,6 +80,13 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
     contarRecorrenciasPendentes(mes),
   ]);
 
+  const noRecorte =
+    situacao === "vencido"
+      ? brutos.filter((l) => situacaoDoLancamento(l, hoje) === "Vencido")
+      : brutos;
+  const lancamentos = ordenarPorUrgencia(noRecorte, hoje);
+  const urgentes = contarUrgentes(lancamentos, hoje);
+
   const receitas = somar(
     lancamentos.filter((l) => l.kind === "Receita").map((l) => Number(l.amount)),
   );
@@ -66,13 +95,22 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
   );
 
   const temFiltro = Boolean(
-    tipo || status || searchParams.categoria || searchParams.cliente || searchParams.q,
+    tipo ||
+      status ||
+      situacao ||
+      searchParams.categoria ||
+      searchParams.cliente ||
+      searchParams.q,
   );
 
   return (
     <>
       <AreaHeader
-        contexto="Tudo que entrou e saiu, linha por linha"
+        contexto={
+          urgentes > 0
+            ? `${urgentes} ${urgentes === 1 ? "lançamento vencido ou vencendo hoje" : "lançamentos vencidos ou vencendo hoje"}`
+            : "Tudo que entrou e saiu, linha por linha"
+        }
         acao={<MonthNav mes={mes} />}
       />
 
@@ -99,33 +137,40 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
         />
       ) : (
         <>
-          <Card className="mb-4 p-4">
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
-              <span className="text-gray-500">
-                {lancamentos.length} lançamento(s) no recorte
-              </span>
-              <span className="text-gray-700">
-                Receitas:{" "}
-                <strong className="text-green-700">{formatarMoeda(receitas)}</strong>
-              </span>
-              <span className="text-gray-700">
-                Despesas:{" "}
-                <strong className="text-red-600">{formatarMoeda(despesas)}</strong>
-              </span>
-              <span className="text-gray-700">
-                Diferença:{" "}
-                <strong
-                  className={
-                    receitas - despesas >= 0 ? "text-green-700" : "text-red-600"
-                  }
-                >
-                  {formatarMoeda(receitas - despesas)}
-                </strong>
-              </span>
-            </div>
-          </Card>
+          {/* A soma é do RECORTE, não do mês: com filtro ligado ela é a
+              única coisa na tela que diz quanto dá o que está à vista. */}
+          <p className="mb-3 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm text-gray-600">
+            <span>
+              {lancamentos.length}{" "}
+              {lancamentos.length === 1 ? "lançamento" : "lançamentos"}
+              {temFiltro ? " no filtro" : ""}
+            </span>
+            <span>
+              entrou{" "}
+              <strong className="font-semibold tabular-nums text-gray-900">
+                {formatarMoeda(receitas)}
+              </strong>
+            </span>
+            <span>
+              saiu{" "}
+              <strong className="font-semibold tabular-nums text-gray-900">
+                {formatarMoeda(despesas)}
+              </strong>
+            </span>
+            <span>
+              diferença{" "}
+              <strong
+                className={
+                  "font-semibold tabular-nums " +
+                  (receitas - despesas < 0 ? "text-alerta" : "text-gray-900")
+                }
+              >
+                {formatarMoeda(receitas - despesas)}
+              </strong>
+            </span>
+          </p>
 
-          <EntriesTable lancamentos={lancamentos} />
+          <EntriesTable lancamentos={lancamentos} hoje={hoje} />
         </>
       )}
     </>
