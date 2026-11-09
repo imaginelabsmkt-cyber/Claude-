@@ -1,19 +1,11 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
-import { GraficoAno } from "@/components/interno/grafico-ano";
-import { GraficoCaixa } from "@/components/interno/grafico-caixa";
-import { MetaDoAnoCartao } from "@/components/interno/meta-do-ano";
+import { CartaoDoAno } from "@/components/interno/cartao-do-ano";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterPainelInterno } from "@/lib/data/interno";
-import {
-  mesAtual,
-  mesValido,
-  mesesDoAno,
-  rotuloMes,
-  rotuloMesCurto,
-} from "@/lib/financeiro/meses";
+import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -106,84 +98,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           </Link>
         }
       >
-        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
-          <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Faturamento
-              </p>
-              <p className="mt-0.5 text-4xl font-bold tabular-nums tracking-tight text-gray-900 sm:text-5xl">
-                {formatarMoeda(ano.recebido)}
-              </p>
-              {ano.mesesFaturados > 0 ? (
-                <p className="mt-1 text-[13px] text-gray-500">
-                  {ano.mesesFaturados}{" "}
-                  {ano.mesesFaturados === 1 ? "mês" : "meses"}, média de{" "}
-                  <strong className="font-semibold text-gray-700">
-                    {formatarMoeda(ano.mediaMensal)}
-                  </strong>
-                </p>
-              ) : null}
-            </div>
-
-            <dl className="flex flex-wrap gap-x-8 gap-y-3">
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  Saiu
-                </dt>
-                <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
-                  {formatarMoeda(ano.pago)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  {ano.resultado >= 0 ? "Sobrou" : "Faltou"}
-                </dt>
-                <dd
-                  className={
-                    "mt-0.5 text-xl font-bold tabular-nums " +
-                    (ano.resultado < 0 ? "text-alerta" : "text-gray-900")
-                  }
-                >
-                  {formatarMoeda(Math.abs(ano.resultado))}
-                </dd>
-              </div>
-              {ano.melhorMes ? (
-                <div>
-                  <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                    Melhor mês
-                  </dt>
-                  <dd className="mt-0.5 text-xl font-bold text-gray-900">
-                    {rotuloMesCurto(ano.melhorMes.mes)}
-                    <span className="ml-1.5 text-sm font-semibold tabular-nums text-gray-500">
-                      {formatarMoeda(ano.melhorMes.valor)}
-                    </span>
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-          </div>
-
-          {meta ? (
-            <div className="mt-5 border-t border-gray-100 pt-4">
-              <MetaDoAnoCartao meta={meta} />
-            </div>
-          ) : null}
-
-          <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="mb-2 text-sm font-semibold text-gray-700">
-              O caixa no fim de cada mês
-            </p>
-            <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
-          </div>
-
-          <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="mb-2 text-sm font-semibold text-gray-700">
-              Entrou e saiu, mês a mês
-            </p>
-            <GraficoAno barras={ano.barras} mesFoco={mes} />
-          </div>
-        </div>
+        <CartaoDoAno ano={ano} meta={meta} mesFoco={mes} />
       </Secao>
 
       {/* 2. OS NÚMEROS DAS TRÊS ETAPAS */}

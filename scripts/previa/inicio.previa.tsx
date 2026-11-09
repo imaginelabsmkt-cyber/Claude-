@@ -1,38 +1,56 @@
 /**
  * Prévia visual do Dashboard.
  *
- * Não é teste: não afirma nada. O markup é copiado de
- * `app/interno/page.tsx`, que é um componente de servidor e fala com o
- * Supabase, então não dá para renderizar a página aqui.
+ * Não é teste: não afirma nada. Desenha a tela para a gente abrir e
+ * olhar antes de subir.
  *
- * ATENÇÃO: isto é uma cópia, e cópia envelhece. Já aconteceu de a
- * prévia me mostrar a tela antiga enquanto a de verdade já tinha
- * mudado. Ao mexer na página, mexa aqui também, ou apague a prévia.
+ * DUAS REGRAS, as duas aprendidas errando:
+ *
+ * 1. NÚMEROS DE VERDADE. Os valores daqui são os da planilha do Drive
+ *    (Fluxo_Caixa_Imagine_Labs_2026, aba Resumo Anual), mês a mês. A
+ *    versão anterior tinha números inventados, eu mandei a imagem para
+ *    a Fran como se fosse o sistema dela, e ela viu um ano que não é o
+ *    dela — "teve mês que a gente faturou 20.000 e você não levou em
+ *    consideração". Era maio: R$ 20.958,00. Estava certo no sistema e
+ *    errado só aqui.
+ *
+ * 2. SEM CÓPIA DO MARKUP. O cartão do ano é <CartaoDoAno>, o mesmo
+ *    componente que a página renderiza. Cópia envelhece.
  */
 import { describe, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
-import { GraficoAno } from "@/components/interno/grafico-ano";
-import { GraficoCaixa } from "@/components/interno/grafico-caixa";
-import { MetaDoAnoCartao } from "@/components/interno/meta-do-ano";
-import { metaDoAno } from "@/lib/interno/meta";
+import { CartaoDoAno } from "@/components/interno/cartao-do-ano";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
 import { faturamentoAnual, type MesFaturamento } from "@/lib/interno/ano";
-import { mesesDoAno, rotuloMes, rotuloMesCurto } from "@/lib/financeiro/meses";
+import { metaDoAno } from "@/lib/interno/meta";
+import { rotuloMes } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
-const MES = "2026-10";
+const MES = "2026-11";
 
+/**
+ * A planilha, linha por linha. Receitas e despesas são o TOTAL de cada
+ * aba mensal; o saldo é o "Saldo Final do Mês" da própria planilha.
+ *
+ * Novembro ainda está em aberto: caíram três mensalidades (Laura,
+ * Izabela e Natural Concept) e nenhuma despesa foi paga. O previsto é
+ * o mês cheio.
+ */
 const REAIS: MesFaturamento[] = [
-  { mes: "2026-04", receitas: 12150, despesas: 13890.12, receitasPrevistas: 12150, despesasPrevistas: 13890.12, saldoFinal: 14259.88 },
-  { mes: "2026-05", receitas: 11800, despesas: 14102.44, receitasPrevistas: 11800, despesasPrevistas: 14102.44, saldoFinal: 11957.44 },
-  { mes: "2026-06", receitas: 12450, despesas: 13540.9, receitasPrevistas: 12450, despesasPrevistas: 13540.9, saldoFinal: 10866.54 },
-  { mes: "2026-07", receitas: 13150, despesas: 15239.8, receitasPrevistas: 13150, despesasPrevistas: 15239.8, saldoFinal: 8776.74 },
-  { mes: "2026-08", receitas: 12900, despesas: 14534.8, receitasPrevistas: 12900, despesasPrevistas: 14534.8, saldoFinal: 7141.94 },
-  { mes: "2026-09", receitas: 13150, despesas: 14166.04, receitasPrevistas: 13150, despesasPrevistas: 14166.04, saldoFinal: 6125.9 },
-  { mes: "2026-10", receitas: 11350, despesas: 15837.74, receitasPrevistas: 13150, despesasPrevistas: 15837.74, saldoFinal: 1638.16 },
+  { mes: "2026-04", receitas: 15271, despesas: 11548.03, receitasPrevistas: 15271, despesasPrevistas: 11548.03, saldoFinal: 3722.97 },
+  { mes: "2026-05", receitas: 20958, despesas: 16224.11, receitasPrevistas: 20958, despesasPrevistas: 16224.11, saldoFinal: 8456.86 },
+  { mes: "2026-06", receitas: 20418, despesas: 14767.16, receitasPrevistas: 20418, despesasPrevistas: 14767.16, saldoFinal: 14107.7 },
+  { mes: "2026-07", receitas: 18747, despesas: 15567.02, receitasPrevistas: 18747, despesasPrevistas: 15567.02, saldoFinal: 17287.68 },
+  { mes: "2026-08", receitas: 15500, despesas: 15900.22, receitasPrevistas: 15500, despesasPrevistas: 15900.22, saldoFinal: 16887.46 },
+  { mes: "2026-09", receitas: 15650, despesas: 17813.92, receitasPrevistas: 15650, despesasPrevistas: 17813.92, saldoFinal: 14723.54 },
+  { mes: "2026-10", receitas: 14150, despesas: 16950.16, receitasPrevistas: 14150, despesasPrevistas: 16950.16, saldoFinal: 11923.38 },
+  { mes: "2026-11", receitas: 5050, despesas: 0, receitasPrevistas: 14450, despesasPrevistas: 13956.75, saldoFinal: 16973.38 },
 ];
+
+/** Exemplo: a meta de verdade é a Fran que define nas Configurações. */
+const META_DE_EXEMPLO = 200000;
 
 /** Igual ao <Indicador> da página. */
 function Indicador({
@@ -73,6 +91,7 @@ function Indicador({
 
 function Tela() {
   const ano = faturamentoAnual(2026, REAIS);
+  const meta = metaDoAno(META_DE_EXEMPLO, ano.recebido, ano.ano, MES);
 
   return (
     <>
@@ -80,87 +99,25 @@ function Tela() {
         titulo={`O ano de ${ano.ano}`}
         acao={<span className="font-medium text-gray-600">Abrir o resumo do ano</span>}
       >
-        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
-          <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Faturamento
-              </p>
-              <p className="mt-0.5 text-4xl font-bold tabular-nums tracking-tight text-gray-900 sm:text-5xl">
-                {formatarMoeda(ano.recebido)}
-              </p>
-              <p className="mt-1 text-[13px] text-gray-500">
-                {ano.mesesFaturados} meses, média de{" "}
-                <strong className="font-semibold text-gray-700">
-                  {formatarMoeda(ano.mediaMensal)}
-                </strong>
-              </p>
-            </div>
-            <dl className="flex flex-wrap gap-x-8 gap-y-3">
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Saiu</dt>
-                <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
-                  {formatarMoeda(ano.pago)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Faltou</dt>
-                <dd className="mt-0.5 text-xl font-bold tabular-nums text-alerta">
-                  {formatarMoeda(Math.abs(ano.resultado))}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Melhor mês</dt>
-                <dd className="mt-0.5 text-xl font-bold text-gray-900">
-                  {rotuloMesCurto(ano.melhorMes!.mes)}
-                  <span className="ml-1.5 text-sm font-semibold tabular-nums text-gray-500">
-                    {formatarMoeda(ano.melhorMes!.valor)}
-                  </span>
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          <div className="mt-5 border-t border-gray-100 pt-4">
-            <MetaDoAnoCartao
-              meta={metaDoAno(180000, ano.recebido, ano.ano, "2026-11")!}
-            />
-          </div>
-
-          <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="mb-2 text-sm font-semibold text-gray-700">
-              O caixa no fim de cada mês
-            </p>
-            <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
-          </div>
-
-          <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="mb-2 text-sm font-semibold text-gray-700">
-              Entrou e saiu, mês a mês
-            </p>
-            <GraficoAno barras={ano.barras} mesFoco={MES} />
-          </div>
-        </div>
+        <CartaoDoAno ano={ano} meta={meta} mesFoco={MES} />
       </Secao>
 
       <Secao titulo={rotuloMes(MES)}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Indicador
             rotulo="Em caixa"
-            valor={formatarMoeda(1638.16)}
+            valor={formatarMoeda(16973.38)}
             detalhe="cobre até Maio/2027"
           />
           <Indicador
             rotulo="Vencido a receber"
-            valor={formatarMoeda(1800)}
-            detalhe="2 em aberto no mês"
-            alerta
+            valor={formatarMoeda(0)}
+            detalhe="nada vencido"
           />
           <Indicador
             rotulo="Vencido a pagar"
-            valor={formatarMoeda(13000)}
-            detalhe="3 em aberto no mês"
-            alerta
+            valor={formatarMoeda(0)}
+            detalhe="nada vencido"
           />
           <Indicador
             rotulo="No funil"
@@ -169,16 +126,6 @@ function Tela() {
           />
           <Indicador rotulo="Contratos" valor="2" detalhe="pedem conversa" alerta />
         </div>
-
-        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">
-          <span>
-            <strong className="font-semibold text-alerta">
-              Faltam {formatarMoeda(1036.55)} por mês
-            </strong>{" "}
-            para as mensalidades cobrirem o custo fixo.
-          </span>
-          <span className="font-semibold text-alerta underline">Ver o funil</span>
-        </p>
       </Secao>
 
       <Secao titulo="Precisa de você">
@@ -188,8 +135,7 @@ function Tela() {
             titulo="Pró-labore Fran"
             descricao="Pró-labore (sócias)"
             valor={formatarMoeda(6500)}
-            prazo="venceu há 4 dias"
-            atrasado
+            prazo="vence amanhã"
           />
           <OrigemItem
             origem="comercial"
