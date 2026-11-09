@@ -793,8 +793,8 @@ utilizar, não vai ficar legal").
 |---|---|---|
 | 1 | Início: o ano, o caixa, o que pede ação, o mês | no ar |
 | 2 | Financeiro: painel do mês, lançamentos, fixos, fluxo, impostos, por cliente | no ar |
-| 3 | Administrativo: ficha do cliente com contratos e histórico | a fazer |
-| 4 | Comercial: propostas com revisão e conversão em contrato | a fazer |
+| 3 | Administrativo: clientes com contrato, equipe, documentos | no ar |
+| 4 | Comercial: funil e prospecção por canal | no ar (propostas a fazer) |
 | 5 | Relatórios: DRE, inadimplência, receita recorrente | a fazer |
 
 ### Painel 1: o Início
@@ -1257,6 +1257,29 @@ título que já diz "O ano de 2026 inteiro".
 
 **Relatório do mês** ficou como estava: é a folha para imprimir, com
 granularidade própria, e não repete nenhuma das outras.
+
+## 5.22 Comercial e Equipe: a mesma régua
+
+Nada estava errado nessas telas; elas só não seguiam ainda o que as
+outras passaram a seguir. Todo bloco virou uma `<Secao>` com título em
+palavras dela e uma linha dizendo o que o bloco responde.
+
+O que mudou de verdade:
+
+- **Funil**: "No funil" e "Valor do funil" viraram "Em aberto" e "Se
+  tudo fechar". A palavra "funil" aparecia três vezes na mesma tela,
+  contando o título da aba.
+- **Funil**: "Encerradas recentemente" virou "As últimas que acabaram",
+  com a explicação do porquê de elas ficarem na tela: o motivo da perda
+  é o que impede de repetir o mesmo erro no mês seguinte.
+- **Prospecção**: o cartão "Custo em contatos" aparecia vazio enquanto
+  não houvesse nenhum fechamento. Agora simplesmente não aparece.
+- **Prospecção**: a explicação da barra (mensalidade conquistada, não
+  quantidade de contatos) subiu do rodapé para a linha de apoio da
+  seção. No rodapé ela era lida depois de a pessoa já ter interpretado
+  o gráfico do jeito errado.
+- **Equipe**: o h2 "Equipe" repetia o nome da aba e do bloco. Virou
+  "Quem é da casa".
 
 ## 6. Convenções de código
 

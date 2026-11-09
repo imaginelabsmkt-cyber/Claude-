@@ -1,5 +1,6 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { ComercialTabs } from "@/components/comercial/comercial-tabs";
+import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { listarProspeccao } from "@/lib/data/comercial";
 import {
@@ -13,7 +14,7 @@ import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 /**
- * Prospecção — de onde vêm os clientes.
+ * Prospecção: de onde vêm os clientes.
  *
  * A tela responde UMA pergunta: **em qual canal vale a pena gastar a
  * próxima hora?** Por isso não lista tarefa, roteiro nem meta diária
@@ -63,26 +64,24 @@ export default async function ProspeccaoPage() {
           <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat rotulo="Oportunidades" valor={String(topo)} />
             <Stat rotulo="Viraram cliente" valor={String(fecharam)} />
-            <Stat
-              rotulo="Custo em contatos"
-              valor={custoEmContatos ? `${custoEmContatos}` : ""}
-              detalhe={
-                custoEmContatos
-                  ? "contatos para fechar 1"
-                  : "ainda sem fechamento"
-              }
-            />
+            {custoEmContatos ? (
+              <Stat
+                rotulo="Custo em contatos"
+                valor={String(custoEmContatos)}
+                detalhe="para fechar um cliente"
+              />
+            ) : null}
             <Stat
               rotulo="Mensalidade conquistada"
               valor={formatarMoeda(receitaFechada)}
             />
           </div>
 
-          {/* ---------------- O funil ---------------- */}
-          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            O caminho até o sim
-          </h2>
-          <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
+          <Secao
+            titulo="O caminho até o sim"
+            explicacao="Quantas oportunidades chegaram em cada etapa, desde o topo. A barra é a fatia do total que chegou até ali."
+          >
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <ul className="space-y-3">
               {funil.map((d, i) => {
                 const anterior = funil[i - 1];
@@ -128,17 +127,18 @@ export default async function ProspeccaoPage() {
               </p>
             ) : null}
           </div>
+          </Secao>
 
-          {/* ---------------- Por canal ---------------- */}
-          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Qual canal vira cliente
-          </h2>
+          <Secao
+            titulo="Qual canal vira cliente"
+            explicacao="A barra mede a mensalidade conquistada, não a quantidade de contatos: um canal que traz 40 conversas e fecha zero vale menos que um que traz 4 e fecha 2."
+          >
           {comMovimento.length === 0 ? (
             <p className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
               Nenhum canal com oportunidade ainda.
             </p>
           ) : (
-            <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               {comMovimento.map((c) => (
                 <li key={c.canal} className="px-4 py-3.5">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -186,13 +186,7 @@ export default async function ProspeccaoPage() {
               ))}
             </ul>
           )}
-
-          <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
-            A barra mede a <strong>mensalidade conquistada</strong>, não a
-            quantidade de contatos. Um canal que traz 40 conversas e fecha zero
-            vale menos que um que traz 4 e fecha 2, e contar leads diria o
-            contrário.
-          </p>
+          </Secao>
         </>
       )}
     </>

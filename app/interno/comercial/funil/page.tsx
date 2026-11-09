@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { ComercialTabs } from "@/components/comercial/comercial-tabs";
+import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { Button } from "@/components/ui/button";
 import { FunilBoard } from "@/components/comercial/funil-board";
@@ -15,6 +16,11 @@ export const dynamic = "force-dynamic";
 /**
  * O quadro do funil: arraste entre as etapas, e entre na ficha para
  * ganhar ou perder (que pedem mais dados).
+ *
+ * O último cartão não é do comercial: é quanto falta de mensalidade
+ * para a conta da empresa se pagar sozinha. Está aqui porque é a
+ * pergunta que o comercial existe para responder, e porque traduzida
+ * em "mais ou menos tantos clientes do tamanho médio" ela vira meta.
  */
 export default async function FunilPage() {
   const mes = mesAtual();
@@ -43,11 +49,15 @@ export default async function FunilPage() {
       <ComercialTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat rotulo="No funil" valor={String(leads.length)} detalhe="Em aberto" />
         <Stat
-          rotulo="Valor do funil"
+          rotulo="Em aberto"
+          valor={String(leads.length)}
+          detalhe={leads.length === 1 ? "oportunidade" : "oportunidades"}
+        />
+        <Stat
+          rotulo="Se tudo fechar"
           valor={formatarMoeda(noFunil)}
-          detalhe="Por mês, se tudo fechar"
+          detalhe="de mensalidade por mês"
         />
         <Stat
           rotulo="Parados"
@@ -84,10 +94,11 @@ export default async function FunilPage() {
       )}
 
       {encerrados.length > 0 ? (
-        <>
-          <h2 className="mb-2 mt-7 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Encerradas recentemente
-          </h2>
+        <div className="mt-7">
+        <Secao
+          titulo="As últimas que acabaram"
+          explicacao="Ganhas e perdidas, com o motivo. É o que impede de repetir o mesmo erro no mês seguinte."
+        >
           <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
             {encerrados.map((l) => (
               <li key={l.id} className="flex flex-wrap items-center gap-x-3 px-4 py-2.5">
@@ -108,7 +119,8 @@ export default async function FunilPage() {
               </li>
             ))}
           </ul>
-        </>
+        </Secao>
+        </div>
       ) : null}
     </>
   );

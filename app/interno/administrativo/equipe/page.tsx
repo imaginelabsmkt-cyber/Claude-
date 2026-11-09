@@ -1,5 +1,6 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
+import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { PessoasPanel } from "@/components/pessoas/pessoas-panel";
 import { MonthNav } from "@/components/financeiro/month-nav";
@@ -47,7 +48,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
-          rotulo="Custo do mês"
+          rotulo="Custo com pessoas"
           valor={formatarMoeda(total)}
           origem="financeiro"
           detalhe={
@@ -59,7 +60,10 @@ export default async function PessoasPage({ searchParams }: PageProps) {
         <Stat
           rotulo="Na equipe"
           valor={String(ativas.length)}
-          detalhe={`${ativas.filter((p) => p.kind === "Sócia").length} sócia(s)`}
+          detalhe={(() => {
+            const socias = ativas.filter((p) => p.kind === "Sócia").length;
+            return socias === 1 ? "1 sócia" : `${socias} sócias`;
+          })()}
         />
       </div>
 
@@ -71,15 +75,16 @@ export default async function PessoasPage({ searchParams }: PageProps) {
         </p>
       ) : null}
 
-      <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Equipe
-      </h2>
-      <PessoasPanel pessoas={pessoas} />
+      <Secao
+        titulo="Quem é da casa"
+        explicacao="Sócias, freelas e assistentes. Desativar preserva o histórico; ninguém é excluído."
+      >
+        <PessoasPanel pessoas={pessoas} />
+      </Secao>
 
-      <p className="mt-5 border-l-4 border-area pl-3 text-sm text-gray-600">
-        O cadastro é daqui, mas o dinheiro é do financeiro: cada pagamento acima é
-        um lançamento nas categorias de pró-labore e freelancers. Ninguém é
-        excluído: desativar preserva o histórico.
+      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
+        O cadastro é daqui, mas o dinheiro é do financeiro: cada pagamento
+        acima é um lançamento nas categorias de pró-labore e freelancers.
       </p>
     </>
   );
