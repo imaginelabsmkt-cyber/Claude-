@@ -66,7 +66,15 @@ export interface Area {
 /** Áreas cujo conteúdo é privado de cada login. */
 export const AREAS_PRIVADAS: AreaId[] = ["pessoal"];
 
-/** Ordem do menu: do dia a dia para o que tem prazo, e o pessoal por último. */
+/**
+ * Ordem do menu: Início primeiro, porque é a porta de entrada e não
+ * concorre com as outras; depois as etapas da empresa em ORDEM
+ * ALFABÉTICA; e o pessoal por último, separado.
+ *
+ * Alfabética por pedido da Fran. É a ordem que não precisa ser
+ * explicada: qualquer outra (por importância, por frequência de uso)
+ * depende de concordar com o critério de quem ordenou.
+ */
 export const AREAS: Area[] = [
   {
     id: "inicio",
@@ -78,15 +86,6 @@ export const AREAS: Area[] = [
     icone: "inicio",
   },
   {
-    id: "comercial",
-    label: "Comercial",
-    href: "/interno/comercial",
-    contexto: "Funil e prospecção",
-    pergunta: "De onde vem o próximo cliente?",
-    cor: "#7a2740",
-    icone: "comercial",
-  },
-  {
     id: "administrativo",
     label: "Administrativo",
     href: "/interno/administrativo",
@@ -94,6 +93,15 @@ export const AREAS: Area[] = [
     pergunta: "Como a empresa se organiza?",
     cor: "#1d5a9e",
     icone: "administrativo",
+  },
+  {
+    id: "comercial",
+    label: "Comercial",
+    href: "/interno/comercial",
+    contexto: "Funil e prospecção",
+    pergunta: "De onde vem o próximo cliente?",
+    cor: "#7a2740",
+    icone: "comercial",
   },
   {
     id: "financeiro",
@@ -124,7 +132,7 @@ export const AREAS_MENU: Area[] = AREAS.filter((a) => a.id !== "inicio");
  */
 export const AREAS_EMPRESA: Area[] = AREAS_MENU.filter(
   (a) => !AREAS_PRIVADAS.includes(a.id),
-);
+).sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
 
 /**
  * As áreas PRIVADAS por login. Cada uma vê só o que é dela, garantido

@@ -662,6 +662,19 @@ As palavras dela, que são a régua:
 - **Cliente é do administrativo.** O cadastro e o contrato ficam lá; o
   Comercial é só a conquista de quem ainda não é cliente.
 
+### A ordem do menu é alfabética
+
+Início primeiro, porque é a porta de entrada e não concorre com as
+outras. Depois Administrativo, Comercial, Financeiro. Meus gastos por
+último, separado.
+
+Alfabética por pedido da Fran, e é a ordem que não precisa ser
+explicada: qualquer outra (por importância, por frequência de uso)
+depende de concordar com o critério de quem ordenou. `AREAS_EMPRESA`
+ordena sozinha com `localeCompare`, e um teste trava isso, porque a
+primeira coisa que volta a sair do lugar é alguém acrescentar uma
+etapa nova no fim do array.
+
 ### A régua para criar etapa nova
 
 Uma etapa só existe se responder uma pergunta que **nenhuma das outras
