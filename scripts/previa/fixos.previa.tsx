@@ -33,7 +33,7 @@ function d(
   description: string,
   amount: number,
   categoria: string,
-  due_day = 10,
+  due_day = 20,
 ): RecorrenciaFixa {
   return {
     id: description,
@@ -51,7 +51,7 @@ function d(
 
 function r(description: string, amount: number, cliente: string): RecorrenciaFixa {
   return {
-    ...d(description, amount, "Mensalidades / clientes recorrentes"),
+    ...d(description, amount, "Mensalidades / clientes recorrentes", 10),
     kind: "Receita",
     cliente,
   };
@@ -59,18 +59,22 @@ function r(description: string, amount: number, cliente: string): RecorrenciaFix
 
 const FERRAMENTAS = "Assinaturas e ferramentas digitais";
 
+/**
+ * Os fixos como estão na planilha do Drive depois do que a Fran
+ * corrigiu: pró-labore dia 10, o cartão das ferramentas dia 20, sem
+ * Captions, sem Contabilidade / MEI, Canva em R$ 35,00 e a Salte
+ * entrando como mensalidade.
+ */
 const REAIS: RecorrenciaFixa[] = [
-  d("Pró-labore Fran", 6500, "Pró-labore (sócias)", 5),
-  d("Pró-labore Vitória", 6500, "Pró-labore (sócias)", 5),
-  d("Claude Max", 454.1, FERRAMENTAS),
-  d("ChatGPT Plus", 119.9, FERRAMENTAS),
-  d("Adobe", 95, FERRAMENTAS),
-  d("iCloud Fran", 66.9, FERRAMENTAS),
-  d("iCloud Vitória", 66.9, FERRAMENTAS),
-  d("Canva", 53, FERRAMENTAS),
-  d("Captions", 51.9, FERRAMENTAS),
-  { ...d("CapCut", 32.9, FERRAMENTAS), active: false },
-  d("Honorários da contabilidade", 159.9, "Contabilidade / MEI"),
+  d("Pró-labore Fran", 6500, "Pró-labore (sócias)", 10),
+  d("Pró-labore Vitória", 6500, "Pró-labore (sócias)", 10),
+  d("Claude Max", 454.1, FERRAMENTAS, 20),
+  d("ChatGPT Plus", 119.9, FERRAMENTAS, 20),
+  d("Adobe", 95, FERRAMENTAS, 20),
+  d("iCloud Fran", 66.9, FERRAMENTAS, 20),
+  d("iCloud Vitória", 66.9, FERRAMENTAS, 20),
+  d("Canva", 35, FERRAMENTAS, 20),
+  { ...d("CapCut", 32.9, FERRAMENTAS, 20), active: false },
   d("DAS do Simples Nacional", 86.05, "DAS - Simples Nacional", 20),
   r("Mensalidade Malukies Cookies & Co", 2600, "Malukies Cookies & Co"),
   r("Mensalidade Kiku Sushi", 2200, "Kiku Sushi"),
@@ -78,13 +82,14 @@ const REAIS: RecorrenciaFixa[] = [
   r("Mensalidade Izabela Schipitoski", 1800, "Izabela Schipitoski"),
   r("Mensalidade Natural Concept", 1700, "Natural Concept"),
   r("Mensalidade Laura Chioquetta", 1550, "Laura Chioquetta"),
+  r("Mensalidade Salte", 1300, "Salte"),
   r("Mensalidade Studio Bambu", 1300, "Studio Bambu"),
 ];
 
 function Grupo({ grupo }: { grupo: GrupoFixo }) {
   const comparar = grupo.itens.filter((i) => i.vigente).length > 1;
   // na prévia, finjo que o Canva e o CapCut já foram pagos
-  const PAGOS = ["Canva", "CapCut"];
+  const PAGOS = ["Canva", "iCloud Fran"];
   const pago = grupo.itens
     .filter((i) => i.vigente && PAGOS.includes(i.description))
     .reduce((t, i) => t + i.amount, 0);

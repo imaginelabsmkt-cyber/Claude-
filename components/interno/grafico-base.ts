@@ -19,6 +19,22 @@ export const CORES = {
   alerta: "#c0281f",
 } as const;
 
+/**
+ * As três situações de um compromisso, quando viram DESENHO.
+ *
+ * As etiquetas da lista usam green-700 / amber-600 / red-700, que são
+ * cores de TEXTO e vêm com a palavra do lado. Numa barra a cor é a
+ * única informação, e aí amber-600 (#9a6708) e red-700 (#9a2819) ficam
+ * a ΔE 14,3 um do outro: perto demais, mesmo para quem enxerga todas
+ * as cores. Estes três passam em contraste, em daltonismo e entre si
+ * (validador do dataviz, sobre o papel #fffdf8).
+ */
+export const CORES_SITUACAO = {
+  pago: "#0b6f4d",
+  aVencer: "#c2890c",
+  vencido: "#b8301f",
+} as const;
+
 export const TRACO = {
   eixo: "#d6cabb",
   grade: "#e9e1d5",

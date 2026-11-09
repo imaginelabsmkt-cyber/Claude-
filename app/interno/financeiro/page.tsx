@@ -2,9 +2,12 @@ import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
+import { GraficoDoMes } from "@/components/financeiro/grafico-do-mes";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { Secao } from "@/components/interno/secao";
+import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
+import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
 import { contarRecorrenciasPendentes, obterPainelMes } from "@/lib/data/financeiro";
 import { mesAtual, mesValido, rotuloMes, hojeISO } from "@/lib/financeiro/meses";
 import { formatarMoeda, formatarPercentual } from "@/lib/utils";
@@ -47,13 +50,27 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
 
   const emAberto = resumo.aReceber + resumo.aPagar;
 
+  const lancamentos = painel.lancamentos.map((l) => ({
+    id: l.id,
+    description: l.description,
+    kind: l.kind,
+    amount: Number(l.amount),
+    status: l.status,
+    due_date: l.due_date,
+    categoria: l.category?.name ?? null,
+    cliente: l.client?.name ?? null,
+  }));
+
+  const venceu = (l: { due_date: string | null; status: string }) =>
+    situacaoDoLancamento(l, hoje) === "Vencido";
+  const partes = {
+    entrou: partirPorSituacao(montarFolha(lancamentos, "Receita"), venceu),
+    saiu: partirPorSituacao(montarFolha(lancamentos, "Despesa"), venceu),
+  };
+
   return (
     <>
-      <AreaHeader
-        titulo="Financeiro"
-        contexto="Quanto entrou e quanto saiu"
-        acao={<MonthNav mes={mes} />}
-      />
+      <AreaHeader titulo="Financeiro" acao={<MonthNav mes={mes} />} />
 
       <FinanceTabs />
 
@@ -100,7 +117,10 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
                 {formatarMoeda(resumo.saldoFinal)}
               </p>
             </div>
-            {resumo.receitas > 0 ? (
+            {/* A margem só quando o mês já fechou. No dia 9, com três
+                mensalidades caídas e quase nada pago, ela dava 95,6%:
+                um número lindo que não quer dizer nada. */}
+            {resumo.receitas > 0 && emAberto === 0 ? (
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
                   Margem
@@ -110,6 +130,10 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
                 </p>
               </div>
             ) : null}
+          </div>
+
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <GraficoDoMes entrou={partes.entrou} saiu={partes.saiu} />
           </div>
 
           {emAberto > 0 || variacao ? (
@@ -133,24 +157,9 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
         </div>
       </Secao>
 
-      <Secao
-        titulo="No que entrou e no que saiu"
-      >
-        <FolhaDoMes
-          mes={mes}
-          hoje={hoje}
-          lancamentos={painel.lancamentos.map((l) => ({
-            id: l.id,
-            description: l.description,
-            kind: l.kind,
-            amount: Number(l.amount),
-            status: l.status,
-            due_date: l.due_date,
-            categoria: l.category?.name ?? null,
-            cliente: l.client?.name ?? null,
-          }))}
-        />
-      </Secao>
+      <div className="mb-6">
+        <FolhaDoMes mes={mes} hoje={hoje} lancamentos={lancamentos} />
+      </div>
 
       <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
         <Link

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   montarFolha,
-  partirPorSituacao,
   totalDaFolha,
   type GrupoFolha,
   type LancamentoFolha,
@@ -17,51 +16,22 @@ import { formatarData, formatarMoeda } from "@/lib/utils";
 import type { FinancialKind } from "@/types";
 
 /**
- * A barra de situação do cabeçalho da coluna.
+ * O prazo, em três caracteres e meio: "20/dez".
  *
- * Uma linha só, repartida em pago, a vencer e vencido, nas MESMAS cores
- * das etiquetas de cada lançamento. É o gráfico que a lista não dá: de
- * olho, quanto do mês já está resolvido.
- *
- * Nenhuma parte aparece sem valor, e o vão de 2px entre elas é o papel
- * do cartão aparecendo, não um contorno.
+ * A conta de um mês vence no mês seguinte, então a data quase nunca
+ * é do mês que a tela nomeou e "vence 20/12/2026" por extenso fazia
+ * cada linha ocupar duas. O dia e o mês bastam para agir.
  */
-function BarraDaSituacao({
-  partes,
-}: {
-  partes: { pago: number; aVencer: number; vencido: number; total: number };
-}) {
-  if (partes.total <= 0) return null;
-  const pedaco = (valor: number, cor: string, nome: string) =>
-    valor > 0 ? (
-      <div
-        key={nome}
-        className={`h-2 ${cor}`}
-        style={{ width: `${(valor / partes.total) * 100}%` }}
-        title={`${nome}: ${formatarMoeda(valor)}`}
-      />
-    ) : null;
+const MES_CURTO = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+];
 
-  return (
-    <div className="mt-2 flex gap-0.5 overflow-hidden rounded-full">
-      {pedaco(partes.pago, "bg-green-700", "pago")}
-      {pedaco(partes.aVencer, "bg-amber-600", "a vencer")}
-      {pedaco(partes.vencido, "bg-red-700", "vencido")}
-    </div>
-  );
-}
-
-/**
- * Texto do prazo, curto de propósito.
- *
- * "vence 10/11/2026" quebrava em duas linhas e fazia cada lançamento
- * ocupar o dobro da altura. Dentro do mês que a tela já nomeou, o dia
- * basta; só uma data de outro mês aparece por extenso.
- */
-function textoDoPrazoNoMes(due: string | null, mes: string): string {
-  if (!due) return "em aberto";
-  if (due.startsWith(mes)) return `vence dia ${Number(due.slice(8, 10))}`;
-  return `vence ${formatarData(due)}`;
+function prazoCurto(due: string | null): string {
+  if (!due) return "sem data";
+  const dia = Number(due.slice(8, 10));
+  const mes = MES_CURTO[Number(due.slice(5, 7)) - 1];
+  return mes ? `${dia}/${mes}` : formatarData(due);
 }
 
 interface ColunaProps {
@@ -77,42 +47,14 @@ interface ColunaProps {
 /** Um lado da folha: tudo que entrou, ou tudo que saiu. */
 function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
   const total = totalDaFolha(grupos);
-  const partes = partirPorSituacao(
-    grupos,
-    (l) => situacaoDoLancamento(l, hoje) === "Vencido",
-  );
 
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <header className="border-b border-gray-200 px-4 py-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-          <h3 className="text-base font-bold text-gray-900">{titulo}</h3>
-          <span className="text-xl font-bold tabular-nums text-gray-900">
-            {formatarMoeda(total)}
-          </span>
-        </div>
-        <BarraDaSituacao partes={partes} />
-
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-          {partes.pago > 0 ? (
-            <span className="flex items-center gap-1.5">
-              <span aria-hidden className="h-2 w-2 rounded-full bg-green-700" />
-              {formatarMoeda(partes.pago)} pago
-            </span>
-          ) : null}
-          {partes.aVencer > 0 ? (
-            <span className="flex items-center gap-1.5">
-              <span aria-hidden className="h-2 w-2 rounded-full bg-amber-600" />
-              {formatarMoeda(partes.aVencer)} a vencer
-            </span>
-          ) : null}
-          {partes.vencido > 0 ? (
-            <span className="flex items-center gap-1.5 font-semibold text-alerta">
-              <span aria-hidden className="h-2 w-2 rounded-full bg-red-700" />
-              {formatarMoeda(partes.vencido)} vencido
-            </span>
-          ) : null}
-        </div>
+      <header className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-gray-200 px-4 py-2.5">
+        <h3 className="text-base font-bold text-gray-900">{titulo}</h3>
+        <span className="text-lg font-bold tabular-nums text-gray-900">
+          {formatarMoeda(total)}
+        </span>
       </header>
 
       {grupos.length === 0 ? (
@@ -170,20 +112,20 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
                       {formatarMoeda(x.amount)}
                     </span>
-                    <span className="shrink-0">
-                      {/* Vencido fala em quanto tempo passou, que é o
-                          que faz agir; o que ainda vai vencer fala em
-                          dia, que é mais curto e não quebra a linha. */}
-                      <Situacao
-                        estado={situacaoDoLancamento(x, hoje)}
-                        texto={
-                          situacaoDoLancamento(x, hoje) === "Vencido"
-                            ? textoDoPrazo(x, hoje)
-                            : x.pago
-                              ? "pago"
-                              : textoDoPrazoNoMes(x.due_date, mes)
-                        }
-                      />
+                    {/* Etiqueta é alarme, e alarme que toca em toda
+                        linha ninguém escuta: antes havia uma em cada
+                        uma das vinte, dezessete delas dizendo a mesma
+                        coisa. Fica só no que venceu. Pago se vê na
+                        caixinha marcada, e o prazo do resto é uma
+                        data miúda. */}
+                    <span className="min-w-[3.25rem] shrink-0 text-right">
+                      {!x.pago && situacaoDoLancamento(x, hoje) === "Vencido" ? (
+                        <Situacao estado="Vencido" texto={textoDoPrazo(x, hoje)} />
+                      ) : x.pago ? null : (
+                        <span className="text-xs tabular-nums text-gray-500">
+                          {prazoCurto(x.due_date)}
+                        </span>
+                      )}
                     </span>
 
                   </li>
@@ -227,7 +169,7 @@ export function FolhaDoMes({ lancamentos, mes, hoje }: FolhaDoMesProps) {
   const lado = (kind: FinancialKind) => montarFolha(lancamentos, kind);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid items-start gap-4 lg:grid-cols-2">
       <Coluna
         titulo="Entrou"
         mes={mes}

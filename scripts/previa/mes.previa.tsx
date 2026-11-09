@@ -19,6 +19,9 @@ vi.mock("next/navigation", () => ({
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
+import { GraficoDoMes } from "@/components/financeiro/grafico-do-mes";
+import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
+import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
 import { Secao } from "@/components/interno/secao";
 import type { LancamentoFolha } from "@/lib/financeiro/folha";
 import { formatarMoeda, formatarPercentual } from "@/lib/utils";
@@ -37,7 +40,8 @@ function r(
     kind: "Receita",
     amount,
     status,
-    due_date: "2026-11-10",
+    // A mensalidade de novembro cai em dezembro, dia 10.
+    due_date: "2026-12-10",
     categoria: "Mensalidades / clientes recorrentes",
     cliente,
   };
@@ -48,7 +52,7 @@ function d(
   amount: number,
   status: string,
   categoria: string,
-  dia = 10,
+  dia = 20,
 ): LancamentoFolha {
   return {
     id: "d-" + description,
@@ -56,13 +60,22 @@ function d(
     kind: "Despesa",
     amount,
     status,
-    due_date: `2026-11-${String(dia).padStart(2, "0")}`,
+    // A conta de novembro vence em dezembro: pró-labore dia 10, o
+    // cartão das assinaturas e o DAS dia 20.
+    due_date: `2026-12-${String(dia).padStart(2, "0")}`,
     categoria,
     cliente: null,
   };
 }
 
-/** Aba Novembro/2026 da planilha, linha por linha. */
+/**
+ * Aba Novembro/2026 da planilha do Drive, linha por linha, já com o
+ * que a Fran corrigiu: sem Captions, sem Contabilidade / MEI, Canva
+ * em R$ 35,00 e a Salte entrando.
+ *
+ * Faltam aqui as três receitas de R$ 2.000,00 que estão na planilha
+ * sem nome na coluna A (linhas 16, 17 e 18).
+ */
 const MES: LancamentoFolha[] = [
   r("Mensalidade Studio Bambu", 1300, "Pendente", "Studio Bambu"),
   r("Mensalidade Dra. Hemilayne", 2000, "Pendente", "Dra. Hemilayne"),
@@ -71,27 +84,32 @@ const MES: LancamentoFolha[] = [
   r("Mensalidade Izabela Schipitoski", 1800, "Pago", "Izabela Schipitoski"),
   r("Mensalidade Malukies Cookies & Co", 2600, "Pendente", "Malukies Cookies & Co"),
   r("Mensalidade Natural Concept", 1700, "Pago", "Natural Concept"),
-  d("Pró-labore Fran", 6500, "Pendente", "Pró-labore (sócias)", 5),
-  d("Pró-labore Vitória", 6500, "Pendente", "Pró-labore (sócias)", 5),
+  r("Mensalidade Salte", 1300, "Pendente", "Salte"),
+  d("Pró-labore Fran", 6500, "Pendente", "Pró-labore (sócias)", 10),
+  d("Pró-labore Vitória", 6500, "Pendente", "Pró-labore (sócias)", 10),
   d("Claude Max", 454.1, "Pendente", FERRAMENTAS),
   d("ChatGPT Plus", 119.9, "Pendente", FERRAMENTAS),
   d("Adobe", 95, "Pendente", FERRAMENTAS),
   d("iCloud Fran", 66.9, "Pago", FERRAMENTAS),
   d("iCloud Vitória", 66.9, "Pago", FERRAMENTAS),
-  d("Canva", 53, "Pago", FERRAMENTAS),
-  d("Captions", 51.9, "Pendente", FERRAMENTAS),
-  d("CapCut", 32.9, "Pago", FERRAMENTAS),
-  d("Honorários da contabilidade", 159.9, "Pendente", "Contabilidade / MEI"),
-  d("DAS do Simples Nacional", 86.05, "Pendente", "DAS - Simples Nacional", 20),
+  d("Canva", 35, "Pago", FERRAMENTAS),
+  d("CapCut", 32.9, "Pendente", FERRAMENTAS),
+  d("DAS do Simples Nacional", 86.05, "Pendente", "DAS - Simples Nacional"),
 ];
 
 const SALDO_INICIAL = 11923.38;
 const RECEITAS_PAGAS = 1550 + 1800 + 1700;
-const DESPESAS_PAGAS = 66.9 + 66.9 + 53 + 32.9;
-const A_RECEBER = 1300 + 2000 + 2200 + 2600;
-const A_PAGAR = 6500 + 6500 + 454.1 + 119.9 + 95 + 51.9 + 159.9 + 86.05;
+const DESPESAS_PAGAS = 66.9 + 66.9 + 35;
+const A_RECEBER = 1300 + 2000 + 2200 + 2600 + 1300;
+const A_PAGAR = 6500 + 6500 + 454.1 + 119.9 + 95 + 32.9 + 86.05;
 
 function Tela() {
+  const venceu = (l: { due_date: string | null; status: string }) =>
+    situacaoDoLancamento(l, "2026-11-09") === "Vencido";
+  const partes = {
+    entrou: partirPorSituacao(montarFolha(MES, "Receita"), venceu),
+    saiu: partirPorSituacao(montarFolha(MES, "Despesa"), venceu),
+  };
   const resultado = RECEITAS_PAGAS - DESPESAS_PAGAS;
   const saldoFinal = SALDO_INICIAL + resultado;
   const previsto = saldoFinal + A_RECEBER - A_PAGAR;
@@ -107,12 +125,6 @@ function Tela() {
               ["Saldo no dia 1", formatarMoeda(SALDO_INICIAL), false, "text-xl"],
               ["Sobrou", formatarMoeda(resultado), false, "text-xl"],
               ["Saldo no fim", formatarMoeda(saldoFinal), false, "text-2xl"],
-              [
-                "Margem",
-                formatarPercentual(resultado / RECEITAS_PAGAS),
-                false,
-                "text-xl",
-              ],
             ].map(([rotulo, valor, alerta, tam]) => (
               <div key={String(rotulo)}>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
@@ -128,6 +140,10 @@ function Tela() {
               </div>
             ))}
           </div>
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <GraficoDoMes entrou={partes.entrou} saiu={partes.saiu} />
+          </div>
+
           <p className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
             Ainda falta movimentar{" "}
             <strong className="font-semibold text-gray-900">
@@ -142,11 +158,9 @@ function Tela() {
         </div>
       </Secao>
 
-      <Secao
-        titulo="No que entrou e no que saiu"
-      >
+      <div className="mb-6">
         <FolhaDoMes mes="2026-11" hoje="2026-11-09" lancamentos={MES} />
-      </Secao>
+      </div>
     </>
   );
 }
