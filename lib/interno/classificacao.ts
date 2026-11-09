@@ -60,12 +60,13 @@ export function categoriasDoAssunto(assunto: Assunto): string[] {
 export function areaDoAssunto(assunto: Assunto): AreaId {
   switch (assunto) {
     case "clientes":
-      return "clientes";
+      return "administrativo";
     case "equipe":
+      return "administrativo";
     case "prazos":
     case "contratos":
-      return "empresa";
+      return "financeiro";
     default:
-      return "dinheiro";
+      return "financeiro";
   }
 }

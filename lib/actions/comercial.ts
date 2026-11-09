@@ -37,7 +37,7 @@ function limpar(v?: string | null): string | null {
 }
 
 function revalidarComercial() {
-  revalidatePath("/interno/comercial");
+  revalidatePath("/interno/comercial/funil");
   revalidatePath("/interno/comercial/funil");
   revalidatePath("/interno");
 }
@@ -48,7 +48,6 @@ function revalidarTudo() {
   revalidatePath("/interno/financeiro");
   revalidatePath("/interno/financeiro/recorrencias");
   revalidatePath("/interno/financeiro/lancamentos");
-  revalidatePath("/clientes");
 }
 
 // -------------------------------------------------------------

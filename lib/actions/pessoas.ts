@@ -31,7 +31,7 @@ function limpar(v?: string | null): string | null {
 }
 
 function revalidar() {
-  revalidatePath("/interno/pessoas");
+  revalidatePath("/interno/administrativo/equipe");
   revalidatePath("/interno");
 }
 

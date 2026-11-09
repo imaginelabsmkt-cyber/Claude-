@@ -619,55 +619,64 @@ gatilho no banco. Regras, verificadas em Postgres real:
 - **`contatosPorCliente` devolve `null` sem nenhum fechamento.** Um
   palpite ("costuma ser 100 para 1") seria pior que silêncio.
 
-## 5.11 De sete áreas para quatro
+## 5.11 Três etapas, e as duas tentativas erradas antes delas
 
-A Fran, olhando o sistema pronto: *"está bem confuso, não está
-intuitivo, parece que tá tudo misturado"*.
+### O que eu fiz errado, duas vezes
 
-Estava mesmo, e o motivo era estrutural, não decorativo. O menu tinha
-sete itens, e quatro deles mostravam o MESMO dado:
+**Primeira:** para não duplicar dado, decidi que cada área seria um
+recorte do financeiro. Pessoas virou "lançamentos de pró-labore",
+Contábil virou "lançamentos de DAS", Administrativo virou "lançamentos
+de ferramentas". Nenhuma tinha dado próprio. Pior: fiz contrato de
+cliente ser uma recorrência financeira, então vigência, escopo e
+renovação simplesmente não existiam.
 
-| Item do menu | O que mostrava de verdade |
-| --- | --- |
-| Financeiro | os lançamentos |
-| Pessoas | os lançamentos de pró-labore e freelas |
-| Contábil | os lançamentos de DAS e contabilidade |
-| Administrativo | os lançamentos de ferramentas e equipamentos |
+**Segunda:** a Fran disse "parece que tá tudo misturado" e eu concluí
+que o menu tinha itens demais, cortando de sete para quatro. Ela
+corrigiu o diagnóstico: *"manter os sete faz sentido se cada coisa
+tiver sua função. Mas é porque tudo tá aparecendo as mesmas coisas."*
+O problema nunca foi o número. Foi eu ter enchido todas com a mesma
+coisa.
 
-Quatro portas para a mesma sala. Quem abria não via quatro assuntos,
-via dinheiro quatro vezes sem entender a diferença.
+### A estrutura, que veio dela
 
-### A causa no código
+Mais enxuta que qualquer uma das minhas, porque segue o que está
+dentro do quê:
 
-`classificacao.ts` mapeava categoria financeira para `AreaId`, o
-mesmo tipo que o menu usa. Enquanto recorte de categoria e item de
-menu fossem a mesma coisa, **todo recorte novo virava item de menu
-novo**. O menu crescia junto com o mapa de categorias, que é um
-detalhe contábil que ninguém devia ver no menu.
-
-A correção foi separar os dois tipos: `Assunto` (equipe, prazos,
-contratos, clientes, dinheiro) para recorte de categoria, e `AreaId`
-para navegação, com `areaDoAssunto()` ligando um ao outro. Agora um
-assunto novo não cria item de menu.
-
-### O menu agora
-
-Cada área responde uma pergunta que as outras não respondem:
-
-| Área | Pergunta | Abas dentro |
+| Etapa | Pergunta | Abas |
 | --- | --- | --- |
-| Início | Por onde eu começo hoje? | |
-| Dinheiro | Quanto entra e quanto sai? | Painel, Lançamentos, Fluxo de caixa, Resumo anual, Relatório, Recorrências |
-| Clientes | Quem paga hoje e quem pode pagar amanhã? | Carteira, Funil, Prospecção, Rentabilidade |
-| Empresa | O que a empresa tem, deve e precisa cumprir? | Equipe, Prazos, Contratos e ferramentas |
-| Meus gastos | Como está o MEU mês? | |
+| Comercial | De onde vem o próximo cliente? | Funil, Prospecção |
+| Administrativo | Como a empresa se organiza? | Clientes, Equipe, Documentos |
+| Financeiro | Quanto entra e quanto sai? | Painel, Lançamentos, Fluxo de caixa, Resumo anual, Fixos e ferramentas, Impostos, Por cliente, Relatório |
+| Meus gastos | Como está o MEU mês? | (privada) |
 
-"Relatório do mês" também deixou de ser item de menu: é uma leitura do
-dinheiro, virou aba. `areaDaRota` tem uma lista de rotas extras para
-ele continuar pegando a cor certa.
+As palavras dela, que são a régua:
 
-Nada foi apagado. As três telas viraram abas em
-`/interno/empresa/{equipe,prazos,contratos}` e continuam inteiras.
+- **RH não é etapa.** Contratar alguém é ato administrativo, e o valor
+  combinado vira lançamento no financeiro. *"Não é RH, é
+  administrativo. Pois é, está tudo dentro do administrativo."*
+- **Contábil não é etapa.** *"O contábil vai dentro do financeiro,
+  porque uma coisa está dentro da outra."* Imposto é dinheiro saindo.
+- **Ferramenta não é etapa.** *"A gente só quer saber quais
+  ferramentas a gente utiliza para saber quanto que a gente paga, para
+  poder fazer parte do nosso fluxo de caixa."* É custo.
+- **Cliente é do administrativo.** O cadastro e o contrato ficam lá; o
+  Comercial é só a conquista de quem ainda não é cliente.
+
+### A régua para criar etapa nova
+
+Uma etapa só existe se responder uma pergunta que **nenhuma das outras
+responde**. Se a resposta já mora dentro de outra, é aba, não etapa.
+
+O aviso dela, que vale mais que a régua: *"a gente não está deixando
+usual, a gente está deixando cheio de coisa que a gente não vai
+utilizar e vai ficar parado. E eu não quero que seja assim."*
+
+### O que ainda falta
+
+Contrato de cliente continua existindo só como recorrência financeira.
+Vigência, escopo, reajuste e renovação ainda não têm onde morar. É a
+próxima coisa a construir no Administrativo, e é entidade de verdade,
+não recorte do financeiro.
 
 ## 6. Convenções de código
 

@@ -2,41 +2,51 @@
  * =============================================================
  * ÁREAS DO SISTEMA INTERNO
  * =============================================================
- * Fonte única das áreas da empresa.
+ * Fonte única das etapas da empresa.
  *
- * O MENU TEM QUATRO ÁREAS, E JÁ TEVE SETE.
+ * SÃO TRÊS ETAPAS, E JÁ FORAM SETE ÁREAS E DEPOIS QUATRO.
  *
- * As sete eram Comercial, Financeiro, Pessoas, Contábil,
- * Administrativo, Relatório e Meus gastos. Parecia organizado, e não
- * era: Pessoas, Contábil e Administrativo mostravam os MESMOS
- * lançamentos do Financeiro, só filtrados por categoria. Quatro
- * portas para o mesmo dado.
+ * As sete (Comercial, Financeiro, Pessoas, Contábil, Administrativo,
+ * Relatório, Meus gastos) pareciam organizadas e não eram: quatro
+ * delas mostravam os MESMOS lançamentos, só filtrados por categoria.
+ * Eu então propus cortar para quatro, e a Fran corrigiu o diagnóstico:
+ * o problema nunca foi o número de áreas, foi eu ter enchido todas com
+ * a mesma coisa. Sete faria sentido se cada uma tivesse função própria.
  *
- * Quem usava abria quatro lugares diferentes e via dinheiro em todos,
- * sem entender o que cada um tinha de diferente. A Fran resumiu:
- * "parece que tá tudo misturado". Estava mesmo.
+ * A estrutura certa veio dela, e é mais enxuta do que qualquer uma das
+ * minhas, porque segue o que está dentro do quê:
  *
- * Agora cada área responde uma pergunta que as outras não respondem:
+ *   COMERCIAL       de onde vem o próximo cliente
+ *                   funil e prospecção
  *
- *   Dinheiro  quanto entra e quanto sai
- *   Clientes  quem paga hoje e quem pode pagar amanhã
- *   Empresa   o que a empresa tem, deve e precisa cumprir
- *   Meus gastos  o meu bolso, que ninguém mais vê
+ *   ADMINISTRATIVO  como a empresa se organiza
+ *                   clientes e seus contratos, equipe e contratação,
+ *                   documentos societários, quem faz o quê
  *
- * Cada área tem uma COR, e a cor diz de onde a informação vem. Numa
+ *   FINANCEIRO      quanto entra e quanto sai
+ *                   lançamentos, fluxo de caixa, ferramentas (porque
+ *                   o que importa delas é quanto custam), impostos e
+ *                   contábil, relatório do mês
+ *
+ * RH não é etapa: contratar alguém é ato administrativo, e o valor
+ * combinado vira lançamento no financeiro. Contábil não é etapa:
+ * imposto é dinheiro saindo. Ferramenta não é etapa: é custo.
+ *
+ * A régua para criar uma etapa nova: ela precisa responder uma
+ * pergunta que nenhuma das outras responde. Se a resposta já mora
+ * dentro de outra, é aba, não etapa.
+ *
+ * Cada etapa tem uma COR, e a cor diz de onde a informação vem. Numa
  * lista misturada (a tela Início), a tarja colorida identifica a
- * origem sem precisar ler.
- *
- * As cores vivem no CSS (`app/globals.css`, seletor `[data-area]`),
- * porque o tema troca por atributo. Aqui ficam os metadados e a ordem.
+ * origem sem precisar ler. As cores vivem em `app/globals.css`.
  * =============================================================
  */
 
 export type AreaId =
   | "inicio"
-  | "dinheiro"
-  | "clientes"
-  | "empresa"
+  | "comercial"
+  | "administrativo"
+  | "financeiro"
   | "pessoal";
 
 export interface Area {
@@ -68,31 +78,31 @@ export const AREAS: Area[] = [
     icone: "inicio",
   },
   {
-    id: "dinheiro",
-    label: "Dinheiro",
+    id: "comercial",
+    label: "Comercial",
+    href: "/interno/comercial",
+    contexto: "Funil e prospecção",
+    pergunta: "De onde vem o próximo cliente?",
+    cor: "#7a2740",
+    icone: "comercial",
+  },
+  {
+    id: "administrativo",
+    label: "Administrativo",
+    href: "/interno/administrativo",
+    contexto: "Clientes, equipe e documentos",
+    pergunta: "Como a empresa se organiza?",
+    cor: "#1d5a9e",
+    icone: "administrativo",
+  },
+  {
+    id: "financeiro",
+    label: "Financeiro",
     href: "/interno/financeiro",
-    contexto: "Entradas e saídas",
+    contexto: "Entradas, saídas e impostos",
     pergunta: "Quanto entra e quanto sai?",
     cor: "#0f5d52",
-    icone: "dinheiro",
-  },
-  {
-    id: "clientes",
-    label: "Clientes",
-    href: "/interno/comercial",
-    contexto: "Carteira e prospecção",
-    pergunta: "Quem paga hoje e quem pode pagar amanhã?",
-    cor: "#7a2740",
-    icone: "clientes",
-  },
-  {
-    id: "empresa",
-    label: "Empresa",
-    href: "/interno/empresa/equipe",
-    contexto: "Equipe, prazos e contratos",
-    pergunta: "O que a empresa tem, deve e precisa cumprir?",
-    cor: "#1d5a9e",
-    icone: "empresa",
+    icone: "financeiro",
   },
   {
     id: "pessoal",
@@ -137,8 +147,7 @@ export function area(id: AreaId): Area {
  * próprio, mas precisa da cor certa quando aberto.
  */
 const ROTAS_EXTRAS: [string, AreaId][] = [
-  ["/interno/relatorio", "dinheiro"],
-  ["/interno/empresa", "empresa"],
+  ["/interno/relatorio", "financeiro"],
 ];
 
 /**

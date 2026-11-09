@@ -1,5 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
-import { EmpresaTabs } from "@/components/interno/empresa-tabs";
+import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
 import { Stat } from "@/components/interno/stat";
 import { RecorteLista } from "@/components/interno/recorte-lista";
 import { DocumentosPanel } from "@/components/empresa/documentos-panel";
@@ -44,12 +44,12 @@ export default async function AdministrativoPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Contratos e ferramentas"
+        titulo="Documentos"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
 
-      <EmpresaTabs />
+      <AdministrativoTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat

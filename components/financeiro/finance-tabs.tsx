@@ -14,8 +14,10 @@ const ABAS = [
   { href: "/interno/financeiro/lancamentos", label: "Lançamentos" },
   { href: "/interno/financeiro/fluxo-caixa", label: "Fluxo de caixa" },
   { href: "/interno/financeiro/resumo-anual", label: "Resumo anual" },
+  { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
+  { href: "/interno/financeiro/impostos", label: "Impostos" },
+  { href: "/interno/financeiro/rentabilidade", label: "Por cliente" },
   { href: "/interno/relatorio", label: "Relatório do mês" },
-  { href: "/interno/financeiro/recorrencias", label: "Recorrências" },
 ];
 
 const CONFIGURACAO = "/interno/financeiro/categorias";

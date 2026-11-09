@@ -1,5 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
-import { EmpresaTabs } from "@/components/interno/empresa-tabs";
+import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
 import { Stat } from "@/components/interno/stat";
 import { PessoasPanel } from "@/components/pessoas/pessoas-panel";
 import { MonthNav } from "@/components/financeiro/month-nav";
@@ -44,13 +44,13 @@ export default async function PessoasPage({ searchParams }: PageProps) {
         acao={<MonthNav mes={mes} />}
       />
 
-      <EmpresaTabs />
+      <AdministrativoTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
           rotulo="Custo do mês"
           valor={formatarMoeda(total)}
-          origem="dinheiro"
+          origem="financeiro"
           detalhe={
             recorte.pendente > 0
               ? `${formatarMoeda(recorte.pendente)} em aberto`

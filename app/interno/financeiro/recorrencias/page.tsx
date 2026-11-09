@@ -30,7 +30,7 @@ export default async function RecorrenciasPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <AreaHeader titulo="Recorrências" contexto="Plano fixo do mês" />
+      <AreaHeader titulo="Fixos e ferramentas" contexto="Plano fixo do mês" />
 
       <FinanceTabs />
 

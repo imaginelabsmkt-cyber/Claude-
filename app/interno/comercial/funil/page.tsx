@@ -59,7 +59,7 @@ export default async function FunilPage() {
         <Stat
           rotulo={falta > 0 ? "Falta para o fixo" : "Já cobre o fixo"}
           valor={formatarMoeda(Math.abs(falta))}
-          origem="dinheiro"
+          origem="financeiro"
           alerta={falta > 0}
           detalhe={
             faltamClientes

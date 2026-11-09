@@ -313,6 +313,6 @@ export async function vincularMeAPessoaAction(
   }
 
   revalidar();
-  revalidatePath("/interno/pessoas");
+  revalidatePath("/interno/administrativo/equipe");
   return { ok: true };
 }

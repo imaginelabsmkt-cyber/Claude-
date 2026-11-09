@@ -4,23 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Abas da Empresa.
+ * Abas do Administrativo.
  *
- * Estas três telas eram três itens de menu (Pessoas, Contábil,
- * Administrativo). Viraram abas porque respondiam a mesma pergunta por
- * caminhos diferentes: as três mostram lançamentos do financeiro,
- * filtrados por categoria. Como menu, davam a impressão de quatro
- * lugares distintos com o mesmo dado dentro.
+ * Clientes, Equipe e Documentos já foram três itens de menu separados.
+ * São abas porque respondem partes da mesma pergunta: como a empresa
+ * se organiza. O cadastro do cliente e o contrato dele, quem trabalha
+ * aqui e em que condição, e os papéis da empresa.
  */
 const ABAS = [
-  { href: "/interno/empresa/equipe", label: "Equipe" },
-  { href: "/interno/empresa/prazos", label: "Prazos" },
-  { href: "/interno/empresa/contratos", label: "Contratos e ferramentas" },
+  { href: "/interno/administrativo/clientes", label: "Clientes" },
+  { href: "/interno/administrativo/equipe", label: "Equipe" },
+  { href: "/interno/administrativo/documentos", label: "Documentos" },
 ];
 
-export function EmpresaTabs() {
+export function AdministrativoTabs() {
   const pathname = usePathname();
-
   return (
     <div className="mb-5 flex items-center gap-5 overflow-x-auto border-b border-gray-200">
       {ABAS.map((a) => {

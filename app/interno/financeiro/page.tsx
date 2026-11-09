@@ -49,7 +49,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Dinheiro"
+        titulo="Financeiro"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
@@ -172,7 +172,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
           Ver por categoria →
         </Link>
         <Link
-          href={`/interno/comercial/rentabilidade?mes=${mes}`}
+          href={`/interno/financeiro/rentabilidade?mes=${mes}`}
           className="font-medium text-brand-700 hover:underline"
         >
           Ver por cliente →

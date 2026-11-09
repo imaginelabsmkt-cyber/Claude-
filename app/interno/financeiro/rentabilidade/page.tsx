@@ -1,5 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
-import { ComercialTabs } from "@/components/comercial/comercial-tabs";
+import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { Stat } from "@/components/interno/stat";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import {
@@ -44,16 +44,16 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Rentabilidade"
+        titulo="Por cliente"
         contexto={anual ? `Ano de ${ano}` : rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
 
-      <ComercialTabs />
+      <FinanceTabs />
 
       <div className="mb-4 flex gap-2">
         <a
-          href={`/interno/comercial/rentabilidade?mes=${mes}`}
+          href={`/interno/financeiro/rentabilidade?mes=${mes}`}
           className={cn(
             "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
             anual
@@ -64,7 +64,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
           Só {rotuloMes(mes)}
         </a>
         <a
-          href={`/interno/comercial/rentabilidade?mes=${mes}&periodo=ano`}
+          href={`/interno/financeiro/rentabilidade?mes=${mes}&periodo=ano`}
           className={cn(
             "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
             anual
@@ -77,17 +77,17 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
       </div>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat rotulo="Receita recebida" valor={formatarMoeda(r.receitaTotal)} origem="dinheiro" />
+        <Stat rotulo="Receita recebida" valor={formatarMoeda(r.receitaTotal)} origem="financeiro" />
         <Stat
           rotulo="Custo direto"
           valor={formatarMoeda(r.custoDiretoTotal)}
-          origem="dinheiro"
+          origem="financeiro"
           detalhe="Lançado com cliente"
         />
         <Stat
           rotulo="Custo indireto"
           valor={formatarMoeda(r.custoIndireto)}
-          origem="dinheiro"
+          origem="financeiro"
           detalhe="Pró-labore, ferramentas, impostos"
         />
         <Stat

@@ -1,4 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
+import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { BotaoImprimir } from "@/components/interno/botao-imprimir";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterPainelMes, listarClientesFinanceiro, listarLancamentos } from "@/lib/data/financeiro";
@@ -112,6 +113,8 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
           contexto={rotuloMes(mes)}
           acao={<MonthNav mes={mes} />}
         />
+
+      <FinanceTabs />
       </div>
 
       {/* Cabeçalho que só aparece no papel */}

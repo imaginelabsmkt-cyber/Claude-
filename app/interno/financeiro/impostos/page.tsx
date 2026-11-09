@@ -1,5 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
-import { EmpresaTabs } from "@/components/interno/empresa-tabs";
+import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { Stat } from "@/components/interno/stat";
 import { RecorteLista } from "@/components/interno/recorte-lista";
 import { ObrigacoesPanel } from "@/components/empresa/obrigacoes-panel";
@@ -33,12 +33,12 @@ export default async function ContabilPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Prazos"
+        titulo="Impostos e contábil"
         contexto={rotuloMes(mes)}
         acao={<MonthNav mes={mes} />}
       />
 
-      <EmpresaTabs />
+      <FinanceTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat

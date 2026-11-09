@@ -146,7 +146,8 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     .filter((o) => o.aberto !== null)
     .map((o) => ({
       id: `obrigacao-${o.id}`,
-      origem: o.area === "administrativo" ? "empresa" : "empresa",
+      origem:
+        o.area === "administrativo" ? "administrativo" : "financeiro",
       titulo: o.title,
       descricao: `${o.cadence} · ${rotuloPeriodo(o.aberto!.periodo)}`,
       valor: 0,
@@ -171,7 +172,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
 
   const daRenovacao: Compromisso[] = renovacoesProximas(contratos).map((r) => ({
     id: `renovacao-${r.id}`,
-    origem: "clientes" as const,
+    origem: "comercial" as const,
     titulo: r.description.replace(/^Mensalidade /, "Renovar contrato — "),
     descricao: `contrato vai até ${r.endMonth}`,
     valor: r.amount,

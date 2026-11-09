@@ -50,10 +50,10 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
             </p>
           </div>
           <Link
-            href="/interno/comercial"
+            href="/interno/administrativo/clientes"
             className="rounded-lg bg-alerta px-3 py-2 text-sm font-semibold text-white"
           >
-            Ver a carteira
+            Ver os clientes
           </Link>
         </div>
       ) : null}
@@ -62,25 +62,25 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
         <Stat
           rotulo="Em caixa"
           valor={formatarMoeda(financeiro.resumo.saldoInicial)}
-          origem="dinheiro"
+          origem="financeiro"
           detalhe="No início do mês"
         />
         <Stat
           rotulo="A receber"
           valor={formatarMoeda(financeiro.resumo.aReceber)}
-          origem="dinheiro"
+          origem="financeiro"
           detalhe={`${financeiro.aReceber.length} em aberto`}
         />
         <Stat
           rotulo="A pagar"
           valor={formatarMoeda(financeiro.resumo.aPagar)}
-          origem="dinheiro"
+          origem="financeiro"
           detalhe={`${financeiro.aPagar.length} em aberto`}
         />
         <Stat
           rotulo="Clientes ativos"
           valor={String(carteira.ativos)}
-          origem="clientes"
+          origem="comercial"
           detalhe={`${formatarMoeda(carteira.recorrente)} por mês`}
         />
       </div>

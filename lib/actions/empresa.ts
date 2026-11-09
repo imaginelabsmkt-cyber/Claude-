@@ -33,8 +33,8 @@ function limpar(v?: string | null): string | null {
 
 function revalidar() {
   revalidatePath("/interno");
-  revalidatePath("/interno/contabil");
-  revalidatePath("/interno/administrativo");
+  revalidatePath("/interno/financeiro/impostos");
+  revalidatePath("/interno/administrativo/documentos");
 }
 
 /** Monta a linha do banco, zerando os campos que a periodicidade não usa. */
