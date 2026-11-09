@@ -1,5 +1,6 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
+import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { RecorteLista } from "@/components/interno/recorte-lista";
 import { ObrigacoesPanel } from "@/components/empresa/obrigacoes-panel";
@@ -16,8 +17,12 @@ interface PageProps {
 }
 
 /**
- * Contábil e fiscal: o que tem prazo com o governo e com o escritório.
- * Recorte das categorias de DAS e contabilidade sobre o financeiro.
+ * Impostos e contábil: o que tem prazo com o governo e com o
+ * escritório de contabilidade.
+ *
+ * Não tem tabela própria: é um recorte das categorias de DAS e
+ * contabilidade sobre os lançamentos, mais as obrigações que têm prazo
+ * e NÃO são despesa (entregar documento, renovar certidão).
  */
 export default async function ContabilPage({ searchParams }: PageProps) {
   const mes =
@@ -39,43 +44,44 @@ export default async function ContabilPage({ searchParams }: PageProps) {
 
       <FinanceTabs />
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-2">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2">
         <Stat
-          rotulo="Do mês"
+          rotulo="Vai sair em impostos e contabilidade"
           valor={formatarMoeda(recorte.realizado + recorte.pendente)}
+          detalhe={rotuloMes(mes)}
         />
         <Stat
-          rotulo="Em aberto"
+          rotulo="Ainda não foi pago"
           valor={formatarMoeda(recorte.pendente)}
           alerta={recorte.pendente > 0}
-          detalhe={`${emAberto.length} obrigação(ões)`}
+          detalhe={
+            emAberto.length === 1
+              ? "1 lançamento em aberto"
+              : `${emAberto.length} lançamentos em aberto`
+          }
         />
       </div>
 
-      <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Obrigações de {rotuloMes(mes)}
-      </h2>
-      <RecorteLista
-        lancamentos={recorte.lancamentos}
-        vazio="Nenhuma obrigação lançada neste mês."
-      />
+      <Secao
+        titulo="O que é dinheiro"
+        explicacao="DAS e honorários da contabilidade. São recorrências do financeiro: cadastrados uma vez, aparecem todo mês sem ninguém lembrar."
+      >
+        <RecorteLista
+          lancamentos={recorte.lancamentos}
+          vazio="Nenhum imposto ou honorário lançado neste mês."
+        />
+      </Secao>
 
-      <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
-        DAS e honorários da contabilidade são recorrências do financeiro: uma vez
-        cadastrados, aparecem todo mês sem ninguém precisar lembrar.
-      </p>
-
-      <div className="mb-2 mt-7 flex items-baseline gap-3">
-        <h2 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-          Prazos que não são despesa
-        </h2>
-        {atrasadas > 0 ? (
-          <span className="text-xs font-semibold text-alerta">
-            {atrasadas} atrasada(s)
-          </span>
-        ) : null}
-      </div>
-      <ObrigacoesPanel obrigacoes={obrigacoes} area="contabil" />
+      <Secao
+        titulo="O que é prazo, e não dinheiro"
+        explicacao={
+          atrasadas > 0
+            ? `Entregas e declarações que têm data mas não têm valor. ${atrasadas} ${atrasadas === 1 ? "está atrasada" : "estão atrasadas"}.`
+            : "Entregas e declarações que têm data mas não têm valor."
+        }
+      >
+        <ObrigacoesPanel obrigacoes={obrigacoes} area="contabil" />
+      </Secao>
     </>
   );
 }

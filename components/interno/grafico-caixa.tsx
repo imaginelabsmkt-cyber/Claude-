@@ -8,11 +8,10 @@ import {
   ESTREITA,
   LARGA,
   TRACO,
-  centroDoMes,
   rotuloValor,
   type Geometria,
 } from "@/components/interno/grafico-base";
-import { mesesDoAno, rotuloMesCurto } from "@/lib/financeiro/meses";
+import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
 /**
@@ -30,16 +29,20 @@ function comFaixaDoRotulo(geo: Geometria, faixa: number): Geometria {
 interface DesenhoProps {
   geo: Geometria;
   pontos: PontoDeCaixa[];
-  ano: number;
+  /** Todos os meses da régua de baixo, em ordem. */
+  meses: string[];
   className: string;
   descricao: string;
 }
 
 /** A linha do caixa, numa medida. */
-function Desenho({ geo, pontos, ano, className, descricao }: DesenhoProps) {
+function Desenho({ geo, pontos, meses, className, descricao }: DesenhoProps) {
   const { largura: L, altura: A, margem: M, fonte } = geo;
   const ploteA = A - M.topo - M.baixo;
-  const meses = mesesDoAno(ano);
+
+  // Com muitos meses os rótulos encostam um no outro. Aí só uma parte
+  // deles é escrita; a linha continua com todos os pontos.
+  const deQuantos = meses.length > 24 ? 6 : meses.length > 14 ? 2 : 1;
 
   const escala = escalaDeSaldo(pontos.map((p) => p.saldo));
   const amplitude = escala.max - escala.min;
@@ -47,8 +50,12 @@ function Desenho({ geo, pontos, ano, className, descricao }: DesenhoProps) {
     M.topo + ploteA - ((valor - escala.min) / amplitude) * ploteA;
   const yZero = y(0);
 
+  const ploteL = L - M.esquerda - M.direita;
+  const passo = ploteL / Math.max(meses.length, 1);
+  const centro = (i: number) => M.esquerda + passo * i + passo / 2;
+
   const emTela: Ponto[] = pontos.map((p) => ({
-    x: centroDoMes(geo, Math.max(0, meses.indexOf(p.mes))),
+    x: centro(Math.max(0, meses.indexOf(p.mes))),
     y: y(p.saldo),
   }));
 
@@ -141,17 +148,20 @@ function Desenho({ geo, pontos, ano, className, descricao }: DesenhoProps) {
       ) : null}
 
       {meses.map((mes, i) => {
+        if (i % deQuantos !== 0 && i !== meses.length - 1) return null;
         const tem = pontos.some((p) => p.mes === mes);
         return (
           <text
             key={mes}
-            x={centroDoMes(geo, i)}
+            x={centro(i)}
             y={A - M.baixo / 4}
             textAnchor="middle"
             fill={tem ? TRACO.mes : TRACO.mesVazio}
             style={{ fontSize: fonte }}
           >
-            {rotuloMesCurto(mes).slice(0, 3)}
+            {meses.length > 14
+              ? rotuloMesCurto(mes)
+              : rotuloMesCurto(mes).slice(0, 3)}
           </text>
         );
       })}
@@ -161,7 +171,11 @@ function Desenho({ geo, pontos, ano, className, descricao }: DesenhoProps) {
 
 interface GraficoCaixaProps {
   pontos: PontoDeCaixa[];
-  ano: number;
+  /**
+   * A régua de baixo. No Início são os doze meses do ano; no Fluxo de
+   * caixa são todos os meses lançados, que podem ser trinta.
+   */
+  meses: string[];
 }
 
 /**
@@ -175,7 +189,7 @@ interface GraficoCaixaProps {
  * alerta se o último mês fechou negativo, porque aí não é mais uma
  * leitura, é um aviso.
  */
-export function GraficoCaixa({ pontos, ano }: GraficoCaixaProps) {
+export function GraficoCaixa({ pontos, meses }: GraficoCaixaProps) {
   if (pontos.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-gray-500">
@@ -193,14 +207,14 @@ export function GraficoCaixa({ pontos, ano }: GraficoCaixaProps) {
       <Desenho
         geo={comFaixaDoRotulo(ESTREITA, 52)}
         pontos={pontos}
-        ano={ano}
+        meses={meses}
         className="sm:hidden"
         descricao={descricao}
       />
       <Desenho
         geo={comFaixaDoRotulo(LARGA, 84)}
         pontos={pontos}
-        ano={ano}
+        meses={meses}
         className="hidden sm:block"
         descricao={descricao}
       />

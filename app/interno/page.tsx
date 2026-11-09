@@ -6,7 +6,13 @@ import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterPainelInterno } from "@/lib/data/interno";
-import { mesAtual, mesValido, rotuloMes, rotuloMesCurto } from "@/lib/financeiro/meses";
+import {
+  mesAtual,
+  mesValido,
+  mesesDoAno,
+  rotuloMes,
+  rotuloMesCurto,
+} from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -197,7 +203,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
               Quanto sobrou no fim de cada mês. As colunas acima contam
               como foi cada mês; esta linha conta para onde isso está indo.
             </p>
-            <GraficoCaixa pontos={ano.pontos} ano={ano.ano} />
+            <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
           </div>
 
           {sobra < 0 ? (

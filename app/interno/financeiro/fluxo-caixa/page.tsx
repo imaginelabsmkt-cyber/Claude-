@@ -1,14 +1,11 @@
 import { AreaHeader } from "@/components/interno/area-header";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
+import { GraficoCaixa } from "@/components/interno/grafico-caixa";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { obterPainelMes } from "@/lib/data/financeiro";
-import { mesAtual, mesValido } from "@/lib/financeiro/meses";
+import { Secao } from "@/components/interno/secao";
+import { obterSerieDeCaixa } from "@/lib/data/financeiro";
+import { mesAtual, mesValido, rotuloMes, rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
-import { FINANCIAL_STATUS_TONE } from "@/types";
-import type { FinancialEntryWithRelations } from "@/types";
-import type { TotalCategoria } from "@/lib/financeiro/calculo";
 
 export const dynamic = "force-dynamic";
 
@@ -17,106 +14,39 @@ interface PageProps {
 }
 
 /**
- * Fluxo de caixa do mês no formato da planilha: saldo inicial no topo,
- * receitas e despesas agrupadas por categoria (com os lançamentos dentro)
- * e o fechamento embaixo. É a tela para conferir o mês linha a linha.
+ * Fluxo de caixa: o caixa mês a mês, do primeiro lançamento até o
+ * último mês que tem alguma coisa.
+ *
+ * ESTA TELA ERA UMA CÓPIA DO PAINEL DO MÊS. As duas mostravam saldo
+ * inicial, receitas e despesas por categoria e o fechamento. Quando o
+ * Painel do mês virou a aba mensal da planilha, esta ficou repetindo
+ * exatamente a mesma leitura numa aba diferente.
+ *
+ * A pergunta desta tela é outra, e é a que o nome dela promete: não
+ * "como foi novembro", e sim "para onde o caixa está indo". Uma linha
+ * por mês, com o saldo encadeado, e o que ainda está por vencer
+ * separado do que já aconteceu.
  */
 export default async function FluxoCaixaPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
-  const painel = await obterPainelMes(mes);
-  const { resumo } = painel;
+  const serie = await obterSerieDeCaixa(mes);
+  const meses = serie.meses.map((m) => m.mes);
+  const pontos = serie.meses
+    .filter((m) => m.receitas > 0 || m.despesas > 0)
+    .map((m) => ({ mes: m.mes, saldo: m.saldoFinal }));
 
-  const porCategoria = (
-    grupos: TotalCategoria[],
-    lancamentos: FinancialEntryWithRelations[],
-  ) =>
-    grupos.map((grupo) => ({
-      grupo,
-      itens: lancamentos.filter((l) => l.category_id === grupo.categoriaId),
-    }));
-
-  const receitas = porCategoria(
-    painel.receitasPorCategoria,
-    painel.lancamentos.filter((l) => l.kind === "Receita"),
+  const ultimo = serie.meses[serie.meses.length - 1];
+  const fechados = serie.meses.filter((m) => m.mes < mes);
+  const melhor = fechados.reduce<(typeof fechados)[number] | null>(
+    (m, x) => (m === null || x.resultado > m.resultado ? x : m),
+    null,
   );
-  const despesas = porCategoria(
-    painel.despesasPorCategoria,
-    painel.lancamentos.filter((l) => l.kind === "Despesa"),
+  const pior = fechados.reduce<(typeof fechados)[number] | null>(
+    (m, x) => (m === null || x.resultado < m.resultado ? x : m),
+    null,
   );
-
-  const secao = (
-    titulo: string,
-    blocos: { grupo: TotalCategoria; itens: FinancialEntryWithRelations[] }[],
-    total: number,
-    pendente: number,
-    cor: "verde" | "vermelho",
-  ) => {
-    const corTexto = cor === "verde" ? "text-green-700" : "text-red-600";
-    const corFundo = cor === "verde" ? "bg-green-50" : "bg-red-50";
-
-    return (
-      <Card className="overflow-hidden">
-        <div className={`flex items-center justify-between px-4 py-3 ${corFundo}`}>
-          <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700">
-            {titulo}
-          </h2>
-          <div className="text-right">
-            <p className={`text-lg font-bold ${corTexto}`}>{formatarMoeda(total)}</p>
-            {pendente > 0 ? (
-              <p className="text-xs text-amber-600">
-                {formatarMoeda(pendente)} em aberto
-              </p>
-            ) : null}
-          </div>
-        </div>
-
-        {blocos.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-gray-500">
-            Nenhum lançamento nesta seção.
-          </p>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {blocos.map(({ grupo, itens }) => (
-              <div key={grupo.categoriaId} className="px-4 py-3">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="text-sm font-semibold text-gray-800">{grupo.nome}</h3>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {formatarMoeda(grupo.realizado)}
-                  </span>
-                </div>
-
-                <ul className="mt-2 space-y-1">
-                  {itens.map((l) => (
-                    <li
-                      key={l.id}
-                      className="flex items-center justify-between gap-3 text-sm"
-                    >
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span className="truncate text-gray-600">{l.description}</span>
-                        {l.status === "Pendente" ? (
-                          <Badge tom={FINANCIAL_STATUS_TONE.Pendente}>Pendente</Badge>
-                        ) : null}
-                      </span>
-                      <span
-                        className={
-                          "shrink-0 tabular-nums " +
-                          (l.status === "Pago" ? "text-gray-800" : "text-amber-600")
-                        }
-                      >
-                        {formatarMoeda(Number(l.amount))}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    );
-  };
 
   return (
     <>
@@ -127,57 +57,159 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
 
       <FinanceTabs />
 
-      <Card className="mb-4 flex items-center justify-between p-4">
-        <span className="text-sm font-medium text-gray-600">
-          Saldo inicial do mês
-        </span>
-        <span className="text-lg font-bold text-gray-900">
-          {formatarMoeda(resumo.saldoInicial)}
-        </span>
-      </Card>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {secao("Receitas", receitas, resumo.receitas, resumo.aReceber, "verde")}
-        {secao("Despesas", despesas, resumo.despesas, resumo.aPagar, "vermelho")}
-      </div>
-
-      <Card className="mt-4 overflow-hidden">
-        <div className="bg-gray-50 px-4 py-3">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700">
-            Resultado do mês
-          </h2>
+      <Secao
+        titulo="Para onde o caixa está indo"
+        explicacao={`Cada ponto é o que sobrou no fim do mês, encadeado desde ${rotuloMes(serie.inicio)}.`}
+      >
+        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
+          <GraficoCaixa pontos={pontos} meses={meses} />
         </div>
-        <dl className="divide-y divide-gray-100">
-          {[
-            {
-              rotulo: "Resultado líquido (receitas - despesas)",
-              valor: resumo.resultado,
-              destaque: true,
-            },
-            { rotulo: "Saldo final do mês", valor: resumo.saldoFinal, destaque: true },
-            {
-              rotulo: "Saldo projetado (com pendências)",
-              valor: resumo.saldoFinalPrevisto,
-              destaque: false,
-            },
-          ].map((linha) => (
-            <div
-              key={linha.rotulo}
-              className="flex items-center justify-between px-4 py-3"
-            >
-              <dt className="text-sm text-gray-600">{linha.rotulo}</dt>
-              <dd
-                className={
-                  (linha.destaque ? "text-lg font-bold " : "text-base font-semibold ") +
-                  (linha.valor >= 0 ? "text-green-700" : "text-red-600")
-                }
+      </Secao>
+
+      <Secao
+        titulo="Mês a mês"
+        explicacao="O saldo do fim de um mês é o saldo do começo do seguinte, como na planilha. Em vermelho, o mês que consumiu caixa."
+      >
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-600">
+              <tr>
+                <th scope="col" className="px-4 py-2.5 text-left font-bold">
+                  Mês
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-right font-bold">
+                  Começou com
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-right font-bold">
+                  Entrou
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-right font-bold">
+                  Saiu
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-right font-bold">
+                  Sobrou
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-right font-bold">
+                  Terminou com
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {serie.meses.map((m) => {
+                const vazio = m.receitas === 0 && m.despesas === 0;
+                const emAberto = m.aReceber + m.aPagar;
+                return (
+                  <tr
+                    key={m.mes}
+                    className={
+                      (m.mes === mes ? "bg-gray-50 " : "") +
+                      (vazio ? "text-gray-400" : "")
+                    }
+                  >
+                    <th
+                      scope="row"
+                      className={
+                        "px-4 py-2.5 text-left font-medium " +
+                        (m.mes === mes ? "text-gray-900" : "text-gray-700")
+                      }
+                    >
+                      {rotuloMesCurto(m.mes)}
+                      {emAberto > 0 ? (
+                        <span className="ml-2 text-xs font-normal text-alerta">
+                          {formatarMoeda(emAberto)} em aberto
+                        </span>
+                      ) : null}
+                    </th>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-500">
+                      {formatarMoeda(m.saldoInicial)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
+                      {vazio ? "" : formatarMoeda(m.receitas)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
+                      {vazio ? "" : formatarMoeda(m.despesas)}
+                    </td>
+                    <td
+                      className={
+                        "px-4 py-2.5 text-right font-semibold tabular-nums " +
+                        (vazio
+                          ? ""
+                          : m.resultado < 0
+                            ? "text-alerta"
+                            : "text-gray-900")
+                      }
+                    >
+                      {vazio ? "" : formatarMoeda(m.resultado)}
+                    </td>
+                    <td
+                      className={
+                        "px-4 py-2.5 text-right font-bold tabular-nums " +
+                        (m.saldoFinal < 0 ? "text-alerta" : "text-gray-900")
+                      }
+                    >
+                      {formatarMoeda(m.saldoFinal)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {ultimo ? (
+          <p className="mt-3 text-sm text-gray-600">
+            O último mês da série é {rotuloMes(ultimo.mes)} e termina com{" "}
+            <strong className="font-semibold text-gray-900">
+              {formatarMoeda(ultimo.saldoFinal)}
+            </strong>
+            .
+            {ultimo.saldoFinalPrevisto !== ultimo.saldoFinal ? (
+              <>
+                {" "}
+                Com tudo que ainda está em aberto, fecharia em{" "}
+                <strong className="font-semibold text-gray-900">
+                  {formatarMoeda(ultimo.saldoFinalPrevisto)}
+                </strong>
+                .
+              </>
+            ) : null}
+          </p>
+        ) : null}
+      </Secao>
+
+      {melhor && pior && melhor.mes !== pior.mes ? (
+        <Secao
+          titulo="O melhor e o pior mês"
+          explicacao="Só meses já fechados. O mês em andamento ainda vai mudar."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { r: "Sobrou mais em", m: melhor },
+              { r: "Sobrou menos em", m: pior },
+            ].map(({ r, m }) => (
+              <div
+                key={r}
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
               >
-                {formatarMoeda(linha.valor)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </Card>
+                <p className="text-[10.5px] font-semibold uppercase tracking-wider text-gray-500">
+                  {r}
+                </p>
+                <p className="mt-0.5 text-xl font-bold text-gray-900">
+                  {rotuloMes(m.mes)}
+                </p>
+                <p
+                  className={
+                    "mt-0.5 text-sm font-semibold tabular-nums " +
+                    (m.resultado < 0 ? "text-alerta" : "text-gray-600")
+                  }
+                >
+                  {formatarMoeda(m.resultado)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Secao>
+      ) : null}
     </>
   );
 }

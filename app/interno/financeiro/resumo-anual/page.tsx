@@ -114,7 +114,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">
-            Receitas no ano
+            Entrou
           </p>
           <p className="mt-1 text-xl font-bold text-green-700">
             {formatarMoeda(resumo.totais.receitas)}
@@ -122,7 +122,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">
-            Despesas no ano
+            Saiu
           </p>
           <p className="mt-1 text-xl font-bold text-red-600">
             {formatarMoeda(resumo.totais.despesas)}
@@ -130,7 +130,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">
-            Resultado do ano
+            Resultado
           </p>
           <p
             className={
@@ -146,7 +146,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">
-            Saldo em caixa (dez)
+            Em caixa no fim
           </p>
           <p
             className={

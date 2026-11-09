@@ -18,7 +18,7 @@ import { GraficoCaixa } from "@/components/interno/grafico-caixa";
 import { Secao } from "@/components/interno/secao";
 import { faturamentoAnual, type MesFaturamento } from "@/lib/interno/ano";
 import { formatarMoeda } from "@/lib/utils";
-import { rotuloMesCurto } from "@/lib/financeiro/meses";
+import { mesesDoAno, rotuloMesCurto } from "@/lib/financeiro/meses";
 
 /** Planilha da Favie, 05/11/2026. Saldo encadeado a partir de Abril. */
 const REAIS: MesFaturamento[] = [
@@ -120,7 +120,7 @@ function Painel() {
               Quanto sobrou no fim de cada mês. As colunas acima contam como foi cada mês; esta
               linha conta para onde isso está indo.
             </p>
-            <GraficoCaixa pontos={ano.pontos} ano={ano.ano} />
+            <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
           </div>
 
           <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">

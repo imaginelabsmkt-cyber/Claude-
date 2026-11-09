@@ -792,7 +792,7 @@ utilizar, não vai ficar legal").
 | # | Painel | Estado |
 |---|---|---|
 | 1 | Início: o ano, o caixa, o que pede ação, o mês | no ar |
-| 2 | Financeiro: lançamentos, baixa e extrato por conta | a fazer |
+| 2 | Financeiro: painel do mês, lançamentos, fixos, fluxo, impostos, por cliente | no ar |
 | 3 | Administrativo: ficha do cliente com contratos e histórico | a fazer |
 | 4 | Comercial: propostas com revisão e conversão em contrato | a fazer |
 | 5 | Relatórios: DRE, inadimplência, receita recorrente | a fazer |
@@ -1212,6 +1212,51 @@ recorte é compartilhável e sobrevive à recarga.
 
 O "Vencidos" não existe no banco: é calculado com a mesma função pura
 da ordenação, sobre os lançamentos do mês, que é um punhado de linhas.
+
+## 5.21 O resto do Financeiro, e uma tela que virou cópia
+
+### Fluxo de caixa era o Painel do mês outra vez
+
+Quando o Painel do mês virou a aba mensal da planilha (saldo inicial,
+receitas e despesas por categoria, fechamento), o Fluxo de caixa passou
+a mostrar exatamente a mesma leitura numa aba diferente. Duas telas,
+uma resposta.
+
+A pergunta que o nome dela promete é outra, e é essa que ela responde
+agora: não "como foi novembro", e sim **"para onde o caixa está indo"**.
+Uma linha por mês, do primeiro lançamento até o último mês que tem
+alguma coisa, com o saldo encadeado (o fim de um é o começo do
+seguinte, como na planilha), e a linha do caixa por cima.
+
+`obterSerieDeCaixa` monta a série inteira, inclusive meses à frente que
+já têm conta a vencer. O gráfico de linha deixou de ser preso a doze
+meses: recebe a régua de meses pronta, e quando passa de quatorze
+escreve um rótulo sim, outro não.
+
+Agora as três telas de leitura respondem três perguntas diferentes:
+
+| Tela | Pergunta | Formato |
+|---|---|---|
+| Painel do mês | como foi este mês | categoria por categoria |
+| Fluxo de caixa | para onde o caixa vai | mês a mês, saldo encadeado |
+| Resumo anual | em que o ano foi gasto | categoria por mês |
+
+### As outras
+
+**Impostos e contábil** separou as duas coisas que estavam na mesma
+lista: o que é dinheiro (DAS, honorários) e o que é só prazo (entregar
+documento, renovar certidão). São naturezas diferentes e viviam
+misturadas.
+
+**Por cliente** ganhou a explicação de margem, rateio e sobra como
+linha de apoio da seção, em vez de um bloco de texto no rodapé que
+ninguém lê depois de já ter olhado a tabela.
+
+**Resumo anual** perdeu o "no ano" repetido três vezes embaixo de um
+título que já diz "O ano de 2026 inteiro".
+
+**Relatório do mês** ficou como estava: é a folha para imprimir, com
+granularidade própria, e não repete nenhuma das outras.
 
 ## 6. Convenções de código
 

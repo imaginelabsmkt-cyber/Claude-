@@ -1,5 +1,6 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
+import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import {
@@ -76,7 +77,12 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
       </div>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat rotulo="Receita recebida" valor={formatarMoeda(r.receitaTotal)} origem="financeiro" />
+        <Stat
+          rotulo="Receita recebida"
+          valor={formatarMoeda(r.receitaTotal)}
+          origem="financeiro"
+          detalhe="só o que entrou de verdade"
+        />
         <Stat
           rotulo="Custo direto"
           valor={formatarMoeda(r.custoDiretoTotal)}
@@ -96,6 +102,10 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
         />
       </div>
 
+      <Secao
+        titulo="Quanto sobra de cada cliente"
+        explicacao="Margem é fato: receita menos o que foi gasto com aquele cliente. Rateio é estimativa: divide pró-labore, ferramentas e impostos na proporção do que cada um fatura. Sobra é o que fica depois de tudo."
+      >
       {r.clientes.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
           <p className="font-medium text-gray-900">Nada pago neste período</p>
@@ -182,19 +192,13 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
         </>
       )}
 
-      <div className="mt-5 border-l-4 border-area pl-3 text-sm text-gray-600">
-        <p className="font-semibold text-gray-900">Como ler esta tela</p>
-        <p className="mt-1">
-          <strong>Margem</strong> é fato: receita menos o que foi gasto com aquele
-          cliente. <strong>Rateio</strong> é estimativa: divide pró-labore,
-          ferramentas e impostos entre os clientes na proporção do que cada um
-          fatura. <strong>Sobra</strong> é o que realmente fica depois de tudo.
-        </p>
-        <p className="mt-1.5">
-          Para o custo direto aparecer, lance a despesa do freela ou do tráfego
-          escolhendo o cliente no campo <em>Cliente</em>.
-        </p>
-      </div>
+      </Secao>
+
+      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
+        Para o custo direto aparecer, lance a despesa do freela ou do tráfego
+        escolhendo o cliente no campo <em>Cliente</em>. Sem isso ela cai no
+        bolo e volta rateada entre todo mundo.
+      </p>
     </>
   );
 }

@@ -113,7 +113,7 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
           acao={<MonthNav mes={mes} />}
         />
 
-      <FinanceTabs />
+        <FinanceTabs />
       </div>
 
       {/* Cabeçalho que só aparece no papel */}
@@ -188,7 +188,7 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
           <Linha
             rotulo="Ticket médio"
             valor={formatarMoeda(carteira.ticketMedio)}
-            detalhe={`${carteira.inativos.length} sairam no ano`}
+            detalhe={`${carteira.inativos.length} saíram no ano`}
           />
         </Bloco>
 

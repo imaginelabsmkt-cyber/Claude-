@@ -192,6 +192,55 @@ export async function calcularSaldoInicial(mes: string): Promise<number> {
   return serie[serie.length - 1]?.saldoFinal ?? config.opening_balance;
 }
 
+/** A linha do caixa do começo ao fim, com os meses que ainda vêm. */
+export interface SerieDeCaixa {
+  /** Um resumo por mês, do primeiro lançamento ao último mês com algo. */
+  meses: ResumoMes[];
+  /** Mês em que a série começa (o saldo inicial configurado). */
+  inicio: string;
+  /** Saldo configurado no começo de tudo. */
+  saldoInicial: number;
+}
+
+/**
+ * A série de caixa inteira: do primeiro mês lançado até o último mês
+ * que tem alguma coisa, inclusive o que ainda está por vencer.
+ *
+ * É o que a tela Fluxo de caixa responde, e é diferente do Painel do
+ * mês (um mês por dentro) e do Resumo anual (categoria por mês). Aqui a
+ * pergunta é "para onde o caixa está indo, mês a mês".
+ */
+export async function obterSerieDeCaixa(
+  ateOMes: string,
+): Promise<SerieDeCaixa> {
+  const config = await obterConfiguracaoFinanceira();
+  const supabase = createClient();
+
+  // O fim da série é o mês mais distante que tem lançamento, ou o mês
+  // em foco: um mês à frente com conta a vencer precisa aparecer.
+  const { data: ultimo } = await supabase
+    .from("financial_entries")
+    .select("reference_month")
+    .order("reference_month", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const fim = [ateOMes, ultimo?.reference_month ?? ateOMes]
+    .sort()
+    .reverse()[0];
+
+  const inicio =
+    config.opening_month < fim ? config.opening_month : fim;
+  const meses = intervaloMeses(inicio, fim);
+  const brutos = await lancamentosDoIntervalo(inicio, fim);
+
+  return {
+    meses: encadearMeses(meses, brutos, config.opening_balance),
+    inicio,
+    saldoInicial: config.opening_balance,
+  };
+}
+
 /**
  * Os últimos meses FECHADOS, do mais antigo ao mais recente.
  *
