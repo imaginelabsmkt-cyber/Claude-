@@ -8,26 +8,26 @@ atualizado a cada etapa.
 
 ## 1. Objetivo do sistema
 
-Gerenciar todo o ciclo de produção de conteúdo de uma agência de social
-media — do planejamento à publicação —, de forma que duas pessoas
-consigam coordenar o trabalho sem depender de planilhas soltas.
+Administrar a Favie: comercial, financeiro, pessoas, contábil e
+administrativo, de forma que as duas sócias toquem a empresa sem depender
+de planilhas soltas.
 
-São **dois sistemas separados**, com uma base de código e um login só,
-ligados apenas pela tabela `clients`:
+Este projeto é **só a administração** (`/interno/...`). A gestão de
+conteúdo e demandas — planejamento, roteiros, gravações, edição,
+postagens — é um **sistema à parte**, com a própria base de código, o
+próprio banco e os próprios dados. Os dois não se falam.
 
-1. **Demandas** (`/dashboard`, `/conteudos`, ...) — a produção de conteúdo
-   dos clientes, do planejamento à publicação. Menu em `lib/navigation.ts`.
-2. **Interno** (`/interno/...`) — a administração da empresa: comercial,
-   financeiro, pessoas, contábil e administrativo. Áreas em
-   `lib/interno/areas.ts`.
-
-A rota `/` é a **porta de entrada**: pergunta em qual dos dois entrar.
-Cada lado tem menu, cores e shell próprios — quem usa sente dois sistemas;
-por baixo é um cadastro de cliente só e um deploy só.
-
-> **Nunca** misture os dois menus. Conteúdos, gravações, edição e postagens
-> são de Demandas e não aparecem no Interno; dinheiro, obrigações e
-> contratos são do Interno e não aparecem em Demandas.
+> **Por que isto está escrito aqui, em primeiro lugar:** por um tempo os
+> dois sistemas dividiram esta base de código, com uma "porta de entrada"
+> em `/` perguntando em qual entrar. Isso foi um erro, e ele apareceu da
+> pior forma: o primeiro deploy real levou junto uma cópia velha e vazia
+> do sistema de demandas, parecida com o de verdade, que ficou disponível
+> para login. Duas versões do mesmo sistema é pior do que dois sistemas.
+>
+> Então: **nada de conteúdo, gravação, edição ou postagem entra aqui.**
+> Não como tela, não como tabela, não como menu. Se um dia os dois
+> precisarem conversar, que seja por integração explícita entre dois
+> sistemas vivos — nunca copiando um para dentro do outro.
 
 ## 2. Usuários e papéis
 

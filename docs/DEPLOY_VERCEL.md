@@ -60,9 +60,20 @@ sistema não tendo tela de cadastro nenhuma.
 
 Faça as duas coisas abaixo. Elas se protegem uma à outra.
 
-**1. Desligue o cadastro aberto.** No Supabase, vá em **Authentication →
-Sign In / Providers → Email** e desmarque **Enable sign ups**. Como
-vocês criam as contas à mão, isso não atrapalha nada.
+**1. Desligue o cadastro aberto — e SÓ ele.** No Supabase, vá em
+**Authentication → Sign In / Providers** e clique em **Email**. Dentro
+dessa tela há **dois** interruptores, e confundi-los quebra o login:
+
+| Interruptor | Como tem que ficar | O que ele faz |
+| ----------- | ------------------ | ------------- |
+| **Enable Email provider** (o de cima) | ✅ **LIGADO** | Permite entrar com e-mail e senha. Desligar isto tranca **todo mundo** para fora, vocês inclusive. |
+| **Allow new users to sign up** / *Enable sign ups* | ❌ **DESLIGADO** | É este que impede estranhos de criarem conta sozinhos. |
+
+Como vocês criam as contas à mão, desligar o segundo não atrapalha nada.
+
+> Se o login passar a dizer *"Não foi possível entrar"* para todo mundo,
+> quase certamente foi o interruptor de cima que caiu. A API devolve
+> `email_provider_disabled` nesse caso.
 
 **2. O sistema já exige conta liberada.** Mesmo que o cadastro fique
 aberto por engano, conta nova nasce **bloqueada** (`profiles.approved =
@@ -142,6 +153,43 @@ no ar. Consulte o [Guia de primeiro acesso](./PRIMEIRO_ACESSO.md).
 Todo `git push` para o branch conectado dispara um novo deploy automático na
 Vercel. Não é preciso refazer nada acima.
 
+## Armadilhas que já derrubaram um deploy de verdade
+
+Todas estas aconteceram no primeiro deploy real. Estão aqui para não
+acontecerem de novo.
+
+**1. O "Project URL" não é o endereço da barra do navegador.**
+O endereço da barra, quando você está no painel, é
+`https://supabase.com/dashboard/project/SEUCODIGO` — isso é a página de
+administração, **não** a API. O valor certo é o que aparece num campo
+*dentro* da página de API, e termina em `.supabase.co`:
+`https://SEUCODIGO.supabase.co`. Colar o errado dá *"Falha de conexão"*
+no login.
+
+**2. As variáveis são do tipo `Config`, não `Secret`.**
+Tudo que começa com `NEXT_PUBLIC_` é embutido na página que vai para o
+navegador — é público por definição. A Vercel recusa marcá-las como
+Secret, e está certa. (Quem protege o sistema é o `approved` + o RLS, não
+o segredo da chave `anon`.)
+
+**3. Mudar variável não republica nada.**
+`NEXT_PUBLIC_*` entra no código **na hora do build**. Depois de corrigir
+qualquer variável: *Deployments* → `⋯` → **Redeploy**, e **desmarque
+"Use existing Build Cache"**. Com o cache ligado, o build antigo é
+reaproveitado e o erro continua idêntico.
+
+**4. "Enable sign ups" ≠ desligar o login por e-mail.**
+Na tela *Authentication → Sign In / Providers → Email* existem dois
+interruptores. O de cima (*Enable Email provider*) tem que ficar
+**ligado**, senão ninguém entra — nem vocês, e o erro que aparece é
+genérico. O de baixo (*Allow new users to sign up*) é o que fica
+**desligado**, para estranhos não criarem conta.
+
+**5. A branch que a Vercel publica.**
+Em *Settings → Git → Production Branch* tem que estar
+`claude/sistema-financeiro-agencia-5owq2u`. A branch padrão do
+repositório é outra.
+
 ## Solução de problemas
 
 - **Build falha na Vercel:** confira se as duas variáveis de ambiente estão
@@ -156,9 +204,9 @@ Vercel. Não é preciso refazer nada acima.
 
 ## Conferindo se deu certo
 
-Depois do deploy, abra o endereço da Vercel e faça login. Você deve ver a
-**porta de entrada**, perguntando se quer entrar em *Demandas* ou
-*Interno*.
+Depois do deploy, abra o endereço da Vercel e faça login. Você cai
+direto no **Início** do sistema interno — não há tela de escolha, porque
+este projeto é só a administração da empresa.
 
 Um roteiro rápido para saber que está tudo no lugar:
 

@@ -1,17 +1,12 @@
-# Agência Social — Sistema de Gestão de Produção de Conteúdo
+# Favie — Sistema Interno
 
-Dois sistemas para tocar uma agência de social media, com um login só:
+A administração da agência: comercial, financeiro, pessoas, contábil e
+administrativo. Usado por duas pessoas, a Fran e a Vitória.
 
-- **Demandas** — a produção de conteúdo dos clientes, do planejamento à
-  publicação.
-- **Interno** (`/interno`) — a administração da empresa: comercial,
-  financeiro, pessoas, contábil e administrativo.
-
-A tela inicial pergunta em qual você quer entrar. Usado por duas pessoas
-com papéis distintos:
-
-- **Vitória** — planejamento, pautas, roteiros e organização das postagens.
-- **Fran** — gravações, edições, ajustes e acompanhamento da publicação.
+> **Isto NÃO é o sistema de demandas.** Planejamento, roteiros, gravações,
+> edição e postagens vivem em outro sistema, com outro código e outro
+> banco. Os dois são separados de propósito e não se falam. Nada de
+> conteúdo entra aqui.
 
 ## Tecnologias
 

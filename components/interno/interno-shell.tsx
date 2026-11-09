@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { BuscaComando } from "@/components/interno/busca-comando";
 import { InternoSidebar } from "@/components/interno/interno-sidebar";
+import { Sair } from "@/components/interno/sair";
 import { Toaster } from "@/components/ui/toaster";
 import { areaDaRota } from "@/lib/interno/areas";
 
@@ -43,6 +44,7 @@ export function InternoShell({ children, nomeUsuario }: InternoShellProps) {
           </button>
           <BuscaComando />
           <span className="ml-auto text-sm text-gray-500">{nomeUsuario}</span>
+          <Sair />
         </header>
 
         <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">{children}</main>

@@ -10,8 +10,7 @@ const ROTAS_PUBLICAS = ["/login"];
  *
  * Regras:
  * - Usuário não autenticado em rota protegida -> redireciona para /login.
- * - Usuário autenticado acessando /login -> redireciona para "/", a porta
- *   de entrada, que deixa escolher entre Demandas e Interno.
+ * - Usuário autenticado acessando /login -> redireciona para /interno.
  *
  * Sem variáveis de ambiente configuradas, degrada com segurança (não
  * bloqueia navegação) para não quebrar preview/build.
@@ -78,16 +77,10 @@ export async function atualizarSessao(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Autenticado acessando a tela de login -> porta de entrada.
-  //
-  // Aqui já apontou para "/dashboard", de quando Demandas era o único
-  // sistema e aquela era a casa. Com o sistema interno, a casa passou a
-  // ser "/", que pergunta por onde entrar — mandar direto para o
-  // dashboard pulava a escolha e escondia o Interno de quem acabou de
-  // fazer login.
+  // Autenticado acessando a tela de login -> o sistema.
   if (user && rota === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/interno";
     return NextResponse.redirect(url);
   }
 

@@ -50,7 +50,7 @@ export default function LoginPage() {
         return;
       }
 
-      // Sessão criada (cookies definidos). "/" encaminha conforme o papel.
+      // Sessão criada (cookies definidos). A raiz encaminha para o sistema.
       router.replace("/");
       router.refresh();
     } catch {
@@ -68,10 +68,10 @@ export default function LoginPage() {
               favie
             </h1>
             <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.24em] text-lilas-500">
-              gestão de demandas
+              sistema interno
             </p>
             <p className="mt-4 text-sm text-gray-500">
-              Entre para gerenciar a produção de conteúdo
+              A administração da Favie: dinheiro, clientes e equipe
             </p>
           </div>
 
