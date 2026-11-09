@@ -68,6 +68,51 @@ const config: Config = {
           DEFAULT: "var(--alerta)",
           soft: "var(--alerta-soft)",
         },
+        // ---------------------------------------------------------------
+        // CORES DE ESTADO
+        // ---------------------------------------------------------------
+        // As famílias de fábrica do Tailwind são frias: desenhadas para
+        // fundo branco e cinza azulado. Sobre papel creme elas brigam
+        // com o fundo. Estão redefinidas aqui, puxadas para o quente,
+        // pelo mesmo motivo de `white` e `gray`: o código inteiro já usa
+        // `text-red-600` e `bg-green-50`, e assim tudo acompanha.
+        //
+        // Contraste de TEXTO conferido sobre o cartão #fffdf8 (WCAG 2):
+        // red-600 5,9:1 · green-700 6,1:1 · blue-700 6,9:1 ·
+        // amber-600 4,8:1 · orange-700 5,9:1. Todos passam AA.
+        // green-600 fica em 4,3:1 e por isso só é usado como borda.
+        red: {
+          50: "#fcece7",
+          100: "#fbdbd3",
+          200: "#f3bfb3",
+          600: "#b8301f",
+          700: "#9a2819",
+          800: "#7a2015",
+        },
+        green: {
+          50: "#e9f3ed",
+          100: "#d2e9dc",
+          200: "#aed6c1",
+          600: "#0f8a5f",
+          700: "#0b6f4d",
+          800: "#095a3e",
+        },
+        blue: {
+          50: "#eaf0f7",
+          100: "#dae4f1",
+          200: "#bacfe6",
+          700: "#1d5a9e",
+          800: "#174a83",
+        },
+        amber: {
+          100: "#fcebc6",
+          600: "#9a6708",
+          700: "#7d5307",
+        },
+        orange: {
+          100: "#fce2cd",
+          700: "#99500f",
+        },
         // Creme da marca — acento quente para destaques pontuais.
         creme: {
           100: "#fff1c7",

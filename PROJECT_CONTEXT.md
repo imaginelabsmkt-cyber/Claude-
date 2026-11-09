@@ -909,6 +909,54 @@ tem margem direita maior, e o texto mora lá, onde a linha nunca chega.
 Resolver reservando espaço é definitivo; ficar adivinhando para que lado
 o texto cabe quebra de novo com outro dado.
 
+## 5.15 A varredura do creme pelo resto do sistema
+
+Trocar o papel mudou dezoito telas, não uma. A varredura achou três
+coisas, e duas eram defeito de verdade, não questão de gosto.
+
+### As cores de estado também eram frias
+
+`red`, `green`, `blue`, `amber` e `orange` de fábrica do Tailwind são
+desenhadas para fundo branco e cinza azulado, e o sistema usa elas 76
+vezes (etiqueta de status, aviso de erro, valor negativo). Estão
+redefinidas no `tailwind.config.ts`, puxadas para o quente, pelo mesmo
+motivo de `white` e `gray`: o código já usa `text-red-600`, então tudo
+acompanha sozinho.
+
+Contraste de texto conferido sobre o cartão: red-600 5,9:1, green-700
+6,1:1, blue-700 6,9:1, amber-600 4,8:1, orange-700 5,9:1. Todos passam
+AA. O green-600 ficou em 4,3:1 e por isso só é usado como borda.
+
+### A etiqueta "ADMINISTRATIVO" escrevia por cima do título
+
+Na lista do Início a etiqueta tem largura fixa, e é essa largura que
+alinha a coluna dos títulos e deixa a lista ser varrida de olho.
+"Administrativo" não cabia em 5rem e vazava por cima do texto ao lado.
+
+A correção não foi alargar a etiqueta (ia desalinhar tudo) nem cortar o
+texto (ficaria "ADMINISTRATIV..."). Cada área ganhou um `curto` para a
+etiqueta: Início, Comercial, **Admin**, Financeiro, Pessoal. A largura
+subiu para 6rem, o `truncate` entrou como rede de segurança e um teste
+trava o tamanho em dez letras, que é o que cabe.
+
+Isso só apareceu porque a prévia desenha as peças e a gente olha. Nenhum
+teste de lógica pega texto passando por cima de texto.
+
+### O que mais mudou
+
+- Campo de texto e área de texto não tinham fundo declarado, então
+  herdavam o branco puro do navegador e ficavam estalando dentro do
+  cartão creme. Agora têm `bg-white`, que é o papel.
+- A etiqueta neutra (`cinza`) sumia no cartão: subiu um passo, para
+  `gray-200`.
+- O fundo do sistema interno e o da tela de login eram `bg-gray-50`.
+  Agora são `bg-papel`.
+
+Existe `scripts/previa/componentes.previa.tsx` justamente para isso:
+põe botão, etiqueta, aviso, campo, tabela, lista e estado vazio na mesma
+página, para olhar o sistema inteiro de uma vez em vez de abrir dezoito
+telas.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

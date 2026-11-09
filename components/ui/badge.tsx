@@ -7,7 +7,9 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const estilos: Record<BadgeTone, string> = {
-  cinza: "bg-gray-100 text-gray-700",
+  // gray-100 sumia no papel creme do cartão: a etiqueta neutra
+  // precisa de um passo a mais para ainda parecer etiqueta.
+  cinza: "bg-gray-200 text-gray-700",
   azul: "bg-blue-100 text-blue-700",
   verde: "bg-green-100 text-green-700",
   amarelo: "bg-amber-100 text-amber-700",

@@ -46,6 +46,23 @@ describe("ordem do menu", () => {
   });
 });
 
+describe("o nome curto da etiqueta", () => {
+  it("cabe na etiqueta de largura fixa", () => {
+    // A etiqueta tem 6rem e fonte de 10px em caixa alta com espaçamento.
+    // Acima de dez letras o texto passava por cima do título ao lado,
+    // que foi exatamente o defeito que apareceu na lista do Início.
+    for (const a of AREAS) {
+      expect(a.curto.length).toBeLessThanOrEqual(10);
+    }
+  });
+
+  it("não deixa nenhuma área sem nome curto", () => {
+    for (const a of AREAS) {
+      expect(a.curto.trim()).not.toBe("");
+    }
+  });
+});
+
 describe("areaDaRota", () => {
   it("acha a área pela rota, inclusive nas telas de dentro", () => {
     expect(areaDaRota("/interno")).toBe("inicio");

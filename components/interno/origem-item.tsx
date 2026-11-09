@@ -36,8 +36,11 @@ export function OrigemItem({
       data-area={origem}
       className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-l-4 border-area px-3 py-2.5"
     >
-      <span className="w-20 shrink-0 rounded bg-area-soft px-1.5 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider text-area">
-        {area(origem).label}
+      {/* Largura fixa: é ela que alinha os títulos e deixa a lista ser
+          varrida de olho. O `truncate` é a rede de segurança para um
+          nome novo que não caiba. */}
+      <span className="w-24 shrink-0 truncate rounded bg-area-soft px-1.5 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider text-area">
+        {area(origem).curto}
       </span>
 
       <span className="min-w-0 flex-1">

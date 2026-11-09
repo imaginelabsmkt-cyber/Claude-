@@ -29,7 +29,7 @@ export function InternoShell({ children, nomeUsuario }: InternoShellProps) {
   const ativa = areaDaRota(pathname);
 
   return (
-    <div data-area={ativa} className="min-h-screen bg-gray-50">
+    <div data-area={ativa} className="min-h-screen bg-papel">
       <Toaster />
       <InternoSidebar
         aberta={menuAberto}

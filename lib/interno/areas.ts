@@ -52,6 +52,15 @@ export type AreaId =
 export interface Area {
   id: AreaId;
   label: string;
+  /**
+   * Nome curto, para a etiqueta da lista do Início.
+   *
+   * A etiqueta tem largura fixa, porque é ela que alinha a coluna dos
+   * títulos e faz a lista ser varrida de olho. "Administrativo" não
+   * cabia e escrevia por cima do título ao lado. Um nome de até dez
+   * letras cabe; há teste travando isso.
+   */
+  curto: string;
   href: string;
   /** Aparece embaixo do título da tela. */
   contexto: string;
@@ -79,6 +88,7 @@ export const AREAS: Area[] = [
   {
     id: "inicio",
     label: "Início",
+    curto: "Início",
     href: "/interno",
     contexto: "O que precisa de você",
     pergunta: "Por onde eu começo hoje?",
@@ -88,6 +98,7 @@ export const AREAS: Area[] = [
   {
     id: "administrativo",
     label: "Administrativo",
+    curto: "Admin",
     href: "/interno/administrativo",
     contexto: "Clientes, equipe e documentos",
     pergunta: "Como a empresa se organiza?",
@@ -97,6 +108,7 @@ export const AREAS: Area[] = [
   {
     id: "comercial",
     label: "Comercial",
+    curto: "Comercial",
     href: "/interno/comercial",
     contexto: "Funil e prospecção",
     pergunta: "De onde vem o próximo cliente?",
@@ -106,6 +118,7 @@ export const AREAS: Area[] = [
   {
     id: "financeiro",
     label: "Financeiro",
+    curto: "Financeiro",
     href: "/interno/financeiro",
     contexto: "Entradas, saídas e impostos",
     pergunta: "Quanto entra e quanto sai?",
@@ -115,6 +128,7 @@ export const AREAS: Area[] = [
   {
     id: "pessoal",
     label: "Meus gastos",
+    curto: "Pessoal",
     href: "/interno/meus-gastos",
     contexto: "Só você vê",
     pergunta: "Como está o MEU mês?",
