@@ -113,6 +113,15 @@ export function RecurrencesPanel({
     mes,
   );
 
+  /** Quanto do plano fixo deste mês já foi baixado. Sobe a cada check. */
+  const pagoNoMes = plano.gruposDespesa
+    .flatMap((g) => g.itens)
+    .filter((i) => i.vigente)
+    .reduce((t, i) => {
+      const l = lancamentoDaRecorrencia[i.id];
+      return l?.status === "Pago" ? t + i.amount : t;
+    }, 0);
+
   function alternarAtiva(r: FinancialRecurrenceWithRelations) {
     iniciar(async () => {
       const resultado = await definirAtivaRecorrenciaAction(r.id, !r.active);
@@ -210,7 +219,13 @@ export function RecurrencesPanel({
             {nome}
             {item.vigente ? null : (
               <Badge tom="cinza" className="ml-2 align-middle">
-                {item.active ? "Fora deste mês" : "Pausada"}
+                {!item.active
+                  ? "Pausada"
+                  : item.start_month > mes
+                    ? `começa em ${rotuloMesCurto(item.start_month)}`
+                    : item.end_month
+                      ? `terminou em ${rotuloMesCurto(item.end_month)}`
+                      : "fora deste mês"}
               </Badge>
             )}
           </span>
@@ -285,6 +300,14 @@ export function RecurrencesPanel({
     // Só faz sentido comparar fatias quando há com o que comparar.
     const comparar = grupo.itens.filter((i) => i.vigente).length > 1;
 
+    // Quanto deste grupo já foi pago no mês. Sobe a cada check.
+    const pago = grupo.itens
+      .filter((i) => i.vigente)
+      .reduce((t, i) => {
+        const l = lancamentoDaRecorrencia[i.id];
+        return l?.status === "Pago" ? t + i.amount : t;
+      }, 0);
+
     return (
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         {/* Categoria de uma linha só não ganha subtítulo: o subtítulo e
@@ -294,8 +317,15 @@ export function RecurrencesPanel({
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
               {grupo.categoria}
             </h3>
-            <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
-              {formatarMoeda(grupo.total)}
+            <span className="shrink-0 text-right">
+              <span className="block text-sm font-bold tabular-nums text-gray-900">
+                {formatarMoeda(grupo.total)}
+              </span>
+              {pago > 0 ? (
+                <span className="block text-xs font-semibold tabular-nums text-green-700">
+                  {formatarMoeda(pago)} pago
+                </span>
+              ) : null}
             </span>
           </div>
         ) : null}
@@ -326,7 +356,10 @@ export function RecurrencesPanel({
           {
             r: "Sai",
             v: formatarMoeda(plano.sai),
-            d: "pró-labore, ferramentas, impostos",
+            d:
+              pagoNoMes > 0
+                ? `${formatarMoeda(pagoNoMes)} já pago neste mês`
+                : "nada pago ainda neste mês",
           },
           {
             r: plano.sobra >= 0 ? "Sobra" : "Falta",

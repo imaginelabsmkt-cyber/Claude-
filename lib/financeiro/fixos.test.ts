@@ -71,18 +71,21 @@ describe("montarPlanoFixo", () => {
     expect(plano.sai).toBeCloseTo(940.6, 2);
   });
 
-  it("ordena do maior para o menor dentro do grupo", () => {
+  it("ordena em ordem alfabética dentro do grupo", () => {
+    // Pedido da Fran. A pergunta de todo dia aqui é "cadê o Canva?", e
+    // nome se acha em ordem alfabética. O peso de cada um continua
+    // visível na barrinha.
     const plano = montarPlanoFixo(FERRAMENTAS, "2026-11");
 
     expect(plano.gruposDespesa[0].itens.map((i) => i.description)).toEqual([
-      "Claude Max",
-      "ChatGPT Plus",
       "Adobe",
+      "Canva",
+      "CapCut",
+      "Captions",
+      "ChatGPT Plus",
+      "Claude Max",
       "iCloud Fran",
       "iCloud Vitória",
-      "Canva",
-      "Captions",
-      "CapCut",
     ]);
   });
 
@@ -91,10 +94,12 @@ describe("montarPlanoFixo", () => {
       [rec("Claude Max", 750), rec("Canva", 250)],
       "2026-11",
     );
-    const [maior, menor] = plano.gruposDespesa[0].itens;
+    const porNome = new Map(
+      plano.gruposDespesa[0].itens.map((i) => [i.description, i.fatia]),
+    );
 
-    expect(maior.fatia).toBeCloseTo(0.75, 4);
-    expect(menor.fatia).toBeCloseTo(0.25, 4);
+    expect(porNome.get("Claude Max")).toBeCloseTo(0.75, 4);
+    expect(porNome.get("Canva")).toBeCloseTo(0.25, 4);
   });
 
   it("separa receita de despesa e calcula a sobra", () => {
@@ -133,7 +138,7 @@ describe("montarPlanoFixo", () => {
     ]);
   });
 
-  it("mostra a pausada, no fim do grupo, sem somar", () => {
+  it("mostra a pausada na lista, sem somar", () => {
     const plano = montarPlanoFixo(
       [rec("Canva", 53), rec("Claude Max", 454.1, { active: false })],
       "2026-11",
@@ -141,6 +146,7 @@ describe("montarPlanoFixo", () => {
     const grupo = plano.gruposDespesa[0];
 
     // Sumir com a linha pausada faz a pessoa achar que foi apagada.
+    // Ela fica no lugar alfabético dela, apagada e fora da soma.
     expect(grupo.itens.map((i) => i.description)).toEqual([
       "Canva",
       "Claude Max",

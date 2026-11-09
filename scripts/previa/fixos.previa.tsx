@@ -83,6 +83,11 @@ const REAIS: RecorrenciaFixa[] = [
 
 function Grupo({ grupo }: { grupo: GrupoFixo }) {
   const comparar = grupo.itens.filter((i) => i.vigente).length > 1;
+  // na prévia, finjo que o Canva e o CapCut já foram pagos
+  const PAGOS = ["Canva", "CapCut"];
+  const pago = grupo.itens
+    .filter((i) => i.vigente && PAGOS.includes(i.description))
+    .reduce((t, i) => t + i.amount, 0);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -91,8 +96,15 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
           <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
             {grupo.categoria}
           </h3>
-          <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
-            {formatarMoeda(grupo.total)}
+          <span className="shrink-0 text-right">
+            <span className="block text-sm font-bold tabular-nums text-gray-900">
+              {formatarMoeda(grupo.total)}
+            </span>
+            {pago > 0 ? (
+              <span className="block text-xs font-semibold tabular-nums text-green-700">
+                {formatarMoeda(pago)} pago
+              </span>
+            ) : null}
           </span>
         </div>
       ) : null}
@@ -106,7 +118,7 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
               <input
                 type="checkbox"
                 readOnly
-                checked={item.description === "Canva" || item.description === "CapCut"}
+                checked={PAGOS.includes(item.description)}
                 className="h-[18px] w-[18px] rounded border-gray-300 accent-green-700"
               />
               <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
@@ -185,7 +197,7 @@ function Tela() {
           {
             r: "Sai",
             v: formatarMoeda(plano.sai),
-            d: "pró-labore, ferramentas, impostos",
+            d: `${formatarMoeda(85.9)} já pago neste mês`,
           },
           {
             r: "Falta",

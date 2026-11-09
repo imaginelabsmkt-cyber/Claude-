@@ -54,7 +54,7 @@ describe("montarFolha", () => {
     expect(grupo.linhas).toHaveLength(3);
   });
 
-  it("põe o que está em aberto primeiro dentro do grupo", () => {
+  it("ordena em ordem alfabética dentro do grupo", () => {
     const [grupo] = montarFolha(
       [
         l("Canva", 53),
@@ -65,13 +65,14 @@ describe("montarFolha", () => {
       "Despesa",
     );
 
-    // Em aberto primeiro, porque é o que ainda pede ação. Depois, do
-    // maior para o menor.
+    // A Fran desce a lista marcando o que pagou: ela precisa ACHAR a
+    // linha, e nome se acha em ordem alfabética. O que está em aberto
+    // já se vê pela caixinha desmarcada.
     expect(grupo.linhas.map((x) => x.description)).toEqual([
       "Adobe",
+      "Canva",
       "CapCut",
       "Claude Max",
-      "Canva",
     ]);
   });
 

@@ -89,12 +89,14 @@ export function montarPlanoFixo(
   const grupos = [...porCategoria.values()];
 
   for (const g of grupos) {
-    // Maior primeiro: é a ordem em que a pergunta "o que posso cortar?"
-    // é respondida. Pausado desce para o fim.
-    g.itens.sort((a, b) => {
-      if (a.vigente !== b.vigente) return a.vigente ? -1 : 1;
-      return b.amount - a.amount;
-    });
+    // ORDEM ALFABÉTICA, por pedido da Fran. Era por valor, do maior
+    // para o menor, e isso responde "o que posso cortar?". Mas a
+    // pergunta de todo dia nesta lista é outra: "cadê o Canva?". Num
+    // nome a gente procura em ordem alfabética, e a barrinha continua
+    // mostrando o peso de cada um sem precisar reordenar nada.
+    g.itens.sort((a, b) =>
+      a.description.localeCompare(b.description, "pt-BR"),
+    );
     for (const i of g.itens) {
       i.fatia = i.vigente && g.total > 0 ? i.amount / g.total : 0;
     }

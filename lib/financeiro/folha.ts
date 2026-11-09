@@ -40,8 +40,10 @@ const SEM_CATEGORIA = "Sem categoria";
  * precisar aprender nada. Categoria em cima, lançamentos embaixo, o
  * total do grupo do lado, e o status de cada linha.
  *
- * Dentro do grupo, o que está EM ABERTO vem primeiro: é o que ainda
- * pede ação. Depois, do maior para o menor.
+ * Dentro do grupo, ORDEM ALFABÉTICA. Era "em aberto primeiro, depois
+ * do maior para o menor", mas a Fran marca os pagos descendo a lista:
+ * ela precisa ACHAR a linha, e nome se acha em ordem alfabética. O que
+ * está em aberto já se vê pela caixinha desmarcada.
  */
 export function montarFolha(
   lancamentos: LancamentoFolha[],
@@ -66,10 +68,9 @@ export function montarFolha(
 
   const lista = [...grupos.values()];
   for (const g of lista) {
-    g.linhas.sort((a, b) => {
-      if (a.pago !== b.pago) return a.pago ? 1 : -1;
-      return b.amount - a.amount;
-    });
+    g.linhas.sort((a, b) =>
+      a.description.localeCompare(b.description, "pt-BR"),
+    );
   }
   return lista.sort((a, b) => b.total - a.total);
 }
