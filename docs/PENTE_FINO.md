@@ -15,6 +15,7 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 |---|---|
 | "Não precisa criar do zero, a gente tem que fazer passo a passo" | ✓ Nenhuma reescrita geral. Cada commit mexe numa coisa. |
 | "Não muda tudo, precisa deixar o que faz sentido" | ✓ Desde então, só mudo o que ela apontou. |
+| "Intuitivo, básico, simples, que eu entenda de primeira" | Em andamento. O financeiro foi de 8 abas para 3 (Mês · Fixos e ferramentas · Ano), o dashboard perdeu um dos dois gráficos (foi para o Ano, que é onde ele responde algo) e os gráficos ficaram mais deitados para caber na tela sem rolar. **Nada foi apagado**: o que saiu do topo virou link. |
 | "Você não leva em consideração as coisas que eu te falo" | Este arquivo existe por causa disso. |
 | "Já alterou de novo as coisas sem falar comigo" | Regra nova: **mudança de VALOR ou de item só com ela confirmando.** Layout eu mexo e mostro; dado dela, não. |
 
@@ -23,6 +24,7 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 | Pedido | Como está |
 |---|---|
 | Os números do sistema têm que ser os da planilha | ✓ `supabase/seed_financeiro.sql` sai da planilha do Drive. Conferido mês a mês contra a aba Resumo Anual: abr 15.271/11.548,03 · mai 20.958/16.224,11 · jun 20.418/14.767,16 · jul 18.747/15.567,02 · ago 15.500/15.900,22 · set 15.650/17.813,92 · out 14.150/16.950,16. Bate nos sete. |
+| Os meses passados detalhados, item por item | ✓ `supabase/detalhar_historico.sql`, gerado de `scripts/detalhar-historico.py`. O "A CLASSIFICAR — R$ 2.837,74" de outubro era Softbox parcela 3/4 (R$ 671,04) + Mentoria Ultralize (R$ 2.166,70). Total de cada mês idêntico ao da planilha, nos sete. |
 | "Teve mês que a gente faturou 20.000 e você não levou em consideração" | ✓ Era maio (R$ 20.958,00) e junho (R$ 20.418,00). **No sistema sempre esteve certo.** Quem estava errado era a PRÉVIA que eu mandei por imagem, que tinha números inventados. Corrigido em `scripts/previa/inicio.previa.tsx`: agora a prévia usa os valores da planilha. |
 | Datas de vencimento certas | ✓ Pró-labore dia 10, cartão das assinaturas dia 20, DAS dia 20. `supabase/ajustar_planilha_novembro.sql`. |
 | A conta de um mês vence no mês seguinte | ✓ `lib/financeiro/meses.ts`, `dataVencimento`. |
@@ -68,6 +70,6 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 | Pedido | Situação |
 |---|---|
 | "O administrativo tá super seco, desinteressante" | ✗ |
-| Mensal e anual não se conectam: "se eu quiser ver o anual eu não consigo" | ✗ |
+| Mensal e anual não se conectam: "se eu quiser ver o anual eu não consigo" | ✓ A aba "Caixa" virou "Ano" e leva ao resumo anual. O caixa mês a mês e o "por cliente" são links de dentro dele. |
 | Propostas comerciais com revisão | ✗ |
 | Relatórios de DRE, inadimplência, receita recorrente | ✗ |

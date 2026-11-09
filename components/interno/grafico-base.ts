@@ -58,8 +58,12 @@ export interface Geometria {
 }
 
 export const LARGA: Geometria = {
+  // Mais deitado do que era (236 de altura). O cartão tem 1.090px de
+  // largura e o SVG cresce junto: com a altura antiga o gráfico
+  // sozinho tomava meia tela, e a Fran precisava rolar para ver o
+  // resto do painel. Mesma informação, menos rolagem.
   largura: 720,
-  altura: 236,
+  altura: 190,
   margem: { topo: 16, direita: 10, baixo: 26, esquerda: 56 },
   barra: 16,
   fonte: 11,

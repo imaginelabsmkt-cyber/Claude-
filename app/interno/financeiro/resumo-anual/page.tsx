@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { Conta } from "@/components/interno/conta";
+import { GraficoAno } from "@/components/interno/grafico-ano";
+import { faturamentoAnual } from "@/lib/interno/ano";
 import { Card } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { obterResumoAnual, type LinhaResumoAnual } from "@/lib/data/financeiro";
@@ -151,9 +153,26 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
             href={`/interno/financeiro/fluxo-caixa?mes=${mesFoco}`}
             className="font-medium text-brand-700 hover:underline"
           >
-            Ver o caixa mês a mês
+            O caixa mês a mês
+          </Link>
+          <Link
+            href={`/interno/financeiro/rentabilidade?mes=${mesFoco}`}
+            className="font-medium text-brand-700 hover:underline"
+          >
+            Quanto cada cliente rende
           </Link>
         </p>
+      </div>
+
+      {/* As colunas saíram do dashboard e vieram para cá: "entrou e
+          saiu, mês a mês" é exatamente o que esta tela é. O dashboard
+          ficou com o número grande e a linha do caixa; o detalhe fica
+          onde a pessoa vem procurar detalhe. */}
+      <div className="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+        <p className="mb-2 text-sm font-semibold text-gray-700">
+          Entrou e saiu, mês a mês
+        </p>
+        <GraficoAno barras={faturamentoAnual(ano, resumo.serie).barras} mesFoco={mesFoco} />
       </div>
 
       <Card className="overflow-hidden">

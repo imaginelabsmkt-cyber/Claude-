@@ -34,8 +34,14 @@ REL = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 MESES = {
     "Abril": "2026-04", "Maio": "2026-05", "Junho": "2026-06",
     "Julho": "2026-07", "Agosto": "2026-08", "Setembro": "2026-09",
-    "Outubro": "2026-10", "Novembro": "2026-11", "Dezembro": "2026-12",
+    "Outubro": "2026-10",
 }
+
+# Novembro e dezembro NÃO entram: são os meses vivos, que o sistema
+# gera a partir das recorrências (Fixos e ferramentas), já com as
+# correções que a Fran pediu — sem Captions, sem Contabilidade / MEI,
+# Canva em R$ 35,00. Se eles viessem daqui, a planilha, que ainda tem
+# os três, desfaria a correção.
 
 # Nome curto na planilha -> nome do cliente no sistema.
 CLIENTES = {

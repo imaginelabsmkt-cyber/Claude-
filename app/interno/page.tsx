@@ -98,7 +98,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           </Link>
         }
       >
-        <CartaoDoAno ano={ano} meta={meta} mesFoco={mes} />
+        <CartaoDoAno ano={ano} meta={meta} />
       </Secao>
 
       {/* 2. OS NÚMEROS DAS TRÊS ETAPAS */}

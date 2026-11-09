@@ -99,7 +99,7 @@ function Tela() {
         titulo={`O ano de ${ano.ano}`}
         acao={<span className="font-medium text-gray-600">Abrir o resumo do ano</span>}
       >
-        <CartaoDoAno ano={ano} meta={meta} mesFoco={MES} />
+        <CartaoDoAno ano={ano} meta={meta} />
       </Secao>
 
       <Secao titulo={rotuloMes(MES)}>

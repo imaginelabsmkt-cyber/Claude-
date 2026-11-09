@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 /**
- * Abas do financeiro. QUATRO, e cada uma responde o que nenhuma outra
- * responde.
+ * Abas do financeiro. TRÊS: o MÊS, o que se REPETE e o ANO.
  *
  * Eram oito, e a Fran disse que o financeiro estava confuso. Pela régua
  * que ela mesma deu ("faz sentido se cada coisa tiver sua função"),
@@ -29,14 +28,20 @@ import { usePathname, useSearchParams } from "next/navigation";
  * escondido atrás de uma palavra que não é o nome dele.
  *
  * Agora a barra tem as duas vistas da planilha dela, com o nome que
- * ela usa: o MÊS e o ANO. O caixa mês a mês continua existindo, como
- * link dentro do Ano, e acende a aba Ano quando aberto.
+ * ela usa: o MÊS e o ANO. O caixa mês a mês e o "por cliente"
+ * continuam existindo, como link dentro do Ano, e acendem a aba Ano
+ * quando abertos.
+ *
+ * "Por cliente" também desceu. Ela abriu o sistema e disse: "comecei
+ * criando um negócio muito complexo, sendo que sempre falei que eu
+ * queria algo intuitivo e básico". Três abas é o que a planilha dela
+ * tem: a aba do mês, os fixos e o Resumo Anual. Nada foi apagado —
+ * o que saiu do topo virou link de onde pertence.
  */
 const ABAS = [
   { href: "/interno/financeiro", label: "Mês" },
   { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
   { href: "/interno/financeiro/resumo-anual", label: "Ano" },
-  { href: "/interno/financeiro/rentabilidade", label: "Por cliente" },
 ];
 
 const CONFIGURACAO = "/interno/financeiro/categorias";
@@ -51,6 +56,7 @@ const PERTENCE_A: Record<string, string> = {
   "/interno/financeiro/impostos": "/interno/financeiro",
   "/interno/financeiro/lancamentos": "/interno/financeiro",
   "/interno/financeiro/fluxo-caixa": "/interno/financeiro/resumo-anual",
+  "/interno/financeiro/rentabilidade": "/interno/financeiro/resumo-anual",
 };
 
 /**

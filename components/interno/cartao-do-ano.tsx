@@ -1,4 +1,3 @@
-import { GraficoAno } from "@/components/interno/grafico-ano";
 import { GraficoCaixa } from "@/components/interno/grafico-caixa";
 import { Conta } from "@/components/interno/conta";
 import { MetaDoAnoCartao } from "@/components/interno/meta-do-ano";
@@ -10,8 +9,6 @@ import { formatarMoeda } from "@/lib/utils";
 interface CartaoDoAnoProps {
   ano: FaturamentoAnual;
   meta: MetaDoAno | null;
-  /** Mês em foco nas colunas (o mês que a tela está mostrando). */
-  mesFoco: string;
 }
 
 /**
@@ -22,7 +19,7 @@ interface CartaoDoAnoProps {
  * envelhece: já aconteceu de eu mostrar à Fran uma tela que não existia
  * mais — e, pior, com números inventados. Agora não tem cópia.
  */
-export function CartaoDoAno({ ano, meta, mesFoco }: CartaoDoAnoProps) {
+export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
   const sobrou = ano.resultado >= 0;
 
   return (
@@ -82,12 +79,6 @@ export function CartaoDoAno({ ano, meta, mesFoco }: CartaoDoAnoProps) {
         <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
       </div>
 
-      <div className="mt-5 border-t border-gray-100 pt-4">
-        <p className="mb-2 text-sm font-semibold text-gray-700">
-          Entrou e saiu, mês a mês
-        </p>
-        <GraficoAno barras={ano.barras} mesFoco={mesFoco} />
-      </div>
     </div>
   );
 }
