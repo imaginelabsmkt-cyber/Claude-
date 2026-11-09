@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 /**
- * Configuração só para as PRÉVIAS visuais (`scripts/previa/*.previa.ts`).
+ * Configuração só para as PRÉVIAS visuais (`scripts/previa/*.previa.tsx`).
  *
  * As prévias renderizam um componente real para um HTML estático, com o
  * CSS do projeto, para a gente abrir no navegador e OLHAR antes de
@@ -21,6 +21,6 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["scripts/previa/*.previa.ts"],
+    include: ["scripts/previa/*.previa.tsx"],
   },
 });

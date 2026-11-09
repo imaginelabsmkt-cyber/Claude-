@@ -11,7 +11,7 @@ SAIDA_DIR=/tmp/previa && mkdir -p "$SAIDA_DIR"
 npx tailwindcss -c tailwind.config.ts -i app/globals.css -o "$SAIDA_DIR/app.css"
 
 # 2. gera o HTML (o app.css precisa estar na mesma pasta)
-SAIDA="$SAIDA_DIR/grafico.html" npx vitest run -c vitest.render.config.ts
+SAIDA="$SAIDA_DIR/inicio.html" npx vitest run -c vitest.render.config.ts
 
 # 3. abrir o arquivo no navegador, em tela larga e em tela de celular
 ```

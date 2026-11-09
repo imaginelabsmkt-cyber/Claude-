@@ -1,65 +1,21 @@
 import { marcasDoEixo, tetoDoEixo, type BarraDoAno } from "@/lib/interno/ano";
+import {
+  CORES,
+  ESTREITA,
+  LARGA,
+  TRACO,
+  larguraDoMes,
+  rotuloValor,
+  type Geometria,
+} from "@/components/interno/grafico-base";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
-/**
- * Cores das duas séries. Validadas (faixa de luminosidade, croma,
- * separação para daltonismo e contraste) sobre o branco do cartão: o par
- * passa com ΔE 9,2 em deuteranopia, acima do alvo de 8. Não troque por
- * "um verde e um vermelho bonitos" sem revalidar.
- */
-const ENTROU = "#0a8f63";
-const SAIU = "#b02a1e";
-
-const CINZA_EIXO = "#9ca3af";
-const CINZA_MES = "#6b7280";
-const CINZA_MES_VAZIO = "#d1d5db";
-
-/** A medida do desenho. Muda com a largura da tela; o resto não muda. */
-interface Geometria {
-  largura: number;
-  altura: number;
-  margem: { topo: number; direita: number; baixo: number; esquerda: number };
-  /** Grossura de cada coluna. Nunca passa de 24px depois de escalada. */
-  barra: number;
-  fonte: number;
-}
-
-/**
- * Duas medidas, não duas lógicas.
- *
- * O SVG escala junto com o cartão, então um desenho largo no celular
- * encolhe o texto até ninguém ler. A versão estreita é mais alta e tem
- * a mesma fonte num quadro menor, que é o que mantém o rótulo legível.
- */
-const LARGA: Geometria = {
-  largura: 720,
-  altura: 236,
-  margem: { topo: 16, direita: 8, baixo: 26, esquerda: 56 },
-  barra: 16,
-  fonte: 11,
-};
-
-const ESTREITA: Geometria = {
-  largura: 360,
-  altura: 250,
-  margem: { topo: 12, direita: 4, baixo: 22, esquerda: 44 },
-  barra: 10,
-  fonte: 10,
-};
+const ENTROU = CORES.entrou;
+const SAIU = CORES.saiu;
 
 /** O vão de 2px é o que separa as duas colunas. Nunca um contorno. */
 const VAO = 2;
-
-/** Rótulo curto do eixo: "15 mil" em vez de "R$ 15.000,00". */
-function rotuloValor(valor: number, teto: number): string {
-  if (valor === 0) return "0";
-  if (teto >= 10_000) {
-    const mil = valor / 1000;
-    return `${mil.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
-  }
-  return valor.toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
 
 interface DesenhoProps {
   geo: Geometria;
@@ -73,10 +29,9 @@ interface DesenhoProps {
 /** O gráfico em si, numa medida. */
 function Desenho({ geo, barras, teto, mesFoco, className, descricao }: DesenhoProps) {
   const { largura: L, altura: A, margem: M, barra: B, fonte } = geo;
-  const ploteL = L - M.esquerda - M.direita;
   const ploteA = A - M.topo - M.baixo;
   const base = M.topo + ploteA;
-  const slot = ploteL / 12;
+  const slot = larguraDoMes(geo);
 
   const altura = (valor: number) => (teto === 0 ? 0 : (valor / teto) * ploteA);
 
@@ -111,14 +66,14 @@ function Desenho({ geo, barras, teto, mesFoco, className, descricao }: DesenhoPr
               x2={L - M.direita}
               y1={y}
               y2={y}
-              stroke={m === 0 ? "#d1d5db" : "#e5e7eb"}
+              stroke={m === 0 ? TRACO.eixo : TRACO.grade}
               strokeWidth={1}
             />
             <text
               x={M.esquerda - 8}
               y={y + fonte / 3}
               textAnchor="end"
-              fill={CINZA_EIXO}
+              fill={TRACO.texto}
               style={{ fontSize: fonte }}
             >
               {rotuloValor(m, teto)}
@@ -139,7 +94,7 @@ function Desenho({ geo, barras, teto, mesFoco, className, descricao }: DesenhoPr
                 y={M.topo}
                 width={slot}
                 height={ploteA}
-                fill="#f3f4f6"
+                fill={TRACO.foco}
               />
             ) : null}
 
@@ -163,7 +118,7 @@ function Desenho({ geo, barras, teto, mesFoco, className, descricao }: DesenhoPr
               x={centro}
               y={A - M.baixo / 4}
               textAnchor="middle"
-              fill={b.comMovimento ? CINZA_MES : CINZA_MES_VAZIO}
+              fill={b.comMovimento ? TRACO.mes : TRACO.mesVazio}
               style={{ fontSize: fonte, fontWeight: foco ? 700 : 400 }}
             >
               {rotuloMesCurto(b.mes).slice(0, 3)}

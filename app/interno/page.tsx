@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { GraficoAno } from "@/components/interno/grafico-ano";
+import { GraficoCaixa } from "@/components/interno/grafico-caixa";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
 import { MonthNav } from "@/components/financeiro/month-nav";
@@ -158,7 +159,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
             {formatarMoeda(caixa)}
           </p>
 
-          <p className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
+          <p className="mt-3 text-sm text-gray-600">
             {folego.meses !== null && folego.ate ? (
               <>
                 Nos últimos meses saiu em média{" "}
@@ -188,8 +189,19 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
             )}
           </p>
 
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <p className="mb-1 text-sm font-semibold text-gray-700">
+              O caixa ao longo de {ano.ano}
+            </p>
+            <p className="mb-3 text-[13px] text-gray-500">
+              Quanto sobrou no fim de cada mês. As colunas acima contam
+              como foi cada mês; esta linha conta para onde isso está indo.
+            </p>
+            <GraficoCaixa pontos={ano.pontos} ano={ano.ano} />
+          </div>
+
           {sobra < 0 ? (
-            <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">
               <span>
                 As {carteira.ativos} mensalidades somam{" "}
                 {formatarMoeda(carteira.recorrente)} e o custo fixo é{" "}

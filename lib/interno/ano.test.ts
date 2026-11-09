@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  escalaDeSaldo,
   faturamentoAnual,
   marcasDoEixo,
   tetoDoEixo,
@@ -17,6 +18,7 @@ function mes(
     despesas: 0,
     receitasPrevistas: 0,
     despesasPrevistas: 0,
+    saldoFinal: 0,
     ...valores,
   };
 }
@@ -114,7 +116,7 @@ describe("tetoDoEixo", () => {
   it("arredonda para cima até um número redondo", () => {
     expect(tetoDoEixo([13_147.8])).toBe(15_000);
     expect(tetoDoEixo([8_900])).toBe(10_000);
-    expect(tetoDoEixo([1_050])).toBe(1_500);
+    expect(tetoDoEixo([1_050])).toBe(1_250);
     expect(tetoDoEixo([2_600])).toBe(3_000);
   });
 
@@ -140,5 +142,75 @@ describe("marcasDoEixo", () => {
 
   it("não inventa marcas quando o teto é zero", () => {
     expect(marcasDoEixo(0)).toEqual([0]);
+  });
+});
+
+describe("a linha do caixa", () => {
+  it("só tem ponto nos meses que existem na série", () => {
+    const ano = faturamentoAnual(2026, [
+      mes("2026-04", { receitas: 1_000, saldoFinal: 5_000 }),
+      mes("2026-05", { receitas: 1_000, saldoFinal: 6_200 }),
+    ]);
+
+    // Doze barras, dois pontos. Inventar janeiro com saldo zero
+    // desenharia uma queda ao chão que nunca aconteceu.
+    expect(ano.barras).toHaveLength(12);
+    expect(ano.pontos).toEqual([
+      { mes: "2026-04", saldo: 5_000 },
+      { mes: "2026-05", saldo: 6_200 },
+    ]);
+  });
+
+  it("deixa os pontos em ordem de mês, venha a série como vier", () => {
+    const ano = faturamentoAnual(2026, [
+      mes("2026-05", { saldoFinal: 6_200 }),
+      mes("2026-03", { saldoFinal: 4_000 }),
+      mes("2026-04", { saldoFinal: 5_000 }),
+    ]);
+
+    expect(ano.pontos.map((p) => p.mes)).toEqual([
+      "2026-03",
+      "2026-04",
+      "2026-05",
+    ]);
+  });
+
+  it("não traz ponto de outro ano", () => {
+    const ano = faturamentoAnual(2026, [
+      mes("2025-12", { saldoFinal: 99_000 }),
+      mes("2026-01", { saldoFinal: 1_000 }),
+    ]);
+
+    expect(ano.pontos).toEqual([{ mes: "2026-01", saldo: 1_000 }]);
+  });
+});
+
+describe("escalaDeSaldo", () => {
+  it("começa no zero quando o caixa nunca ficou negativo", () => {
+    expect(escalaDeSaldo([5_000, 11_923.38])).toEqual({
+      min: 0,
+      max: 12_500,
+      marcas: [0, 6_250, 12_500],
+    });
+  });
+
+  it("abre espaço abaixo do zero quando o caixa ficou negativo", () => {
+    const escala = escalaDeSaldo([5_000, -2_200]);
+
+    expect(escala.max).toBe(5_000);
+    expect(escala.min).toBe(-2_500);
+    // O zero é sempre uma linha desenhada: é a diferença entre estar
+    // acima e abaixo dele que importa.
+    expect(escala.marcas).toEqual([-2_500, 0, 5_000]);
+  });
+
+  it("não devolve altura zero quando está tudo zerado", () => {
+    const escala = escalaDeSaldo([0, 0]);
+    expect(escala.max).toBeGreaterThan(escala.min);
+  });
+
+  it("não devolve altura zero com a lista vazia", () => {
+    const escala = escalaDeSaldo([]);
+    expect(escala.max).toBeGreaterThan(escala.min);
   });
 });

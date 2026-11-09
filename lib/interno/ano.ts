@@ -16,6 +16,8 @@ export interface MesFaturamento {
   receitasPrevistas: number;
   /** Despesa saída + ainda a pagar. */
   despesasPrevistas: number;
+  /** Caixa no fim do mês, já encadeado com os meses anteriores. */
+  saldoFinal: number;
 }
 
 /** Um mês dentro do gráfico do ano. */
@@ -25,6 +27,19 @@ export interface BarraDoAno {
   saiu: number;
   /** O mês já aconteceu (tem algum valor lançado). */
   comMovimento: boolean;
+}
+
+/** Um mês na linha do caixa. Só meses que existem de verdade. */
+export interface PontoDeCaixa {
+  mes: string;
+  saldo: number;
+}
+
+/** Os limites e as marcas do eixo vertical de um gráfico. */
+export interface EscalaVertical {
+  min: number;
+  max: number;
+  marcas: number[];
 }
 
 /** O que a tela Início mostra sobre o ano inteiro. */
@@ -48,6 +63,14 @@ export interface FaturamentoAnual {
   melhorMes: { mes: string; valor: number } | null;
   /** Doze barras, uma por mês, na ordem de janeiro a dezembro. */
   barras: BarraDoAno[];
+  /**
+   * O caixa no fim de cada mês que REALMENTE existe na série.
+   *
+   * Não são doze: um mês inventado com saldo zero desenharia uma queda
+   * ao chão que nunca aconteceu. Mês sem lançamento simplesmente não
+   * tem ponto, e a linha começa onde a empresa começou a lançar.
+   */
+  pontos: PontoDeCaixa[];
 }
 
 /**
@@ -63,6 +86,7 @@ export function faturamentoAnual(
   serie: MesFaturamento[],
 ): FaturamentoAnual {
   const porMes = new Map(serie.map((m) => [m.mes, m]));
+  const doAno = new Set(mesesDoAno(ano));
 
   const meses = mesesDoAno(ano).map((mes) => {
     const m = porMes.get(mes);
@@ -74,6 +98,11 @@ export function faturamentoAnual(
       despesasPrevistas: m?.despesasPrevistas ?? 0,
     };
   });
+
+  const pontos = serie
+    .filter((m) => doAno.has(m.mes))
+    .map((m) => ({ mes: m.mes, saldo: m.saldoFinal }))
+    .sort((a, b) => a.mes.localeCompare(b.mes));
 
   const soma = (f: (m: (typeof meses)[number]) => number) =>
     meses.reduce((t, m) => t + f(m), 0);
@@ -107,11 +136,12 @@ export function faturamentoAnual(
       saiu: m.despesas,
       comMovimento: m.receitas > 0 || m.despesas > 0,
     })),
+    pontos,
   };
 }
 
 /** Passos "redondos" aceitos para o teto do eixo, por década. */
-const PASSOS = [1, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10];
+const PASSOS = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10];
 
 /**
  * Teto redondo para o eixo de um gráfico de barras.
@@ -142,4 +172,31 @@ export function marcasDoEixo(teto: number, quantas = 2): number[] {
     marcas.push((teto / quantas) * i);
   }
   return marcas;
+}
+
+/**
+ * Limites e marcas do eixo de um gráfico que pode cruzar o zero.
+ *
+ * O caixa fica negativo, e um eixo que começa no menor valor esconde
+ * exatamente isso. Aqui o zero é sempre uma linha desenhada: ou é o
+ * piso, ou é a linha do meio, e a diferença entre estar acima e abaixo
+ * dela é a informação.
+ */
+export function escalaDeSaldo(valores: number[]): EscalaVertical {
+  const max = tetoDoEixo(valores.filter((v) => v > 0));
+  // O `|| 0` troca o -0 que a negação produz por 0. Com -0 o eixo
+  // funciona, mas qualquer comparação de igualdade fica estranha.
+  const min = -tetoDoEixo(valores.filter((v) => v < 0).map(Math.abs)) || 0;
+
+  if (max === 0 && min === 0) {
+    // Tudo zerado: um eixo de altura zero não desenha nada e ainda
+    // divide por zero na hora de posicionar o ponto.
+    return { min: 0, max: 1, marcas: [0] };
+  }
+
+  return {
+    min,
+    max,
+    marcas: min < 0 ? [min, 0, max] : [0, max / 2, max],
+  };
 }

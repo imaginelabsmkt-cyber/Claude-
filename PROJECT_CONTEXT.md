@@ -844,6 +844,71 @@ sobre a coluna mais alta do par, que quase sempre é a vermelha, então
 parecia etiqueta do que SAIU quando era do que entrou. O melhor mês já
 está por extenso no cartão acima; o gráfico não repete.
 
+## 5.14 Papel creme, tinta quente e a linha do caixa
+
+A Fran olhou o Início pronto e disse: "to achando o design tap seco e
+pouco tátil, queria algo mais harmonioso". E mandou junto um gráfico de
+linha, dizendo "gosto dessa opção também".
+
+### O design: "branco" e "cinza" foram redefinidos
+
+A tela era branco sobre cinza azulado, que é o padrão de todo painel
+feito às pressas. O sistema agora é **papel creme com tinta quente**,
+que é a identidade que a Vitória gosta.
+
+O jeito de fazer isso sem tocar em 34 arquivos foi redefinir as cores
+base no `tailwind.config.ts`:
+
+- `white` virou `#fffdf8` (papel creme claro). Todo `bg-white` que já
+  existia ficou quente sozinho.
+- `gray` virou uma escala quente (taupe), não azulada. Todo
+  `text-gray-500` e `border-gray-200` do código inteiro acompanhou.
+- `papel` (`#f3ede0`) é o fundo da página, no lugar do `bg-gray-50`.
+- A sombra passou a ser tingida de vinho em vez de preta. Preto sobre
+  creme acinzenta o papel; vinho afunda o cartão sem sujar a cor.
+- Os cantos abriram (`rounded-2xl` no cartão padrão).
+
+O contraste foi **conferido, não estimado** (WCAG 2, sobre o cartão e
+sobre o papel): `gray-900` 16,3:1 e 14,2:1; `gray-600` 7,4:1 e 6,5:1;
+`gray-500` 5,4:1 e 4,7:1, passando AA nos dois fundos. O `gray-500` é o
+mais usado do sistema (141 vezes) e foi escurecido de propósito até
+passar também sobre o papel, que é o fundo mais escuro dos dois.
+
+### A linha do caixa
+
+As colunas respondem "como foi cada mês". A linha responde outra coisa:
+"para onde isso está indo". São perguntas diferentes, então são dois
+gráficos, cada um no bloco a que pertence: as colunas no ano, a linha no
+caixa.
+
+A linha fica vinho enquanto o caixa está positivo e vermelha de alerta
+se o último mês fechou negativo, porque aí não é leitura, é aviso.
+
+### A curva é monotônica, e isso é regra de dado
+
+`lib/interno/curva.ts` usa cúbica monotônica (Fritsch e Carlson), não a
+suavização comum. Motivo: a suavização comum **ultrapassa os pontos**.
+Entre dois meses em que o caixa só caiu, ela desenha um fundo que a
+empresa nunca teve. A monotônica garante que a curva nunca sai do
+intervalo entre dois pontos vizinhos: suaviza o traço, não inventa
+valor. Há teste conferindo isso em três formatos de série, inclusive
+com caixa negativo.
+
+### Mês que não existe não vira ponto
+
+As barras são sempre doze, inclusive as vazias, porque coluna faltando
+engana mais do que coluna vazia. A **linha** é o contrário: só tem ponto
+nos meses que existem na série. Um janeiro inventado com saldo zero
+desenharia uma queda ao chão que nunca aconteceu.
+
+### O rótulo do fim da linha tem faixa reservada
+
+A primeira versão empurrava o texto do último saldo para dentro do
+desenho, e ele caía em cima do próprio ponto. Agora o gráfico de linha
+tem margem direita maior, e o texto mora lá, onde a linha nunca chega.
+Resolver reservando espaço é definitivo; ficar adivinhando para que lado
+o texto cabe quebra de novo com outro dado.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

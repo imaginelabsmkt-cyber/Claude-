@@ -12,7 +12,10 @@ html {
 }
 
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+  /* Papel creme da marca, não cinza. É a base do "mais harmonioso":
+     tudo que vem por cima (cartão creme claro, sombra de vinho, tinta
+     quente) sai dessa escolha. */
+  @apply bg-papel text-gray-900 antialiased;
 }
 
 /* Acessibilidade: foco visível e consistente na navegação por teclado. */
@@ -50,24 +53,24 @@ textarea:focus-visible,
    ============================================================= */
 :root {
   --alerta: #c0281f;
-  --alerta-soft: #fbe1de;
+  --alerta-soft: #fae0da;
 }
 
 [data-area="inicio"] {
   --area: #3f3a3c;
-  --area-soft: #eae6e7;
+  --area-soft: #ece7e1;
 }
 [data-area="comercial"] {
   --area: #7a2740;
-  --area-soft: #f8e5ea;
+  --area-soft: #f8e4e8;
 }
 [data-area="administrativo"] {
   --area: #1d5a9e;
-  --area-soft: #dde9f7;
+  --area-soft: #e2e9f2;
 }
 [data-area="financeiro"] {
   --area: #0f5d52;
-  --area-soft: #dcefe9;
+  --area-soft: #e0ece4;
 }
 /* A única área privada por login. Rosa-magenta: é o vão que sobrou
    na roda de cores (entre o vinho do Comercial e o roxo de Pessoas),
@@ -75,7 +78,7 @@ textarea:focus-visible,
    avisa, sem texto, que ali o dado é só seu. */
 [data-area="pessoal"] {
   --area: #a62a6a;
-  --area-soft: #fae2f0;
+  --area-soft: #f8e2ec;
 }
 
 /* =============================================================
