@@ -124,7 +124,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
       </h3>
       <p className="mt-1 text-xs text-gray-500">
         Isso cria o cliente, cadastra a mensalidade no financeiro e define a
-        vigência — tudo de uma vez.
+        vigência, tudo de uma vez.
       </p>
 
       {mensagem ? (

@@ -192,7 +192,7 @@ export function SettingsPanel({ configuracao, categorias }: SettingsPanelProps) 
         <CardContent className="space-y-5">
           <p className="text-sm text-gray-500">
             As categorias são as linhas do resumo anual. Categorias já usadas
-            não podem ser excluídas — desative-as para tirá-las dos
+            não podem ser excluídas. Desative-as para tirá-las dos
             formulários sem perder o histórico.
           </p>
 

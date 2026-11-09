@@ -101,7 +101,7 @@ export default async function FunilPage() {
                 <span className="text-xs text-gray-500">
                   {l.stage === "Fechado"
                     ? "ganhamos"
-                    : `perdemos${l.lost_reason ? ` — ${l.lost_reason}` : ""}`}
+                    : `perdemos${l.lost_reason ? `: ${l.lost_reason}` : ""}`}
                 </span>
                 <span className="w-28 shrink-0 text-right text-sm tabular-nums text-gray-600">
                   {formatarMoeda(Number(l.estimated_monthly))}

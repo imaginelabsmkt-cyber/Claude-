@@ -200,7 +200,7 @@ export function RecurrenceForm({
             value={values.client_id ?? ""}
             onChange={(e) => atualizar("client_id", e.target.value)}
           >
-            <option value="">— sem cliente —</option>
+            <option value="">sem cliente</option>
             {clientes.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

@@ -33,7 +33,7 @@ export function VincularPessoa({ pessoas }: { pessoas: TeamMember[] }) {
         toast.erro(r.error ?? "Não foi possível vincular.");
         return;
       }
-      toast.sucesso("Pronto — o pró-labore do mês já aparece aqui.");
+      toast.sucesso("Pronto. O pró-labore do mês já aparece aqui.");
       router.refresh();
     });
   }

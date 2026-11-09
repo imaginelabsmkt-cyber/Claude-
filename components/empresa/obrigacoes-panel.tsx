@@ -53,7 +53,7 @@ export function ObrigacoesPanel({ obrigacoes, area }: ObrigacoesPanelProps) {
         return;
       }
       toast.sucesso(
-        `${o.title} — ${rotuloPeriodo(periodo ?? "")} marcado como cumprido.`,
+        `${o.title}: ${rotuloPeriodo(periodo ?? "")} marcado como cumprido.`,
       );
       router.refresh();
     });
@@ -191,7 +191,7 @@ export function ObrigacoesPanel({ obrigacoes, area }: ObrigacoesPanelProps) {
       {obrigacoes.length === 0 && editando !== "nova" ? (
         <p className="text-sm text-gray-500">
           Nenhuma obrigação cadastrada nesta área. Use isto para prazos que não são
-          despesa — a declaração anual, a renovação do alvará. DAS e contabilidade
+          despesa: a declaração anual, a renovação do alvará. DAS e contabilidade
           já vêm do financeiro.
         </p>
       ) : null}

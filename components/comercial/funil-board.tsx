@@ -77,7 +77,7 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
         </p>
       ) : parado ? (
         <p className="mt-1 text-[11px] font-semibold text-alerta">
-          Parado — hora de cutucar
+          Parado, hora de cutucar
         </p>
       ) : null}
     </div>

@@ -10,9 +10,9 @@ Como começar a usar o sistema depois de publicado.
 4. Ao entrar, você cai no **Dashboard**.
 
 > Quem controla a visão é o papel do usuário:
-> - **Vitória (planner)** — foco em planejamento, roteiros e aprovações.
-> - **Fran (producer)** — foco em gravação, edição e publicação.
-> - **admin** — visão completa.
+> - **Vitória (planner)**, foco em planejamento, roteiros e aprovações.
+> - **Fran (producer)**, foco em gravação, edição e publicação.
+> - **admin**, visão completa.
 
 ## 2. Cadastrar os primeiros dados
 
@@ -43,13 +43,13 @@ A ordem recomendada:
 
 ## 4. Boas práticas
 
-- Mantenha o **status** dos conteúdos atualizado — quase tudo no sistema
+- Mantenha o **status** dos conteúdos atualizado, quase tudo no sistema
   (indicadores, atrasos, próxima ação) é calculado a partir dele.
 - Use **prazos** (roteiro, gravação, edição) e **data prevista** para que os
   alertas de atraso funcionem.
 - Use os **comentários** do conteúdo para alinhar a equipe; cada pessoa pode
   excluir apenas os próprios comentários.
-- O **histórico** é automático e não pode ser editado — serve como registro
+- O **histórico** é automático e não pode ser editado, serve como registro
   confiável do que mudou.
 
 ## 5. Trocar de usuário / sair

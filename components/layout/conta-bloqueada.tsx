@@ -21,7 +21,7 @@ export function ContaBloqueada({ email }: { email: string | null }) {
 
       <p className="mt-3 text-sm text-gray-600">
         O acesso a este sistema é dado uma conta por vez. Entrar com
-        {email ? ` ${email}` : " uma conta"} não basta — alguém de dentro precisa
+        {email ? ` ${email}` : " uma conta"} não basta. Alguém de dentro precisa
         liberar.
       </p>
 

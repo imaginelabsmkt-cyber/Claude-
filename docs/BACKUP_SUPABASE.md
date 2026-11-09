@@ -3,12 +3,12 @@
 Como proteger os dados do sistema (clientes, conteúdos, histórico e
 comentários). Recomenda-se um backup periódico (ex.: semanal).
 
-## Opção 1 — Backups automáticos do Supabase (mais simples)
+## Opção 1: Backups automáticos do Supabase (mais simples)
 
 O Supabase mantém backups do banco automaticamente:
 
 - **Plano Free:** backups diários com retenção curta (o Supabase pode pausar
-  projetos inativos — mantenha o projeto ativo ou faça exportações manuais).
+  projetos inativos, mantenha o projeto ativo ou faça exportações manuais).
 - **Planos pagos (Pro+):** backups diários com maior retenção e
   **Point-in-Time Recovery (PITR)**.
 
@@ -18,7 +18,7 @@ restore da data desejada.
 > Recomendação: para uso profissional contínuo, o plano Pro dá tranquilidade
 > com PITR. No Free, complemente com as exportações manuais abaixo.
 
-## Opção 2 — Exportação manual via SQL (rápida)
+## Opção 2: Exportação manual via SQL (rápida)
 
 No **SQL Editor**, rode e baixe o resultado (botão de exportar CSV) para cada
 tabela que quer guardar:
@@ -33,7 +33,7 @@ select * from public.profiles;
 
 Guarde os CSVs em local seguro (ex.: Google Drive da agência).
 
-## Opção 3 — Dump completo via CLI (mais robusto)
+## Opção 3: Dump completo via CLI (mais robusto)
 
 Requer a [Supabase CLI](https://supabase.com/docs/guides/cli) e a
 connection string do banco (**Project Settings → Database → Connection string**).

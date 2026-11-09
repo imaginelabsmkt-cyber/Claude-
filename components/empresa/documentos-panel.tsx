@@ -195,7 +195,7 @@ export function DocumentosPanel({ documentos }: { documentos: CompanyFile[] }) {
       {documentos.length === 0 ? (
         <p className="text-sm text-gray-500">
           Nenhum documento da empresa ainda. Contrato social, cartão CNPJ, alvará e
-          certidões ficam aqui — e só quem tem login acessa.
+          certidões ficam aqui, e só quem tem login acessa.
         </p>
       ) : (
         <>

@@ -36,7 +36,7 @@ export function ContratosLista({ contratos }: { contratos: ContratoCliente[] }) 
         <p className="text-sm text-gray-600">Nenhum contrato anexado ainda.</p>
         <p className="mx-auto mt-1 max-w-md text-xs text-gray-500">
           O contrato assinado é um arquivo do cliente: anexe na ficha dele e marque
-          o tipo como <strong>Contrato</strong> — ele passa a aparecer aqui, sem
+          o tipo como <strong>Contrato</strong>: ele passa a aparecer aqui, sem
           deixar de estar lá.
         </p>
         <Link

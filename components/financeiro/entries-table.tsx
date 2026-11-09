@@ -80,7 +80,7 @@ export function EntriesTable({ lancamentos }: EntriesTableProps) {
                 </p>
               </div>
               <span className={`shrink-0 font-semibold ${sinal(l)}`}>
-                {l.kind === "Receita" ? "+" : "−"} {formatarMoeda(Number(l.amount))}
+                {l.kind === "Receita" ? "+" : "-"} {formatarMoeda(Number(l.amount))}
               </span>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
@@ -138,14 +138,14 @@ export function EntriesTable({ lancamentos }: EntriesTableProps) {
                     ) : null}
                   </td>
                   <td className="px-4 py-3 text-gray-600">
-                    {l.category?.name ?? "—"}
+                    {l.category?.name ?? ""}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{l.client?.name ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-600">{l.client?.name ?? ""}</td>
                   <td className="px-4 py-3 text-gray-600">
                     {formatarData(l.due_date)}
                   </td>
                   <td className={`px-4 py-3 text-right font-semibold ${sinal(l)}`}>
-                    {l.kind === "Receita" ? "+" : "−"} {formatarMoeda(Number(l.amount))}
+                    {l.kind === "Receita" ? "+" : "-"} {formatarMoeda(Number(l.amount))}
                   </td>
                   <td className="px-4 py-3">
                     <Badge tom={FINANCIAL_STATUS_TONE[l.status]}>{l.status}</Badge>

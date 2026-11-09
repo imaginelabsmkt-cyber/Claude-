@@ -101,7 +101,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
           <p className="font-medium text-gray-900">Nada pago neste período</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">
-            A rentabilidade só conta o que foi efetivamente pago — receita prometida
+            A rentabilidade só conta o que foi efetivamente pago. Receita prometida
             não paga cliente nenhum.
           </p>
         </div>
@@ -133,7 +133,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
                         {formatarMoeda(c.receita)}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-gray-500">
-                        {c.custoDireto > 0 ? `− ${formatarMoeda(c.custoDireto)}` : "—"}
+                        {c.custoDireto > 0 ? `- ${formatarMoeda(c.custoDireto)}` : ""}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums">
                         <span className="font-medium text-gray-900">
@@ -144,7 +144,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-gray-400">
-                        − {formatarMoeda(c.rateio)}
+                        - {formatarMoeda(c.rateio)}
                       </td>
                       <td
                         className={cn(
@@ -175,7 +175,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
 
           {semCliente > 0 ? (
             <p className="mt-3 text-xs text-gray-500">
-              {formatarMoeda(semCliente)} de receita paga não tem cliente apontado —
+              {formatarMoeda(semCliente)} de receita paga não tem cliente apontado.
               ela entra no total, mas não em nenhuma linha acima, e por isso mexe
               no rateio. Vale editar o lançamento e escolher o cliente.
             </p>
@@ -187,7 +187,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
         <p className="font-semibold text-gray-900">Como ler esta tela</p>
         <p className="mt-1">
           <strong>Margem</strong> é fato: receita menos o que foi gasto com aquele
-          cliente. <strong>Rateio</strong> é estimativa — divide pró-labore,
+          cliente. <strong>Rateio</strong> é estimativa: divide pró-labore,
           ferramentas e impostos entre os clientes na proporção do que cada um
           fatura. <strong>Sobra</strong> é o que realmente fica depois de tudo.
         </p>

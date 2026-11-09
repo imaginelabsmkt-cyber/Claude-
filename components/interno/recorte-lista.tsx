@@ -30,7 +30,7 @@ export function RecorteLista({
               {l.description}
             </span>
             <span className="block text-xs text-gray-500">
-              {l.client?.name ?? l.category?.name ?? "—"}
+              {l.client?.name ?? l.category?.name ?? ""}
               {l.due_date ? ` · vence ${formatarData(l.due_date)}` : ""}
             </span>
           </span>

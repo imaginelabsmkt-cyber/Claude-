@@ -1,4 +1,4 @@
-# PROJECT_CONTEXT — Regras do Sistema
+# PROJECT_CONTEXT: Regras do Sistema
 
 Este documento é a **fonte de verdade das regras de negócio e convenções**
 do sistema. Deve ser lido antes de qualquer implementação e mantido
@@ -13,8 +13,8 @@ administrativo, de forma que as duas sócias toquem a empresa sem depender
 de planilhas soltas.
 
 Este projeto é **só a administração** (`/interno/...`). A gestão de
-conteúdo e demandas — planejamento, roteiros, gravações, edição,
-postagens — é um **sistema à parte**, com a própria base de código, o
+conteúdo e demandas, planejamento, roteiros, gravações, edição,
+postagens, é um **sistema à parte**, com a própria base de código, o
 próprio banco e os próprios dados. Os dois não se falam.
 
 > **Por que isto está escrito aqui, em primeiro lugar:** por um tempo os
@@ -27,7 +27,7 @@ próprio banco e os próprios dados. Os dois não se falam.
 > Então: **nada de conteúdo, gravação, edição ou postagem entra aqui.**
 > Não como tela, não como tabela, não como menu. Se um dia os dois
 > precisarem conversar, que seja por integração explícita entre dois
-> sistemas vivos — nunca copiando um para dentro do outro.
+> sistemas vivos, nunca copiando um para dentro do outro.
 
 ## 2. Usuários e papéis
 
@@ -63,7 +63,7 @@ Prioridade (enum `content_priority`): `Urgente`, `Alta`, `Média`, `Baixa`.
 
 **Regra anti-duplicação (importante):**
 As páginas **Gravações**, **Fila de edição** e **Postagens** NÃO são
-entidades novas — são **visões filtradas** do pipeline de `contents`:
+entidades novas, são **visões filtradas** do pipeline de `contents`:
 
 - **Gravações** → `status in ('Aguardando gravação', 'Gravado')`
   (ou `requires_recording = true`); usa os campos `recording_*`.
@@ -79,15 +79,15 @@ Isso evita funcionalidade duplicada: o dado vive só em `contents`.
 Schema em `supabase/migrations/`; tipos em `types/database.ts` (fonte única).
 São **5 tabelas**:
 
-- **profiles** — usuário (`id` = `auth.users.id`), `role`.
-- **clients** — cliente atendido pela agência.
-- **contents** — entidade central (pauta/roteiro + pipeline). Referencia
+- **profiles**, usuário (`id` = `auth.users.id`), `role`.
+- **clients**, cliente atendido pela agência.
+- **contents**, entidade central (pauta/roteiro + pipeline). Referencia
   `client_id` e os responsáveis `planner_id`, `recorder_id`, `editor_id`,
   `publisher_id`. Concentra gravação (`recording_*`), prazos (`*_deadline`),
   arquivos (`*_url`) e controle (`revision_count`, `editing_queue_position`,
   `is_fixed_date`, `is_campaign`).
-- **content_history** — auditoria de alterações de campos de `contents`.
-- **comments** — comentários de colaboração em um conteúdo.
+- **content_history**, auditoria de alterações de campos de `contents`.
+- **comments**, comentários de colaboração em um conteúdo.
 
 > Gravação, agendamento e "tarefas" **não** têm tabela própria: gravação
 > vive em `contents`; as "tarefas de cada pessoa" derivam dos campos de
@@ -98,7 +98,7 @@ Relacionamentos:
 ```
 auth.users 1 ── 1 profiles
 clients    1 ── N contents          (on delete restrict)
-profiles   1 ── N contents          (responsáveis — on delete set null)
+profiles   1 ── N contents          (responsáveis, on delete set null)
 contents   1 ── N content_history   (on delete cascade)
 contents   1 ── N comments          (on delete cascade)
 profiles   1 ── N content_history / comments (on delete set null)
@@ -149,19 +149,19 @@ de `financial_settings.opening_balance` (o "saldo inicial" da planilha).
 
 > **Diferença proposital em relação à planilha:** lá, os totais somavam todas
 > as linhas independentemente da coluna "Status". Aqui, o status é levado a
-> sério — pendências não entram no realizado e aparecem em "a receber" e
+> sério, pendências não entram no realizado e aparecem em "a receber" e
 > "a pagar". É o comportamento que as próprias instruções da planilha
 > descreviam.
 
 ### Tabelas (4)
 
-- **financial_settings** — linha única: saldo inicial e mês de partida.
-- **financial_categories** — as linhas de agrupamento do resumo anual
+- **financial_settings**, linha única: saldo inicial e mês de partida.
+- **financial_categories**, as linhas de agrupamento do resumo anual
   (`kind` = `Receita` | `Despesa`).
-- **financial_entries** — os lançamentos. Referencia `category_id`
+- **financial_entries**, os lançamentos. Referencia `category_id`
   (on delete restrict) e `client_id` (on delete set null: apagar um cliente
   nunca apaga histórico financeiro).
-- **financial_recurrences** — as regras de mensalidades e custos fixos.
+- **financial_recurrences**, as regras de mensalidades e custos fixos.
 
 ### Recorrências: a razão de o sistema existir
 
@@ -170,7 +170,7 @@ cada aba mensal. Aqui ela é cadastrada **uma vez** em `financial_recurrences`
 e vira lançamento de qualquer mês com um clique ("Gerar do plano fixo").
 
 A unicidade `(recurrence_id, reference_month)` no banco garante que clicar
-duas vezes **não duplica nada** — a proteção é do banco, não da tela.
+duas vezes **não duplica nada**, a proteção é do banco, não da tela.
 
 ### Churn de clientes
 
@@ -180,7 +180,7 @@ lugares, e **nenhum deles apaga histórico**:
 - `clients.active = false` tira o cliente dos formulários do dia a dia, mas
   os lançamentos antigos continuam no fluxo de caixa e no resumo anual.
 - A recorrência do cliente é **pausada** (`active = false`) ou excluída. Os
-  lançamentos que ela já gerou permanecem — por isso a FK de
+  lançamentos que ela já gerou permanecem, por isso a FK de
   `financial_entries.recurrence_id` é `on delete set null`.
 
 O erro que a planilha induzia era o oposto: como cada mês era cópia do
@@ -203,7 +203,7 @@ Vale a mesma regra do pipeline: **cada página tem uma responsabilidade**.
 O CRUD do lançamento vive só em `/financeiro/lancamentos`; as demais telas
 são recortes de leitura sobre o mesmo dado.
 
-## 5.2 Sistema interno — cor por área
+## 5.2 Sistema interno: cor por área
 
 Cada área tem uma cor, e **a cor tem função: ela diz de onde o dado vem**.
 
@@ -219,7 +219,7 @@ Cada área tem uma cor, e **a cor tem função: ela diz de onde o dado vem**.
 **Como funciona na prática.** O shell (`InternoShell`) põe `data-area` no
 wrapper da página; o CSS (`app/globals.css`) troca `--area` e `--area-soft`;
 as classes `text-area`, `bg-area-soft` e `border-area` do Tailwind seguem
-sozinhas. Para tingir um pedaço isolado — uma linha que veio de outra área —
+sozinhas. Para tingir um pedaço isolado, uma linha que veio de outra área -
 basta pôr `data-area` nele (é o que `OrigemItem` faz na tela Início).
 
 **Duas regras que não se quebram:**
@@ -227,7 +227,7 @@ basta pôr `data-area` nele (é o que `OrigemItem` faz na tela Início).
 - O **vermelho** (`--alerta`, classes `text-alerta` / `bg-alerta-soft`)
   nunca é cor de área. Quer dizer sempre a mesma coisa: venceu ou está
   vencendo.
-- **Não existe verde de "tudo certo"** — verde já é o Financeiro. O que
+- **Não existe verde de "tudo certo"**, verde já é o Financeiro. O que
   está em dia não recebe cor; o que chama atenção é a exceção.
 
 ## 5.3 As áreas são recortes do financeiro, não tabelas novas
@@ -243,14 +243,14 @@ Mensalidades, Projetos avulsos, Produtos  -> comercial
 ```
 
 É a mesma regra anti-duplicação do pipeline de conteúdo: o dado vive num
-lugar só. Mudou no financeiro, mudou em todas as telas — e a soma das três
+lugar só. Mudou no financeiro, mudou em todas as telas, e a soma das três
 áreas de despesa fecha exatamente com o custo fixo da empresa.
 
 Comercial idem: a carteira (`lib/data/comercial.ts`) nasce de `clients` +
 `financial_recurrences` + `financial_entries`. Só o **funil de leads e as
 propostas** vão precisar de tabelas novas.
 
-## 5.4 Comercial — o funil e o fechamento
+## 5.4 Comercial: o funil e o fechamento
 
 Duas tabelas novas, e só duas: `commercial_leads` (as oportunidades) e
 `commercial_proposals` (as propostas de cada uma).
@@ -269,7 +269,7 @@ não são arrasto**: ganhar pede os dados do contrato e perder pede o motivo.
 
 `fecharNegocioAction` (`lib/actions/comercial.ts`) cria, de uma vez:
 
-1. o **cliente** em `clients` — que já vale para o sistema de demandas;
+1. o **cliente** em `clients`, que já vale para o sistema de demandas;
 2. a **mensalidade** em `financial_recurrences`, com `start_month` e
    `end_month` (a vigência);
 3. o lançamento de **entrada/setup**, se a proposta cobrava.
@@ -283,7 +283,7 @@ em `lib/comercial/funil.ts`. A action só grava o que ela devolve.
 
 ### Por que NÃO existe tabela de contratos
 
-Um contrato é cliente + valor mensal + vigência — que é exatamente uma
+Um contrato é cliente + valor mensal + vigência, que é exatamente uma
 linha de `financial_recurrences`. Criar uma tabela de contratos seria
 manter dois valores para a mesma mensalidade, e um dia eles divergem.
 "Contrato vence em X dias" sai do `end_month` da recorrência.
@@ -294,11 +294,11 @@ Mesma lógica de 5.3: o dado vive num lugar só.
 
 Fechar um negócio com um nome que já existe em `clients` **reaproveita e
 reativa** o cliente, em vez de duplicar. Ganhar de volta quem saiu é
-comum — e o histórico financeiro dele continua inteiro.
+comum, e o histórico financeiro dele continua inteiro.
 
-## 5.5 Empresa — documentos e prazos
+## 5.5 Empresa: documentos e prazos
 
-### Documentos: dois lugares, sem sobreposição
+### Documentos: dois lugares: sem sobreposição
 
 | O documento é de… | Mora em | Bucket |
 | ----------------- | ------- | ------ |
@@ -309,7 +309,7 @@ comum — e o histórico financeiro dele continua inteiro.
 `Briefing`, `Referência`, `Arte`, `Nota fiscal`, `Outro`). Marcar um
 arquivo como `Contrato` o faz aparecer em *Administrativo → Contratos*
 **sem sair** da ficha do cliente: é o mesmo arquivo, visto de dois
-lugares. Por isso também não existe tabela de contratos — o valor e a
+lugares. Por isso também não existe tabela de contratos, o valor e a
 vigência continuam na recorrência (ver 5.4).
 
 Os dois buckets são **privados**; o download sai por link assinado de 60
@@ -317,13 +317,13 @@ segundos, nunca por URL pública.
 
 ### Obrigações: só o que NÃO é despesa
 
-`company_obligations` guarda prazo que não passa pelo caixa — a
+`company_obligations` guarda prazo que não passa pelo caixa, a
 declaração anual do Simples, a renovação do alvará. **Despesa com prazo
 (DAS, contabilidade) continua no financeiro**, porque lá é onde o
 dinheiro vive; ela chega ao Início como lançamento pendente.
 
 Periodicidade (enum `obligation_cadence`): `Mensal`, `Trimestral`,
-`Anual`, `Única`. O trimestral usa `due_month` como âncora — âncora em
+`Anual`, `Única`. O trimestral usa `due_month` como âncora, âncora em
 março significa março, junho, setembro e dezembro.
 
 Cada período cumprido é uma linha em `obligation_completions`, com a
@@ -341,7 +341,7 @@ vezes, e desativar a obrigação preserva o histórico.
 ### A regra que evita atraso fantasma
 
 `vencimentoAberto` (`lib/empresa/obrigacoes.ts`) procura o período mais
-antigo ainda não cumprido — mas **ignora períodos anteriores a
+antigo ainda não cumprido, mas **ignora períodos anteriores a
 `since`** (o `created_at` da obrigação). Sem esse corte, cadastrar hoje
 uma obrigação mensal faria o sistema acusar seis meses de atraso que
 nunca existiram. Há teste cobrindo exatamente isso.
@@ -349,14 +349,14 @@ nunca existiram. Há teste cobrindo exatamente isso.
 O banco garante a coerência: periodicidade `Única` exige `due_date`, as
 periódicas exigem `due_day`, e `Anual` exige `due_month`.
 
-## 5.6 Pessoas — quem recebe, e o alerta de renovação
+## 5.6 Pessoas: quem recebe, e o alerta de renovação
 
 ### `team_members` não é `profiles`
 
 | Tabela | É quem… |
 | ------ | ------- |
 | `profiles` | **faz login** no sistema (hoje, Fran e Vitória) |
-| `team_members` | **recebe dinheiro** da agência — inclui freelancer que nunca terá login |
+| `team_members` | **recebe dinheiro** da agência, inclui freelancer que nunca terá login |
 
 `team_members.profile_id` liga as duas quando é a mesma pessoa. São
 conceitos diferentes e por isso são tabelas diferentes.
@@ -368,7 +368,7 @@ casando `"Pró-labore " || nome` com a pessoa.
 
 O formulário de lançamento só oferece o campo "para quem" quando a
 categoria escolhida é de pessoas (consulta `categoriasDaArea("pessoas")`)
-— perguntar isso num lançamento de assinatura seria ruído.
+perguntar isso num lançamento de assinatura seria ruído.
 
 Ninguém é excluído: desativar preserva o histórico, e a FK é
 `on delete set null` para que apagar um cadastro nunca apague pagamento.
@@ -379,7 +379,7 @@ Não existe tabela de contratos (ver 5.4): o contrato é a recorrência, e
 a vigência é o `end_month` dela. `renovacoesProximas`
 (`lib/comercial/funil.ts`) transforma isso em aviso:
 
-- contrato **sem** `end_month` nunca renova — não tem prazo para acabar;
+- contrato **sem** `end_month` nunca renova, não tem prazo para acabar;
 - contrato **pausado** não entra;
 - contrato **já vencido e ainda ativo** é o mais urgente, porque a
   mensalidade segue sendo gerada sem vigência que a sustente;
@@ -387,7 +387,7 @@ a vigência é o `end_month` dela. `renovacoesProximas`
 
 O aviso entra na mesma lista do Início, com a cor do comercial.
 
-## 5.7 Busca, rentabilidade e relatório
+## 5.7 Busca: rentabilidade e relatório
 
 ### Busca global (⌘K)
 
@@ -395,7 +395,7 @@ O aviso entra na mesma lista do Início, com a cor do comercial.
 interno e procura em seis lugares ao mesmo tempo: clientes, lançamentos,
 oportunidades, pessoas, obrigações e documentos.
 
-Cada resultado carrega a **cor da área de onde veio** — o mesmo código de
+Cada resultado carrega a **cor da área de onde veio**, o mesmo código de
 cor do resto do sistema (5.2).
 
 Duas decisões que importam:
@@ -420,14 +420,14 @@ separando dois custos que costumam ser confundidos:
 | **Indireto** | pró-labore, ferramentas, impostos | despesa sem `client_id` |
 
 A **margem direta é fato**. O **resultado com rateio é estimativa**: o
-indireto é dividido na proporção da receita de cada cliente — quem
+indireto é dividido na proporção da receita de cada cliente, quem
 fatura mais absorve mais. É o rateio mais comum e o único honesto sem
 apontar horas trabalhadas.
 
 Só conta o que foi **pago**: receita prometida não paga cliente nenhum.
 
 Receita paga sem `client_id` entra no total mas não em nenhuma linha, o
-que distorce o rateio — por isso a tela avisa quando isso acontece.
+que distorce o rateio, por isso a tela avisa quando isso acontece.
 
 > Optei por rentabilidade **por cliente** em vez de custo por conteúdo.
 > Atribuir custo a cada conteúdo exigiria apontar horas por peça, o que
@@ -441,13 +441,13 @@ onde foi o dinheiro, quem mais rendeu e o que entra no mês seguinte.
 Compara com o mês anterior.
 
 A folha de impressão (`@media print` em `globals.css`) esconde menu e
-botões, então Ctrl+P sai limpo em papel ou PDF — sem biblioteca de PDF.
+botões, então Ctrl+P sai limpo em papel ou PDF, sem biblioteca de PDF.
 
 ## 5.8 A regra do número que se paga
 
 A Fran pediu um sistema "mais intuitivo e usual, somente coisas
 necessárias e que realmente vamos utilizar". O menu de sete áreas ficou
-como estava — a escolha foi **limpar por dentro**, sob uma regra única:
+como estava, a escolha foi **limpar por dentro**, sob uma regra única:
 
 > **Um número só fica na tela se mudar o que você faz hoje.**
 
@@ -457,7 +457,7 @@ O que isso exclui, por definição:
   dizem a mesma coisa; só um precisa estar lá. Saíram a margem líquida do
   fluxo de caixa e o "do custo fixo" de Pessoas.
 - **Contagem de cadastro.** "Prazos cadastrados: 4", "Documentos: 12",
-  "Itens no mês: 9" — a lista logo abaixo já conta. Saíram.
+  "Itens no mês: 9", a lista logo abaixo já conta. Saíram.
 - **O mesmo dado em duas telas do mesmo mês.** O painel do mês mostrava
   receitas/despesas por categoria em barras; o fluxo de caixa mostra as
   mesmas categorias com os lançamentos dentro. Ficou só no fluxo de caixa,
@@ -466,7 +466,7 @@ O que isso exclui, por definição:
 - **Quatro números que são uma frase.** O Comercial abria com "clientes
   ativos / receita recorrente / custo fixo / falta para cobrir" e, logo
   abaixo, uma barra dizendo exatamente isso. Agora é só a barra, com a
-  frase: "6 clientes ativos pagam R$ 11.150 por mês — cobre 78% do custo
+  frase: "6 clientes ativos pagam R$ 11.150 por mês, cobre 78% do custo
   fixo; faltam R$ 3.036, cerca de 2 clientes do tamanho médio".
 
 Nada de acesso foi perdido: a configuração (categorias e saldo inicial)
@@ -476,25 +476,25 @@ mexe nela uma vez, não todo dia.
 ### A única função que saiu de verdade
 
 **"Copiar mês anterior"** foi removida (botão e `copiarMesAction`). Ela
-repetia *todos* os lançamentos do mês passado como pendentes — inclusive o
+repetia *todos* os lançamentos do mês passado como pendentes, inclusive o
 que foi compra única, que então precisaria ser apagado à mão. O "Gerar do
 plano fixo" cobre o que de fato repete e **não duplica**, porque o banco
 garante `unique (recurrence_id, reference_month)`. Dois botões parecidos
 lado a lado, um deles perigoso por hábito, é pior que um botão só.
 
-## 5.9 Meus gastos — a única área privada
+## 5.9 Meus gastos: a única área privada
 
 A Fran pediu: *"quero que cada uma tenha uma aba própria para controlar
 os próprios gastos, mas eu não vou ter acesso à dela e ela não vai ter
 acesso à minha."*
 
 Isso quebra a premissa de todo o resto do sistema interno. Até aqui, a
-regra era: **as duas sócias veem exatamente o mesmo dado** — mesmo
+regra era: **as duas sócias veem exatamente o mesmo dado**, mesmo
 caixa, mesma carteira, mesmos contratos. Era o certo, porque é uma
 empresa de duas pessoas e esconder o caixa de uma delas não faria
 sentido. Gasto pessoal é o oposto.
 
-### Uma aba, não duas
+### Uma aba: não duas
 
 O menu tem **um** item "Meus gastos" (`/interno/meus-gastos`), não dois
 ("Fran" e "Vitória"). A tela é a mesma; o conteúdo é de quem está
@@ -503,7 +503,7 @@ logada. Isso não é economia de código, é a diferença entre privado e
 da outra para quem abrisse.
 
 No menu as áreas ficam em dois grupos, separados pela linha **"Só você
-vê"**. Acima é "nosso", abaixo é "meu" — e a cor rosa-magenta
+vê"**. Acima é "nosso", abaixo é "meu", e a cor rosa-magenta
 (`#a62a6a`, 6,6:1 de contraste) não parece com nenhuma área da empresa
 justamente para reforçar isso sem texto.
 
@@ -516,10 +516,10 @@ de uma sócia para a outra. Do jeito que está, **esquecer não vaza**: o
 banco devolve só as linhas de quem está logada.
 
 Pelo mesmo motivo, nenhuma action escreve `user_id`. A coluna tem
-`default auth.uid()` e o `with check` da policy rejeita id alheio — não
+`default auth.uid()` e o `with check` da policy rejeita id alheio, não
 escrever o campo é o que torna impossível errar.
 
-### O modelo é diferente do caixa da empresa, de propósito
+### O modelo é diferente do caixa da empresa: de propósito
 
 | | Empresa | Pessoal |
 | --- | --- | --- |
@@ -533,51 +533,51 @@ ninguém quer cadastrar "Padaria" antes de lançar R$ 12; o autocompletar
 aprende com o que a pessoa já usou e `agruparPorCategoriaPessoal`
 normaliza caixa e espaços, então "mercado" e "Mercado" somam na mesma
 linha em vez de virarem duas. E nasce **pago** porque gasto pessoal se
-anota depois de acontecer — ao contrário da conta da empresa, que se
+anota depois de acontecer, ao contrário da conta da empresa, que se
 agenda antes.
 
 Saldo encadeado não existe porque ninguém controla gasto pessoal
 somando janeiro até dezembro. O mês fecha em si: entrou, saiu, sobrou.
 
-### O pró-labore vem da empresa, não da digitação
+### O pró-labore vem da empresa: não da digitação
 
 `team_members.profile_id` existia desde a migration de Pessoas e nunca
 era preenchido. Agora a aba pessoal pergunta uma vez *"qual pessoa da
 equipe é você?"* e, com o vínculo feito, mostra o pró-labore que a
-agência pagou no mês — lido do financeiro da empresa.
+agência pagou no mês, lido do financeiro da empresa.
 
 Isso não revela nada novo: é o seu próprio pagamento, que já aparece em
 `/interno/pessoas` para as duas. O que evita é digitar o próprio salário
 todo mês.
 
 A função `vincular_me_a_pessoa` roda no banco e só aceita uma pessoa sem
-dono (ou a que já é sua) — reivindicar a da outra sócia levanta exceção.
+dono (ou a que já é sua), reivindicar a da outra sócia levanta exceção.
 
 ### O limite honesto desta privacidade
 
 Ela vale para quem entra **pelo sistema**. Quem tem o painel do Supabase
 ou a chave `service_role` passa por cima de qualquer RLS: é o dono do
 banco. Como as duas dividem o mesmo projeto Supabase, as duas são donas.
-Privacidade aqui é entre as telas, não contra o administrador — e isso
+Privacidade aqui é entre as telas, não contra o administrador, e isso
 está dito em `supabase/migrations/20261011120000_pessoal.sql`, no topo,
 para ninguém descobrir depois.
 
-## 5.10 Prospecção — qual canal vira cliente
+## 5.10 Prospecção: qual canal vira cliente
 
 A Vitória trabalha a captação por canal, seguindo um guia próprio:
 social selling, indicação, eventos e parcerias. O guia tem roteiro,
-checklist e meta diária — e **nada disso entra aqui**. Roteiro de
+checklist e meta diária, e **nada disso entra aqui**. Roteiro de
 abordagem não é dado da empresa; vive onde ela já o mantém.
 
 O que o guia NÃO tem, e o sistema tem, são os números reais. Então a
 tela de Prospecção responde uma pergunta só: **em qual canal vale a
 pena gastar a próxima hora?**
 
-### `channel` substituiu `source`, em vez de conviver com ele
+### `channel` substituiu `source`: em vez de conviver com ele
 
 Já existia `source`, um texto com lista de sugestões ("Indicação",
 "Instagram", "Evento"...). Pôr um campo de canal ao lado criaria dois
-seletores parecidos na mesma ficha — o tipo de coisa que faz quem usa
+seletores parecidos na mesma ficha, o tipo de coisa que faz quem usa
 parar para pensar qual é qual.
 
 Então `channel` (enum, 5 valores) virou a estrutura, e `source` virou
@@ -615,11 +615,26 @@ gatilho no banco. Regras, verificadas em Postgres real:
   categoria é grandeza, não identidade: pintar cada linha de uma cor
   seria decorar. A paleta categórica foi testada no validador da
   skill de dataviz e reprovou na separação entre dois canais para quem
-  enxerga cor de outro jeito — motivo a mais para não usá-la aqui.
+  enxerga cor de outro jeito, motivo a mais para não usá-la aqui.
 - **`contatosPorCliente` devolve `null` sem nenhum fechamento.** Um
   palpite ("costuma ser 100 para 1") seria pior que silêncio.
 
 ## 6. Convenções de código
+
+### Nada de travessão
+
+A Fran olhou o sistema e apontou: **"é esse traço"**. O travessão (`—`)
+não entra em nada que ela leia, nem na tela, nem nos guias, nem nos
+textos que o Claude escreve pra ela.
+
+No lugar dele: vírgula quando a frase continua, dois-pontos quando o
+que vem depois explica o que veio antes, ponto quando são duas ideias.
+Onde ele era marcador de "sem valor" numa tabela, a célula fica vazia,
+que é mais limpo. Onde era sinal de menos (`−`, outro caractere, mesma
+aparência), virou o hífen comum.
+
+Vale para código novo: se bater a vontade de usar travessão, é porque
+a frase pede outra pontuação.
 
 - **Rotas/arquivos:** `kebab-case`.
 - **Componentes:** `PascalCase`.
@@ -632,7 +647,7 @@ gatilho no banco. Regras, verificadas em Postgres real:
   exibido com `formatarMoeda()`. O valor digitado pela usuária ("1.700,00")
   passa por `paraNumero()` (`lib/financeiro/valores.ts`) antes de ser gravado.
 - **Mês de competência:** string `"YYYY-MM"`, manipulada só pelos helpers de
-  `lib/financeiro/meses.ts` — nunca com `new Date()` sobre `"YYYY-MM"`, que
+  `lib/financeiro/meses.ts`, nunca com `new Date()` sobre `"YYYY-MM"`, que
   introduziria fuso horário e erraria a virada do mês.
 - **IDs:** UUID.
 - **Textos de UI:** português do Brasil, sempre.
@@ -646,9 +661,9 @@ gatilho no banco. Regras, verificadas em Postgres real:
 - **Next.js App Router.** Server Components por padrão; Client Components só
   quando há interatividade/estado (marcados com `"use client"`).
 - **Supabase:**
-  - `lib/supabase/client.ts` — navegador (Client Components).
-  - `lib/supabase/server.ts` — Server Components/Actions/Route Handlers.
-  - `lib/supabase/middleware.ts` — renova a sessão e **protege as rotas**
+  - `lib/supabase/client.ts`, navegador (Client Components).
+  - `lib/supabase/server.ts`, Server Components/Actions/Route Handlers.
+  - `lib/supabase/middleware.ts`, renova a sessão e **protege as rotas**
     (ativo): redireciona não autenticados para `/login` e autenticados
     para fora de `/login`. Rota pública: `/login`.
 - **Autenticação (ativa):** Supabase Auth (e-mail/senha).
@@ -666,7 +681,7 @@ gatilho no banco. Regras, verificadas em Postgres real:
 
 A chave `anon` do Supabase é **pública por natureza**: vai no JavaScript
 que o navegador baixa. Com ela, qualquer pessoa chama a API de cadastro
-do Supabase — mesmo o app não tendo tela de cadastro. E o trigger
+do Supabase, mesmo o app não tendo tela de cadastro. E o trigger
 `handle_new_user` cria um profile para quem entrar.
 
 Por isso **estar autenticado não dá acesso a nada**. Uma conta precisa
@@ -677,7 +692,7 @@ estar **liberada**:
 update public.profiles set approved = true where email = '...';
 ```
 
-Todas as policies exigem `public.usuario_aprovado()` — uma função
+Todas as policies exigem `public.usuario_aprovado()`, uma função
 `security definer` (precisa ser, senão a policy de `profiles` que a
 chama entraria em recursão). Conta não liberada enxerga **só o próprio
 profile**, e nada mais.
@@ -690,7 +705,7 @@ profile**, e nada mais.
 ### Ninguém se promove sozinho
 
 O Supabase concede `update` na tabela inteira para `authenticated`.
-Revogar coluna a coluna não adianta enquanto o grant de tabela existir —
+Revogar coluna a coluna não adianta enquanto o grant de tabela existir -
 então a migration revoga a tabela e devolve só o que o app edita:
 
 ```sql
@@ -704,16 +719,16 @@ promoveria a `admin`.
 
 ### O resto
 
-- **RLS habilitado em todas as tabelas** — as 23, sem exceção.
+- **RLS habilitado em todas as tabelas**, as 23, sem exceção.
 - `content_history` é auditoria: tem policy de `select` e `insert`, e
-  **nenhuma** de `update`/`delete` — o banco nega os dois.
+  **nenhuma** de `update`/`delete`, o banco nega os dois.
 - Integrações do Google são por usuário (`user_id = auth.uid()`) **e**
   exigem conta liberada.
 - Os buckets `client-files` e `company-files` são privados e as policies
   de Storage também exigem conta liberada. Download sai por link
   assinado de 60 segundos.
 - Os layouts mostram a tela "conta não liberada" em vez de um sistema
-  vazio — o bloqueio real é do banco; a tela só explica.
+  vazio, o bloqueio real é do banco; a tela só explica.
 - Refinamentos por papel (`planner`/`producer`/`admin`) virão depois.
 - Nenhuma chave secreta (`service_role`) no cliente.
 - Detalhes de execução da migration e cadastro de usuários: `supabase/README.md`.
@@ -722,7 +737,7 @@ promoveria a `admin`.
 
 - Layout com **sidebar fixa no desktop** e **drawer no mobile**.
 - Mobile-first; testar em telas pequenas.
-- Design system mínimo em `components/ui` (Button, Card, Badge) — reusar
+- Design system mínimo em `components/ui` (Button, Card, Badge), reusar
   sempre, não recriar estilos avulsos.
 
 ## 10. Processo de trabalho (regra de ouro)

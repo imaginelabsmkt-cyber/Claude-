@@ -85,7 +85,7 @@ export function GastosPanel({ mes, lancamentos, categoriasUsadas }: GastosPanelP
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center">
           <p className="font-medium text-gray-900">Nada lançado neste mês</p>
           <p className="mt-1 text-sm text-gray-500">
-            Anote o primeiro gasto acima — leva cinco segundos.
+            Anote o primeiro gasto acima. Leva cinco segundos.
           </p>
         </div>
       ) : (
@@ -113,7 +113,7 @@ export function GastosPanel({ mes, lancamentos, categoriasUsadas }: GastosPanelP
                   onClick={() => alternarPago(l)}
                   disabled={processando}
                   aria-label={l.paid ? "Marcar como não pago" : "Marcar como pago"}
-                  title={l.paid ? "Pago — clique para desmarcar" : "Em aberto — clique para marcar"}
+                  title={l.paid ? "Pago, clique para desmarcar" : "Em aberto, clique para marcar"}
                   className={cn(
                     "grid h-5 w-5 shrink-0 place-items-center rounded border text-[11px] font-bold transition-colors",
                     l.paid
@@ -142,7 +142,7 @@ export function GastosPanel({ mes, lancamentos, categoriasUsadas }: GastosPanelP
                     l.kind === "Receita" ? "text-green-700" : "text-gray-900",
                   )}
                 >
-                  {l.kind === "Receita" ? "+" : "−"} {formatarMoeda(Number(l.amount))}
+                  {l.kind === "Receita" ? "+" : "-"} {formatarMoeda(Number(l.amount))}
                 </span>
 
                 <span className="flex shrink-0 gap-1">
@@ -172,7 +172,7 @@ export function GastosPanel({ mes, lancamentos, categoriasUsadas }: GastosPanelP
         titulo="Excluir este lançamento?"
         descricao={
           excluindo
-            ? `"${excluindo.description}" — ${formatarMoeda(Number(excluindo.amount))}. Isso não tem volta.`
+            ? `"${excluindo.description}", ${formatarMoeda(Number(excluindo.amount))}. Isso não tem volta.`
             : ""
         }
         textoConfirmar="Excluir"

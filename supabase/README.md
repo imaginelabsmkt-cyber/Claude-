@@ -1,7 +1,7 @@
 # Banco de Dados (Supabase)
 
 Modelo de dados do sistema de gestão de produção de conteúdo. Esta pasta
-contém **apenas o schema** — nenhuma tela depende disto ainda.
+contém **apenas o schema**, nenhuma tela depende disto ainda.
 
 ```
 supabase/
@@ -19,7 +19,7 @@ supabase/
 | ----------------- | ------------------------------------------------------------ |
 | `profiles`        | Perfil do usuário (1:1 com `auth.users`).                    |
 | `clients`         | Clientes atendidos pela agência.                             |
-| `contents`        | Conteúdos — entidade central do pipeline.                    |
+| `contents`        | Conteúdos, entidade central do pipeline.                    |
 | `content_history` | Auditoria de alterações de campos de `contents`.             |
 | `comments`        | Comentários de colaboração em um conteúdo.                   |
 | `financial_settings`    | Linha única: saldo inicial e mês de partida da série.  |
@@ -56,7 +56,7 @@ supabase/
 ```
 auth.users 1 ── 1 profiles
 clients    1 ── N contents           (on delete restrict)
-profiles   1 ── N contents           (planner/recorder/editor/publisher — on delete set null)
+profiles   1 ── N contents           (planner/recorder/editor/publisher, on delete set null)
 contents   1 ── N content_history    (on delete cascade)
 contents   1 ── N comments           (on delete cascade)
 profiles   1 ── N content_history    (on delete set null)
@@ -85,7 +85,7 @@ profiles   1 ── N comments           (on delete set null)
 
 Escolha **uma** das opções abaixo.
 
-### Opção A — Supabase CLI (recomendada p/ desenvolvimento)
+### Opção A: Supabase CLI (recomendada p/ desenvolvimento)
 
 Pré-requisito: [Supabase CLI](https://supabase.com/docs/guides/cli) instalado.
 
@@ -102,7 +102,7 @@ supabase db reset          # aplica migrations/ e depois seed.sql
 supabase db push           # aplica apenas as migrations (não roda seed)
 ```
 
-### Opção B — SQL Editor do Supabase (sem CLI)
+### Opção B: SQL Editor do Supabase (sem CLI)
 
 1. Abra o painel do projeto em https://supabase.com.
 2. Vá em **SQL Editor**.
@@ -110,7 +110,7 @@ supabase db push           # aplica apenas as migrations (não roda seed)
    execute (**Run**).
 4. (Opcional) Cole `seed.sql` e execute para criar Fran e Vitória.
 
-### Opção C — psql
+### Opção C: psql
 
 ```bash
 psql "$DATABASE_URL" -f supabase/migrations/20260714120000_initial_schema.sql
@@ -127,10 +127,10 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional
 Os perfis (`profiles`) são criados automaticamente a partir de usuários do
 Auth. Há três caminhos:
 
-### 1. Seed de desenvolvimento (rápido, sem senha)
+### 1. Seed de desenvolvimento (rápido: sem senha)
 
 Rode `seed.sql` (Opção A/B/C acima). Ele cria os dois usuários com
-`role` correto, **mas sem senha** — eles ainda não conseguem logar. Para
+`role` correto, **mas sem senha**, eles ainda não conseguem logar. Para
 habilitar o login, defina uma senha:
 
 - Painel > **Authentication > Users** > selecione o usuário > **Send
@@ -154,14 +154,14 @@ Quando a tela de cadastro estiver pronta, o usuário se registra por
 e-mail/senha; o `profile` é criado pelo trigger (papel padrão `producer`,
 ajustável por um `admin`).
 
-> **Papéis:** `planner` (Vitória — planejamento/roteiro), `producer` (Fran —
+> **Papéis:** `planner` (Vitória, planejamento/roteiro), `producer` (Fran -
 > gravação/edição/publicação) e `admin` (gestão). O papel de um usuário pode
 > ser ajustado a qualquer momento na tabela `profiles`.
 
 
 ## Módulo financeiro
 
-Migration: `20260908120000_financeiro.sql` (idempotente — pode ser
+Migration: `20260908120000_financeiro.sql` (idempotente, pode ser
 reexecutada). Cria as 4 tabelas `financial_*`, os ENUMs, os índices por
 mês de competência, os triggers de `updated_at`, as políticas de RLS
 (mesma regra das demais tabelas: todo usuário autenticado lê e escreve) e
@@ -184,12 +184,12 @@ no recorte acertado com a agência em setembro/2026:
 | O quê                | Quanto                                            |
 | -------------------- | ------------------------------------------------- |
 | Lançamentos          | 149 (abril a setembro/2026)                       |
-| Clientes             | 15 — 6 ativos, 9 inativos (não renovaram)         |
-| Recorrências         | 18 — 6 mensalidades + 12 custos fixos, desde 10/26 |
+| Clientes             | 15, 6 ativos, 9 inativos (não renovaram)         |
+| Recorrências         | 18, 6 mensalidades + 12 custos fixos, desde 10/26 |
 
 Outubro a dezembro **não** são carregados: na planilha eram cópia da
 carteira antiga. Rode **depois** da migration. Se já houver lançamentos, o
-script não faz nada e avisa — não há risco de duplicar.
+script não faz nada e avisa, não há risco de duplicar.
 
 ```sql
 -- No SQL Editor do Supabase, cole o conteúdo de:
@@ -203,7 +203,7 @@ script não faz nada e avisa — não há risco de duplicar.
 Migration: `20260921120000_comercial.sql` (idempotente). Cria
 `commercial_leads` e `commercial_proposals`, os ENUMs, os índices, as
 políticas de RLS e um trigger que carimba `stage_changed_at` **apenas**
-quando a etapa muda — é o relógio do "parado há N dias", e ele vale mesmo
+quando a etapa muda, é o relógio do "parado há N dias", e ele vale mesmo
 se a etapa for alterada fora da tela do funil.
 
 Não há tabela de contratos, de propósito: um contrato é cliente + valor
@@ -228,7 +228,7 @@ Garantias que o banco impõe:
 | Não dá para cumprir o mesmo período duas vezes    | `unique (obligation_id, period)`     |
 | Desativar obrigação preserva o histórico          | `active = false`, sem delete         |
 
-Duas obrigações de MEI/Simples já vêm cadastradas — mas só se a tabela
+Duas obrigações de MEI/Simples já vêm cadastradas, mas só se a tabela
 estiver vazia, para não duplicar em reexecução.
 
 
@@ -265,16 +265,16 @@ com RLS ligado em todas e os dois buckets privados.
 > era FALSA: três `create policy` (`profiles_select_liberado`,
 > `content_history_select_liberado`, `content_history_insert_liberado`)
 > não tinham o `drop policy if exists` do próprio nome, então a segunda
-> execução parava com *policy already exists*. Corrigido — e agora um
+> execução parava com *policy already exists*. Corrigido, e agora um
 > teste de três passadas guarda isso.
 
-## Privacidade — as duas tabelas que NÃO são compartilhadas
+## Privacidade: as duas tabelas que NÃO são compartilhadas
 
 Migration: `20261011120000_pessoal.sql`.
 
 `personal_entries` e `personal_recurrences` são as únicas tabelas do
 sistema interno em que uma sócia não vê o dado da outra. Todas as
-demais usam `using (public.usuario_aprovado())` — acesso igual para
+demais usam `using (public.usuario_aprovado())`, acesso igual para
 quem está liberado, que é o certo para o caixa da empresa. Estas duas
 usam o padrão das `google_*`:
 
@@ -298,16 +298,16 @@ Um `insert` com o `user_id` da outra é recusado por violação de policy.
 
 **O limite honesto:** isso vale para quem entra pelo sistema. Quem tem
 acesso ao painel do Supabase (ou à chave `service_role`) passa por cima
-de qualquer RLS — é o dono do banco. Como as duas sócias dividem o mesmo
+de qualquer RLS, é o dono do banco. Como as duas sócias dividem o mesmo
 projeto, as duas são donas. A privacidade é entre as telas, não contra o
 administrador do banco.
 
-## Segurança — conta liberada
+## Segurança: conta liberada
 
 Migration: `20260924120000_seguranca.sql`.
 
 O risco que ela fecha: a chave `anon` é pública, então qualquer pessoa
-pode criar conta no Supabase mesmo sem tela de cadastro — e as 23
+pode criar conta no Supabase mesmo sem tela de cadastro, e as 23
 policies antigas (`using (true)`) liberavam tudo para qualquer
 autenticado.
 

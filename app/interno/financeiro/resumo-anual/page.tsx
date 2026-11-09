@@ -21,7 +21,7 @@ function Celula({ valor, cor }: { valor: number; cor?: string }) {
         (valor === 0 ? "text-gray-300" : (cor ?? "text-gray-700"))
       }
     >
-      {valor === 0 ? "—" : formatarMoeda(valor)}
+      {valor === 0 ? "" : formatarMoeda(valor)}
     </td>
   );
 }
@@ -73,7 +73,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
           key={resumo.meses[i]}
           className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums"
         >
-          {valor === 0 ? "—" : formatarMoeda(valor)}
+          {valor === 0 ? "" : formatarMoeda(valor)}
         </td>
       ))}
       <td className="whitespace-nowrap px-3 py-2 text-right font-bold tabular-nums">
@@ -247,7 +247,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
                     key={r.mes}
                     className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-gray-600"
                   >
-                    {r.receitas ? formatarPercentual(r.margem) : "—"}
+                    {r.receitas ? formatarPercentual(r.margem) : ""}
                   </td>
                 ))}
                 <td className="whitespace-nowrap bg-gray-50 px-3 py-2 text-right font-semibold tabular-nums text-gray-900">

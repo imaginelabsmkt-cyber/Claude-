@@ -1,4 +1,4 @@
-# Favie — Sistema Interno
+# Favie: Sistema Interno
 
 A administração da agência: comercial, financeiro, pessoas, contábil e
 administrativo. Usado por duas pessoas, a Fran e a Vitória.
@@ -26,7 +26,7 @@ administrativo. Usado por duas pessoas, a Fran e a Vitória.
 │   ├── (dashboard)/              # Grupo de rotas autenticadas
 │   │   ├── layout.tsx            # Shell (sidebar + topbar)
 │   │   ├── dashboard/            # Visão geral
-│   │   ├── conteudos/            # Pautas/roteiros — entidade central
+│   │   ├── conteudos/            # Pautas/roteiros, entidade central
 │   │   ├── clientes/             # Cadastro de clientes
 │   │   ├── gravacoes/            # Conteúdos em captação (visão do pipeline)
 │   │   ├── fila-edicao/          # Conteúdos em edição (visão do pipeline)
@@ -65,7 +65,7 @@ administrativo. Usado por duas pessoas, a Fran e a Vitória.
 ## Sistema interno (`/interno`)
 
 A administração da empresa, separada da produção de conteúdo. Cinco áreas,
-cada uma com a sua cor — e **a cor diz de onde o dado vem**:
+cada uma com a sua cor, e **a cor diz de onde o dado vem**:
 
 | Área | Cor | Tela |
 | --- | --- | --- |
@@ -78,13 +78,13 @@ cada uma com a sua cor — e **a cor diz de onde o dado vem**:
 | Administrativo | ocre | Ferramentas, contratos e documentos da empresa |
 
 Na tela **Início**, cada linha carrega a tarja e a etiqueta da área de onde
-veio — você reconhece a origem antes de ler o texto. O vermelho fica fora
+veio, você reconhece a origem antes de ler o texto. O vermelho fica fora
 desse jogo: significa sempre "venceu ou está vencendo".
 
 Pessoas, Contábil e Administrativo não guardam dados próprios: são recortes
 das categorias do financeiro. Um número só para a empresa inteira.
 
-### Busca, rentabilidade e fechamento
+### Busca: rentabilidade e fechamento
 
 **⌘K acha qualquer coisa.** De qualquer tela, o atalho abre a busca e
 procura em clientes, lançamentos, oportunidades, pessoas, obrigações e
@@ -95,16 +95,16 @@ veio.
 custo direto (o freela e o tráfego lançados com aquele cliente) do
 indireto (pró-labore, ferramentas, impostos), e divide o indireto entre
 os clientes na proporção do que cada um fatura. A margem direta é fato; o
-rateio é estimativa — a tela diz isso com todas as letras.
+rateio é estimativa, a tela diz isso com todas as letras.
 
 Para o custo direto aparecer, basta escolher o cliente ao lançar a
 despesa do freela ou do tráfego.
 
 **Relatório do mês** fecha o mês numa página só: dinheiro, carteira, para
 onde foi, quem mais rendeu e o que entra no mês seguinte, comparado com o
-mês anterior. Ctrl+P imprime sem o menu — vira PDF para o contador.
+mês anterior. Ctrl+P imprime sem o menu, vira PDF para o contador.
 
-### Meus gastos — a única tela que não é compartilhada
+### Meus gastos: a única tela que não é compartilhada
 
 **Meus gastos** (`/interno/meus-gastos`) é a aba pessoal de cada sócia:
 entrou, saiu, sobrou e para onde foi, no mês. A Fran não vê a da
@@ -112,7 +112,7 @@ Vitória e a Vitória não vê a da Fran.
 
 Quem garante isso é o **banco**, não a tela: `personal_entries` e
 `personal_recurrences` têm policy `user_id = auth.uid()`. Verificado num
-Postgres real com duas contas — a outra conta vê zero linhas, e um
+Postgres real com duas contas, a outra conta vê zero linhas, e um
 `update`/`delete` sem filtro afeta zero linhas.
 
 No menu, essas áreas ficam abaixo da linha **"Só você vê"**: acima é
@@ -129,22 +129,22 @@ Três coisas pensadas para o uso diário:
   anotar o que já aconteceu.
 
 O **plano fixo** (aluguel, academia, assinaturas) funciona como as
-recorrências da empresa — cadastra uma vez, um clique por mês, e clicar
+recorrências da empresa, cadastra uma vez, um clique por mês, e clicar
 duas vezes não duplica.
 
 Se você disser **qual pessoa da equipe você é** (uma vez), o pró-labore
-que a agência te paga aparece aqui sozinho, lido do financeiro — em vez
+que a agência te paga aparece aqui sozinho, lido do financeiro, em vez
 de você digitar o próprio salário todo mês.
 
 > **O limite honesto:** isso vale para quem entra pelo sistema. Quem
 > abre o painel do Supabase é dono do banco e vê tudo. Como vocês duas
-> dividem o mesmo projeto, as duas são donas — a privacidade é entre as
+> dividem o mesmo projeto, as duas são donas, a privacidade é entre as
 > telas, não contra o administrador do banco.
 
 ### Pessoas e renovações
 
 **Pessoas** deixou de ser só um total: agora tem o cadastro de quem recebe
-da agência — sócias, freelancers, prestadores — e cada pagamento do
+da agência, sócias, freelancers, prestadores, e cada pagamento do
 financeiro pode apontar para uma pessoa. A tela mostra quanto cada uma
 custou no mês e no ano, e avisa quando sobrou pagamento sem dono.
 
@@ -154,13 +154,13 @@ freelancer que edita um vídeo nunca vai precisar de senha.
 **Renovação de contrato.** Como o contrato é a mensalidade recorrente, a
 data de fim da vigência vira aviso no Início 45 dias antes. Contrato sem
 prazo não avisa (não tem fim), e contrato que já venceu e continua ativo é
-o mais urgente — a mensalidade segue sendo gerada sem contrato que a
+o mais urgente, a mensalidade segue sendo gerada sem contrato que a
 sustente.
 
 ### Documentos e prazos
 
 **Contratos e documentos.** O contrato assinado de um cliente é um arquivo
-do cliente: anexe na ficha dele e marque o tipo como *Contrato* — ele passa
+do cliente: anexe na ficha dele e marque o tipo como *Contrato*, ele passa
 a aparecer também em Administrativo, sem deixar de estar lá. Documento da
 empresa (contrato social, CNPJ, alvará) vai direto no Administrativo. Os
 dois ficam em armazenamento privado: o download sai por link que expira em
@@ -173,7 +173,7 @@ antecedência que você escolher e aparece no Início junto das pendências
 financeiras. Marcar como feito é um clique, e não dá para marcar o mesmo
 período duas vezes.
 
-DAS e contabilidade **não** entram aqui — são despesa, e já vêm do
+DAS e contabilidade **não** entram aqui, são despesa, e já vêm do
 financeiro.
 
 ### O funil fecha o ciclo
@@ -182,7 +182,7 @@ Em **Comercial → Funil**, as oportunidades andam por arrasto: contato feito �
 diagnóstico → proposta enviada → negociação. Cada uma mostra há quantos dias
 está parada, e fica vermelha quando passa do prazo da etapa.
 
-Ganhar não é arrasto — é um botão que pede os dados do contrato e então, de
+Ganhar não é arrasto, é um botão que pede os dados do contrato e então, de
 uma vez só:
 
 - cria o **cliente** (que já serve ao sistema de demandas);
@@ -195,7 +195,7 @@ Nada é redigitado.
 
 ## Módulo financeiro
 
-Substitui a planilha "Fluxo de Caixa Imagine Labs 2026" — mesmas contas,
+Substitui a planilha "Fluxo de Caixa Imagine Labs 2026", mesmas contas,
 sem as fórmulas que quebram quando alguém insere uma linha.
 
 | Tela                       | Para quê                                              |
@@ -214,7 +214,7 @@ sem as fórmulas que quebram quando alguém insere uma linha.
   uma vez em *Recorrências*; o botão **"Gerar do plano fixo"** cria os
   lançamentos do mês. Clicar duas vezes não duplica nada (o banco garante).
 - **O saldo se encadeia sozinho.** O saldo final de um mês é o inicial do
-  seguinte — sem `=Abril!B80` apontando para a célula errada.
+  seguinte, sem `=Abril!B80` apontando para a célula errada.
 - **"Pago" e "Pendente" passam a valer.** Pendências ficam em *a receber* e
   *a pagar* e não entram no realizado; o saldo projetado mostra o cenário
   com tudo confirmado.
@@ -246,7 +246,7 @@ O recorte é proposital:
 - **Componentes React**: `PascalCase` (ex.: `PageHeader`, `StatusBadge`).
 - **Funções/variáveis**: `camelCase`, em português (ex.: `formatarData`).
 - **Campos de dados/tipos de domínio**: `snake_case`, em português
-  (compatível com Postgres/Supabase — ex.: `criado_em`, `cliente_id`).
+  (compatível com Postgres/Supabase, ex.: `criado_em`, `cliente_id`).
 - **Textos de interface**: sempre em português do Brasil.
 
 ## Como rodar localmente
@@ -290,13 +290,13 @@ de auth por link). **Nunca** use a chave `service_role` no cliente.
 
 Guias completos na pasta [`docs/`](./docs):
 
-- **[Deploy na Vercel](./docs/DEPLOY_VERCEL.md)** — publicar o sistema do zero
+- **[Deploy na Vercel](./docs/DEPLOY_VERCEL.md)**, publicar o sistema do zero
   (Supabase + Vercel), passo a passo.
-- **[Primeiro acesso](./docs/PRIMEIRO_ACESSO.md)** — como começar a usar.
-- **[Backup do Supabase](./docs/BACKUP_SUPABASE.md)** — proteger os dados.
+- **[Primeiro acesso](./docs/PRIMEIRO_ACESSO.md)**, como começar a usar.
+- **[Backup do Supabase](./docs/BACKUP_SUPABASE.md)**, proteger os dados.
 
 Resumo: conecte o repositório na Vercel, cadastre as duas variáveis de
-ambiente e clique em Deploy — a Vercel detecta o Next.js automaticamente
+ambiente e clique em Deploy, a Vercel detecta o Next.js automaticamente
 (`npm run build`, sem configuração extra). Todo `git push` refaz o deploy.
 
 ## Plano de implementação (etapas)
@@ -305,46 +305,46 @@ O projeto é construído **etapa por etapa**. Cada etapa só avança após
 confirmação de: o que foi feito, arquivos alterados, lint, testes, build e
 pendências.
 
-- **Etapa 1 — Fundação ✅:** arquitetura, estrutura de pastas, páginas
+- **Etapa 1, Fundação ✅:** arquitetura, estrutura de pastas, páginas
   (esqueleto), componentes reutilizáveis, tipos, README e PROJECT_CONTEXT.
-- **Etapa 2 — Banco de dados ✅:** schema no Supabase (5 tabelas, ENUMs,
+- **Etapa 2, Banco de dados ✅:** schema no Supabase (5 tabelas, ENUMs,
   relacionamentos, índices, triggers, RLS), seed e tipos TypeScript.
   Ver **[supabase/README.md](./supabase/README.md)**.
-- **Etapa 3 — Autenticação ✅:** Supabase Auth (login/logout), proteção de
+- **Etapa 3, Autenticação ✅:** Supabase Auth (login/logout), proteção de
   rotas real (middleware), obtenção do usuário e papel (profiles).
-- **Etapa 4 — Clientes ✅:** CRUD (sem exclusão definitiva — soft-delete via
+- **Etapa 4, Clientes ✅:** CRUD (sem exclusão definitiva, soft-delete via
   `active`), busca por nome, filtro ativos/inativos, página individual e
   formulário reutilizável validado com Zod.
-- **Etapa 5 — Conteúdos ✅:** tabela geral, criar/editar, página individual,
+- **Etapa 5, Conteúdos ✅:** tabela geral, criar/editar, página individual,
   filtros (cliente/status/prioridade/formato/mês/semana), busca por título e
   alteração rápida de status/prioridade. Regras derivadas (próxima ação,
   responsável, prazo) centralizadas em `lib/rules/contents.ts`.
-- **Etapa 6 — Regras de negócio ✅:** camada central (`lib/rules/contents.ts`)
+- **Etapa 6, Regras de negócio ✅:** camada central (`lib/rules/contents.ts`)
   para próxima ação, responsável atual, atraso, prazo principal e motivo da
   prioridade, com testes unitários (Vitest).
-- **Etapa 7 — Painel operacional do cliente ✅:** cards e seções por status
+- **Etapa 7, Painel operacional do cliente ✅:** cards e seções por status
   com dados reais, filtros e tabela completa.
-- **Etapa 8 — Gravações ✅:** conteúdos que precisam de gravação agrupados
+- **Etapa 8, Gravações ✅:** conteúdos que precisam de gravação agrupados
   (atrasadas, da semana, próximas, já gravados) com ações rápidas.
-- **Etapa 9 — Fila de edição ✅:** ordenação automática (9 critérios) e
+- **Etapa 9, Fila de edição ✅:** ordenação automática (9 critérios) e
   reordenação manual por drag-and-drop (`@dnd-kit`, `editing_queue_position`).
-- **Etapa 10 — Postagens ✅:** visões semana/mês, arrastar entre dias
+- **Etapa 10, Postagens ✅:** visões semana/mês, arrastar entre dias
   (registra histórico) e calendário com contagem por dia.
-- **Etapa 11 — Dashboard ✅:** cards clicáveis, "Atenção esta semana",
+- **Etapa 11, Dashboard ✅:** cards clicáveis, "Atenção esta semana",
   próximas postagens, resumo por cliente e 2 gráficos.
 
-- **Etapa 12 — Minhas tarefas ✅:** visão por papel (planner/producer/admin)
+- **Etapa 12, Minhas tarefas ✅:** visão por papel (planner/producer/admin)
   com ações por tarefa.
-- **Etapa 13 — Histórico e comentários ✅:** registro automático de
+- **Etapa 13, Histórico e comentários ✅:** registro automático de
   alterações (imutável) e comentários por conteúdo.
-- **Etapa 14 — Preparação de deploy ✅:** variáveis revisadas, build de
+- **Etapa 14, Preparação de deploy ✅:** variáveis revisadas, build de
   produção e guias (Vercel, primeiro acesso, backup) em `docs/`.
 
-- **Etapa 15 — Revisão visual e acessibilidade ✅:** tabelas viram cards no
+- **Etapa 15, Revisão visual e acessibilidade ✅:** tabelas viram cards no
   celular, foco por teclado, `aria-current`, contraste (WCAG AA).
-- **Etapa 16 — Configurações ✅:** edição do próprio perfil e sessão.
+- **Etapa 16, Configurações ✅:** edição do próprio perfil e sessão.
 
 > **Todas as funcionalidades planejadas estão implementadas.** O próximo
-> passo é o deploy — ver **[docs/DEPLOY_VERCEL.md](./docs/DEPLOY_VERCEL.md)**.
+> passo é o deploy, ver **[docs/DEPLOY_VERCEL.md](./docs/DEPLOY_VERCEL.md)**.
 
 > As regras completas de negócio estão em **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)**.

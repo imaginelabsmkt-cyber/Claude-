@@ -70,7 +70,7 @@ export default async function AdministrativoPage({ searchParams }: PageProps) {
 
       <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
         Os valores saem do financeiro, das categorias de assinaturas e
-        equipamentos — é o mesmo dado visto por ferramenta.
+        equipamentos: é o mesmo dado visto por ferramenta.
       </p>
 
       <h2 className="mb-2 mt-7 text-[11px] font-bold uppercase tracking-wider text-gray-500">

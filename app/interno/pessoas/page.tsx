@@ -77,7 +77,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
       <p className="mt-5 border-l-4 border-area pl-3 text-sm text-gray-600">
         O cadastro é daqui, mas o dinheiro é do financeiro: cada pagamento acima é
         um lançamento nas categorias de pró-labore e freelancers. Ninguém é
-        excluído — desativar preserva o histórico.
+        excluído: desativar preserva o histórico.
       </p>
     </>
   );

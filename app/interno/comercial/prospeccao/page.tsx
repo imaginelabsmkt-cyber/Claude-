@@ -54,7 +54,7 @@ export default async function ProspeccaoPage() {
             Nenhuma oportunidade cadastrada ainda
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
-            Cada oportunidade que você cadastrar no funil escolhe um canal —
+            Cada oportunidade que você cadastrar no funil escolhe um canal:
             social selling, indicação, evento ou parceria. Quando houver
             algumas, esta tela mostra qual deles realmente vira cliente.
           </p>
@@ -66,7 +66,7 @@ export default async function ProspeccaoPage() {
             <Stat rotulo="Viraram cliente" valor={String(fecharam)} />
             <Stat
               rotulo="Custo em contatos"
-              valor={custoEmContatos ? `${custoEmContatos}` : "—"}
+              valor={custoEmContatos ? `${custoEmContatos}` : ""}
               detalhe={
                 custoEmContatos
                   ? "contatos para fechar 1"
@@ -191,7 +191,7 @@ export default async function ProspeccaoPage() {
           <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
             A barra mede a <strong>mensalidade conquistada</strong>, não a
             quantidade de contatos. Um canal que traz 40 conversas e fecha zero
-            vale menos que um que traz 4 e fecha 2 — e contar leads diria o
+            vale menos que um que traz 4 e fecha 2, e contar leads diria o
             contrário.
           </p>
         </>

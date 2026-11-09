@@ -62,7 +62,7 @@ export default async function PessoalPage({ searchParams }: PageProps) {
           <strong className="font-semibold text-gray-900">
             Só você vê esta tela.
           </strong>{" "}
-          Seus lançamentos aqui não aparecem para mais ninguém do sistema — quem
+          Seus lançamentos aqui não aparecem para mais ninguém do sistema. Quem
           garante isso é o banco de dados, não o desenho da página.
         </span>
       </p>
@@ -178,7 +178,7 @@ export default async function PessoalPage({ searchParams }: PageProps) {
 
       <details className="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white">
         <summary className="cursor-pointer px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
-          <span className="font-semibold text-gray-900">Plano fixo</span> — o que
+          <span className="font-semibold text-gray-900">Plano fixo</span>: o que
           repete todo mês ({painel.fixos.length} cadastrado
           {painel.fixos.length === 1 ? "" : "s"}
           {painel.fixosPendentes > 0

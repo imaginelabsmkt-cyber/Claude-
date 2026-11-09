@@ -231,7 +231,7 @@ export function EntryForm({
             value={values.client_id ?? ""}
             onChange={(e) => atualizar("client_id", e.target.value)}
           >
-            <option value="">— sem cliente —</option>
+            <option value="">sem cliente</option>
             {clientes.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -252,7 +252,7 @@ export function EntryForm({
               value={values.team_member_id ?? ""}
               onChange={(e) => atualizar("team_member_id", e.target.value)}
             >
-              <option value="">— não informado —</option>
+              <option value="">não informado</option>
               {pessoas.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} ({p.kind})
@@ -311,7 +311,7 @@ export function EntryForm({
             value={values.payment_method ?? ""}
             onChange={(e) => atualizar("payment_method", e.target.value)}
           >
-            <option value="">—</option>
+            <option value=""></option>
             {PAYMENT_METHOD_OPTIONS.map((f) => (
               <option key={f} value={f}>
                 {f}

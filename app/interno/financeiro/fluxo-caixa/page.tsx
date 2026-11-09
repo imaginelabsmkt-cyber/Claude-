@@ -151,7 +151,7 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
         <dl className="divide-y divide-gray-100">
           {[
             {
-              rotulo: "Resultado líquido (receitas − despesas)",
+              rotulo: "Resultado líquido (receitas - despesas)",
               valor: resumo.resultado,
               destaque: true,
             },

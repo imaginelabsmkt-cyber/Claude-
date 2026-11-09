@@ -49,7 +49,7 @@ export default async function OportunidadePage({ params }: PageProps) {
         {aberta ? (
           <span className={parado ? "text-xs font-semibold text-alerta" : "text-xs text-gray-500"}>
             {dias === 0 ? "entrou hoje nesta etapa" : `${dias} dia(s) nesta etapa`}
-            {parado ? " — passou do prazo" : ""}
+            {parado ? ", passou do prazo" : ""}
           </span>
         ) : null}
         {lead.client ? (
@@ -71,7 +71,7 @@ export default async function OportunidadePage({ params }: PageProps) {
           <p className="text-sm font-semibold text-gray-900">
             {lead.stage === "Fechado"
               ? "Negócio ganho"
-              : `Negócio perdido${lead.lost_reason ? ` — ${lead.lost_reason}` : ""}`}
+              : `Negócio perdido${lead.lost_reason ? `: ${lead.lost_reason}` : ""}`}
           </p>
           {lead.stage === "Fechado" ? (
             <p className="mt-1 text-xs text-gray-500">

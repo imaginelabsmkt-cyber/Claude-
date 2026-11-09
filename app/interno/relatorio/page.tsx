@@ -117,7 +117,7 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
       {/* Cabeçalho que só aparece no papel */}
       <div className="mb-5 hidden print:block">
         <h1 className="text-xl font-bold text-gray-900">
-          Favie — fechamento de {rotuloMes(mes)}
+          Favie: fechamento de {rotuloMes(mes)}
         </h1>
       </div>
 

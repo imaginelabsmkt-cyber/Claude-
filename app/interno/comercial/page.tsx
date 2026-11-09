@@ -69,7 +69,7 @@ export default async function ComercialPage({ searchParams }: PageProps) {
               <strong className="font-semibold text-alerta">
                 Faltam {formatarMoeda(falta)} por mês
               </strong>{" "}
-              — cerca de {clientesQueFaltam} cliente(s) do tamanho médio da carteira (
+              , cerca de {clientesQueFaltam} cliente(s) do tamanho médio da carteira (
               {formatarMoeda(carteira.ticketMedio)}).
             </>
           ) : (
@@ -106,7 +106,7 @@ export default async function ComercialPage({ searchParams }: PageProps) {
                 </span>
               </span>
               <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-gray-900">
-                {c.mensal > 0 ? formatarMoeda(c.mensal) : "—"}
+                {c.mensal > 0 ? formatarMoeda(c.mensal) : ""}
               </span>
               <span
                 className={
@@ -127,14 +127,14 @@ export default async function ComercialPage({ searchParams }: PageProps) {
             <span className="font-semibold text-gray-900">
               {carteira.inativos.length} já foram
             </span>{" "}
-            — {formatarMoeda(carteira.perdidoPorMes)} por mês que deixaram de entrar
+            , {formatarMoeda(carteira.perdidoPorMes)} por mês que deixaram de entrar
           </summary>
           <ul className="divide-y divide-gray-100 border-t border-gray-200">
             {carteira.inativos.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center gap-x-3 px-4 py-2.5">
                 <span className="min-w-0 flex-1 text-sm text-gray-600">{c.nome}</span>
                 <span className="shrink-0 text-xs text-gray-500">
-                  último pagamento em {c.ultimoMes ?? "—"}
+                  último pagamento em {c.ultimoMes ?? ""}
                 </span>
                 <span className="w-28 shrink-0 text-right text-sm tabular-nums text-gray-500">
                   {formatarMoeda(c.ultimoValor)}

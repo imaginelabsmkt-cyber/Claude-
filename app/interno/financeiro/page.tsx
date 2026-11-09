@@ -94,7 +94,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
             </p>
             {painel.aReceber.length === 0 ? (
               <p className="text-sm text-gray-500">
-                Nada em aberto — todas as receitas do mês já entraram.
+                Nada em aberto. Todas as receitas do mês já entraram.
               </p>
             ) : (
               <ul className="divide-y divide-gray-100">
@@ -103,7 +103,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
                     <div className="min-w-0">
                       <p className="truncate text-sm text-gray-800">{l.description}</p>
                       <p className="text-xs text-gray-500">
-                        {l.client?.name ?? l.category?.name ?? "—"} · venc.{" "}
+                        {l.client?.name ?? l.category?.name ?? ""} · venc.{" "}
                         {formatarData(l.due_date)}
                       </p>
                     </div>
@@ -142,7 +142,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
                     <div className="min-w-0">
                       <p className="truncate text-sm text-gray-800">{l.description}</p>
                       <p className="text-xs text-gray-500">
-                        {l.category?.name ?? "—"} · venc. {formatarData(l.due_date)}
+                        {l.category?.name ?? ""} · venc. {formatarData(l.due_date)}
                       </p>
                     </div>
                     <span className="shrink-0 text-sm font-medium text-gray-900">
