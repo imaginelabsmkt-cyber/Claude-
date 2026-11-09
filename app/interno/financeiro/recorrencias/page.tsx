@@ -10,7 +10,7 @@ import {
   listarLancamentos,
   listarRecorrencias,
 } from "@/lib/data/financeiro";
-import { mesAtual, mesValido } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido, hojeISO } from "@/lib/financeiro/meses";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,7 @@ interface PageProps {
 export default async function RecorrenciasPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
   const [recorrencias, categorias, clientes, doMes, aGerar] = await Promise.all([
     listarRecorrencias(),

@@ -80,9 +80,15 @@ describe("meses", () => {
   });
 
   it("ajusta o vencimento para o último dia quando o dia não existe", () => {
-    expect(dataVencimento("2026-04", 10)).toBe("2026-04-10");
-    expect(dataVencimento("2026-04", 31)).toBe("2026-04-30");
-    expect(dataVencimento("2026-02", 30)).toBe("2026-02-28");
+    // O vencimento cai no mês SEGUINTE ao da competência: "as contas de
+    // outubro eu fecho em novembro, e assim sucessivamente".
+    expect(dataVencimento("2026-04", 10)).toBe("2026-05-10");
+    expect(dataVencimento("2026-10", 10)).toBe("2026-11-10");
+    // Dia que não existe no mês do pagamento cai no último dia dele.
+    expect(dataVencimento("2026-03", 31)).toBe("2026-04-30");
+    expect(dataVencimento("2026-01", 30)).toBe("2026-02-28");
+    // Vira o ano junto.
+    expect(dataVencimento("2026-12", 5)).toBe("2027-01-05");
     expect(dataVencimento("2026-04", null)).toBeNull();
   });
 });

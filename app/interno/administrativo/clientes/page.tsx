@@ -8,7 +8,7 @@ import { listarClientesFinanceiro } from "@/lib/data/financeiro";
 import { obterCarteira } from "@/lib/data/comercial";
 import { receitaContratada } from "@/lib/empresa/contratos";
 import { contratosQuePedemConversa } from "@/lib/empresa/contratos";
-import { mesAtual } from "@/lib/financeiro/meses";
+import { mesAtual, hojeISO } from "@/lib/financeiro/meses";
 import { formatarData, formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export const metadata = { title: "Clientes" };
  * está combinado com cada um, o que pede conversa, e quem já saiu.
  */
 export default async function ClientesPage() {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
   const [contratos, clientes, carteira] = await Promise.all([
     listarContratosDeCliente(),

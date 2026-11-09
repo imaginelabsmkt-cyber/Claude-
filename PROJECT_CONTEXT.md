@@ -1528,6 +1528,45 @@ tem dois custos: ela perde a referência do que já conhecia, e eu
 arrisco quebrar o que estava bom. Nesta rodada mudou UMA coisa: o
 botão virou check. Mais nada.
 
+## 5.28 Competência não é vencimento
+
+> "as datas de vencimento estão todas erradas"
+> "as contas de outubro eu fecho em novembro, e assim sucessivamente"
+
+Era erro meu, e dos grandes. O sistema punha o vencimento DENTRO do
+próprio mês de competência: a mensalidade de outubro vencia em 10/10.
+Na Favie a conta de outubro vence em NOVEMBRO. Com a regra errada,
+tudo aparecia vencido um mês antes da hora, e a tela de Lançamentos
+abria com o mês inteiro em vermelho.
+
+**São duas datas diferentes, e eu estava tratando como uma:**
+
+- a **competência** diz a que mês o dinheiro PERTENCE. É ela que monta
+  o fluxo de caixa, o resumo anual e o gráfico do ano;
+- o **vencimento** diz QUANDO ele é pago.
+
+`dataVencimento(mes, dia)` agora devolve o dia no mês SEGUINTE. Teste
+cobrindo a virada de ano (dezembro vence em janeiro) e o dia que não
+existe no mês do pagamento (dia 31 de março vence em 30 de abril).
+
+`supabase/corrigir_vencimentos.sql` arruma o que já está no banco.
+Rodado em Postgres de verdade: a primeira vez move 110 lançamentos e a
+conferência devolve zero errados; a segunda e a terceira não mexem em
+nada. Ele só toca nas linhas que ainda estão com o vencimento dentro do
+mês da competência, então uma data que ela já tenha corrigido na mão
+fica como está. Nenhum saldo muda: só o vencimento.
+
+### E um bug de fuso que estava junto
+
+`new Date().toISOString()` devolve a data em UTC, e a Vercel roda em
+UTC. Boa Vista é UTC-4: das 20h à meia-noite daqui, o sistema já achava
+que era o dia seguinte e marcava como vencido o que vence amanhã. No
+dia 1 de cada mês, até as 20h, ele ainda estaria no mês anterior.
+
+Agora existe `hojeISO()` e `mesAtual()` usa o fuso de Boa Vista, com
+`Intl.DateTimeFormat("en-CA", { timeZone: "America/Boa_Vista" })`, que
+é a única forma que não depende do fuso de onde o código roda.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

@@ -745,3 +745,30 @@ raise notice 'Carga concluída: 110 lançamentos de abril a outubro/2026.';
 
 end
 $$;
+
+-- -------------------------------------------------------------
+-- 7. O vencimento cai no mês SEGUINTE ao da competência
+--
+-- "as contas de outubro eu fecho em novembro, e assim
+--  sucessivamente" (Fran). Os lançamentos acima nascem com a data
+-- dentro do próprio mês, que é como a planilha os registra; aqui
+-- eles ganham o vencimento de verdade.
+--
+-- É a mesma conta de `supabase/corrigir_vencimentos.sql`, e só mexe
+-- em quem ainda está com o vencimento dentro do mês da competência.
+-- -------------------------------------------------------------
+update public.financial_entries e
+   set due_date = (
+         (date_trunc('month', (e.reference_month || '-01')::date)
+            + interval '1 month')::date
+         + (least(
+              extract(day from e.due_date)::int,
+              extract(day from (
+                date_trunc('month', (e.reference_month || '-01')::date)
+                  + interval '2 month' - interval '1 day'
+              ))::int
+            ) - 1)
+       )
+ where e.due_date is not null
+   and to_char(e.due_date, 'YYYY-MM') = e.reference_month;
+

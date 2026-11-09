@@ -1,5 +1,6 @@
 "use server";
 
+import { hojeISO } from "@/lib/financeiro/meses";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { paraNumero } from "@/lib/financeiro/valores";
@@ -153,7 +154,7 @@ export async function registrarReajusteAction(
   }
 
   const supabase = createClient();
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
   const { error } = await supabase
     .from("client_contracts")

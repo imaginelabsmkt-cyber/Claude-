@@ -125,3 +125,20 @@ describe("contarUrgentes", () => {
     expect(contarUrgentes([], HOJE)).toBe(0);
   });
 });
+
+describe("o vencimento no mês seguinte", () => {
+  it("não marca como vencido o que vence no mês que vem", () => {
+    // A mensalidade de outubro vence em 10 de novembro. Em 9 de
+    // novembro ela ainda não venceu. Antes o sistema punha o
+    // vencimento em 10 de OUTUBRO e dizia "venceu há 30 dias".
+    expect(
+      situacaoDoLancamento({ status: "Pendente", due_date: "2026-11-10" }, "2026-11-09"),
+    ).toBe("A vencer");
+  });
+
+  it("marca como vencido quando o dia do mês seguinte passou", () => {
+    expect(
+      situacaoDoLancamento({ status: "Pendente", due_date: "2026-11-05" }, "2026-11-09"),
+    ).toBe("Vencido");
+  });
+});

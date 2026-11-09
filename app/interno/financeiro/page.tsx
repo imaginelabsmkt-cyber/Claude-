@@ -6,7 +6,7 @@ import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { Secao } from "@/components/interno/secao";
 import { contarRecorrenciasPendentes, obterPainelMes } from "@/lib/data/financeiro";
-import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido, rotuloMes, hojeISO } from "@/lib/financeiro/meses";
 import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
     contarRecorrenciasPendentes(mes),
   ]);
   const { resumo } = painel;
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
   const variacao =
     painel.variacaoReceita != null

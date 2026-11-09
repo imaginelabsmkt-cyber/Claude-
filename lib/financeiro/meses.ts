@@ -58,10 +58,15 @@ export function montarMes(ano: number, mes: number): string {
   return `${anoAjustado}-${String(mesAjustado).padStart(2, "0")}`;
 }
 
-/** Mês de competência atual, no fuso local. */
+/**
+ * Mês de competência atual.
+ *
+ * Usa o fuso de Boa Vista, e não o do servidor: a Vercel roda em UTC, e
+ * no dia 1 de cada mês, até as 20h daqui, o servidor ainda estaria no
+ * mês anterior.
+ */
 export function mesAtual(): string {
-  const hoje = new Date();
-  return montarMes(hoje.getFullYear(), hoje.getMonth() + 1);
+  return mesDeHoje();
 }
 
 /** Desloca um mês em N posições (N negativo volta no tempo). */
@@ -122,14 +127,51 @@ export function anoDoMes(mes: string): number {
 }
 
 /**
- * Data de vencimento a partir do dia escolhido na recorrência.
+ * Data de vencimento de um lançamento, a partir do dia da recorrência.
+ *
+ * O VENCIMENTO CAI NO MÊS SEGUINTE ao da competência. É assim que a
+ * Favie trabalha, nas palavras da Fran:
+ *
+ *   "as contas de outubro eu fecho em novembro, e assim sucessivamente"
+ *
+ * Então a mensalidade de OUTUBRO vence no dia tal de NOVEMBRO. O
+ * sistema colocava o vencimento dentro do próprio mês da competência, e
+ * por isso todas as datas apareciam erradas, e tudo parecia vencido um
+ * mês antes da hora.
+ *
+ * Competência e vencimento são coisas diferentes: a competência diz a
+ * que mês o dinheiro PERTENCE (e é ela que monta o fluxo de caixa); o
+ * vencimento diz QUANDO ele é pago.
+ *
  * Dias que não existem no mês (ex.: 31 em abril) caem no último dia.
  */
 export function dataVencimento(mes: string, dia: number | null): string | null {
   if (!dia) return null;
-  const { ano, mes: m } = partesMes(mes);
+  const mesDoPagamento = proximoMes(mes);
+  const { ano, mes: m } = partesMes(mesDoPagamento);
   if (!ano) return null;
   const ultimoDia = new Date(ano, m, 0).getDate();
   const diaFinal = Math.min(Math.max(dia, 1), ultimoDia);
-  return `${mes}-${String(diaFinal).padStart(2, "0")}`;
+  return `${mesDoPagamento}-${String(diaFinal).padStart(2, "0")}`;
+}
+
+/**
+ * Hoje, no fuso de Boa Vista, como "YYYY-MM-DD".
+ *
+ * `new Date().toISOString()` devolve a data em UTC, e Boa Vista é
+ * UTC-4: das 20h à meia-noite daqui, o servidor já acha que é o dia
+ * seguinte, e marca como vencido o que vence amanhã.
+ */
+export function hojeISO(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Boa_Vista",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/** Mês de competência atual, no fuso de Boa Vista. */
+export function mesDeHoje(): string {
+  return hojeISO().slice(0, 7);
 }

@@ -17,7 +17,7 @@ import {
   ordenarPorUrgencia,
   situacaoDoLancamento,
 } from "@/lib/financeiro/vencimento";
-import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido, rotuloMes, hojeISO } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 import type { FinancialKind, FinancialStatus } from "@/types";
 
@@ -66,7 +66,7 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
           ? (searchParams.status as FinancialStatus)
           : undefined;
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
   const [brutos, categorias, clientes, recorrenciasPendentes] = await Promise.all([
     listarLancamentos({

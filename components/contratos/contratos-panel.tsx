@@ -16,6 +16,7 @@ import {
   excluirContratoAction,
   registrarReajusteAction,
 } from "@/lib/actions/contratos";
+import { hojeISO } from "@/lib/financeiro/meses";
 import { paraCampo } from "@/lib/financeiro/valores";
 import {
   diasAteOFim,
@@ -380,7 +381,7 @@ function ContratoForm({
       : {
           ...CONTRATO_FORM_PADRAO,
           client_id: clienteInicial ?? clientes[0]?.id ?? "",
-          start_date: new Date().toISOString().slice(0, 10),
+          start_date: hojeISO(),
         },
   );
 
