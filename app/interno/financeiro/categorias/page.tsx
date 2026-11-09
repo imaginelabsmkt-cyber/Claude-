@@ -5,6 +5,8 @@ import { listarCategorias, obterConfiguracaoFinanceira } from "@/lib/data/financ
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Configuração" };
+
 /** Configuração do financeiro: saldo inicial e categorias. */
 export default async function CategoriasFinanceiroPage() {
   const [configuracao, categorias] = await Promise.all([

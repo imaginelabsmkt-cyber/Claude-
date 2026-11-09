@@ -1281,6 +1281,87 @@ O que mudou de verdade:
 - **Equipe**: o h2 "Equipe" repetia o nome da aba e do bloco. Virou
   "Quem é da casa".
 
+## 5.23 A bronca que mudou o rumo, e a pesquisa que faltava
+
+A Fran foi direta: o sistema está confuso, tem texto demais, o painel
+financeiro não tem os gráficos que qualquer sistema de gestão tem, o
+dashboard não mostra nada do comercial nem do administrativo, e eu não
+tinha ido atrás da pesquisa que ela pediu duas vezes.
+
+### O que a pesquisa diz (e que eu não estava fazendo)
+
+Painéis de gestão financeira, de vários fornecedores, convergem em:
+
+1. **Números grandes no topo**, de impacto imediato: saldo, a receber e
+   a pagar, e **o vencido de cada lado como indicador próprio**. Eu
+   mostrava "em aberto"; "vencido" é outra coisa e é a que faz agir.
+2. **5 a 8 indicadores por tela**, não mais.
+3. **Colunas para receita e despesa, linha para o saldo acumulado.**
+4. **Status do título é regra explícita**, não detalhe de tela.
+5. Painel executivo consolida as áreas: caixa e margem do financeiro,
+   funil e conversão do comercial.
+
+Fontes: [Omie](https://www.omie.com.br/blog/dashboard-financeiro-indicadores-e-como-montar/),
+[Neofin](https://www.neofin.com.br/blog/dashboard-financeiro),
+[IXC](https://wiki-erp.ixcsoft.com.br/dashboards/dashboard-financeiro),
+[Orbit](https://orbitgestao.com.br/blog/dashboard-gestao-empresarial),
+[FGV Jr](https://fgvjr.com/blog/dashboard-para-pequenas-empresas-guia-pratico-para-decisoes-rapidas).
+
+### As cores agora significam alguma coisa
+
+`components/financeiro/situacao.tsx` é o ÚNICO lugar que decide isso:
+
+    verde    = pago
+    âmbar    = ainda vai vencer
+    vermelho = venceu
+    cinza    = nem foi lançado ainda
+
+São cores reservadas: nenhum gráfico ou área usa essas três para outra
+coisa, senão a cor deixa de ser informação. Contraste conferido sobre o
+fundo de cada etiqueta (4,8:1 a 6,0:1, todos AA). E nunca é só cor:
+toda etiqueta tem um ponto E uma palavra.
+
+### Cada ferramenta, com o status dela
+
+Era o pedido mais concreto: "preciso saber se já está pago pela
+ferramenta do mês, ou se não está paga, ou se está atrasada". A tela de
+Fixos mostrava o plano e nada do mês. Agora cada linha carrega o
+lançamento do mês escolhido, com a situação e a baixa ali mesmo.
+
+### A barra de situação
+
+No Painel do mês, cada lado ganhou uma barra repartida em pago, a
+vencer e vencido, nas mesmas três cores. É o gráfico que a lista não
+dá: de olho, quanto do mês já está resolvido. Vinte linhas ninguém
+soma de cabeça.
+
+### Fora o texto explicativo
+
+Eu tinha enchido o sistema de linhas explicando o que cada bloco era, e
+ela cortou: "tudo precisa ser autoexplicativo, não precisa ter um texto
+explicando o que é aquilo, senão não faz sentido ter um painel em que
+cada coisinha precisa de explicação".
+
+Saíram as 24 linhas de `explicacao` das seções e os rodapés que
+descreviam a própria tela. O que ficou: o título do bloco e o dado. A
+`<Secao>` ainda aceita explicação, para o caso raro de uma regra que o
+desenho não consegue dizer, mas o padrão agora é não ter.
+
+### O dashboard virou do sistema, não do financeiro
+
+Faturamento do ano em cima, como ela pediu. Depois uma linha de cinco
+indicadores que as TRÊS etapas alimentam: em caixa, vencido a receber,
+vencido a pagar, no funil (comercial) e contratos que pedem conversa
+(administrativo). Cada cartão é um link para a tela onde se resolve, e
+fica vermelho quando é alerta.
+
+### A aba do navegador
+
+Ela não conseguia distinguir este sistema do de demandas no navegador:
+mesmo ícone, mesmo título. O ícone agora é claro (o de demandas é o
+quadrado vinho cheio), e cada tela põe o próprio nome no título, então
+a aba diz "Lançamentos · Favie" em vez de "favie · Gestão de Demandas".
+
 ## 6. Convenções de código
 
 ### Nada de travessão

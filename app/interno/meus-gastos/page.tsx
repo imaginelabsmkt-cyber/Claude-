@@ -10,6 +10,8 @@ import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Meus gastos" };
+
 interface PageProps {
   searchParams: { mes?: string };
 }

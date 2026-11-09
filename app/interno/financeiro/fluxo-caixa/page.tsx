@@ -9,6 +9,8 @@ import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Fluxo de caixa" };
+
 interface PageProps {
   searchParams: { mes?: string };
 }
@@ -59,7 +61,6 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
 
       <Secao
         titulo="Para onde o caixa está indo"
-        explicacao={`Cada ponto é o que sobrou no fim do mês, encadeado desde ${rotuloMes(serie.inicio)}.`}
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
           <GraficoCaixa pontos={pontos} meses={meses} />
@@ -68,7 +69,6 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
 
       <Secao
         titulo="Mês a mês"
-        explicacao="O saldo do fim de um mês é o saldo do começo do seguinte, como na planilha. Em vermelho, o mês que consumiu caixa."
       >
         <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
           <table className="w-full min-w-[640px] text-sm">
@@ -180,7 +180,6 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
       {melhor && pior && melhor.mes !== pior.mes ? (
         <Secao
           titulo="O melhor e o pior mês"
-          explicacao="Só meses já fechados. O mês em andamento ainda vai mudar."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {[

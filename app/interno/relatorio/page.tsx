@@ -12,6 +12,8 @@ import { cn, formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Relatório do mês" };
+
 interface PageProps {
   searchParams: { mes?: string };
 }

@@ -78,3 +78,34 @@ export function montarFolha(
 export function totalDaFolha(grupos: GrupoFolha[]): number {
   return grupos.reduce((t, g) => t + g.total, 0);
 }
+
+/** Quanto de um lado já foi resolvido, quanto espera e quanto venceu. */
+export interface ParteDaFolha {
+  pago: number;
+  aVencer: number;
+  vencido: number;
+  total: number;
+}
+
+/**
+ * Divide um lado da folha em três partes, pela situação de prazo.
+ *
+ * É o que vira a barra do cabeçalho da coluna: de olho, quanto do mês
+ * já está resolvido e quanto ainda está pendurado. Só a lista não
+ * responde isso, porque ninguém soma vinte linhas de cabeça.
+ */
+export function partirPorSituacao(
+  grupos: GrupoFolha[],
+  venceu: (linha: LinhaFolha) => boolean,
+): ParteDaFolha {
+  const partes = { pago: 0, aVencer: 0, vencido: 0, total: 0 };
+  for (const g of grupos) {
+    for (const l of g.linhas) {
+      partes.total += l.amount;
+      if (l.pago) partes.pago += l.amount;
+      else if (venceu(l)) partes.vencido += l.amount;
+      else partes.aVencer += l.amount;
+    }
+  }
+  return partes;
+}

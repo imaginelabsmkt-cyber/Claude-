@@ -15,6 +15,15 @@ import {
   type Assunto,
 } from "@/lib/interno/classificacao";
 import { listarObrigacoesUrgentes } from "@/lib/data/empresa";
+import { listarContratosDeCliente } from "@/lib/data/contratos";
+import { listarLeads } from "@/lib/data/comercial";
+import { contratosQuePedemConversa } from "@/lib/empresa/contratos";
+import { valorDoFunil } from "@/lib/comercial/funil";
+import {
+  contarUrgentes,
+  situacaoDoLancamento,
+} from "@/lib/financeiro/vencimento";
+import { LEAD_STAGES_ABERTAS } from "@/types";
 import {
   renovacoesProximas,
   textoRenovacao,
@@ -119,6 +128,12 @@ export interface PainelInterno {
   folego: Folego;
   /** O ano fechado: faturamento, resultado e as doze colunas do gráfico. */
   ano: FaturamentoAnual;
+  /** O que já venceu e continua em aberto, dos dois lados. */
+  vencido: { aReceber: number; aPagar: number; quantos: number };
+  /** O comercial em uma linha. */
+  comercial: { emAberto: number; seTudoFechar: number };
+  /** O administrativo em uma linha. */
+  administrativo: { contratosQuePedemConversa: number };
 }
 
 /**
@@ -127,12 +142,15 @@ export interface PainelInterno {
  */
 export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
   const supabase = createClient();
+  const hoje = hojeISO();
 
   const [
     financeiro,
     lancamentos,
     obrigacoes,
     resumoAnual,
+    contratosDeCliente,
+    leadsAbertos,
     { data: recorrencias },
     { count: ativos },
   ] = await Promise.all([
@@ -140,6 +158,8 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       listarLancamentos({ mes }),
       listarObrigacoesUrgentes(),
       obterResumoAnual(anoDoMes(mes)),
+      listarContratosDeCliente(),
+      listarLeads(LEAD_STAGES_ABERTAS),
       supabase
         .from("financial_recurrences")
         .select("id, description, client_id, kind, amount, start_month, end_month, active")
@@ -228,6 +248,32 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     ),
     folego: calcularFolego(financeiro.resumo.saldoFinal, fechados, mes),
     ano: faturamentoAnual(resumoAnual.ano, resumoAnual.serie),
+    vencido: {
+      aReceber: somar(
+        financeiro.aReceber
+          .filter((l) => situacaoDoLancamento(l, hoje) === "Vencido")
+          .map((l) => Number(l.amount)),
+      ),
+      aPagar: somar(
+        financeiro.aPagar
+          .filter((l) => situacaoDoLancamento(l, hoje) === "Vencido")
+          .map((l) => Number(l.amount)),
+      ),
+      quantos: contarUrgentes(
+        [...financeiro.aReceber, ...financeiro.aPagar],
+        hoje,
+      ),
+    },
+    comercial: {
+      emAberto: leadsAbertos.length,
+      seTudoFechar: valorDoFunil(leadsAbertos),
+    },
+    administrativo: {
+      contratosQuePedemConversa: contratosQuePedemConversa(
+        contratosDeCliente,
+        hoje,
+      ).length,
+    },
   };
 }
 

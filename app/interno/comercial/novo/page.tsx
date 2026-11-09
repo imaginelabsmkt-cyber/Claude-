@@ -3,6 +3,8 @@ import { LeadForm } from "@/components/comercial/lead-form";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Nova oportunidade" };
+
 /** Cadastro de uma nova oportunidade no funil. */
 export default function NovaOportunidadePage() {
   return (

@@ -12,6 +12,8 @@ import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Impostos" };
+
 interface PageProps {
   searchParams: { mes?: string };
 }
@@ -64,7 +66,6 @@ export default async function ContabilPage({ searchParams }: PageProps) {
 
       <Secao
         titulo="O que é dinheiro"
-        explicacao="DAS e honorários da contabilidade. São recorrências do financeiro: cadastrados uma vez, aparecem todo mês sem ninguém lembrar."
       >
         <RecorteLista
           lancamentos={recorte.lancamentos}
@@ -74,11 +75,6 @@ export default async function ContabilPage({ searchParams }: PageProps) {
 
       <Secao
         titulo="O que é prazo, e não dinheiro"
-        explicacao={
-          atrasadas > 0
-            ? `Entregas e declarações que têm data mas não têm valor. ${atrasadas} ${atrasadas === 1 ? "está atrasada" : "estão atrasadas"}.`
-            : "Entregas e declarações que têm data mas não têm valor."
-        }
       >
         <ObrigacoesPanel obrigacoes={obrigacoes} area="contabil" />
       </Secao>

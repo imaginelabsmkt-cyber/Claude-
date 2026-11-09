@@ -13,6 +13,8 @@ import { formatarData, formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Clientes" };
+
 /**
  * Clientes: quem é cliente da Favie, desde quando e com qual contrato.
  *
@@ -62,7 +64,6 @@ export default async function ClientesPage() {
       {conversas.length > 0 ? (
         <Secao
           titulo="Precisa de conversa"
-          explicacao="Contrato chegando ao fim, vencido, ou reajuste na hora. São as conversas que só acontecem se alguém lembrar."
         >
           <ul className="space-y-2">
             {conversas.map(({ contrato, motivo, dias }) => (
@@ -100,7 +101,6 @@ export default async function ClientesPage() {
 
       <Secao
         titulo="Quem é cliente hoje"
-        explicacao="Um por linha, com o que está combinado: desde quando, até quando, quanto e quando reajustar. Quem ainda não tem contrato aparece primeiro."
       >
         <ContratosPanel
           contratos={contratos}
@@ -113,7 +113,6 @@ export default async function ClientesPage() {
       {carteira.inativos.length > 0 ? (
         <Secao
           titulo="Quem já foi cliente"
-          explicacao="Saíram, mas pagaram alguma coisa neste ano. Fica registrado para a gente lembrar de quem foi e de quanto era."
         >
           <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             {carteira.inativos.map((c) => (

@@ -11,6 +11,8 @@ import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Financeiro" };
+
 interface PageProps {
   searchParams: { mes?: string };
 }
@@ -36,6 +38,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
     contarRecorrenciasPendentes(mes),
   ]);
   const { resumo } = painel;
+  const hoje = new Date().toISOString().slice(0, 10);
 
   const variacao =
     painel.variacaoReceita != null
@@ -60,7 +63,6 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
 
       <Secao
         titulo={`O mês de ${rotuloMes(mes)}`}
-        explicacao="Começa com o que tinha em caixa no primeiro dia. É a mesma leitura da aba do mês na planilha."
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
           <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
@@ -133,12 +135,10 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
 
       <Secao
         titulo="No que entrou e no que saiu"
-        explicacao="Cada lançamento do mês, dentro da categoria dele. Vermelho é o que ainda não foi baixado."
       >
         <FolhaDoMes
           mes={mes}
-          aReceber={resumo.aReceber}
-          aPagar={resumo.aPagar}
+          hoje={hoje}
           lancamentos={painel.lancamentos.map((l) => ({
             id: l.id,
             description: l.description,

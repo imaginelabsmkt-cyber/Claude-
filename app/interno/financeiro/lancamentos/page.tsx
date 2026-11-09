@@ -23,6 +23,8 @@ import type { FinancialKind, FinancialStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Lançamentos" };
+
 interface PageProps {
   searchParams: {
     mes?: string;

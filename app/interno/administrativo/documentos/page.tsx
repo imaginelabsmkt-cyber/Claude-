@@ -13,6 +13,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Documentos" };
+
 /**
  * Documentos: os papéis da empresa e os prazos que vêm com eles.
  *
@@ -52,21 +54,18 @@ export default async function DocumentosPage() {
 
       <Secao
         titulo="Prazos do administrativo"
-        explicacao="O que precisa ser renovado, entregue ou assinado, e quando. Se não estiver aqui, ninguém vai lembrar."
       >
         <ObrigacoesPanel obrigacoes={obrigacoes} area="administrativo" />
       </Secao>
 
       <Secao
         titulo="Documentos da empresa"
-        explicacao="Contrato social, alvará, certidões: o que é da Favie e não de um cliente."
       >
         <DocumentosPanel documentos={documentos} />
       </Secao>
 
       <Secao
         titulo="Contratos assinados"
-        explicacao="O arquivo em PDF de cada cliente. O que está combinado dentro dele fica na aba Clientes."
         acao={
           <Link
             href="/interno/administrativo/clientes"
@@ -78,18 +77,6 @@ export default async function DocumentosPage() {
       >
         <ContratosLista contratos={contratos} />
       </Secao>
-
-      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
-        Procurando quanto a gente paga de ferramenta? Isso é dinheiro, então
-        fica em{" "}
-        <Link
-          href="/interno/financeiro/recorrencias"
-          className="font-medium text-area hover:underline"
-        >
-          Financeiro, em Fixos e ferramentas
-        </Link>
-        .
-      </p>
     </>
   );
 }

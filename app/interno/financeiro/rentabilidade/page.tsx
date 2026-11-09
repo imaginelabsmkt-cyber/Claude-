@@ -13,6 +13,8 @@ import { cn, formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Por cliente" };
+
 interface PageProps {
   searchParams: { mes?: string; periodo?: string };
 }
@@ -104,7 +106,6 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
 
       <Secao
         titulo="Quanto sobra de cada cliente"
-        explicacao="Margem é fato: receita menos o que foi gasto com aquele cliente. Rateio é estimativa: divide pró-labore, ferramentas e impostos na proporção do que cada um fatura. Sobra é o que fica depois de tudo."
       >
       {r.clientes.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
@@ -193,12 +194,6 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
       )}
 
       </Secao>
-
-      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
-        Para o custo direto aparecer, lance a despesa do freela ou do tráfego
-        escolhendo o cliente no campo <em>Cliente</em>. Sem isso ela cai no
-        bolo e volta rateada entre todo mundo.
-      </p>
     </>
   );
 }

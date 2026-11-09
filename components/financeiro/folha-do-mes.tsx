@@ -1,10 +1,13 @@
 import Link from "next/link";
 import {
   montarFolha,
+  partirPorSituacao,
   totalDaFolha,
   type GrupoFolha,
   type LancamentoFolha,
 } from "@/lib/financeiro/folha";
+import { Situacao } from "@/components/financeiro/situacao";
+import { situacaoDoLancamento, textoDoPrazo } from "@/lib/financeiro/vencimento";
 import {
   clienteSeFizerFalta,
   semRepetirOGrupo,
@@ -13,13 +16,48 @@ import { formatarData, formatarMoeda } from "@/lib/utils";
 import type { FinancialKind } from "@/types";
 
 /**
+ * A barra de situação do cabeçalho da coluna.
+ *
+ * Uma linha só, repartida em pago, a vencer e vencido, nas MESMAS cores
+ * das etiquetas de cada lançamento. É o gráfico que a lista não dá: de
+ * olho, quanto do mês já está resolvido.
+ *
+ * Nenhuma parte aparece sem valor, e o vão de 2px entre elas é o papel
+ * do cartão aparecendo, não um contorno.
+ */
+function BarraDaSituacao({
+  partes,
+}: {
+  partes: { pago: number; aVencer: number; vencido: number; total: number };
+}) {
+  if (partes.total <= 0) return null;
+  const pedaco = (valor: number, cor: string, nome: string) =>
+    valor > 0 ? (
+      <div
+        key={nome}
+        className={`h-2 ${cor}`}
+        style={{ width: `${(valor / partes.total) * 100}%` }}
+        title={`${nome}: ${formatarMoeda(valor)}`}
+      />
+    ) : null;
+
+  return (
+    <div className="mt-2 flex gap-0.5 overflow-hidden rounded-full">
+      {pedaco(partes.pago, "bg-green-700", "pago")}
+      {pedaco(partes.aVencer, "bg-amber-600", "a vencer")}
+      {pedaco(partes.vencido, "bg-red-700", "vencido")}
+    </div>
+  );
+}
+
+/**
  * Texto do prazo, curto de propósito.
  *
  * "vence 10/11/2026" quebrava em duas linhas e fazia cada lançamento
  * ocupar o dobro da altura. Dentro do mês que a tela já nomeou, o dia
  * basta; só uma data de outro mês aparece por extenso.
  */
-function textoDoPrazo(due: string | null, mes: string): string {
+function textoDoPrazoNoMes(due: string | null, mes: string): string {
   if (!due) return "em aberto";
   if (due.startsWith(mes)) return `vence dia ${Number(due.slice(8, 10))}`;
   return `vence ${formatarData(due)}`;
@@ -28,27 +66,20 @@ function textoDoPrazo(due: string | null, mes: string): string {
 interface ColunaProps {
   titulo: string;
   mes: string;
-  explicacao: string;
+  /** Data de hoje em "YYYY-MM-DD", calculada no servidor. */
+  hoje: string;
   grupos: GrupoFolha[];
-  /** Quanto ainda está em aberto deste lado. */
-  emAberto: number;
-  rotuloAberto: string;
   verTudo: string;
   vazio: string;
 }
 
 /** Um lado da folha: tudo que entrou, ou tudo que saiu. */
-function Coluna({
-  titulo,
-  mes,
-  explicacao,
-  grupos,
-  emAberto,
-  rotuloAberto,
-  verTudo,
-  vazio,
-}: ColunaProps) {
+function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
   const total = totalDaFolha(grupos);
+  const partes = partirPorSituacao(
+    grupos,
+    (l) => situacaoDoLancamento(l, hoje) === "Vencido",
+  );
 
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -59,12 +90,28 @@ function Coluna({
             {formatarMoeda(total)}
           </span>
         </div>
-        <p className="mt-0.5 text-[13px] text-gray-500">{explicacao}</p>
-        {emAberto > 0 ? (
-          <p className="mt-1 text-[13px] font-semibold text-alerta">
-            {formatarMoeda(emAberto)} {rotuloAberto}
-          </p>
-        ) : null}
+        <BarraDaSituacao partes={partes} />
+
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+          {partes.pago > 0 ? (
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-green-700" />
+              {formatarMoeda(partes.pago)} pago
+            </span>
+          ) : null}
+          {partes.aVencer > 0 ? (
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-amber-600" />
+              {formatarMoeda(partes.aVencer)} a vencer
+            </span>
+          ) : null}
+          {partes.vencido > 0 ? (
+            <span className="flex items-center gap-1.5 font-semibold text-alerta">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-red-700" />
+              {formatarMoeda(partes.vencido)} vencido
+            </span>
+          ) : null}
+        </div>
       </header>
 
       {grupos.length === 0 ? (
@@ -113,13 +160,20 @@ function Coluna({
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
                       {formatarMoeda(x.amount)}
                     </span>
-                    <span
-                      className={
-                        "w-24 shrink-0 text-right text-xs font-medium " +
-                        (x.pago ? "text-gray-400" : "text-alerta")
-                      }
-                    >
-                      {x.pago ? "pago" : textoDoPrazo(x.due_date, mes)}
+                    <span className="shrink-0">
+                      {/* Vencido fala em quanto tempo passou, que é o
+                          que faz agir; o que ainda vai vencer fala em
+                          dia, que é mais curto e não quebra a linha. */}
+                      <Situacao
+                        estado={situacaoDoLancamento(x, hoje)}
+                        texto={
+                          situacaoDoLancamento(x, hoje) === "Vencido"
+                            ? textoDoPrazo(x, hoje)
+                            : x.pago
+                              ? "pago"
+                              : textoDoPrazoNoMes(x.due_date, mes)
+                        }
+                      />
                     </span>
                   </li>
                 ))}
@@ -144,8 +198,8 @@ function Coluna({
 interface FolhaDoMesProps {
   lancamentos: LancamentoFolha[];
   mes: string;
-  aReceber: number;
-  aPagar: number;
+  /** Data de hoje em "YYYY-MM-DD", calculada no servidor. */
+  hoje: string;
 }
 
 /**
@@ -158,12 +212,7 @@ interface FolhaDoMesProps {
  * pergunta "no que foi que o dinheiro saiu este mês" não tinha resposta
  * nesta tela.
  */
-export function FolhaDoMes({
-  lancamentos,
-  mes,
-  aReceber,
-  aPagar,
-}: FolhaDoMesProps) {
+export function FolhaDoMes({ lancamentos, mes, hoje }: FolhaDoMesProps) {
   const lado = (kind: FinancialKind) => montarFolha(lancamentos, kind);
 
   return (
@@ -171,20 +220,16 @@ export function FolhaDoMes({
       <Coluna
         titulo="Entrou"
         mes={mes}
-        explicacao="Tudo que o mês tem a receber, pago ou não."
+        hoje={hoje}
         grupos={lado("Receita")}
-        emAberto={aReceber}
-        rotuloAberto="ainda a receber"
         vazio="Nenhuma receita lançada neste mês."
         verTudo={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Receita`}
       />
       <Coluna
         titulo="Saiu"
         mes={mes}
-        explicacao="Tudo que o mês tem a pagar, pago ou não."
+        hoje={hoje}
         grupos={lado("Despesa")}
-        emAberto={aPagar}
-        rotuloAberto="ainda a pagar"
         vazio="Nenhuma despesa lançada neste mês."
         verTudo={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Despesa`}
       />

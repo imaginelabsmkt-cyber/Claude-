@@ -10,8 +10,11 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { RecurrenceForm } from "@/components/financeiro/recurrence-form";
 import {
   definirAtivaRecorrenciaAction,
+  definirStatusLancamentoAction,
   excluirRecorrenciaAction,
 } from "@/lib/actions/financeiro";
+import { Situacao, type Estado } from "@/components/financeiro/situacao";
+import { situacaoDoLancamento, textoDoPrazo } from "@/lib/financeiro/vencimento";
 import {
   montarPlanoFixo,
   type GrupoFixo,
@@ -43,11 +46,22 @@ const BARRA = {
   Receita: "bg-green-700",
 } as const;
 
+/** O lançamento que uma recorrência já gerou no mês em foco. */
+export interface LancamentoDoMes {
+  id: string;
+  status: string;
+  due_date: string | null;
+}
+
 interface RecurrencesPanelProps {
   mes: string;
+  /** Data de hoje em "YYYY-MM-DD", calculada no servidor. */
+  hoje: string;
   recorrencias: FinancialRecurrenceWithRelations[];
   categorias: FinancialCategory[];
   clientes: Pick<Client, "id" | "name" | "active">[];
+  /** Por id de recorrência, o lançamento dela neste mês. */
+  lancamentoDaRecorrencia: Record<string, LancamentoDoMes>;
 }
 
 /**
@@ -68,9 +82,11 @@ interface RecurrencesPanelProps {
  */
 export function RecurrencesPanel({
   mes,
+  hoje,
   recorrencias,
   categorias,
   clientes,
+  lancamentoDaRecorrencia,
 }: RecurrencesPanelProps) {
   const router = useRouter();
   const [criando, setCriando] = useState(false);
@@ -105,6 +121,20 @@ export function RecurrencesPanel({
         return;
       }
       toast.sucesso(r.active ? "Recorrência pausada." : "Recorrência reativada.");
+      router.refresh();
+    });
+  }
+
+  /** Baixa (ou reabre) o lançamento do mês de uma linha do plano. */
+  function alternarBaixa(l: LancamentoDoMes) {
+    iniciar(async () => {
+      const novo = l.status === "Pago" ? "Pendente" : "Pago";
+      const r = await definirStatusLancamentoAction(l.id, novo);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível atualizar.");
+        return;
+      }
+      toast.sucesso(novo === "Pago" ? "Baixado." : "Reaberto.");
       router.refresh();
     });
   }
@@ -164,6 +194,16 @@ export function RecurrencesPanel({
       : semRepetirOGrupo(item.description, categoria);
     const cliente = clienteSeFizerFalta(nome, item.cliente);
 
+    const doMes = lancamentoDaRecorrencia[item.id];
+    const estado: Estado = doMes
+      ? situacaoDoLancamento(doMes, hoje)
+      : "Não lançado";
+    const rotuloEstado = doMes
+      ? estado === "Pago"
+        ? "pago"
+        : textoDoPrazo(doMes, hoje)
+      : "não lançado";
+
     const acao =
       "rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900";
 
@@ -183,13 +223,31 @@ export function RecurrencesPanel({
             {formatarMoeda(item.amount)}
           </span>
 
+          {item.vigente ? (
+            <Situacao estado={estado} texto={rotuloEstado} />
+          ) : null}
+
           <span className="w-10 shrink-0 text-right text-xs tabular-nums text-gray-500">
             {comparar && item.vigente && item.fatia > 0
               ? `${Math.round(item.fatia * 100)}%`
               : ""}
           </span>
 
-          <span className="flex shrink-0 gap-0.5">
+          <span className="flex shrink-0 items-center gap-0.5">
+            {doMes ? (
+              <button
+                type="button"
+                onClick={() => alternarBaixa(doMes)}
+                disabled={processando}
+                className={
+                  doMes.status === "Pago"
+                    ? acao
+                    : "rounded border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                }
+              >
+                {doMes.status === "Pago" ? "Reabrir" : "Dar baixa"}
+              </button>
+            ) : null}
             <button type="button" className={acao} onClick={() => setEditando(item.id)}>
               Editar
             </button>

@@ -90,7 +90,6 @@ function Tela() {
     <>
       <Secao
         titulo="O mês de Novembro/2026"
-        explicacao="Começa com o que tinha em caixa no primeiro dia. É a mesma leitura da aba do mês na planilha."
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
           <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
@@ -135,14 +134,8 @@ function Tela() {
 
       <Secao
         titulo="No que entrou e no que saiu"
-        explicacao="Cada lançamento do mês, dentro da categoria dele. Vermelho é o que ainda não foi baixado."
       >
-        <FolhaDoMes
-          mes="2026-11"
-          lancamentos={MES}
-          aReceber={A_RECEBER}
-          aPagar={A_PAGAR}
-        />
+        <FolhaDoMes mes="2026-11" hoje="2026-11-09" lancamentos={MES} />
       </Secao>
     </>
   );

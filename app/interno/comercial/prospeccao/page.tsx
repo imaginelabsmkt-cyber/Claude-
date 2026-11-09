@@ -13,6 +13,8 @@ import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Prospecção" };
+
 /**
  * Prospecção: de onde vêm os clientes.
  *
@@ -79,7 +81,6 @@ export default async function ProspeccaoPage() {
 
           <Secao
             titulo="O caminho até o sim"
-            explicacao="Quantas oportunidades chegaram em cada etapa, desde o topo. A barra é a fatia do total que chegou até ali."
           >
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <ul className="space-y-3">
@@ -116,22 +117,11 @@ export default async function ProspeccaoPage() {
                 );
               })}
             </ul>
-            {custoEmContatos ? (
-              <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
-                Na sua taxa de hoje, cada cliente novo custa cerca de{" "}
-                <strong className="font-semibold text-gray-900">
-                  {custoEmContatos} contatos
-                </strong>
-                . Para fechar mais um este mês, é esse o número de pessoas que
-                precisa entrar no topo.
-              </p>
-            ) : null}
           </div>
           </Secao>
 
           <Secao
             titulo="Qual canal vira cliente"
-            explicacao="A barra mede a mensalidade conquistada, não a quantidade de contatos: um canal que traz 40 conversas e fecha zero vale menos que um que traz 4 e fecha 2."
           >
           {comMovimento.length === 0 ? (
             <p className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">

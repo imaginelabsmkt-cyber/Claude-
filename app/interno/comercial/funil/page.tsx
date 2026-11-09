@@ -13,6 +13,8 @@ import { LEAD_STAGES_ABERTAS } from "@/types";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Funil" };
+
 /**
  * O quadro do funil: arraste entre as etapas, e entre na ficha para
  * ganhar ou perder (que pedem mais dados).
@@ -97,7 +99,6 @@ export default async function FunilPage() {
         <div className="mt-7">
         <Secao
           titulo="As últimas que acabaram"
-          explicacao="Ganhas e perdidas, com o motivo. É o que impede de repetir o mesmo erro no mês seguinte."
         >
           <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
             {encerrados.map((l) => (

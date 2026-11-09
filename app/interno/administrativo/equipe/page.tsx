@@ -11,6 +11,8 @@ import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Equipe" };
+
 interface PageProps {
   searchParams: { mes?: string };
 }
@@ -77,15 +79,9 @@ export default async function PessoasPage({ searchParams }: PageProps) {
 
       <Secao
         titulo="Quem é da casa"
-        explicacao="Sócias, freelas e assistentes. Desativar preserva o histórico; ninguém é excluído."
       >
         <PessoasPanel pessoas={pessoas} />
       </Secao>
-
-      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
-        O cadastro é daqui, mas o dinheiro é do financeiro: cada pagamento
-        acima é um lançamento nas categorias de pró-labore e freelancers.
-      </p>
     </>
   );
 }
