@@ -65,6 +65,8 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 | Design mais quente, menos seco | ✓ `tailwind.config.ts`: cinzas, branco e as cores de estado redefinidas para o quente. |
 | Só eu e a Vitória temos acesso | ✓ RLS em todas as tabelas, `usuario_aprovado()`. |
 
+| "É o faturamento bruto, não faz sentido já tirar tudo" | ✓ O mês agora soma TUDO que está lançado, como a planilha: o TOTAL RECEITAS de outubro lá é R$ 14.150,00 e inclui a Malukies de R$ 2.600,00 marcada "Pendente". O status virou marcação (já caiu / ainda não), não a base do cálculo. Conferido contra o Resumo Anual: os sete meses e o Saldo Acumulado batem na vírgula. |
+
 ## O que os outros sistemas fazem (pesquisa, nov/2026)
 
 A Fran pediu isso mais de uma vez: "por isso que eu pedi para você

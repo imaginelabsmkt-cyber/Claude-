@@ -164,16 +164,6 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
               {formatarMoeda(ultimo.saldoFinal)}
             </strong>
             .
-            {ultimo.saldoFinalPrevisto !== ultimo.saldoFinal ? (
-              <>
-                {" "}
-                Com tudo que ainda está em aberto, fecharia em{" "}
-                <strong className="font-semibold text-gray-900">
-                  {formatarMoeda(ultimo.saldoFinalPrevisto)}
-                </strong>
-                .
-              </>
-            ) : null}
           </p>
         ) : null}
       </Secao>

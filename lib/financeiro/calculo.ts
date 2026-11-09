@@ -33,7 +33,14 @@ export interface ResumoMes {
   /** Caixa no início do mês (= saldo final do mês anterior). */
   saldoInicial: number;
 
-  // --- Realizado (somente "Pago") ---
+  // --- O mês, como a planilha soma: TUDO que foi lançado ---
+  //
+  // A Fran: "é o faturamento bruto, não faz sentido já tirar tudo".
+  // Na planilha dela o TOTAL RECEITAS de outubro é R$ 14.150,00, e
+  // dentro dele está a Malukies de R$ 2.600,00 marcada "Pendente". O
+  // Saldo Acumulado também a inclui. Lá o status é uma MARCAÇÃO (já
+  // caiu ou não), não a base do cálculo — e era isso que fazia o
+  // sistema mostrar um ano menor do que o dela.
   receitas: number;
   despesas: number;
   resultado: number;
@@ -41,11 +48,15 @@ export interface ResumoMes {
   /** resultado / receitas (0 quando não há receita). */
   margem: number;
 
-  // --- Pendências ---
+  // --- A marcação: o que já caiu de verdade, e o que falta ---
+  /** Receita com baixa dada. */
+  recebido: number;
+  /** Despesa com baixa dada. */
+  pago: number;
   aReceber: number;
   aPagar: number;
 
-  // --- Previsto (realizado + pendente) ---
+  // --- Apelidos, mantidos para quem já lia por estes nomes ---
   receitasPrevistas: number;
   despesasPrevistas: number;
   resultadoPrevisto: number;
@@ -87,17 +98,19 @@ export function resumirMes(
 ): ResumoMes {
   const doMes = lancamentos.filter((l) => l.reference_month === mes);
 
-  const receitas = totalizar(doMes, "Receita", true);
-  const despesas = totalizar(doMes, "Despesa", true);
+  const recebido = totalizar(doMes, "Receita", true);
+  const pago = totalizar(doMes, "Despesa", true);
   const aReceber = totalizar(doMes, "Receita", false);
   const aPagar = totalizar(doMes, "Despesa", false);
 
+  // O mês é o que foi LANÇADO, como na planilha. O que já caiu fica
+  // em `recebido`/`pago`, para quem quiser a leitura de caixa.
+  const receitas = arredondar(recebido + aReceber);
+  const despesas = arredondar(pago + aPagar);
+
   const resultado = arredondar(receitas - despesas);
   const saldoFinal = arredondar(saldoInicial + resultado);
-
-  const receitasPrevistas = arredondar(receitas + aReceber);
-  const despesasPrevistas = arredondar(despesas + aPagar);
-  const resultadoPrevisto = arredondar(receitasPrevistas - despesasPrevistas);
+  const margem = dividirSeguro(resultado, receitas);
 
   return {
     mes,
@@ -106,14 +119,16 @@ export function resumirMes(
     despesas,
     resultado,
     saldoFinal,
-    margem: dividirSeguro(resultado, receitas),
+    margem,
+    recebido,
+    pago,
     aReceber,
     aPagar,
-    receitasPrevistas,
-    despesasPrevistas,
-    resultadoPrevisto,
-    saldoFinalPrevisto: arredondar(saldoInicial + resultadoPrevisto),
-    margemPrevista: dividirSeguro(resultadoPrevisto, receitasPrevistas),
+    receitasPrevistas: receitas,
+    despesasPrevistas: despesas,
+    resultadoPrevisto: resultado,
+    saldoFinalPrevisto: saldoFinal,
+    margemPrevista: margem,
     quantidade: doMes.length,
   };
 }

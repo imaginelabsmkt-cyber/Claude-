@@ -107,7 +107,7 @@ describe("arredondamento", () => {
 });
 
 describe("resumirMes", () => {
-  it("separa realizado de pendente e calcula o saldo final", () => {
+  it("soma TUDO que foi lançado, e marca à parte o que já caiu", () => {
     const lancamentos = [
       lancamento({ id: "1", amount: 2000, status: "Pago" }),
       lancamento({ id: "2", amount: 1550, status: "Pendente" }),
@@ -129,16 +129,18 @@ describe("resumirMes", () => {
 
     const r = resumirMes("2026-04", lancamentos, 1000);
 
-    expect(r.receitas).toBe(2000);
-    expect(r.despesas).toBe(6500);
+    // Como na planilha: o TOTAL do mês é tudo que está lançado.
+    expect(r.receitas).toBe(3550);
+    expect(r.despesas).toBe(7000);
+    expect(r.resultado).toBe(-3450);
+    expect(r.saldoFinal).toBe(-2450);
+
+    // O status é marcação: diz o que já caiu e o que falta.
+    expect(r.recebido).toBe(2000);
+    expect(r.pago).toBe(6500);
     expect(r.aReceber).toBe(1550);
     expect(r.aPagar).toBe(500);
-    expect(r.resultado).toBe(-4500);
-    expect(r.saldoFinal).toBe(-3500);
-    expect(r.receitasPrevistas).toBe(3550);
-    expect(r.despesasPrevistas).toBe(7000);
-    expect(r.resultadoPrevisto).toBe(-3450);
-    expect(r.saldoFinalPrevisto).toBe(-2450);
+
     expect(r.quantidade).toBe(4);
   });
 
@@ -202,7 +204,7 @@ describe("encadearMeses", () => {
     expect(serie[2].resultado).toBe(0);
   });
 
-  it("pendências não movimentam o saldo acumulado", () => {
+  it("pendência entra no saldo acumulado, como na planilha", () => {
     const serie = encadearMeses(
       ["2026-04", "2026-05"],
       [
@@ -211,10 +213,15 @@ describe("encadearMeses", () => {
       ],
       0,
     );
-    expect(serie[0].saldoFinal).toBe(0);
+    // A planilha da Fran soma o mês inteiro e encadeia por ele: a
+    // Malukies de outubro está "Pendente" e mesmo assim entra no
+    // TOTAL RECEITAS e no Saldo Acumulado. O status fica em
+    // `aReceber`, dizendo o que ainda não caiu.
+    expect(serie[0].saldoFinal).toBe(1000);
+    expect(serie[0].recebido).toBe(0);
     expect(serie[0].aReceber).toBe(1000);
-    expect(serie[1].saldoInicial).toBe(0);
-    expect(serie[1].saldoFinal).toBe(2000);
+    expect(serie[1].saldoInicial).toBe(1000);
+    expect(serie[1].saldoFinal).toBe(3000);
   });
 });
 

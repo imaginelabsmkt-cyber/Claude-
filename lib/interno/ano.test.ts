@@ -16,8 +16,8 @@ function mes(
     mes,
     receitas: 0,
     despesas: 0,
-    receitasPrevistas: 0,
-    despesasPrevistas: 0,
+    recebido: 0,
+    pago: 0,
     saldoFinal: 0,
     ...valores,
   };
@@ -26,7 +26,7 @@ function mes(
 describe("faturamentoAnual", () => {
   it("devolve doze meses mesmo quando a série começa no meio do ano", () => {
     const ano = faturamentoAnual(2026, [
-      mes("2026-04", { receitas: 1000, receitasPrevistas: 1000 }),
+      mes("2026-04", { receitas: 1000, recebido: 1000 }),
     ]);
 
     expect(ano.barras).toHaveLength(12);
@@ -36,14 +36,14 @@ describe("faturamentoAnual", () => {
     expect(ano.barras[3].comMovimento).toBe(true);
   });
 
-  it("soma o faturamento do ano e separa o que ainda falta receber", () => {
+  it("fatura o bruto do ano e separa o que ainda não caiu", () => {
+    // Janeiro faturou 12.000 e só 10.000 caíram na conta.
     const ano = faturamentoAnual(2026, [
-      mes("2026-01", { receitas: 10_000, receitasPrevistas: 12_000 }),
-      mes("2026-02", { receitas: 8_000, receitasPrevistas: 8_000 }),
+      mes("2026-01", { receitas: 12_000, recebido: 10_000 }),
+      mes("2026-02", { receitas: 8_000, recebido: 8_000 }),
     ]);
 
-    expect(ano.recebido).toBe(18_000);
-    expect(ano.previsto).toBe(20_000);
+    expect(ano.recebido).toBe(20_000);
     expect(ano.aReceber).toBe(2_000);
   });
 

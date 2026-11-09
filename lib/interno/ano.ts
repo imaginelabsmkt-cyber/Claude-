@@ -8,14 +8,14 @@ import { mesesDoAno } from "@/lib/financeiro/meses";
  */
 export interface MesFaturamento {
   mes: string;
-  /** Receita que JÁ entrou (lançamento baixado). */
+  /** Tudo que foi faturado no mês, caído ou não — como na planilha. */
   receitas: number;
-  /** Despesa que JÁ saiu. */
+  /** Tudo que foi lançado como despesa no mês. */
   despesas: number;
-  /** Receita entrada + ainda a receber. */
-  receitasPrevistas: number;
-  /** Despesa saída + ainda a pagar. */
-  despesasPrevistas: number;
+  /** Do faturado, o que já caiu na conta. */
+  recebido?: number;
+  /** Das despesas, o que já saiu. */
+  pago?: number;
   /** Caixa no fim do mês, já encadeado com os meses anteriores. */
   saldoFinal: number;
 }
@@ -94,8 +94,8 @@ export function faturamentoAnual(
       mes,
       receitas: m?.receitas ?? 0,
       despesas: m?.despesas ?? 0,
-      receitasPrevistas: m?.receitasPrevistas ?? 0,
-      despesasPrevistas: m?.despesasPrevistas ?? 0,
+      recebido: m?.recebido ?? m?.receitas ?? 0,
+      pago: m?.pago ?? m?.despesas ?? 0,
     };
   });
 
@@ -107,8 +107,11 @@ export function faturamentoAnual(
   const soma = (f: (m: (typeof meses)[number]) => number) =>
     meses.reduce((t, m) => t + f(m), 0);
 
+  // "É o faturamento bruto, não faz sentido já tirar tudo." O número
+  // grande do painel é o FATURADO do ano, como o TOTAL RECEITAS da
+  // planilha. O que já caiu na conta vem à parte.
   const recebido = soma((m) => m.receitas);
-  const previsto = soma((m) => m.receitasPrevistas);
+  const caiuNaConta = soma((m) => m.recebido ?? m.receitas);
   const pago = soma((m) => m.despesas);
 
   const faturados = meses.filter((m) => m.receitas > 0);
@@ -123,8 +126,8 @@ export function faturamentoAnual(
   return {
     ano,
     recebido,
-    aReceber: previsto - recebido,
-    previsto,
+    aReceber: Math.round((recebido - caiuNaConta) * 100) / 100,
+    previsto: recebido,
     pago,
     resultado: recebido - pago,
     mesesFaturados: faturados.length,

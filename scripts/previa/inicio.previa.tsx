@@ -31,22 +31,23 @@ import { formatarMoeda } from "@/lib/utils";
 const MES = "2026-11";
 
 /**
- * A planilha, linha por linha. Receitas e despesas são o TOTAL de cada
- * aba mensal; o saldo é o "Saldo Final do Mês" da própria planilha.
+ * A planilha, linha por linha. `receitas` e `despesas` são o TOTAL de
+ * cada aba mensal — tudo que foi lançado, caído ou não, que é como a
+ * planilha soma. `recebido` e `pago` são a marcação: o que já caiu.
  *
- * Novembro ainda está em aberto: caíram três mensalidades (Laura,
- * Izabela e Natural Concept) e nenhuma despesa foi paga. O previsto é
- * o mês cheio.
+ * Em outubro a Malukies (R$ 2.600,00) está "Pendente": entra no total
+ * e fica de fora do recebido. Novembro tem três mensalidades caídas
+ * (Laura, Izabela, Natural Concept) e nenhuma despesa paga.
  */
 const REAIS: MesFaturamento[] = [
-  { mes: "2026-04", receitas: 15271, despesas: 11548.03, receitasPrevistas: 15271, despesasPrevistas: 11548.03, saldoFinal: 3722.97 },
-  { mes: "2026-05", receitas: 20958, despesas: 16224.11, receitasPrevistas: 20958, despesasPrevistas: 16224.11, saldoFinal: 8456.86 },
-  { mes: "2026-06", receitas: 20418, despesas: 14767.16, receitasPrevistas: 20418, despesasPrevistas: 14767.16, saldoFinal: 14107.7 },
-  { mes: "2026-07", receitas: 18747, despesas: 15567.02, receitasPrevistas: 18747, despesasPrevistas: 15567.02, saldoFinal: 17287.68 },
-  { mes: "2026-08", receitas: 15500, despesas: 15900.22, receitasPrevistas: 15500, despesasPrevistas: 15900.22, saldoFinal: 16887.46 },
-  { mes: "2026-09", receitas: 15650, despesas: 17813.92, receitasPrevistas: 15650, despesasPrevistas: 17813.92, saldoFinal: 14723.54 },
-  { mes: "2026-10", receitas: 14150, despesas: 16950.16, receitasPrevistas: 14150, despesasPrevistas: 16950.16, saldoFinal: 11923.38 },
-  { mes: "2026-11", receitas: 5050, despesas: 0, receitasPrevistas: 14450, despesasPrevistas: 13956.75, saldoFinal: 16973.38 },
+  { mes: "2026-04", receitas: 15271, despesas: 11548.03, recebido: 15271, pago: 11548.03, saldoFinal: 3722.97 },
+  { mes: "2026-05", receitas: 20958, despesas: 16224.11, recebido: 20958, pago: 16224.11, saldoFinal: 8456.86 },
+  { mes: "2026-06", receitas: 20418, despesas: 14767.16, recebido: 20418, pago: 14767.16, saldoFinal: 14107.7 },
+  { mes: "2026-07", receitas: 18747, despesas: 15567.02, recebido: 18747, pago: 15567.02, saldoFinal: 17287.68 },
+  { mes: "2026-08", receitas: 15500, despesas: 15900.22, recebido: 15500, pago: 15900.22, saldoFinal: 16887.46 },
+  { mes: "2026-09", receitas: 15650, despesas: 17813.92, recebido: 15650, pago: 17813.92, saldoFinal: 14723.54 },
+  { mes: "2026-10", receitas: 14150, despesas: 16950.16, recebido: 11550, pago: 16950.16, saldoFinal: 11923.38 },
+  { mes: "2026-11", receitas: 14450, despesas: 13956.75, recebido: 5050, pago: 0, saldoFinal: 12416.63 },
 ];
 
 /** Exemplo: a meta de verdade é a Fran que define nas Configurações. */
@@ -106,7 +107,7 @@ function Tela() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Indicador
             rotulo="Em caixa"
-            valor={formatarMoeda(16973.38)}
+            valor={formatarMoeda(12416.63)}
             detalhe="cobre até Maio/2027"
           />
           <Indicador

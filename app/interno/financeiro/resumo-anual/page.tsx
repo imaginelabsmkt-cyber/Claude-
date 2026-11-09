@@ -279,11 +279,6 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
         </div>
       </Card>
 
-      <p className="mt-3 text-xs text-gray-500">
-        Os valores exibidos são os <strong>realizados</strong> (lançamentos
-        marcados como pagos). Pendências aparecem no painel do mês, em
-        &quot;a receber&quot; e &quot;a pagar&quot;.
-      </p>
     </>
   );
 }

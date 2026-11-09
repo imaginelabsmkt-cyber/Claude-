@@ -110,15 +110,14 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
 
           {emAberto > 0 || variacao ? (
             <p className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
+              {/* O mês já está somado por inteiro, como na planilha.
+                  O que falta aqui é a BAIXA: quanto ainda não caiu
+                  nem saiu da conta. */}
               {emAberto > 0 ? (
                 <>
-                  Ainda falta movimentar{" "}
+                  Ainda não caiu nem saiu da conta{" "}
                   <strong className="font-semibold text-gray-900">
                     {formatarMoeda(emAberto)}
-                  </strong>
-                  . Se tudo se confirmar, fecha em{" "}
-                  <strong className="font-semibold text-gray-900">
-                    {formatarMoeda(resumo.saldoFinalPrevisto)}
                   </strong>
                   .{" "}
                 </>
