@@ -4,7 +4,16 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 /**
- * Abas do financeiro. TRÊS: o MÊS, o que se REPETE e o ANO.
+ * Abas do financeiro. TRÊS: o MÊS, o que se REPETE e os RELATÓRIOS.
+ *
+ * Não inventei a forma: fui ver como os outros fazem, que é o que a
+ * Fran vinha pedindo. Conta Azul, Nibo, Granatum, QuickBooks e Xero
+ * divergem em quase tudo e concordam em três lugares — um PAINEL de
+ * abertura, uma tela de MOVIMENTO e uma estante de RELATÓRIOS. E o
+ * QuickBooks tem duas versões do mesmo menu: a "Accountant view",
+ * com Sales e Expenses separados, e a "Business view", para quem não
+ * é contador, que junta os dois numa aba só. A planilha da Fran é a
+ * Business view: receitas e despesas na MESMA aba do mês.
  *
  * Eram oito, e a Fran disse que o financeiro estava confuso. Pela régua
  * que ela mesma deu ("faz sentido se cada coisa tiver sua função"),
@@ -27,21 +36,19 @@ import { usePathname, useSearchParams } from "next/navigation";
  * inteiro — que na planilha dela é a aba Resumo Anual — ficava
  * escondido atrás de uma palavra que não é o nome dele.
  *
- * Agora a barra tem as duas vistas da planilha dela, com o nome que
- * ela usa: o MÊS e o ANO. O caixa mês a mês e o "por cliente"
- * continuam existindo, como link dentro do Ano, e acendem a aba Ano
- * quando abertos.
+ * Ninguém tem uma aba chamada "Ano"; todo mundo tem "Relatórios", e
+ * o resumo do ano é o primeiro item dentro dela. Aqui é igual: o ano,
+ * o caixa mês a mês, o por cliente, os impostos e o fechamento para
+ * imprimir moram lá dentro, cada um com a pergunta que responde.
  *
- * "Por cliente" também desceu. Ela abriu o sistema e disse: "comecei
- * criando um negócio muito complexo, sendo que sempre falei que eu
- * queria algo intuitivo e básico". Três abas é o que a planilha dela
- * tem: a aba do mês, os fixos e o Resumo Anual. Nada foi apagado —
- * o que saiu do topo virou link de onde pertence.
+ * Cinco dessas telas não estavam em lugar nenhum antes: existiam, mas
+ * só se chegava por um link no pé de outra tela. Nada foi apagado —
+ * pelo contrário, agora dá para achar.
  */
 const ABAS = [
   { href: "/interno/financeiro", label: "Mês" },
   { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
-  { href: "/interno/financeiro/resumo-anual", label: "Ano" },
+  { href: "/interno/financeiro/relatorios", label: "Relatórios" },
 ];
 
 const CONFIGURACAO = "/interno/financeiro/categorias";
@@ -52,11 +59,12 @@ const CONFIGURACAO = "/interno/financeiro/categorias";
  * como se ela tivesse saído do financeiro.
  */
 const PERTENCE_A: Record<string, string> = {
-  "/interno/relatorio": "/interno/financeiro",
-  "/interno/financeiro/impostos": "/interno/financeiro",
   "/interno/financeiro/lancamentos": "/interno/financeiro",
-  "/interno/financeiro/fluxo-caixa": "/interno/financeiro/resumo-anual",
-  "/interno/financeiro/rentabilidade": "/interno/financeiro/resumo-anual",
+  "/interno/relatorio": "/interno/financeiro/relatorios",
+  "/interno/financeiro/impostos": "/interno/financeiro/relatorios",
+  "/interno/financeiro/resumo-anual": "/interno/financeiro/relatorios",
+  "/interno/financeiro/fluxo-caixa": "/interno/financeiro/relatorios",
+  "/interno/financeiro/rentabilidade": "/interno/financeiro/relatorios",
 };
 
 /**

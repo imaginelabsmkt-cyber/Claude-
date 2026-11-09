@@ -65,11 +65,45 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 | Design mais quente, menos seco | ✓ `tailwind.config.ts`: cinzas, branco e as cores de estado redefinidas para o quente. |
 | Só eu e a Vitória temos acesso | ✓ RLS em todas as tabelas, `usuario_aprovado()`. |
 
+## O que os outros sistemas fazem (pesquisa, nov/2026)
+
+A Fran pediu isso mais de uma vez: "por isso que eu pedi para você
+buscar outros sistemas, por isso que eu te mostrei outros sistemas de
+como funcionam". Fui ver — Conta Azul, Nibo, Granatum, QuickBooks
+Online e Xero.
+
+Eles divergem em quase tudo e **concordam em três lugares**:
+
+1. **Um painel de abertura** com saldo em caixa, o que está atrasado a
+   receber, o que vence a pagar e o fluxo de caixa num gráfico. O Xero
+   recomenda abrir essa tela toda semana só para ver se tem surpresa.
+2. **Uma tela de movimento**: o dinheiro entrando e saindo. O
+   QuickBooks tem DUAS versões do mesmo menu — a *Accountant view*,
+   com "Sales" e "Expenses" separados, e a *Business view*, para quem
+   não é contador, que junta os dois numa aba só. A planilha da Fran é
+   a Business view: receitas e despesas na mesma aba do mês.
+3. **Uma estante de relatórios.** Ninguém tem aba chamada "Ano"; todo
+   mundo tem "Relatórios", e o resumo do ano é o primeiro item lá
+   dentro. O QuickBooks de 2026 foi ainda mais longe e deixou a barra
+   com quase nada: Dashboard, Feed, Reports.
+
+O que mudou aqui por causa disso: o financeiro ficou com **Mês ·
+Fixos e ferramentas · Relatórios**, e as cinco telas que não estavam
+em lugar nenhum (resumo do ano, caixa mês a mês, por cliente,
+impostos, fechamento para imprimir) ganharam endereço dentro de
+Relatórios, cada uma com a pergunta que responde.
+
+Fontes: [Conta Azul — gestão financeira](https://contaazul.com/funcionalidades/gestao-financeira/),
+[Nibo](https://www.idinheiro.com.br/negocios/nibo/),
+[Granatum](https://www.b2bstack.com.br/product/granatum),
+[QuickBooks Online — navigation menu](https://quickbooks.intuit.com/learn-support/en-uk/help-article/invoicing/understand-navigation-menu-quickbooks-online/L8cX8o5Ep_GB_en_GB),
+[Xero — key areas](https://help.1stformations.co.uk/accounting-service/navigating-xero-the-key-areas-to-know).
+
 ## Ainda não feito
 
 | Pedido | Situação |
 |---|---|
 | "O administrativo tá super seco, desinteressante" | ✗ |
-| Mensal e anual não se conectam: "se eu quiser ver o anual eu não consigo" | ✓ A aba "Caixa" virou "Ano" e leva ao resumo anual. O caixa mês a mês e o "por cliente" são links de dentro dele. |
+| Mensal e anual não se conectam: "se eu quiser ver o anual eu não consigo" | ✓ A terceira aba virou **Relatórios**, e o resumo do ano é o primeiro item dentro dela — como em todos os sistemas que pesquisei. |
 | Propostas comerciais com revisão | ✗ |
 | Relatórios de DRE, inadimplência, receita recorrente | ✗ |
