@@ -29,6 +29,7 @@ const CONFIG_PADRAO: FinancialSettings = {
   id: true,
   opening_balance: 0,
   opening_month: "2026-04",
+  annual_revenue_goal: null,
   updated_at: new Date().toISOString(),
 };
 
@@ -41,7 +42,12 @@ export async function obterConfiguracaoFinanceira(): Promise<FinancialSettings> 
     .eq("id", true)
     .maybeSingle();
   if (!data) return CONFIG_PADRAO;
-  return { ...data, opening_balance: Number(data.opening_balance) };
+  return {
+    ...data,
+    opening_balance: Number(data.opening_balance),
+    annual_revenue_goal:
+      data.annual_revenue_goal == null ? null : Number(data.annual_revenue_goal),
+  };
 }
 
 /** Lista categorias (opcionalmente de um tipo), na ordem de exibição. */

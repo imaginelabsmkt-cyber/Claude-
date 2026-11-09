@@ -332,6 +332,8 @@ export type FinancialSettings = {
   id: true;
   opening_balance: number;
   opening_month: MonthString;
+  /** Meta de faturamento do ano, em reais. Null = nenhuma meta. */
+  annual_revenue_goal: number | null;
   updated_at: ISODateString;
 }
 
@@ -393,6 +395,7 @@ export type FinancialSettingsInsert = {
   id?: true;
   opening_balance?: number;
   opening_month?: MonthString;
+  annual_revenue_goal?: number | null;
 };
 
 export type FinancialSettingsUpdate = Partial<

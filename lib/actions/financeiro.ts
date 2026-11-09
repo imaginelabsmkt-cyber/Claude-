@@ -421,6 +421,10 @@ export async function salvarConfiguracaoFinanceiraAction(
     id: true,
     opening_balance: paraNumero(parsed.data.opening_balance) ?? 0,
     opening_month: parsed.data.opening_month,
+    annual_revenue_goal:
+      parsed.data.annual_revenue_goal === ""
+        ? null
+        : paraNumero(parsed.data.annual_revenue_goal),
   });
 
   if (error) return { ok: false, error: "Não foi possível salvar a configuração." };

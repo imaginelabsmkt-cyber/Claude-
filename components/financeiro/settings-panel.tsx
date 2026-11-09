@@ -35,6 +35,11 @@ export function SettingsPanel({ configuracao, categorias }: SettingsPanelProps) 
 
   const [saldo, setSaldo] = useState(paraCampo(configuracao.opening_balance));
   const [mesInicial, setMesInicial] = useState(configuracao.opening_month);
+  const [meta, setMeta] = useState(
+    configuracao.annual_revenue_goal == null
+      ? ""
+      : paraCampo(configuracao.annual_revenue_goal),
+  );
   const [errosConfig, setErrosConfig] = useState<Record<string, string>>({});
   const [salvandoConfig, iniciarConfig] = useTransition();
 
@@ -52,6 +57,7 @@ export function SettingsPanel({ configuracao, categorias }: SettingsPanelProps) 
       const r = await salvarConfiguracaoFinanceiraAction({
         opening_balance: saldo,
         opening_month: mesInicial,
+        annual_revenue_goal: meta,
       });
       if (!r.ok) {
         setErrosConfig(r.fieldErrors ?? {});
@@ -130,7 +136,7 @@ export function SettingsPanel({ configuracao, categorias }: SettingsPanelProps) 
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Saldo inicial</CardTitle>
+          <CardTitle>Saldo inicial e meta do ano</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-4 text-sm text-gray-500">
@@ -139,7 +145,7 @@ export function SettingsPanel({ configuracao, categorias }: SettingsPanelProps) 
             seguinte, automaticamente.
           </p>
 
-          <form onSubmit={salvarConfiguracao} className="grid gap-4 sm:grid-cols-3" noValidate>
+          <form onSubmit={salvarConfiguracao} className="grid gap-4 sm:grid-cols-4" noValidate>
             <div>
               <Label htmlFor="opening_balance">Saldo em caixa (R$)</Label>
               <Input
@@ -171,6 +177,23 @@ export function SettingsPanel({ configuracao, categorias }: SettingsPanelProps) 
               ) : null}
             </div>
 
+            <div>
+              <Label htmlFor="annual_revenue_goal">Meta do ano (R$)</Label>
+              <Input
+                id="annual_revenue_goal"
+                inputMode="decimal"
+                value={meta}
+                onChange={(e) => setMeta(e.target.value)}
+                placeholder="sem meta"
+                aria-invalid={Boolean(errosConfig.annual_revenue_goal)}
+              />
+              {errosConfig.annual_revenue_goal ? (
+                <p className="mt-1 text-xs text-red-600">
+                  {errosConfig.annual_revenue_goal}
+                </p>
+              ) : null}
+            </div>
+
             <div className="flex items-end">
               <Button type="submit" disabled={salvandoConfig}>
                 {salvandoConfig ? "Salvando..." : "Salvar"}
@@ -181,6 +204,9 @@ export function SettingsPanel({ configuracao, categorias }: SettingsPanelProps) 
           <p className="mt-3 text-xs text-gray-500">
             Atual: {formatarMoeda(configuracao.opening_balance)} em{" "}
             {rotuloMes(configuracao.opening_month)}.
+            {configuracao.annual_revenue_goal != null
+              ? ` Meta de ${formatarMoeda(configuracao.annual_revenue_goal)} no ano.`
+              : " Sem meta de faturamento."}
           </p>
         </CardContent>
       </Card>

@@ -980,6 +980,8 @@ create table if not exists public.financial_settings (
   id              boolean primary key default true check (id),
   opening_balance numeric(14, 2) not null default 0,
   opening_month   text not null default '2026-04', -- "YYYY-MM"
+  -- Meta de faturamento do ano, em reais. Null = sem meta.
+  annual_revenue_goal numeric(14, 2),
   updated_at      timestamptz not null default now()
 );
 

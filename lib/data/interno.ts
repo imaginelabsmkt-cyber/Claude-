@@ -2,12 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import {
   listarCategorias,
   listarLancamentos,
+  obterConfiguracaoFinanceira,
   obterPainelMes,
   obterResumoAnual,
   type PainelMes,
 } from "@/lib/data/financeiro";
-import { anoDoMes } from "@/lib/financeiro/meses";
+import { anoDoMes, mesDeHoje } from "@/lib/financeiro/meses";
 import { faturamentoAnual, type FaturamentoAnual } from "@/lib/interno/ano";
+import { metaDoAno, type MetaDoAno } from "@/lib/interno/meta";
 import {
   areaDoAssunto,
   assuntoDaCategoria,
@@ -128,6 +130,8 @@ export interface PainelInterno {
   folego: Folego;
   /** O ano fechado: faturamento, resultado e as doze colunas do gráfico. */
   ano: FaturamentoAnual;
+  /** A meta de faturamento do ano, quando há uma configurada. */
+  meta: MetaDoAno | null;
   /** O que já venceu e continua em aberto, dos dois lados. */
   vencido: { aReceber: number; aPagar: number; quantos: number };
   /** O comercial em uma linha. */
@@ -151,6 +155,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     resumoAnual,
     contratosDeCliente,
     leadsAbertos,
+    configuracao,
     { data: recorrencias },
     { count: ativos },
   ] = await Promise.all([
@@ -160,6 +165,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       obterResumoAnual(anoDoMes(mes)),
       listarContratosDeCliente(),
       listarLeads(LEAD_STAGES_ABERTAS),
+      obterConfiguracaoFinanceira(),
       supabase
         .from("financial_recurrences")
         .select("id, description, client_id, kind, amount, start_month, end_month, active")
@@ -169,6 +175,8 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
         .select("id", { count: "exact", head: true })
         .eq("active", true),
     ]);
+
+  const anoFechado = faturamentoAnual(resumoAnual.ano, resumoAnual.serie);
 
   const vigentes = (recorrencias ?? []).filter(
     (r) => r.start_month <= mes && (!r.end_month || r.end_month >= mes),
@@ -247,7 +255,13 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       vigentes.filter((r) => r.kind === "Despesa").map((r) => Number(r.amount)),
     ),
     folego: calcularFolego(financeiro.resumo.saldoFinal, fechados, mes),
-    ano: faturamentoAnual(resumoAnual.ano, resumoAnual.serie),
+    ano: anoFechado,
+    meta: metaDoAno(
+      configuracao.annual_revenue_goal,
+      anoFechado.recebido,
+      anoFechado.ano,
+      mesDeHoje(),
+    ),
     vencido: {
       aReceber: somar(
         financeiro.aReceber

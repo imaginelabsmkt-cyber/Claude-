@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { GraficoAno } from "@/components/interno/grafico-ano";
 import { GraficoCaixa } from "@/components/interno/grafico-caixa";
+import { MetaDoAnoCartao } from "@/components/interno/meta-do-ano";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
 import { MonthNav } from "@/components/financeiro/month-nav";
@@ -85,7 +86,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
   const painel = await obterPainelInterno(mes);
-  const { financeiro, carteira, custoFixo, folego, ano, vencido } = painel;
+  const { financeiro, carteira, custoFixo, folego, ano, meta, vencido } = painel;
   const caixa = financeiro.resumo.saldoFinal;
   const sobra = carteira.recorrente - custoFixo;
 
@@ -162,6 +163,12 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
               ) : null}
             </dl>
           </div>
+
+          {meta ? (
+            <div className="mt-5 border-t border-gray-100 pt-4">
+              <MetaDoAnoCartao meta={meta} />
+            </div>
+          ) : null}
 
           <div className="mt-5 border-t border-gray-100 pt-4">
             <p className="mb-2 text-sm font-semibold text-gray-700">

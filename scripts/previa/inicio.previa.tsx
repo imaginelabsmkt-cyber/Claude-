@@ -14,6 +14,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
 import { GraficoAno } from "@/components/interno/grafico-ano";
 import { GraficoCaixa } from "@/components/interno/grafico-caixa";
+import { MetaDoAnoCartao } from "@/components/interno/meta-do-ano";
+import { metaDoAno } from "@/lib/interno/meta";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
 import { faturamentoAnual, type MesFaturamento } from "@/lib/interno/ano";
@@ -117,6 +119,12 @@ function Tela() {
                 </dd>
               </div>
             </dl>
+          </div>
+
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <MetaDoAnoCartao
+              meta={metaDoAno(180000, ano.recebido, ano.ano, "2026-11")!}
+            />
           </div>
 
           <div className="mt-5 border-t border-gray-100 pt-4">

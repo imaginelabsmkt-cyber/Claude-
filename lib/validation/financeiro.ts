@@ -118,6 +118,11 @@ export const configuracaoFinanceiraSchema = z.object({
     .trim()
     .refine((v) => paraNumero(v) !== null, "Valor inválido"),
   opening_month: MES,
+  // Vazio é uma resposta: quer dizer "sem meta".
+  annual_revenue_goal: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || paraNumero(v) !== null, "Valor inválido"),
 });
 
 export type ConfiguracaoFinanceiraValues = z.infer<
