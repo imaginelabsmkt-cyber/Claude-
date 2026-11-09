@@ -1453,6 +1453,51 @@ que identifica o sistema precisa ser a primeira palavra. Agora é
 "ADM · Lançamentos": com a aba estreita ela lê "ADM...", e com espaço
 lê também em que tela está.
 
+## 5.26 "A planilha tava mais simples que o sistema"
+
+É o diagnóstico mais certeiro que ela deu, e vale mais que qualquer
+tela bonita. Por que a planilha era mais simples?
+
+**Porque a aba do mês FAZ TUDO.** Ela abre, vê a lista e escreve "Pago"
+na linha, no mesmo lugar. Uma tela, um rolar.
+
+O sistema tinha espalhado isso: ver no Mês, agir em Lançamentos. Toda
+baixa custava trocar de tela, achar a linha de novo, voltar. Cada tela
+estava limpa; o caminho entre elas é que era o trabalho.
+
+### A baixa foi para a linha
+
+`components/financeiro/baixa-rapida.tsx` é um componente de cliente
+minúsculo: só o botão. A folha do mês inteira continua montada no
+servidor. Agora a tela do Mês é a aba do mês da planilha, com a
+diferença de que a etiqueta de situação se calcula sozinha.
+
+Com isso **Lançamentos deixou de ser aba**. Ele continua existindo e
+virou o que de fato é: a tela de PROCURAR e FILTRAR, com a busca e os
+atalhos. Abre pelo link "Procurar e filtrar" no pé de cada coluna.
+
+O Financeiro ficou com quatro abas:
+
+    Mês                   ver e dar baixa, tudo aqui
+    Fixos e ferramentas   o que se repete, e se já paguei
+    Caixa                 para onde o caixa está indo
+    Por cliente           quanto cada cliente dá
+
+### A régua que fica
+
+Antes de criar uma tela nova: **a pessoa consegue terminar a tarefa
+sem sair dela?** Se a resposta for "vê aqui, faz ali", são duas telas
+que deviam ser uma. Foi esse o erro, e a planilha dela já tinha a
+resposta desde o começo.
+
+### E a lição de método, de novo
+
+A prévia do Mês ficou QUEBRADA por três rodadas e eu não vi, porque
+estava cortando a saída do comando com `tail -2` e o erro estava em
+cima. A tela que eu olhava era de uma versão antiga. É a terceira vez
+neste projeto que cortar a saída esconde uma falha: quando o que
+importa é "passou ou não", olhe a saída inteira, ou filtre pelo erro.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

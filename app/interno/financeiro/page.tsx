@@ -154,6 +154,12 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
 
       <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
         <Link
+          href={`/interno/financeiro/lancamentos?mes=${mes}`}
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Procurar um lançamento
+        </Link>
+        <Link
           href={`/interno/relatorio?mes=${mes}`}
           className="font-medium text-brand-700 hover:underline"
         >

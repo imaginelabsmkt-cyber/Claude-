@@ -23,7 +23,6 @@ import { usePathname, useSearchParams } from "next/navigation";
  */
 const ABAS = [
   { href: "/interno/financeiro", label: "Mês" },
-  { href: "/interno/financeiro/lancamentos", label: "Lançamentos" },
   { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
   { href: "/interno/financeiro/fluxo-caixa", label: "Caixa" },
   { href: "/interno/financeiro/rentabilidade", label: "Por cliente" },
@@ -39,6 +38,7 @@ const CONFIGURACAO = "/interno/financeiro/categorias";
 const PERTENCE_A: Record<string, string> = {
   "/interno/relatorio": "/interno/financeiro",
   "/interno/financeiro/impostos": "/interno/financeiro",
+  "/interno/financeiro/lancamentos": "/interno/financeiro",
   "/interno/financeiro/resumo-anual": "/interno/financeiro/fluxo-caixa",
 };
 

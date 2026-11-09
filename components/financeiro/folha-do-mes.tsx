@@ -6,6 +6,7 @@ import {
   type GrupoFolha,
   type LancamentoFolha,
 } from "@/lib/financeiro/folha";
+import { BaixaRapida } from "@/components/financeiro/baixa-rapida";
 import { Situacao } from "@/components/financeiro/situacao";
 import { situacaoDoLancamento, textoDoPrazo } from "@/lib/financeiro/vencimento";
 import {
@@ -139,7 +140,10 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
                     key={x.id}
                     className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2"
                   >
-                    <span className="min-w-0 flex-1 text-sm text-gray-900">
+                    <Link
+                      href={`/interno/financeiro/lancamentos/${x.id}/editar`}
+                      className="min-w-0 flex-1 text-sm text-gray-900 hover:underline"
+                    >
                       {g.linhas.length > 1
                         ? semRepetirOGrupo(x.description, g.categoria)
                         : x.description}
@@ -156,7 +160,7 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
                           )}
                         </span>
                       ) : null}
-                    </span>
+                    </Link>
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
                       {formatarMoeda(x.amount)}
                     </span>
@@ -175,6 +179,10 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
                         }
                       />
                     </span>
+
+                    <span className="shrink-0">
+                      <BaixaRapida id={x.id} pago={x.pago} />
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -188,7 +196,7 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
           href={verTudo}
           className="text-sm font-medium text-gray-600 hover:underline"
         >
-          Abrir em Lançamentos
+          Procurar e filtrar
         </Link>
       </footer>
     </section>

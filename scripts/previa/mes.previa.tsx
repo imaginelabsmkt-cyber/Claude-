@@ -5,7 +5,17 @@
  * novembro/2026 da planilha para a gente olhar se as duas colunas
  * ficam legíveis com o mês cheio.
  */
-import { describe, it } from "vitest";
+import { describe, it, vi } from "vitest";
+
+// A folha do mês tem o botão de dar baixa, que é componente de cliente
+// e chama `useRouter`. Fora do app o roteador não existe e o render
+// estático quebra. Aqui ele vira um nada, porque a prévia é sobre o
+// DESENHO, não sobre a navegação.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: () => {}, push: () => {} }),
+  usePathname: () => "/interno/financeiro",
+  useSearchParams: () => new URLSearchParams(),
+}));
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
