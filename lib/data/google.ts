@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface ConexaoGoogle {
   conectado: boolean;
@@ -56,4 +57,26 @@ export async function obterConexaoGoogle(
     temPlanilhas: tem("/auth/spreadsheets"),
     temDrive: tem("/auth/drive"),
   };
+}
+
+/**
+ * Estado da conexão da AGÊNCIA (a que realmente sincroniza), independente de
+ * quem está logado. Usa a service role pra enxergar a conta conectada mesmo
+ * que seja de outra pessoa (ex.: a Vitória vê que o Google da agência caiu).
+ * `revogado` = não há nenhuma conexão ativa e existe uma que caiu.
+ */
+export async function obterConexaoAgencia(): Promise<{
+  conectado: boolean;
+  revogado: boolean;
+}> {
+  const admin = createAdminClient();
+  if (!admin) return { conectado: false, revogado: false };
+  const { data } = await admin
+    .from("google_accounts")
+    .select("revoked_at")
+    .not("refresh_token", "is", null);
+  const linhas = data ?? [];
+  const conectado = linhas.some((l) => !l.revoked_at);
+  const revogado = !conectado && linhas.some((l) => !!l.revoked_at);
+  return { conectado, revogado };
 }
