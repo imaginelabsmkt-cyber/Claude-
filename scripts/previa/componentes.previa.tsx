@@ -156,6 +156,60 @@ function Peças() {
         </OrigemLista>
       </Secao>
 
+      <Secao
+        titulo="Cliente sem contrato"
+        explicacao="A linha que entra no topo da lista de clientes em Administrativo."
+      >
+        <ul className="space-y-2">
+          <li className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-alerta bg-white px-4 py-3">
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">
+                  Natural Concept
+                </span>
+                <Badge tom="vermelho">Sem contrato</Badge>
+              </span>
+              <span className="mt-0.5 block text-xs text-gray-500">
+                paga todo mês, mas o sistema não sabe desde quando, até quando
+                vale nem quando reajustar
+              </span>
+            </span>
+            <Button variante="secundaria" tamanho="sm">
+              Cadastrar contrato
+            </Button>
+          </li>
+          <li className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-900">
+                    Studio Bambu
+                  </span>
+                  <Badge tom="verde">Vigente</Badge>
+                </span>
+                <span className="mt-0.5 block text-xs text-gray-500">
+                  desde 01/11/2026 (12 meses de casa) · sem data de fim
+                </span>
+              </span>
+              <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-gray-900">
+                R$ 1.300,00
+              </span>
+              <span className="flex shrink-0 gap-1">
+                <span className="rounded px-2 py-1 text-xs font-medium text-gray-500">
+                  Reajustar
+                </span>
+                <span className="rounded px-2 py-1 text-xs font-medium text-gray-500">
+                  Editar
+                </span>
+                <span className="rounded px-2 py-1 text-xs font-medium text-gray-400">
+                  Excluir
+                </span>
+              </span>
+            </div>
+          </li>
+        </ul>
+      </Secao>
+
       <Secao titulo="Tabela" explicacao="O padrão de lista de lançamentos.">
         <Card className="overflow-hidden">
           <table className="w-full text-sm">

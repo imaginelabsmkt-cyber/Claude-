@@ -73,7 +73,7 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Lançamentos"
-        contexto={rotuloMes(mes)}
+        contexto="Tudo que entrou e saiu, linha por linha"
         acao={<MonthNav mes={mes} />}
       />
 

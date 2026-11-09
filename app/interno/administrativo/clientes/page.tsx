@@ -2,74 +2,74 @@ import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
 import { ContratosPanel } from "@/components/contratos/contratos-panel";
-import { MonthNav } from "@/components/financeiro/month-nav";
+import { Secao } from "@/components/interno/secao";
 import { listarContratosDeCliente } from "@/lib/data/contratos";
 import { listarClientesFinanceiro } from "@/lib/data/financeiro";
 import { obterCarteira } from "@/lib/data/comercial";
-import {
-  contratosQuePedemConversa,
-  receitaContratada,
-} from "@/lib/empresa/contratos";
-import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
-import { formatarData, formatarMoeda, formatarPercentual } from "@/lib/utils";
+import { receitaContratada } from "@/lib/empresa/contratos";
+import { contratosQuePedemConversa } from "@/lib/empresa/contratos";
+import { mesAtual } from "@/lib/financeiro/meses";
+import { formatarData, formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-interface PageProps {
-  searchParams: { mes?: string };
-}
-
 /**
- * Clientes: quem é cliente, por quanto e até quando.
+ * Clientes: quem é cliente da Favie, desde quando e com qual contrato.
  *
- * A tela abre pelo que PEDE AÇÃO (contrato vencendo, reajuste na hora)
- * e só depois mostra a leitura. É a ordem inversa da que eu tinha
- * feito, e é o que as referências de painel financeiro recomendam:
- * primeiro a decisão, depois o dado.
+ * ESTA TELA NÃO TEM MÊS. Ela tinha, e a Fran apontou que não fazia
+ * sentido: cliente não é um mês. A navegação de mês veio junto com um
+ * medidor de "quanto as mensalidades cobrem do custo fixo", que é
+ * leitura de DINHEIRO, não de organização. Esse medidor já existe no
+ * Início, que é onde ele responde alguma coisa. Aqui ele só empurrava
+ * a relação de clientes para baixo da dobra.
  *
- * Esta tela é do Administrativo, não do Comercial. O Comercial é a
- * conquista de quem ainda NÃO é cliente; aqui é quem já é.
+ * O que sobrou é o que é administrativo: quem são os clientes, o que
+ * está combinado com cada um, o que pede conversa, e quem já saiu.
  */
-export default async function ClientesPage({ searchParams }: PageProps) {
-  const mes =
-    searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
+export default async function ClientesPage() {
   const hoje = new Date().toISOString().slice(0, 10);
 
   const [contratos, clientes, carteira] = await Promise.all([
     listarContratosDeCliente(),
     listarClientesFinanceiro(),
-    obterCarteira(mes),
+    // A carteira é "hoje", não um mês escolhido: é a relação de quem é
+    // cliente agora.
+    obterCarteira(mesAtual()),
   ]);
 
   const conversas = contratosQuePedemConversa(contratos, hoje);
   const contratado = receitaContratada(contratos);
-  const cobertura = carteira.custoFixo ? contratado / carteira.custoFixo : 0;
-  const falta = carteira.custoFixo - contratado;
-  const ativos = contratos.filter((c) => c.status === "Ativo").length;
-  const semContrato = carteira.ativos.filter(
-    (c) => !contratos.some((k) => k.client_id === c.id && k.status === "Ativo"),
-  );
+  const semContrato = carteira.ativos
+    .filter(
+      (c) => !contratos.some((k) => k.client_id === c.id && k.status === "Ativo"),
+    )
+    .map((c) => ({ id: c.id, name: c.nome }));
+
+  const naRelacao = carteira.ativos.length;
 
   return (
     <>
       <AreaHeader
         titulo="Clientes"
-        contexto={rotuloMes(mes)}
-        acao={<MonthNav mes={mes} />}
+        contexto={
+          naRelacao === 0
+            ? "Nenhum cliente ativo"
+            : `${naRelacao} ${naRelacao === 1 ? "cliente ativo" : "clientes ativos"} · ${formatarMoeda(contratado)} por mês em contrato`
+        }
       />
 
       <AdministrativoTabs />
 
       {conversas.length > 0 ? (
-        <>
-          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Precisa de conversa
-          </h2>
-          <ul className="mb-6 space-y-2">
+        <Secao
+          titulo="Precisa de conversa"
+          explicacao="Contrato chegando ao fim, vencido, ou reajuste na hora. São as conversas que só acontecem se alguém lembrar."
+        >
+          <ul className="space-y-2">
             {conversas.map(({ contrato, motivo, dias }) => (
               <li
                 key={contrato.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-gray-200 bg-white px-4 py-3"
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
               >
                 <span
                   aria-hidden="true"
@@ -96,56 +96,48 @@ export default async function ClientesPage({ searchParams }: PageProps) {
               </li>
             ))}
           </ul>
-        </>
+        </Secao>
       ) : null}
 
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">
-          {ativos} contrato(s) ativo(s) somam {formatarMoeda(contratado)} por mês
-        </h2>
-        <div className="mt-3 h-3 overflow-hidden rounded-full bg-gray-100">
-          <div
-            className={"h-full rounded-full " + (falta > 0 ? "bg-alerta" : "bg-area")}
-            style={{ width: `${Math.min(cobertura * 100, 100)}%` }}
-          />
-        </div>
-        <p className="mt-2 text-sm text-gray-600">
-          {falta > 0 ? (
-            <>
-              Cobre {formatarPercentual(Math.min(cobertura, 1))} do custo fixo de{" "}
-              {formatarMoeda(carteira.custoFixo)}.{" "}
-              <strong className="font-semibold text-alerta">
-                Faltam {formatarMoeda(falta)} por mês.
-              </strong>
-            </>
-          ) : (
-            <>
-              Cobre o custo fixo de {formatarMoeda(carteira.custoFixo)} e sobram{" "}
-              <strong className="font-semibold text-gray-900">
-                {formatarMoeda(Math.abs(falta))} por mês
-              </strong>
-              .
-            </>
-          )}
-        </p>
-      </div>
+      <Secao
+        titulo="Os clientes"
+        explicacao="Um por linha, com o que está combinado: desde quando, até quando, quanto e quando reajustar. Quem ainda não tem contrato aparece primeiro."
+      >
+        <ContratosPanel
+          contratos={contratos}
+          clientes={clientes}
+          semContrato={semContrato}
+          hoje={hoje}
+        />
+      </Secao>
 
-      {semContrato.length > 0 ? (
-        <p className="mb-5 border-l-4 border-alerta bg-alerta-soft py-2 pl-3 text-sm text-gray-700">
-          <strong>
-            {semContrato.length} cliente(s) pagam sem contrato cadastrado
-          </strong>{" "}
-          ({semContrato.map((c) => c.nome).join(", ")}). Cadastre o contrato
-          abaixo para o sistema saber até quando vale e quando reajustar.
-        </p>
+      {carteira.inativos.length > 0 ? (
+        <Secao
+          titulo="Quem já foi cliente"
+          explicacao="Saíram, mas pagaram alguma coisa neste ano. Fica registrado para a gente lembrar de quem foi e de quanto era."
+        >
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            {carteira.inativos.map((c) => (
+              <li
+                key={c.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5"
+              >
+                <span className="min-w-0 flex-1 text-sm font-medium text-gray-700">
+                  {c.nome}
+                </span>
+                <span className="shrink-0 text-xs text-gray-500">
+                  último pagamento em {c.ultimoMes}
+                </span>
+                <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-gray-700">
+                  {formatarMoeda(c.ultimoValor)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Secao>
       ) : null}
 
-      <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Contratos
-      </h2>
-      <ContratosPanel contratos={contratos} clientes={clientes} hoje={hoje} />
-
-      <p className="mt-6 border-l-4 border-area pl-3 text-sm text-gray-600">
+      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
         O contrato manda no valor: mudou a mensalidade aqui, a cobrança no{" "}
         <Link
           href="/interno/financeiro/recorrencias"

@@ -5,7 +5,7 @@ import { PessoasPanel } from "@/components/pessoas/pessoas-panel";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { listarPessoas } from "@/lib/data/pessoas";
 import { obterRecorteArea } from "@/lib/data/interno";
-import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Equipe"
-        contexto={rotuloMes(mes)}
+        contexto="Quem trabalha na agência e quanto custa"
         acao={<MonthNav mes={mes} />}
       />
 

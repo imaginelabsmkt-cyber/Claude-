@@ -37,7 +37,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Início"
-        contexto={rotuloMes(mes)}
+        contexto="O ano, o caixa e o que precisa de você"
         acao={<MonthNav mes={mes} />}
       />
 

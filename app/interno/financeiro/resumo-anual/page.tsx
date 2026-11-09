@@ -3,7 +3,12 @@ import { AreaHeader } from "@/components/interno/area-header";
 import { Card } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { obterResumoAnual, type LinhaResumoAnual } from "@/lib/data/financeiro";
-import { anoDoMes, mesAtual, mesValido, rotuloMesCurto } from "@/lib/financeiro/meses";
+import {
+  anoDoMes,
+  mesAtual,
+  mesValido,
+  rotuloMesCurto,
+} from "@/lib/financeiro/meses";
 import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";

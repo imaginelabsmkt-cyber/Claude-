@@ -45,7 +45,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Por cliente"
-        contexto={anual ? `Ano de ${ano}` : rotuloMes(mes)}
+        contexto={anual ? `Quanto cada cliente deu no ano de ${ano}` : "Quanto cada cliente deu no mês"}
         acao={<MonthNav mes={mes} />}
       />
 

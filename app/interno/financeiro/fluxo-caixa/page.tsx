@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterPainelMes } from "@/lib/data/financeiro";
-import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 import { FINANCIAL_STATUS_TONE } from "@/types";
 import type { FinancialEntryWithRelations } from "@/types";
@@ -122,7 +122,7 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Fluxo de caixa"
-        contexto={rotuloMes(mes)}
+        contexto="O caixa mês a mês, do primeiro lançamento até hoje"
         acao={<MonthNav mes={mes} />}
       />
 

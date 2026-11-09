@@ -42,7 +42,7 @@ export default async function PessoalPage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Meus gastos"
-        contexto={rotuloMes(mes)}
+        contexto="Só você vê o que está aqui dentro"
         acao={<MonthNav mes={mes} />}
       />
 

@@ -957,6 +957,64 @@ põe botão, etiqueta, aviso, campo, tabela, lista e estado vazio na mesma
 página, para olhar o sistema inteiro de uma vez em vez de abrir dezoito
 telas.
 
+## 5.16 O Administrativo não fazia sentido, e por quê
+
+A Fran abriu Administrativo e disse: "não faz sentido o adm ser assim".
+Estava certa, e eram três coisas erradas ao mesmo tempo.
+
+### Cliente não é um mês
+
+A tela de Clientes tinha navegação de mês no topo. Cliente não é um
+mês: a relação de quem é cliente da Favie é a de hoje, não a de
+Setembro. O mês só existia ali porque o cálculo de custo fixo pedia um,
+o que é motivo do CÓDIGO, não da pessoa que usa.
+
+Junto com ele vinha um medidor de "quanto as mensalidades cobrem do
+custo fixo". Isso é leitura de DINHEIRO, e já existe no Início, que é
+onde ela responde alguma coisa. Aqui empurrava a relação de clientes
+para baixo da dobra: a tela chamada Clientes abria sem mostrar cliente
+nenhum.
+
+### A tela chamava Clientes e listava Contratos
+
+Pior: os clientes que pagam mas ainda não têm contrato cadastrado
+apareciam só como um aviso vermelho solto, com os nomes no meio de uma
+frase. Quem não tinha contrato não tinha linha.
+
+Agora a lista é A RELAÇÃO DOS CLIENTES. Quem não tem contrato aparece
+primeiro, com etiqueta "Sem contrato" e um botão que abre o formulário
+já com o cliente escolhido. Um cliente que falta na lista é um cliente
+que some da tela, e era isso que fazia a tela não bater com a realidade.
+
+### Documentos mostrava ferramentas, contra a regra dela
+
+A aba Documentos tinha "Ferramentas fixas" e a lista de assinaturas do
+mais caro ao mais barato. A regra da Fran é o contrário disso:
+
+> "As ferramentas vão estar dentro do financeiro. Por quê? Porque a
+> gente só quer saber quais ferramentas a gente utiliza para saber
+> quanto que a gente paga."
+
+Isso já vive em Financeiro, em Fixos e ferramentas. Aqui era um terceiro
+lugar com o mesmo dado. E a tela ainda repetia a lista de contratos de
+clientes, que é a aba ao lado.
+
+Documentos agora tem só o que é dela: prazos do administrativo,
+documentos da empresa e os ARQUIVOS assinados dos contratos. Um é o que
+está combinado (aba Clientes), o outro é o papel que prova (aqui).
+
+### O mês aparecia três vezes na mesma linha
+
+O `MonthNav` tem um campo de mês que o navegador escreve por extenso
+("novembro de 2026"), e ainda trazia um rótulo ao lado com o mesmo mês.
+O cabeçalho da tela repetia uma terceira vez em `contexto`.
+
+O rótulo do `MonthNav` saiu, e o `contexto` de cada tela passou a dizer
+O QUE A TELA RESPONDE: "Quanto entrou e quanto saiu no mês", "Quem
+trabalha na agência e quanto custa", "Uma página para imprimir ou mandar
+para a contabilidade". É o mesmo espaço, custando uma informação nova em
+vez de uma repetida.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { deslocarMes, rotuloMes } from "@/lib/financeiro/meses";
+import { deslocarMes } from "@/lib/financeiro/meses";
 
 interface MonthNavProps {
   mes: string;
@@ -10,6 +10,10 @@ interface MonthNavProps {
 /**
  * Navegação de mês (anterior / atual / próximo). O mês vive na URL (?mes=),
  * então o link é compartilhável e o botão "voltar" do navegador funciona.
+ *
+ * O próprio campo já escreve "novembro de 2026", então não existe
+ * rótulo do mês ao lado. Existia, e com o cabeçalho repetindo mais uma
+ * vez o mesmo mês aparecia três vezes na mesma linha.
  */
 export function MonthNav({ mes }: MonthNavProps) {
   const router = useRouter();
@@ -59,7 +63,6 @@ export function MonthNav({ mes }: MonthNavProps) {
         </svg>
       </button>
 
-      <span className="hidden text-sm text-gray-500 sm:inline">{rotuloMes(mes)}</span>
     </div>
   );
 }

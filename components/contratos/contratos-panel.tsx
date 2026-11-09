@@ -53,6 +53,15 @@ const TOM: Record<SituacaoContrato, BadgeTone> = {
 interface ContratosPanelProps {
   contratos: ContratoComCliente[];
   clientes: ClienteEscolhivel[];
+  /**
+   * Clientes ativos que ainda não têm contrato cadastrado.
+   *
+   * Entram na MESMA lista, no topo, em vez de virarem um aviso solto.
+   * A lista é a relação dos clientes: um cliente que falta aqui é um
+   * cliente que some da tela, e era isso que fazia a tela não bater
+   * com a realidade.
+   */
+  semContrato?: ClienteEscolhivel[];
   /** Data de hoje em "YYYY-MM-DD", calculada no servidor. */
   hoje: string;
 }
@@ -64,9 +73,16 @@ interface ContratosPanelProps {
  * linha de valor no financeiro. Não dava para responder desde quando o
  * cliente é cliente, até quando o contrato vale, nem quando reajustar.
  */
-export function ContratosPanel({ contratos, clientes, hoje }: ContratosPanelProps) {
+export function ContratosPanel({
+  contratos,
+  clientes,
+  semContrato = [],
+  hoje,
+}: ContratosPanelProps) {
   const router = useRouter();
   const [editando, setEditando] = useState<string | "novo" | null>(null);
+  /** Cliente já escolhido ao abrir o formulário a partir da linha dele. */
+  const [clienteNovo, setClienteNovo] = useState<string | undefined>(undefined);
   const [excluindo, setExcluindo] = useState<ContratoComCliente | null>(null);
   const [processando, iniciar] = useTransition();
 
@@ -87,18 +103,59 @@ export function ContratosPanel({ contratos, clientes, hoje }: ContratosPanelProp
 
   return (
     <div className="space-y-3">
-      <Button variante="secundaria" onClick={() => setEditando("novo")}>
+      <Button
+        variante="secundaria"
+        onClick={() => {
+          setClienteNovo(undefined);
+          setEditando("novo");
+        }}
+      >
         Novo contrato
       </Button>
 
       {editando === "novo" ? (
         <ContratoForm
           clientes={clientes}
+          clienteInicial={clienteNovo}
           aoConcluir={() => setEditando(null)}
         />
       ) : null}
 
-      {contratos.length === 0 ? (
+      {semContrato.length > 0 ? (
+        <ul className="space-y-2">
+          {semContrato.map((c) => (
+            <li
+              key={c.id}
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-alerta bg-white px-4 py-3"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-900">
+                    {c.name}
+                  </span>
+                  <Badge tom="vermelho">Sem contrato</Badge>
+                </span>
+                <span className="mt-0.5 block text-xs text-gray-500">
+                  paga todo mês, mas o sistema não sabe desde quando, até
+                  quando vale nem quando reajustar
+                </span>
+              </span>
+              <Button
+                variante="secundaria"
+                tamanho="sm"
+                onClick={() => {
+                  setClienteNovo(c.id);
+                  setEditando("novo");
+                }}
+              >
+                Cadastrar contrato
+              </Button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {contratos.length === 0 && semContrato.length === 0 ? (
         <p className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
           Nenhum contrato cadastrado. Cada cliente tem um: desde quando é
           cliente, até quando vale, o que está incluído e quando reajustar.
@@ -292,10 +349,13 @@ function Linha({
 function ContratoForm({
   clientes,
   contrato,
+  clienteInicial,
   aoConcluir,
 }: {
   clientes: ClienteEscolhivel[];
   contrato?: ContratoComCliente;
+  /** Cliente já escolhido quando o formulário abre pela linha dele. */
+  clienteInicial?: string;
   aoConcluir: () => void;
 }) {
   const router = useRouter();
@@ -319,7 +379,7 @@ function ContratoForm({
         }
       : {
           ...CONTRATO_FORM_PADRAO,
-          client_id: clientes[0]?.id ?? "",
+          client_id: clienteInicial ?? clientes[0]?.id ?? "",
           start_date: new Date().toISOString().slice(0, 10),
         },
   );

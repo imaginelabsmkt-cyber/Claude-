@@ -1,95 +1,96 @@
+import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
-import { Stat } from "@/components/interno/stat";
-import { RecorteLista } from "@/components/interno/recorte-lista";
+import { Secao } from "@/components/interno/secao";
 import { DocumentosPanel } from "@/components/empresa/documentos-panel";
 import { ObrigacoesPanel } from "@/components/empresa/obrigacoes-panel";
 import { ContratosLista } from "@/components/empresa/contratos-lista";
-import { MonthNav } from "@/components/financeiro/month-nav";
-import { obterRecorteArea } from "@/lib/data/interno";
 import {
   listarContratos,
   listarDocumentosEmpresa,
   listarObrigacoes,
 } from "@/lib/data/empresa";
-import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
-import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-interface PageProps {
-  searchParams: { mes?: string };
-}
-
 /**
- * Administrativo: o que a empresa assina e paga todo mês.
- * Recorte das ferramentas e equipamentos sobre o financeiro.
+ * Documentos: os papéis da empresa e os prazos que vêm com eles.
+ *
+ * ESTA TELA NÃO TEM MÊS, e não tem mais ferramentas.
+ *
+ * Ela mostrava "Ferramentas fixas" e uma lista de assinaturas e
+ * equipamentos do mais caro ao mais barato. A regra da Fran é clara e
+ * é o contrário disso: "as ferramentas vão estar dentro do financeiro,
+ * porque a gente só quer saber quais ferramentas a gente utiliza para
+ * saber quanto que a gente paga". Isso vive em Financeiro, em Fixos e
+ * ferramentas, e aqui virava um terceiro lugar com o mesmo dado.
+ *
+ * E ela repetia a lista de contratos de clientes, que é a aba ao lado.
+ * Aqui ficam só os ARQUIVOS assinados, que é outra coisa: um é o que
+ * está combinado, o outro é o papel que prova.
  */
-export default async function AdministrativoPage({ searchParams }: PageProps) {
-  const mes =
-    searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
-
-  const [recorte, documentos, contratos, obrigacoes] = await Promise.all([
-    obterRecorteArea("contratos", mes),
+export default async function DocumentosPage() {
+  const [documentos, contratos, obrigacoes] = await Promise.all([
     listarDocumentosEmpresa(),
     listarContratos(),
     listarObrigacoes("administrativo"),
   ]);
 
-  // As assinaturas são o grosso: vale ver por ferramenta, do maior ao menor.
-  const porFerramenta = [...recorte.lancamentos].sort(
-    (a, b) => Number(b.amount) - Number(a.amount),
-  );
+  const abertas = obrigacoes.filter((o) => o.aberto !== null).length;
 
   return (
     <>
       <AreaHeader
         titulo="Documentos"
-        contexto={rotuloMes(mes)}
-        acao={<MonthNav mes={mes} />}
+        contexto={
+          abertas > 0
+            ? `${documentos.length + contratos.length} arquivos · ${abertas} ${abertas === 1 ? "prazo em aberto" : "prazos em aberto"}`
+            : `${documentos.length + contratos.length} arquivos guardados`
+        }
       />
 
       <AdministrativoTabs />
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-2">
-        <Stat
-          rotulo="Do mês"
-          valor={formatarMoeda(recorte.realizado + recorte.pendente)}
-        />
-        <Stat
-          rotulo="Ferramentas fixas"
-          valor={formatarMoeda(recorte.mensal)}
-          detalhe="Assinaturas recorrentes"
-        />
-      </div>
+      <Secao
+        titulo="Prazos do administrativo"
+        explicacao="O que precisa ser renovado, entregue ou assinado, e quando. Se não estiver aqui, ninguém vai lembrar."
+      >
+        <ObrigacoesPanel obrigacoes={obrigacoes} area="administrativo" />
+      </Secao>
 
-      <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Assinaturas e equipamentos, do mais caro ao mais barato
-      </h2>
-      <RecorteLista
-        lancamentos={porFerramenta}
-        vazio="Nenhuma assinatura ou equipamento lançado neste mês."
-      />
+      <Secao
+        titulo="Documentos da empresa"
+        explicacao="Contrato social, alvará, certidões: o que é da Favie e não de um cliente."
+      >
+        <DocumentosPanel documentos={documentos} />
+      </Secao>
 
-      <p className="mt-4 border-l-4 border-area pl-3 text-sm text-gray-600">
-        Os valores saem do financeiro, das categorias de assinaturas e
-        equipamentos: é o mesmo dado visto por ferramenta.
+      <Secao
+        titulo="Contratos assinados"
+        explicacao="O arquivo em PDF de cada cliente. O que está combinado dentro dele fica na aba Clientes."
+        acao={
+          <Link
+            href="/interno/administrativo/clientes"
+            className="font-medium text-gray-600 hover:underline"
+          >
+            Ver os clientes
+          </Link>
+        }
+      >
+        <ContratosLista contratos={contratos} />
+      </Secao>
+
+      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
+        Procurando quanto a gente paga de ferramenta? Isso é dinheiro, então
+        fica em{" "}
+        <Link
+          href="/interno/financeiro/recorrencias"
+          className="font-medium text-area hover:underline"
+        >
+          Financeiro, em Fixos e ferramentas
+        </Link>
+        .
       </p>
-
-      <h2 className="mb-2 mt-7 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Contratos de clientes
-      </h2>
-      <ContratosLista contratos={contratos} />
-
-      <h2 className="mb-2 mt-7 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Documentos da empresa
-      </h2>
-      <DocumentosPanel documentos={documentos} />
-
-      <h2 className="mb-2 mt-7 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Prazos do administrativo
-      </h2>
-      <ObrigacoesPanel obrigacoes={obrigacoes} area="administrativo" />
     </>
   );
 }
