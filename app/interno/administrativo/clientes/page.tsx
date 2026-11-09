@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
+import { ContratosPanel } from "@/components/contratos/contratos-panel";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { listarLeads, obterCarteira } from "@/lib/data/comercial";
-import { valorDoFunil } from "@/lib/comercial/funil";
-import { LEAD_STAGES_ABERTAS } from "@/types";
+import { listarContratosDeCliente } from "@/lib/data/contratos";
+import { listarClientesFinanceiro } from "@/lib/data/financeiro";
+import { obterCarteira } from "@/lib/data/comercial";
+import {
+  contratosQuePedemConversa,
+  receitaContratada,
+} from "@/lib/empresa/contratos";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
-import { formatarMoeda, formatarPercentual } from "@/lib/utils";
+import { formatarData, formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -15,26 +20,35 @@ interface PageProps {
 }
 
 /**
- * Comercial: a carteira de clientes e o quanto ela cobre do custo fixo.
+ * Clientes: quem é cliente, por quanto e até quando.
  *
- * A tela abre com UMA frase em vez de quatro números soltos. "Clientes
- * ativos", "receita recorrente", "custo fixo" e "falta para cobrir" diziam
- * a mesma coisa que a barra logo abaixo — agora são a própria barra.
+ * A tela abre pelo que PEDE AÇÃO (contrato vencendo, reajuste na hora)
+ * e só depois mostra a leitura. É a ordem inversa da que eu tinha
+ * feito, e é o que as referências de painel financeiro recomendam:
+ * primeiro a decisão, depois o dado.
+ *
+ * Esta tela é do Administrativo, não do Comercial. O Comercial é a
+ * conquista de quem ainda NÃO é cliente; aqui é quem já é.
  */
-export default async function ComercialPage({ searchParams }: PageProps) {
+export default async function ClientesPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
+  const hoje = new Date().toISOString().slice(0, 10);
 
-  const [carteira, leads] = await Promise.all([
+  const [contratos, clientes, carteira] = await Promise.all([
+    listarContratosDeCliente(),
+    listarClientesFinanceiro(),
     obterCarteira(mes),
-    listarLeads(LEAD_STAGES_ABERTAS),
   ]);
-  const noFunil = valorDoFunil(leads);
-  const cobertura = carteira.custoFixo
-    ? carteira.recorrente / carteira.custoFixo
-    : 0;
-  const falta = carteira.custoFixo - carteira.recorrente;
-  const clientesQueFaltam = Math.ceil(falta / (carteira.ticketMedio || 1));
+
+  const conversas = contratosQuePedemConversa(contratos, hoje);
+  const contratado = receitaContratada(contratos);
+  const cobertura = carteira.custoFixo ? contratado / carteira.custoFixo : 0;
+  const falta = carteira.custoFixo - contratado;
+  const ativos = contratos.filter((c) => c.status === "Ativo").length;
+  const semContrato = carteira.ativos.filter(
+    (c) => !contratos.some((k) => k.client_id === c.id && k.status === "Ativo"),
+  );
 
   return (
     <>
@@ -46,37 +60,69 @@ export default async function ComercialPage({ searchParams }: PageProps) {
 
       <AdministrativoTabs />
 
-      <div className="mb-5 rounded-xl border border-gray-200 bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">
-          {carteira.ativos.length} cliente(s) ativo(s) pagam{" "}
-          {formatarMoeda(carteira.recorrente)} por mês
-        </h2>
+      {conversas.length > 0 ? (
+        <>
+          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            Precisa de conversa
+          </h2>
+          <ul className="mb-6 space-y-2">
+            {conversas.map(({ contrato, motivo, dias }) => (
+              <li
+                key={contrato.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-gray-200 bg-white px-4 py-3"
+              >
+                <span
+                  aria-hidden="true"
+                  className={
+                    "h-9 w-1.5 shrink-0 rounded-full " +
+                    (motivo === "Vencido" ? "bg-alerta" : "bg-area")
+                  }
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-gray-900">
+                    {contrato.client?.name ?? "Cliente removido"}
+                  </span>
+                  <span className="block text-xs text-gray-500">
+                    {motivo === "Vencido"
+                      ? `Contrato venceu há ${Math.abs(dias ?? 0)} dia(s)`
+                      : motivo === "Vence em breve"
+                        ? `Contrato vence em ${dias} dia(s), em ${formatarData(contrato.end_date ?? "")}`
+                        : `Reajuste por ${contrato.readjust_index} está na hora`}
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
+                  {formatarMoeda(Number(contrato.monthly_amount))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
 
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
+        <h2 className="text-base font-semibold text-gray-900">
+          {ativos} contrato(s) ativo(s) somam {formatarMoeda(contratado)} por mês
+        </h2>
         <div className="mt-3 h-3 overflow-hidden rounded-full bg-gray-100">
           <div
-            className={
-              "h-full rounded-full " + (falta > 0 ? "bg-alerta" : "bg-area")
-            }
+            className={"h-full rounded-full " + (falta > 0 ? "bg-alerta" : "bg-area")}
             style={{ width: `${Math.min(cobertura * 100, 100)}%` }}
           />
         </div>
-
         <p className="mt-2 text-sm text-gray-600">
           {falta > 0 ? (
             <>
               Cobre {formatarPercentual(Math.min(cobertura, 1))} do custo fixo de{" "}
               {formatarMoeda(carteira.custoFixo)}.{" "}
               <strong className="font-semibold text-alerta">
-                Faltam {formatarMoeda(falta)} por mês
-              </strong>{" "}
-              , cerca de {clientesQueFaltam} cliente(s) do tamanho médio da carteira (
-              {formatarMoeda(carteira.ticketMedio)}).
+                Faltam {formatarMoeda(falta)} por mês.
+              </strong>
             </>
           ) : (
             <>
-              Cobre o custo fixo de {formatarMoeda(carteira.custoFixo)} e{" "}
+              Cobre o custo fixo de {formatarMoeda(carteira.custoFixo)} e sobram{" "}
               <strong className="font-semibold text-gray-900">
-                sobram {formatarMoeda(Math.abs(falta))} por mês
+                {formatarMoeda(Math.abs(falta))} por mês
               </strong>
               .
             </>
@@ -84,90 +130,38 @@ export default async function ComercialPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-        Carteira ativa
-      </h2>
-      {carteira.ativos.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center text-sm text-gray-500">
-          Nenhum cliente ativo com mensalidade cadastrada.
-        </div>
-      ) : (
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
-          {carteira.ativos.map((c) => (
-            <li
-              key={c.id}
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-area px-4 py-2.5"
-            >
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-gray-900">{c.nome}</span>
-                <span className="block text-xs text-gray-500">
-                  {c.mensal > 0 ? "mensalidade ativa" : "sem mensalidade cadastrada"}
-                  {c.pagoNoAno > 0 ? ` · ${formatarMoeda(c.pagoNoAno)} no ano` : ""}
-                </span>
-              </span>
-              <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-gray-900">
-                {c.mensal > 0 ? formatarMoeda(c.mensal) : ""}
-              </span>
-              <span
-                className={
-                  "w-24 shrink-0 text-right text-xs font-semibold " +
-                  (c.pendenteNoMes > 0 ? "text-alerta" : "text-gray-400")
-                }
-              >
-                {c.pendenteNoMes > 0 ? "em aberto" : "em dia"}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {carteira.inativos.length > 0 ? (
-        <details className="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <summary className="cursor-pointer px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
-            <span className="font-semibold text-gray-900">
-              {carteira.inativos.length} já foram
-            </span>{" "}
-            , {formatarMoeda(carteira.perdidoPorMes)} por mês que deixaram de entrar
-          </summary>
-          <ul className="divide-y divide-gray-100 border-t border-gray-200">
-            {carteira.inativos.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center gap-x-3 px-4 py-2.5">
-                <span className="min-w-0 flex-1 text-sm text-gray-600">{c.nome}</span>
-                <span className="shrink-0 text-xs text-gray-500">
-                  último pagamento em {c.ultimoMes ?? ""}
-                </span>
-                <span className="w-28 shrink-0 text-right text-sm tabular-nums text-gray-500">
-                  {formatarMoeda(c.ultimoValor)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </details>
+      {semContrato.length > 0 ? (
+        <p className="mb-5 border-l-4 border-alerta bg-alerta-soft py-2 pl-3 text-sm text-gray-700">
+          <strong>
+            {semContrato.length} cliente(s) pagam sem contrato cadastrado
+          </strong>{" "}
+          ({semContrato.map((c) => c.nome).join(", ")}). Cadastre o contrato
+          abaixo para o sistema saber até quando vale e quando reajustar.
+        </p>
       ) : null}
 
-      <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4">
-        <div className="flex flex-wrap items-baseline gap-2">
-          <h2 className="text-sm font-semibold text-gray-900">
-            No funil: {formatarMoeda(noFunil)} por mês
-          </h2>
-          <span className="text-xs text-gray-500">
-            em {leads.length} oportunidade(s) aberta(s)
-          </span>
-          <Link
-            href="/interno/comercial/funil"
-            className="ml-auto text-sm font-medium text-area hover:underline"
-          >
-            Abrir o funil →
-          </Link>
-        </div>
-        {falta > 0 ? (
-          <p className="mt-1.5 text-xs text-gray-600">
-            {noFunil >= falta
-              ? `Se tudo que está aberto fechar, o custo fixo fica coberto com ${formatarMoeda(noFunil - falta)} de sobra.`
-              : `Mesmo fechando tudo, ainda faltariam ${formatarMoeda(falta - noFunil)} por mês.`}
-          </p>
-        ) : null}
-      </div>
+      <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+        Contratos
+      </h2>
+      <ContratosPanel contratos={contratos} clientes={clientes} hoje={hoje} />
+
+      <p className="mt-6 border-l-4 border-area pl-3 text-sm text-gray-600">
+        O contrato manda no valor: mudou a mensalidade aqui, a cobrança no{" "}
+        <Link
+          href="/interno/financeiro/recorrencias"
+          className="font-medium text-area hover:underline"
+        >
+          financeiro
+        </Link>{" "}
+        acompanha sozinha. O arquivo assinado é anexo do cliente e fica em{" "}
+        <Link
+          href="/interno/administrativo/documentos"
+          className="font-medium text-area hover:underline"
+        >
+          Documentos
+        </Link>
+        .
+      </p>
     </>
   );
 }

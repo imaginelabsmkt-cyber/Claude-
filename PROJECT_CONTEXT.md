@@ -671,12 +671,68 @@ O aviso dela, que vale mais que a régua: *"a gente não está deixando
 usual, a gente está deixando cheio de coisa que a gente não vai
 utilizar e vai ficar parado. E eu não quero que seja assim."*
 
-### O que ainda falta
 
-Contrato de cliente continua existindo só como recorrência financeira.
-Vigência, escopo, reajuste e renovação ainda não têm onde morar. É a
-próxima coisa a construir no Administrativo, e é entidade de verdade,
-não recorte do financeiro.
+## 5.12 O contrato de cliente, que eu tinha deixado de fora
+
+### O erro
+
+Para não duplicar dado, eu decidi que "contrato é uma recorrência
+financeira". Parecia elegante e custou a informação toda: o sistema
+sabia quanto o cliente paga, mas não desde quando ele é cliente, até
+quando o contrato vale, o que está no escopo nem quando reajustar.
+A Fran pediu exatamente isso: *"cada cliente tem o seu contrato, o seu
+tempo de contrato, os seus dados, que às vezes a gente precisa acessar
+rápido"*.
+
+Economizar uma tabela não vale perder a entidade.
+
+### Como ficou
+
+`client_contracts` é a entidade; `financial_recurrences` é a COBRANÇA
+que ela gera, ligada por `recurrence_id`. Continua existindo um valor
+só, e quem manda nele é o contrato: `atualizarContratoAction` e
+`registrarReajusteAction` propagam para a recorrência. Sem isso, mudar
+a mensalidade aqui deixaria o financeiro cobrando o valor velho, calado.
+
+### As duas conversas, que não são a mesma
+
+| Conversa | Quando | Por quê |
+| --- | --- | --- |
+| **Renovação** | o contrato acaba | ou renova, ou o cliente vai embora |
+| **Reajuste** | 12 meses do último | o contrato continua, o valor precisa subir |
+
+Misturar as duas é o erro fácil: contrato de vigência indeterminada
+nunca renova, mas reajusta todo ano. Por isso `contratosQuePedemConversa`
+trata cada uma, e omite o reajuste de quem já vai renovar — na conversa
+de renovação o valor é negociado junto, e cobrar as duas coisas faria a
+mesma ligação aparecer duas vezes na lista.
+
+O aviso de renovação sai 45 dias antes, que é o tempo de marcar a
+reunião, ouvir, ajustar escopo e assinar. Avisar com uma semana é
+avisar tarde.
+
+### O que o sistema NÃO faz
+
+Não calcula o índice de reajuste. Quem publica o IPCA é o IBGE, e um
+número inventado aqui seria pior que número nenhum. O sistema avisa que
+chegou a hora, você registra o valor novo, e a data de hoje entra como
+o último reajuste.
+
+### Datas em texto, pelo motivo de sempre
+
+`new Date("2026-11-09")` é interpretada como UTC, e no fuso de Boa
+Vista isso vira o dia 8. Contrato que vence amanhã apareceria vencendo
+hoje. Por isso `lib/empresa/contratos.ts` compara strings "YYYY-MM-DD"
+e usa `Date.UTC` só para contar dias.
+
+### Aproveitamento do que já existia
+
+A migration converte cada mensalidade ativa em contrato, com valor e
+início corretos; vigência, escopo e reajuste ficam em branco para serem
+preenchidos uma vez. O seed faz o mesmo, porque numa instalação do zero
+o schema roda ANTES da carga e o backfill da migration não teria o que
+converter. Verificado nas duas ordens, em Postgres real, e rodar de novo
+não duplica.
 
 ## 6. Convenções de código
 

@@ -506,6 +506,62 @@ export type Lead = {
   updated_at: ISODateString;
 }
 
+/** Situação de um contrato de cliente. */
+export type ContractStatus = "Ativo" | "Pausado" | "Encerrado";
+
+/**
+ * client_contracts — o contrato do cliente.
+ *
+ * Entidade própria, e não um apelido para a recorrência financeira:
+ * vigência, escopo e reajuste não cabiam lá. `recurrence_id` liga o
+ * contrato à cobrança que ele gera, para o valor continuar sendo um só.
+ */
+export type ClientContract = {
+  id: UUID;
+  client_id: UUID;
+  status: ContractStatus;
+  monthly_amount: number;
+  scope: string | null;
+  start_date: DateString;
+  /** Null = vigência indeterminada. */
+  end_date: DateString | null;
+  /** "IPCA", "IGP-M"... Null = sem reajuste combinado. */
+  readjust_index: string | null;
+  last_readjust: DateString | null;
+  signed_at: DateString | null;
+  notes: string | null;
+  recurrence_id: UUID | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+export type ClientContractInsert = Omit<
+  ClientContract,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "status"
+  | "monthly_amount"
+  | "scope"
+  | "end_date"
+  | "readjust_index"
+  | "last_readjust"
+  | "signed_at"
+  | "notes"
+  | "recurrence_id"
+> & {
+  id?: UUID;
+  status?: ContractStatus;
+  monthly_amount?: number;
+  scope?: string | null;
+  end_date?: DateString | null;
+  readjust_index?: string | null;
+  last_readjust?: DateString | null;
+  signed_at?: DateString | null;
+  notes?: string | null;
+  recurrence_id?: UUID | null;
+};
+
 /** commercial_proposals — uma proposta enviada a uma oportunidade. */
 export type Proposal = {
   id: UUID;
@@ -1020,6 +1076,12 @@ export interface Database {
         Update: Partial<LeadInsert>;
         Relationships: [];
       };
+      client_contracts: {
+        Row: ClientContract;
+        Insert: ClientContractInsert;
+        Update: Partial<ClientContractInsert>;
+        Relationships: [];
+      };
       commercial_proposals: {
         Row: Proposal;
         Insert: ProposalInsert;
@@ -1083,6 +1145,7 @@ export interface Database {
       financial_status: FinancialStatus;
       lead_stage: LeadStage;
       lead_channel: LeadChannel;
+      contract_status: ContractStatus;
       proposal_status: ProposalStatus;
       obligation_cadence: ObligationCadence;
       team_kind: TeamKind;

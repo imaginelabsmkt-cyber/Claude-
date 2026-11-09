@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import {
   agruparPorCategoria,
   agruparPorCliente,
+  arredondar,
   encadearMeses,
+  somar,
   resumirMes,
   variacao,
   type ResumoMes,
@@ -188,6 +190,45 @@ export async function calcularSaldoInicial(mes: string): Promise<number> {
   );
   const serie = encadearMeses(meses, lancamentos, config.opening_balance);
   return serie[serie.length - 1]?.saldoFinal ?? config.opening_balance;
+}
+
+/**
+ * Os últimos meses FECHADOS, do mais antigo ao mais recente.
+ *
+ * `movimento` é a soma bruta do mês (receita + despesa realizadas), e
+ * serve para distinguir "mês sem sobra" de "mês não lançado": os dois
+ * dão resultado zero, mas só o segundo deve ficar de fora de qualquer
+ * média.
+ */
+export async function ultimosMesesFechados(
+  mesAtual: string,
+  quantos: number,
+): Promise<{ mes: string; resultado: number; movimento: number }[]> {
+  const config = await obterConfiguracaoFinanceira();
+  const fim = mesAnterior(mesAtual);
+  if (fim < config.opening_month) return [];
+
+  const todos = intervaloMeses(config.opening_month, fim);
+  const meses = todos.slice(-quantos);
+  if (meses.length === 0) return [];
+
+  const lancamentos = await lancamentosDoIntervalo(meses[0], fim);
+  const pagos = lancamentos.filter((l) => l.status === "Pago");
+
+  return meses.map((mes) => {
+    const doMes = pagos.filter((l) => l.reference_month === mes);
+    const receitas = somar(
+      doMes.filter((l) => l.kind === "Receita").map((l) => Number(l.amount)),
+    );
+    const despesas = somar(
+      doMes.filter((l) => l.kind === "Despesa").map((l) => Number(l.amount)),
+    );
+    return {
+      mes,
+      resultado: arredondar(receitas - despesas),
+      movimento: arredondar(receitas + despesas),
+    };
+  });
 }
 
 /** Painel consolidado de um mês. */

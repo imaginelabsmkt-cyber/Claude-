@@ -692,6 +692,29 @@ select 'DAS do Simples Nacional', 'Despesa', c.id, 86.05, 20, '2026-11', true
  where c.kind = 'Despesa' and c.name = 'DAS - Simples Nacional';
 
 -- -------------------------------------------------------------
+-- 5. Os contratos dos clientes
+--
+-- Nascem das mensalidades recém-criadas. A migration de contratos faz
+-- o mesmo backfill, mas só enxerga o que já existe quando ELA roda:
+-- numa instalação do zero o schema vem antes desta carga, e sem este
+-- bloco a instalação nova ficaria sem contrato nenhum.
+--
+-- Vigência, escopo e reajuste ficam em branco de propósito: isso a
+-- planilha não tem, e chutar seria pior que deixar para preencher.
+-- -------------------------------------------------------------
+insert into public.client_contracts
+  (client_id, status, monthly_amount, start_date, recurrence_id)
+select r.client_id, 'Ativo', r.amount, (r.start_month || '-01')::date, r.id
+  from public.financial_recurrences r
+ where r.kind = 'Receita'
+   and r.active
+   and r.client_id is not null
+   and not exists (
+     select 1 from public.client_contracts c where c.recurrence_id = r.id
+   );
+
+
+-- -------------------------------------------------------------
 -- 5. A equipe
 -- -------------------------------------------------------------
 insert into public.team_members (name, kind, role, default_rate, active)

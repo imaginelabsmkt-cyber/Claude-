@@ -23,6 +23,12 @@ import {
 } from "@/lib/empresa/obrigacoes";
 import { somar } from "@/lib/financeiro/calculo";
 import type { AreaId } from "@/lib/interno/areas";
+import {
+  calcularFolego,
+  MESES_DE_BASE,
+  type Folego,
+} from "@/lib/interno/folego";
+import { ultimosMesesFechados } from "@/lib/data/financeiro";
 import type { FinancialEntryWithRelations } from "@/types";
 
 /** Um compromisso com prazo, já sabendo de que área ele é. */
@@ -106,6 +112,8 @@ export interface PainelInterno {
   carteira: { ativos: number; recorrente: number };
   /** Custo fixo mensal (recorrências de despesa ativas). */
   custoFixo: number;
+  /** Quanto tempo o caixa aguenta no ritmo dos últimos meses. */
+  folego: Folego;
 }
 
 /**
@@ -193,6 +201,10 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     },
   );
 
+  // O fôlego olha os meses JÁ FECHADOS: incluir o mês corrente, que
+  // normalmente está pela metade, faria a queima parecer maior.
+  const fechados = await ultimosMesesFechados(mes, MESES_DE_BASE);
+
   return {
     mes,
     financeiro,
@@ -207,6 +219,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     custoFixo: somar(
       vigentes.filter((r) => r.kind === "Despesa").map((r) => Number(r.amount)),
     ),
+    folego: calcularFolego(financeiro.resumo.saldoFinal, fechados, mes),
   };
 }
 

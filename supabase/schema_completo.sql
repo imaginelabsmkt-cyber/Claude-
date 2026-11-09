@@ -1,7 +1,7 @@
 -- =============================================================
 -- FAVIE — SCHEMA COMPLETO (arquivo único)
 --
--- Junta as 23 migrations na ordem correta, para você colar UMA VEZ
+-- Junta as 24 migrations na ordem correta, para você colar UMA VEZ
 -- no SQL Editor do Supabase em vez de rodar uma a uma.
 --
 -- É seguro rodar mais de uma vez: todas as partes são idempotentes.
@@ -14,7 +14,7 @@
 
 
 -- =============================================================
--- [01/23] 20260714120000_initial_schema.sql
+-- [01/24] 20260714120000_initial_schema.sql
 -- =============================================================
 
 -- =============================================================
@@ -353,7 +353,7 @@ create policy "comments_all_authenticated"
 
 
 -- =============================================================
--- [02/23] 20260715120000_client_niche_monthly_goal.sql
+-- [02/24] 20260715120000_client_niche_monthly_goal.sql
 -- =============================================================
 
 -- =============================================================
@@ -370,7 +370,7 @@ alter table public.clients drop column if exists posting_frequency;
 
 
 -- =============================================================
--- [03/23] 20260715130000_content_script_caption.sql
+-- [03/24] 20260715130000_content_script_caption.sql
 -- =============================================================
 
 -- =============================================================
@@ -385,7 +385,7 @@ alter table public.contents add column if not exists caption text;
 
 
 -- =============================================================
--- [04/23] 20260715140000_content_reference_url.sql
+-- [04/24] 20260715140000_content_reference_url.sql
 -- =============================================================
 
 -- =============================================================
@@ -399,7 +399,7 @@ alter table public.contents add column if not exists reference_url text;
 
 
 -- =============================================================
--- [05/23] 20260716120000_hardening_rls.sql
+-- [05/24] 20260716120000_hardening_rls.sql
 -- =============================================================
 
 -- =============================================================
@@ -527,7 +527,7 @@ $$;
 
 
 -- =============================================================
--- [06/23] 20260717120000_content_recording_time.sql
+-- [06/24] 20260717120000_content_recording_time.sql
 -- =============================================================
 
 -- =============================================================
@@ -541,7 +541,7 @@ alter table public.contents add column if not exists recording_time text;
 
 
 -- =============================================================
--- [07/23] 20260718120000_google_integration.sql
+-- [07/24] 20260718120000_google_integration.sql
 -- =============================================================
 
 -- =============================================================
@@ -596,7 +596,7 @@ create policy "google_sync_own"
 
 
 -- =============================================================
--- [08/23] 20260719120000_plannings.sql
+-- [08/24] 20260719120000_plannings.sql
 -- =============================================================
 
 -- =============================================================
@@ -639,7 +639,7 @@ create trigger trg_plannings_updated_at
 
 
 -- =============================================================
--- [09/23] 20260720120000_planning_google_sync.sql
+-- [09/24] 20260720120000_planning_google_sync.sql
 -- =============================================================
 
 -- =============================================================
@@ -671,7 +671,7 @@ create policy "planning_google_sync_own"
 
 
 -- =============================================================
--- [10/23] 20260721120000_planning_situation.sql
+-- [10/24] 20260721120000_planning_situation.sql
 -- =============================================================
 
 -- Situação MANUAL do planejamento (marcada pela planejadora, não automática).
@@ -681,7 +681,7 @@ alter table public.plannings
 
 
 -- =============================================================
--- [11/23] 20260722120000_google_calendars.sql
+-- [11/24] 20260722120000_google_calendars.sql
 -- =============================================================
 
 -- Calendários próprios da agência dentro da conta Google de cada usuário.
@@ -694,7 +694,7 @@ alter table public.google_accounts
 
 
 -- =============================================================
--- [12/23] 20260723120000_content_cover_source.sql
+-- [12/24] 20260723120000_content_cover_source.sql
 -- =============================================================
 
 -- Vincula uma CAPA (arte) ao vídeo de origem, para gerar a demanda de capa
@@ -707,7 +707,7 @@ create index if not exists idx_contents_cover_source
 
 
 -- =============================================================
--- [13/23] 20260724120000_client_files.sql
+-- [13/24] 20260724120000_client_files.sql
 -- =============================================================
 
 -- =============================================================
@@ -788,7 +788,7 @@ create policy "client_files_objects_delete"
 
 
 -- =============================================================
--- [14/23] 20260725120000_client_onboarding_reports.sql
+-- [14/24] 20260725120000_client_onboarding_reports.sql
 -- =============================================================
 
 -- =============================================================
@@ -870,7 +870,7 @@ on conflict (id) do nothing;
 
 
 -- =============================================================
--- [15/23] 20260726120000_client_diagnostics.sql
+-- [15/24] 20260726120000_client_diagnostics.sql
 -- =============================================================
 
 -- =============================================================
@@ -910,7 +910,7 @@ create policy "client_diagnostics_all_authenticated"
 
 
 -- =============================================================
--- [16/23] 20260727120000_report_analysis.sql
+-- [16/24] 20260727120000_report_analysis.sql
 -- =============================================================
 
 -- =============================================================
@@ -925,7 +925,7 @@ alter table public.client_reports
 
 
 -- =============================================================
--- [17/23] 20260908120000_financeiro.sql
+-- [17/24] 20260908120000_financeiro.sql
 -- =============================================================
 
 -- =============================================================
@@ -1129,7 +1129,7 @@ on conflict (kind, name) do nothing;
 
 
 -- =============================================================
--- [18/23] 20260921120000_comercial.sql
+-- [18/24] 20260921120000_comercial.sql
 -- =============================================================
 
 -- =============================================================
@@ -1296,7 +1296,7 @@ create policy "commercial_proposals_all_authenticated"
 
 
 -- =============================================================
--- [19/23] 20260922120000_empresa.sql
+-- [19/24] 20260922120000_empresa.sql
 -- =============================================================
 
 -- =============================================================
@@ -1501,7 +1501,7 @@ where not exists (select 1 from public.company_obligations);
 
 
 -- =============================================================
--- [20/23] 20260923120000_pessoas.sql
+-- [20/24] 20260923120000_pessoas.sql
 -- =============================================================
 
 -- =============================================================
@@ -1626,7 +1626,7 @@ update public.financial_recurrences r
 
 
 -- =============================================================
--- [21/23] 20260924120000_seguranca.sql
+-- [21/24] 20260924120000_seguranca.sql
 -- =============================================================
 
 -- =============================================================
@@ -1874,7 +1874,7 @@ drop policy if exists "company_files_objects_delete" on storage.objects;
 
 
 -- =============================================================
--- [22/23] 20261011120000_pessoal.sql
+-- [22/24] 20261011120000_pessoal.sql
 -- =============================================================
 
 -- =============================================================
@@ -2068,7 +2068,7 @@ grant execute on function public.vincular_me_a_pessoa(uuid) to authenticated;
 
 
 -- =============================================================
--- [23/23] 20261109120000_prospeccao.sql
+-- [23/24] 20261109120000_prospeccao.sql
 -- =============================================================
 
 -- =============================================================
@@ -2215,3 +2215,123 @@ update public.commercial_leads
        end::lead_channel
  where channel = 'Outro'
    and source is not null;
+
+
+-- =============================================================
+-- [24/24] 20261109130000_contratos.sql
+-- =============================================================
+
+-- =============================================================
+-- Contratos de cliente — a entidade que faltava
+--
+-- O ERRO QUE ISTO CORRIGE
+--
+-- Até aqui, "contrato" era duas coisas espalhadas e nenhuma delas
+-- era um contrato:
+--
+--   1. o ARQUIVO assinado, um `client_files` marcado como 'Contrato';
+--   2. o VALOR, uma linha de `financial_recurrences`.
+--
+-- Ou seja: o sistema sabia quanto o cliente paga e tinha o PDF, mas
+-- não sabia desde quando ele é cliente, até quando o contrato vale, o
+-- que está no escopo, nem quando reajustar. A Fran pediu exatamente
+-- isso: "cada cliente tem o seu contrato, o seu tempo de contrato, os
+-- seus dados, que às vezes a gente precisa acessar rápido".
+--
+-- Eu tinha feito contrato = recorrência para não duplicar dado. Foi
+-- troca errada: economizou uma tabela e custou a informação toda.
+--
+-- COMO FICA
+--
+-- O contrato é a entidade; a recorrência é a COBRANÇA que ele gera.
+-- `recurrence_id` liga as duas, e continua existindo um valor só:
+-- quem manda no quanto é o contrato, e a recorrência é o braço dele
+-- dentro do financeiro.
+--
+-- Idempotente.
+-- =============================================================
+
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'contract_status') then
+    create type contract_status as enum ('Ativo', 'Pausado', 'Encerrado');
+  end if;
+end
+$$;
+
+create table if not exists public.client_contracts (
+  id             uuid primary key default gen_random_uuid(),
+  client_id      uuid not null references public.clients(id) on delete cascade,
+  status         contract_status not null default 'Ativo',
+  -- Quanto o cliente paga por mês, por este contrato.
+  monthly_amount numeric(12, 2) not null default 0 check (monthly_amount >= 0),
+  -- O que está incluído. Texto livre de propósito: escopo de agência
+  -- não cabe em lista fechada, e engessar aqui só faria escrever
+  -- "outros" o tempo todo.
+  scope          text,
+  start_date     date not null,
+  -- Null = sem data de fim combinada (vigência indeterminada).
+  end_date       date,
+  -- Índice de reajuste, quando houver: 'IPCA', 'IGP-M'...
+  readjust_index text,
+  -- Quando foi reajustado pela última vez. Null = nunca.
+  last_readjust  date,
+  signed_at      date,
+  notes          text,
+  -- A cobrança que este contrato gera no financeiro.
+  recurrence_id  uuid references public.financial_recurrences(id) on delete set null,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  check (end_date is null or end_date >= start_date)
+);
+
+comment on table public.client_contracts is
+  'Contrato do cliente: vigência, escopo e reajuste. A cobrança que ele gera vive em financial_recurrences.';
+
+create index if not exists idx_client_contracts_client
+  on public.client_contracts (client_id);
+create index if not exists idx_client_contracts_status
+  on public.client_contracts (status, end_date);
+
+drop trigger if exists trg_client_contracts_updated_at on public.client_contracts;
+create trigger trg_client_contracts_updated_at
+  before update on public.client_contracts
+  for each row execute function public.set_updated_at();
+
+-- Dado da empresa: as duas sócias veem o mesmo, desde que liberadas.
+alter table public.client_contracts enable row level security;
+
+drop policy if exists "client_contracts_liberado" on public.client_contracts;
+create policy "client_contracts_liberado"
+  on public.client_contracts for all
+  to authenticated
+  using (public.usuario_aprovado())
+  with check (public.usuario_aprovado());
+
+revoke all on public.client_contracts from anon;
+
+-- -------------------------------------------------------------
+-- Aproveita o que já existe
+--
+-- Cada mensalidade ativa no financeiro vira um contrato, com o valor
+-- e o início que ela já tinha. Vigência, escopo e reajuste ficam em
+-- branco, para serem preenchidos uma vez, por cliente. É melhor do
+-- que começar do zero: o valor e a data de início já estão certos.
+-- -------------------------------------------------------------
+insert into public.client_contracts
+  (client_id, status, monthly_amount, start_date, end_date, recurrence_id)
+select r.client_id,
+       'Ativo',
+       r.amount,
+       (r.start_month || '-01')::date,
+       case when r.end_month is null then null
+            else (date_trunc('month', (r.end_month || '-01')::date)
+                  + interval '1 month - 1 day')::date end,
+       r.id
+  from public.financial_recurrences r
+ where r.kind = 'Receita'
+   and r.active
+   and r.client_id is not null
+   and not exists (
+     select 1 from public.client_contracts c where c.recurrence_id = r.id
+   );
