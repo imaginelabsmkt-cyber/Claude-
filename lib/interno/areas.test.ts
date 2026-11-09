@@ -27,7 +27,7 @@ describe("ordem do menu", () => {
     expect(rotulos).toEqual(ordenados);
   });
 
-  it("deixa o Início fora do menu de etapas, porque ele abre o grupo", () => {
+  it("deixa o Dashboard fora do menu de etapas, porque ele abre o grupo", () => {
     expect(AREAS_MENU.some((a) => a.id === "inicio")).toBe(false);
     expect(AREAS[0].id).toBe("inicio");
   });
@@ -77,7 +77,7 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/interno/relatorio")).toBe("financeiro");
   });
 
-  it("cai no Início quando a rota não é de área nenhuma", () => {
+  it("cai no Dashboard quando a rota não é de área nenhuma", () => {
     expect(areaDaRota("/interno/qualquer-coisa")).toBe("inicio");
   });
 });

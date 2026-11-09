@@ -1362,6 +1362,49 @@ mesmo ícone, mesmo título. O ícone agora é claro (o de demandas é o
 quadrado vinho cheio), e cada tela põe o próprio nome no título, então
 a aba diz "Lançamentos · Favie" em vez de "favie · Gestão de Demandas".
 
+## 5.24 Gráfico que não dá o número não informa, ilustra
+
+> "tudo que eu clicar, eu quero ver a informação... no gráfico de cima,
+> eu não consigo ter informação de quanto entrou e quanto saiu. Eu sei
+> na média ali por causa da base de referência"
+
+Ela está certa e isso é regra de gráfico, não gosto. Um gráfico em que a
+pessoa só consegue ESTIMAR pelo eixo serve para comparar, não para
+saber. Os dois gráficos do dashboard agora são clicáveis: clicar (ou
+passar o mouse) em qualquer mês escreve os números daquele mês numa
+linha logo abaixo.
+
+O que estava errado na solução anterior: eu tinha posto `<title>` em
+cada coluna, que é o balãozinho do navegador. Ele só aparece depois de
+uns segundos parado com o mouse em cima, e **no celular não existe
+passar o mouse**. Para ela, o gráfico simplesmente não tinha número.
+
+Três decisões de detalhe:
+
+- **A área de clique é o mês inteiro, de cima a baixo**, não a coluna.
+  Acertar uma barra de 16px com o dedo é impossível.
+- **A leitura fica embaixo, com altura fixa.** Balão flutuante exige
+  conta de posição e some na borda; uma linha fixa nunca erra, e o
+  gráfico não pula quando a pessoa troca de mês.
+- **Os gráficos viraram componentes de cliente.** O `/interno` subiu de
+  2,4 kB para 108 kB de JavaScript. É o preço de o gráfico responder, e
+  vale: antes ele não respondia.
+
+### O resto da mesma conversa
+
+**"Não é início, é dashboard."** Ela tem razão: início é onde você
+entra, dashboard é o que a tela faz. A área mudou de nome.
+
+**O gráfico do caixa subiu.** Estava no fim da página; agora os dois
+gráficos ficam juntos, logo abaixo do faturamento do ano.
+
+**O ícone do navegador mudou de ENDEREÇO, não só de conteúdo.** Ela
+disse que continuava igual, e provavelmente estava: navegador guarda
+favicon com unhas e dentes, e trocar o conteúdo do mesmo `/icon.svg`
+não troca o que já está em cache. O arquivo agora é
+`/public/icone-favie-financeiro.svg`, endereço que nunca existiu, mais
+o título por tela ("Lançamentos · Favie").
+
 ## 6. Convenções de código
 
 ### Nada de travessão

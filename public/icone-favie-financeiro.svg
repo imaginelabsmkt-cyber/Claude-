@@ -1,7 +1,11 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <!-- Fundo CLARO de propósito: o sistema de demandas usa o quadrado
        vinho cheio. Em 16px, claro contra escuro é a diferença que se
-       enxerga na aba do navegador sem precisar ler. -->
+       enxerga na aba do navegador sem precisar ler.
+       O arquivo vive em /public com nome próprio, e não em app/icon.svg,
+       porque o navegador guarda o favicon com unhas e dentes: trocar o
+       conteúdo do mesmo endereço não troca o ícone que já está em cache.
+       Endereço novo, ícone novo. -->
   <rect width="64" height="64" rx="16" fill="#f3ede0"/>
   <g fill="#6a2336">
     <rect x="14" y="36" width="10" height="16" rx="3"/>

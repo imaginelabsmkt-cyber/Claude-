@@ -9,8 +9,10 @@ export const metadata: Metadata = {
     default: "Favie · Financeiro",
     template: "%s · Favie",
   },
-  description:
-    "Sistema financeiro e administrativo da Favie.",
+  description: "Sistema financeiro e administrativo da Favie.",
+  icons: {
+    icon: [{ url: "/icone-favie-financeiro.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

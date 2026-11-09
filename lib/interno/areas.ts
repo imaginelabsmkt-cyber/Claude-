@@ -76,7 +76,7 @@ export interface Area {
 export const AREAS_PRIVADAS: AreaId[] = ["pessoal"];
 
 /**
- * Ordem do menu: Início primeiro, porque é a porta de entrada e não
+ * Ordem do menu: o Dashboard primeiro, porque é a porta de entrada e não
  * concorre com as outras; depois as etapas da empresa em ORDEM
  * ALFABÉTICA; e o pessoal por último, separado.
  *
@@ -87,11 +87,11 @@ export const AREAS_PRIVADAS: AreaId[] = ["pessoal"];
 export const AREAS: Area[] = [
   {
     id: "inicio",
-    label: "Início",
-    curto: "Início",
+    label: "Dashboard",
+    curto: "Dashboard",
     href: "/interno",
     contexto: "O que precisa de você",
-    pergunta: "Por onde eu começo hoje?",
+    pergunta: "Como a empresa está hoje?",
     cor: "#3f3a3c",
     icone: "inicio",
   },

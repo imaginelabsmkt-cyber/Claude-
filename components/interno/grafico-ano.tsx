@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { marcasDoEixo, tetoDoEixo, type BarraDoAno } from "@/lib/interno/ano";
 import {
   CORES,
@@ -8,7 +11,7 @@ import {
   rotuloValor,
   type Geometria,
 } from "@/components/interno/grafico-base";
-import { rotuloMesCurto } from "@/lib/financeiro/meses";
+import { rotuloMes, rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
 const ENTROU = CORES.entrou;
@@ -22,12 +25,24 @@ interface DesenhoProps {
   barras: BarraDoAno[];
   teto: number;
   mesFoco?: string;
+  /** Mês que a pessoa escolheu clicando. */
+  escolhido: string | null;
+  aoEscolher: (mes: string) => void;
   className: string;
   descricao: string;
 }
 
 /** O gráfico em si, numa medida. */
-function Desenho({ geo, barras, teto, mesFoco, className, descricao }: DesenhoProps) {
+function Desenho({
+  geo,
+  barras,
+  teto,
+  mesFoco,
+  escolhido,
+  aoEscolher,
+  className,
+  descricao,
+}: DesenhoProps) {
   const { largura: L, altura: A, margem: M, barra: B, fonte } = geo;
   const ploteA = A - M.topo - M.baixo;
   const base = M.topo + ploteA;
@@ -85,44 +100,62 @@ function Desenho({ geo, barras, teto, mesFoco, className, descricao }: DesenhoPr
       {barras.map((b, i) => {
         const centro = M.esquerda + slot * i + slot / 2;
         const foco = b.mes === mesFoco;
+        const ativo = b.mes === escolhido;
 
         return (
           <g key={b.mes}>
-            {foco ? (
+            {foco || ativo ? (
               <rect
                 x={M.esquerda + slot * i}
                 y={M.topo}
                 width={slot}
                 height={ploteA}
-                fill={TRACO.foco}
+                fill={ativo ? "#e9e1d5" : TRACO.foco}
               />
             ) : null}
 
             {b.entrou > 0 ? (
-              <path d={coluna(centro - B - VAO / 2, altura(b.entrou))} fill={ENTROU}>
-                <title>
-                  {`${rotuloMesCurto(b.mes)}: entrou ${formatarMoeda(b.entrou)}`}
-                </title>
-              </path>
+              <path d={coluna(centro - B - VAO / 2, altura(b.entrou))} fill={ENTROU} />
             ) : null}
 
             {b.saiu > 0 ? (
-              <path d={coluna(centro + VAO / 2, altura(b.saiu))} fill={SAIU}>
-                <title>
-                  {`${rotuloMesCurto(b.mes)}: saiu ${formatarMoeda(b.saiu)}`}
-                </title>
-              </path>
+              <path d={coluna(centro + VAO / 2, altura(b.saiu))} fill={SAIU} />
             ) : null}
 
             <text
               x={centro}
               y={A - M.baixo / 4}
               textAnchor="middle"
-              fill={b.comMovimento ? TRACO.mes : TRACO.mesVazio}
-              style={{ fontSize: fonte, fontWeight: foco ? 700 : 400 }}
+              fill={
+                ativo
+                  ? TRACO.mes
+                  : b.comMovimento
+                    ? TRACO.mes
+                    : TRACO.mesVazio
+              }
+              style={{ fontSize: fonte, fontWeight: foco || ativo ? 700 : 400 }}
             >
               {rotuloMesCurto(b.mes).slice(0, 3)}
             </text>
+
+            {/* A área de clique cobre o mês inteiro, de cima a baixo:
+                acertar uma coluna de 16px no celular é impossível. */}
+            <rect
+              x={M.esquerda + slot * i}
+              y={M.topo}
+              width={slot}
+              height={ploteA + M.baixo}
+              fill="transparent"
+              className="cursor-pointer"
+              onClick={() => aoEscolher(b.mes)}
+              onMouseEnter={() => aoEscolher(b.mes)}
+            >
+              <title>
+                {b.comMovimento
+                  ? `${rotuloMesCurto(b.mes)}: entrou ${formatarMoeda(b.entrou)}, saiu ${formatarMoeda(b.saiu)}`
+                  : `${rotuloMesCurto(b.mes)}: sem lançamento`}
+              </title>
+            </rect>
           </g>
         );
       })}
@@ -143,18 +176,20 @@ interface GraficoAnoProps {
  * "quanto no total", e a pergunta aqui é "entrou mais do que saiu?", que
  * só duas alturas lado a lado respondem de olho.
  *
- * É SVG montado no servidor, sem JavaScript: cada coluna tem um
- * `<title>`, que o navegador mostra ao passar o mouse, e todos os
- * números ficam na tabela embaixo. Assim o gráfico funciona com leitor
- * de tela, no celular e numa página impressa.
- *
- * Nenhum valor é escrito em cima das colunas. O maior mês já está por
- * extenso no cartão acima, e um número por coluna seriam 24 números
- * disputando a atenção com as barras.
+ * CLICAR EM QUALQUER MÊS mostra os números daquele mês embaixo do
+ * gráfico. A Fran pediu isso e estava certa: um gráfico em que a pessoa
+ * só consegue estimar pelo eixo não informa, ilustra. O balãozinho do
+ * navegador não resolve, porque no celular não existe passar o mouse.
  */
 export function GraficoAno({ barras, mesFoco }: GraficoAnoProps) {
-  const teto = tetoDoEixo(barras.flatMap((b) => [b.entrou, b.saiu]));
   const comMovimento = barras.filter((b) => b.comMovimento);
+  const padrao =
+    mesFoco && barras.some((b) => b.mes === mesFoco && b.comMovimento)
+      ? mesFoco
+      : (comMovimento[comMovimento.length - 1]?.mes ?? null);
+
+  const [escolhido, setEscolhido] = useState<string | null>(padrao);
+  const teto = tetoDoEixo(barras.flatMap((b) => [b.entrou, b.saiu]));
 
   if (comMovimento.length === 0) {
     return (
@@ -171,23 +206,18 @@ export function GraficoAno({ barras, mesFoco }: GraficoAnoProps) {
     )
     .join(". ")}`;
 
+  const lido = barras.find((b) => b.mes === escolhido) ?? null;
+  const diferenca = lido ? lido.entrou - lido.saiu : 0;
+
   return (
     <figure className="m-0">
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1">
         <span className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
-          <span
-            aria-hidden
-            className="h-2.5 w-2.5 rounded-sm"
-            style={{ background: ENTROU }}
-          />
+          <span aria-hidden className="h-2.5 w-2.5 rounded-sm" style={{ background: ENTROU }} />
           Entrou
         </span>
         <span className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
-          <span
-            aria-hidden
-            className="h-2.5 w-2.5 rounded-sm"
-            style={{ background: SAIU }}
-          />
+          <span aria-hidden className="h-2.5 w-2.5 rounded-sm" style={{ background: SAIU }} />
           Saiu
         </span>
       </div>
@@ -197,6 +227,8 @@ export function GraficoAno({ barras, mesFoco }: GraficoAnoProps) {
         barras={barras}
         teto={teto}
         mesFoco={mesFoco}
+        escolhido={escolhido}
+        aoEscolher={setEscolhido}
         className="sm:hidden"
         descricao={descricao}
       />
@@ -205,13 +237,56 @@ export function GraficoAno({ barras, mesFoco }: GraficoAnoProps) {
         barras={barras}
         teto={teto}
         mesFoco={mesFoco}
+        escolhido={escolhido}
+        aoEscolher={setEscolhido}
         className="hidden sm:block"
         descricao={descricao}
       />
 
+      {/* A leitura do mês escolhido. Fica aqui, com altura fixa, para o
+          gráfico não pular quando a pessoa passa de um mês para outro. */}
+      <figcaption className="mt-3 flex min-h-[2.75rem] flex-wrap items-baseline gap-x-5 gap-y-1 rounded-xl bg-gray-50 px-3 py-2">
+        {lido ? (
+          <>
+            <span className="text-sm font-bold text-gray-900">
+              {rotuloMes(lido.mes)}
+            </span>
+            {lido.comMovimento ? (
+              <>
+                <span className="text-sm text-gray-600">
+                  entrou{" "}
+                  <strong className="font-semibold tabular-nums text-gray-900">
+                    {formatarMoeda(lido.entrou)}
+                  </strong>
+                </span>
+                <span className="text-sm text-gray-600">
+                  saiu{" "}
+                  <strong className="font-semibold tabular-nums text-gray-900">
+                    {formatarMoeda(lido.saiu)}
+                  </strong>
+                </span>
+                <span className="text-sm text-gray-600">
+                  diferença{" "}
+                  <strong
+                    className={
+                      "font-semibold tabular-nums " +
+                      (diferenca < 0 ? "text-alerta" : "text-gray-900")
+                    }
+                  >
+                    {formatarMoeda(diferenca)}
+                  </strong>
+                </span>
+              </>
+            ) : (
+              <span className="text-sm text-gray-500">sem lançamento</span>
+            )}
+          </>
+        ) : null}
+      </figcaption>
+
       <details className="mt-3">
         <summary className="cursor-pointer text-xs font-medium text-gray-500 hover:text-gray-700">
-          Ver os números
+          Ver todos os meses
         </summary>
         <div className="mt-2 overflow-x-auto">
           <table className="w-full text-sm">

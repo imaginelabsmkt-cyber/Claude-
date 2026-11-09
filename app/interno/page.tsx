@@ -17,7 +17,7 @@ import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Início" };
+export const metadata = { title: "Dashboard" };
 
 interface PageProps {
   searchParams: { mes?: string };
@@ -64,7 +64,10 @@ function Indicador({
 }
 
 /**
- * Início: o painel do sistema inteiro, não só do financeiro.
+ * Dashboard: o painel do sistema inteiro, não só do financeiro.
+ *
+ * Chamava "Início". A Fran corrigiu: "não é isso, é dashboard". E é
+ * mesmo: início é onde você entra, dashboard é o que a tela faz.
  *
  * A ordem é a que a Fran pediu: o faturamento do ano primeiro, porque
  * é o número que ela quer ver ao abrir; depois a linha de indicadores
@@ -88,7 +91,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <AreaHeader titulo="Início" acao={<MonthNav mes={mes} />} />
+      <AreaHeader acao={<MonthNav mes={mes} />} />
 
       {/* 1. O ANO */}
       <Secao
@@ -161,7 +164,17 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           </div>
 
           <div className="mt-5 border-t border-gray-100 pt-4">
+            <p className="mb-2 text-sm font-semibold text-gray-700">
+              Entrou e saiu, mês a mês
+            </p>
             <GraficoAno barras={ano.barras} mesFoco={mes} />
+          </div>
+
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <p className="mb-2 text-sm font-semibold text-gray-700">
+              O caixa no fim de cada mês
+            </p>
+            <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
           </div>
         </div>
       </Secao>
@@ -212,13 +225,10 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
         {sobra < 0 ? (
           <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">
             <span>
-              As {carteira.ativos} mensalidades somam{" "}
-              {formatarMoeda(carteira.recorrente)} e o custo fixo é{" "}
-              {formatarMoeda(custoFixo)}:{" "}
               <strong className="font-semibold text-alerta">
-                faltam {formatarMoeda(Math.abs(sobra))} por mês
-              </strong>
-              .
+                Faltam {formatarMoeda(Math.abs(sobra))} por mês
+              </strong>{" "}
+              para as mensalidades cobrirem o custo fixo.
             </span>
             <Link
               href="/interno/comercial/funil"
@@ -267,22 +277,6 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
         )}
       </Secao>
 
-      {/* 4. PARA ONDE O CAIXA VAI */}
-      <Secao
-        titulo="O caixa ao longo do ano"
-        acao={
-          <Link
-            href={`/interno/financeiro/fluxo-caixa?mes=${mes}`}
-            className="font-medium text-gray-600 hover:underline"
-          >
-            Abrir o fluxo de caixa
-          </Link>
-        }
-      >
-        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
-          <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
-        </div>
-      </Secao>
     </>
   );
 }

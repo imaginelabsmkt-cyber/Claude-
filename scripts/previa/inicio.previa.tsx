@@ -1,26 +1,27 @@
 /**
- * Prévia visual do painel Início.
+ * Prévia visual do Dashboard.
  *
- * Não é teste: não afirma nada. Renderiza os componentes de verdade com
- * os números de verdade e escreve um HTML para a gente abrir e OLHAR.
- * Layout (rótulo que colide, texto que some no celular, barra que
- * estoura, cor que briga com o papel) só se pega olhando.
+ * Não é teste: não afirma nada. O markup é copiado de
+ * `app/interno/page.tsx`, que é um componente de servidor e fala com o
+ * Supabase, então não dá para renderizar a página aqui.
  *
- * O markup dos cartões é copiado de `app/interno/page.tsx`. A página é
- * um componente de servidor que fala com o Supabase, então não dá para
- * renderizar ela aqui; o que importa, que é o desenho, é o mesmo.
+ * ATENÇÃO: isto é uma cópia, e cópia envelhece. Já aconteceu de a
+ * prévia me mostrar a tela antiga enquanto a de verdade já tinha
+ * mudado. Ao mexer na página, mexa aqui também, ou apague a prévia.
  */
 import { describe, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
 import { GraficoAno } from "@/components/interno/grafico-ano";
 import { GraficoCaixa } from "@/components/interno/grafico-caixa";
+import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
 import { faturamentoAnual, type MesFaturamento } from "@/lib/interno/ano";
+import { mesesDoAno, rotuloMes, rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
-import { mesesDoAno, rotuloMesCurto } from "@/lib/financeiro/meses";
 
-/** Planilha da Favie, 05/11/2026. Saldo encadeado a partir de Abril. */
+const MES = "2026-10";
+
 const REAIS: MesFaturamento[] = [
   { mes: "2026-04", receitas: 12150, despesas: 13890.12, receitasPrevistas: 12150, despesasPrevistas: 13890.12, saldoFinal: 14259.88 },
   { mes: "2026-05", receitas: 11800, despesas: 14102.44, receitasPrevistas: 11800, despesasPrevistas: 14102.44, saldoFinal: 11957.44 },
@@ -31,15 +32,50 @@ const REAIS: MesFaturamento[] = [
   { mes: "2026-10", receitas: 11350, despesas: 15837.74, receitasPrevistas: 13150, despesasPrevistas: 15837.74, saldoFinal: 1638.16 },
 ];
 
-function Painel() {
+/** Igual ao <Indicador> da página. */
+function Indicador({
+  rotulo,
+  valor,
+  detalhe,
+  alerta,
+}: {
+  rotulo: string;
+  valor: string;
+  detalhe?: string;
+  alerta?: boolean;
+}) {
+  return (
+    <span
+      className={
+        "block rounded-2xl border bg-white px-4 py-3 shadow-sm " +
+        (alerta ? "border-alerta" : "border-gray-200")
+      }
+    >
+      <span className="block text-[10.5px] font-semibold uppercase tracking-wider text-gray-500">
+        {rotulo}
+      </span>
+      <span
+        className={
+          "mt-0.5 block text-xl font-bold tabular-nums " +
+          (alerta ? "text-alerta" : "text-gray-900")
+        }
+      >
+        {valor}
+      </span>
+      {detalhe ? (
+        <span className="mt-0.5 block text-xs text-gray-500">{detalhe}</span>
+      ) : null}
+    </span>
+  );
+}
+
+function Tela() {
   const ano = faturamentoAnual(2026, REAIS);
-  const caixa = 11923.38;
 
   return (
     <>
       <Secao
         titulo={`O ano de ${ano.ano}`}
-        explicacao="Quanto a Favie já faturou e como cada mês se comportou."
         acao={<span className="font-medium text-gray-600">Abrir o resumo do ano</span>}
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
@@ -52,17 +88,18 @@ function Painel() {
                 {formatarMoeda(ano.recebido)}
               </p>
               <p className="mt-1 text-[13px] text-gray-500">
-                em {ano.mesesFaturados} meses, média de{" "}
+                {ano.mesesFaturados} meses, média de{" "}
                 <strong className="font-semibold text-gray-700">
                   {formatarMoeda(ano.mediaMensal)}
-                </strong>{" "}
-                por mês
+                </strong>
               </p>
             </div>
             <dl className="flex flex-wrap gap-x-8 gap-y-3">
               <div>
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Saiu</dt>
-                <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">{formatarMoeda(ano.pago)}</dd>
+                <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
+                  {formatarMoeda(ano.pago)}
+                </dd>
               </div>
               <div>
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Faltou</dt>
@@ -82,93 +119,98 @@ function Painel() {
             </dl>
           </div>
 
-          <p className="mt-4 border-t border-gray-100 pt-3 text-sm text-gray-600">
-            Ainda falta receber{" "}
-            <strong className="font-semibold text-gray-900">{formatarMoeda(ano.aReceber)}</strong>{" "}
-            de lançamentos já feitos. Se tudo entrar, o ano fecha em{" "}
-            <strong className="font-semibold text-gray-900">{formatarMoeda(ano.previsto)}</strong>.
-          </p>
-
           <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="mb-1 text-sm font-semibold text-gray-700">Entrou e saiu, mês a mês</p>
-            <p className="mb-3 text-[13px] text-gray-500">
-              Cada mês tem duas colunas. Quando a vermelha passa da verde, aquele mês consumiu caixa.
+            <p className="mb-2 text-sm font-semibold text-gray-700">
+              Entrou e saiu, mês a mês
             </p>
-            <GraficoAno barras={ano.barras} mesFoco="2026-10" />
+            <GraficoAno barras={ano.barras} mesFoco={MES} />
           </div>
-        </div>
-      </Secao>
-
-      <Secao
-        titulo="O caixa hoje"
-        explicacao="Quanto tem agora, e até quando isso dura."
-      >
-        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
-          <p className="text-3xl font-bold tabular-nums tracking-tight text-gray-900">
-            {formatarMoeda(caixa)}
-          </p>
-          <p className="mt-3 text-sm text-gray-600">
-            Nos últimos meses saiu em média{" "}
-            <strong className="font-semibold text-gray-900">{formatarMoeda(1788.1)}</strong> a mais
-            do que entrou. Nesse ritmo, o caixa cobre a operação por{" "}
-            <strong className="font-semibold text-gray-900">6 meses</strong>, até Maio/2027.
-          </p>
 
           <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="mb-1 text-sm font-semibold text-gray-700">O caixa ao longo do ano</p>
-            <p className="mb-3 text-[13px] text-gray-500">
-              Quanto sobrou no fim de cada mês. As colunas acima contam como foi cada mês; esta
-              linha conta para onde isso está indo.
+            <p className="mb-2 text-sm font-semibold text-gray-700">
+              O caixa no fim de cada mês
             </p>
             <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
           </div>
-
-          <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">
-            <span>
-              As 7 mensalidades somam {formatarMoeda(13150)} e o custo fixo é{" "}
-              {formatarMoeda(14272.32)}:{" "}
-              <strong className="font-semibold text-alerta">
-                faltam {formatarMoeda(1122.32)} por mês
-              </strong>{" "}
-              para a conta se pagar sozinha.
-            </span>
-            <span className="font-semibold text-alerta underline">Ver os clientes</span>
-          </p>
         </div>
       </Secao>
 
-      <Secao
-        titulo="O mês de Outubro/2026"
-        explicacao="Só o que já foi baixado neste mês. O que está em aberto aparece no bloco de cima."
-        acao={<span className="font-medium text-gray-600">Abrir o financeiro</span>}
-      >
-        <div className="grid gap-3 sm:grid-cols-3">
-          {[
-            { r: "Entrou", v: formatarMoeda(11350), d: "2 ainda a receber" },
-            { r: "Saiu", v: formatarMoeda(15837.74), d: "3 ainda a pagar" },
-            { r: "Faltou", v: formatarMoeda(4487.74), d: "até agora" },
-          ].map((x) => (
-            <div key={x.r} className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10.5px] font-semibold uppercase tracking-wider text-gray-500">{x.r}</p>
-              <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">{x.v}</p>
-              <p className="mt-0.5 text-xs text-gray-500">{x.d}</p>
-            </div>
-          ))}
+      <Secao titulo={rotuloMes(MES)}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <Indicador
+            rotulo="Em caixa"
+            valor={formatarMoeda(1638.16)}
+            detalhe="cobre até Maio/2027"
+          />
+          <Indicador
+            rotulo="Vencido a receber"
+            valor={formatarMoeda(1800)}
+            detalhe="2 em aberto no mês"
+            alerta
+          />
+          <Indicador
+            rotulo="Vencido a pagar"
+            valor={formatarMoeda(13000)}
+            detalhe="3 em aberto no mês"
+            alerta
+          />
+          <Indicador
+            rotulo="No funil"
+            valor={formatarMoeda(5400)}
+            detalhe="3 oportunidades"
+          />
+          <Indicador rotulo="Contratos" valor="2" detalhe="pedem conversa" alerta />
         </div>
+
+        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">
+          <span>
+            <strong className="font-semibold text-alerta">
+              Faltam {formatarMoeda(1036.55)} por mês
+            </strong>{" "}
+            para as mensalidades cobrirem o custo fixo.
+          </span>
+          <span className="font-semibold text-alerta underline">Ver o funil</span>
+        </p>
+      </Secao>
+
+      <Secao titulo="Precisa de você">
+        <OrigemLista>
+          <OrigemItem
+            origem="financeiro"
+            titulo="Pró-labore Fran"
+            descricao="Pró-labore (sócias)"
+            valor={formatarMoeda(6500)}
+            prazo="venceu há 4 dias"
+            atrasado
+          />
+          <OrigemItem
+            origem="comercial"
+            titulo="Renovar contrato: Studio Bambu"
+            descricao="contrato vai até 2026-12"
+            valor={formatarMoeda(1300)}
+            prazo="em 2 meses"
+          />
+          <OrigemItem
+            origem="administrativo"
+            titulo="Enviar relatório para a Dra. Hemilayne"
+            descricao="Clientes"
+            prazo="dia 30"
+          />
+        </OrigemLista>
       </Secao>
     </>
   );
 }
 
 describe("prévia", () => {
-  it("escreve o HTML do painel Início", () => {
+  it("escreve o HTML do Dashboard", () => {
     writeFileSync(
       process.env.SAIDA!,
       `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="app.css"></head>
 <body data-area="inicio"><div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">${renderToStaticMarkup(
-        <Painel />,
+        <Tela />,
       )}</div></body></html>`,
     );
   });
