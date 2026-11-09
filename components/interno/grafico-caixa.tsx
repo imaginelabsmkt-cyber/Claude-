@@ -193,7 +193,7 @@ export function GraficoCaixa({ pontos, meses }: GraficoCaixaProps) {
   if (pontos.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-gray-500">
-        Ainda não há meses lançados neste ano.
+        Ainda não há mês lançado para desenhar a linha.
       </p>
     );
   }
