@@ -16,7 +16,8 @@
 --     mas não geram mensalidade.
 --
 --   * RECORRÊNCIAS a partir de 2026-11: as 7 mensalidades e
---     4 custos fixos (R$ 14,272.32/mês).
+--     os custos fixos detalhados, uma linha por ferramenta e
+--     uma por sócia (R$ 14,186.55/mês).
 --
 -- CONFERÊNCIA FEITA ANTES DE GERAR: a receita de cada mês bate com o
 -- Resumo Anual da planilha, e o saldo encadeado de abril a outubro
@@ -674,13 +675,29 @@ select 'Mensalidade Natural Concept', 'Receita', c.id, cl.id, 1700.00, 10, '2026
   from public.financial_categories c, public.clients cl
  where c.kind = 'Receita' and c.name = 'Mensalidades / clientes recorrentes'
    and cl.name = 'Natural Concept';
+-- O pró-labore e as ferramentas entram DETALHADOS, uma linha cada,
+-- como na planilha. Uma linha-bloco de "Assinaturas e ferramentas"
+-- não responde quanto custa o Canva, que é a pergunta que a Fran faz
+-- quando abre esta tela. Valores da aba Novembro/2026.
 insert into public.financial_recurrences (description, kind, category_id, amount, due_day, start_month, active)
-select 'Pró-labore das sócias', 'Despesa', c.id, 13000.00, 5, '2026-11', true
-  from public.financial_categories c
+select v.descricao, 'Despesa', c.id, v.valor, 5, '2026-11', true
+  from public.financial_categories c,
+       (values ('Pró-labore Fran', 6500.00), ('Pró-labore Vitória', 6500.00))
+         as v(descricao, valor)
  where c.kind = 'Despesa' and c.name = 'Pró-labore (sócias)';
 insert into public.financial_recurrences (description, kind, category_id, amount, due_day, start_month, active)
-select 'Assinaturas e ferramentas', 'Despesa', c.id, 1026.37, 10, '2026-11', true
-  from public.financial_categories c
+select v.descricao, 'Despesa', c.id, v.valor, 10, '2026-11', true
+  from public.financial_categories c,
+       (values
+          ('Claude Max',    454.10),
+          ('ChatGPT Plus',  119.90),
+          ('Adobe',          95.00),
+          ('iCloud Fran',    66.90),
+          ('iCloud Vitória', 66.90),
+          ('Canva',          53.00),
+          ('Captions',       51.90),
+          ('CapCut',         32.90)
+       ) as v(descricao, valor)
  where c.kind = 'Despesa' and c.name = 'Assinaturas e ferramentas digitais';
 insert into public.financial_recurrences (description, kind, category_id, amount, due_day, start_month, active)
 select 'Honorários da contabilidade', 'Despesa', c.id, 159.90, 10, '2026-11', true

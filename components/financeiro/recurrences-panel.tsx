@@ -12,15 +12,32 @@ import {
   definirAtivaRecorrenciaAction,
   excluirRecorrenciaAction,
 } from "@/lib/actions/financeiro";
+import {
+  montarPlanoFixo,
+  type GrupoFixo,
+  type ItemFixo,
+} from "@/lib/financeiro/fixos";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import { toast } from "@/lib/ui/toast";
 import { formatarMoeda } from "@/lib/utils";
-import { FINANCIAL_KIND_TONE } from "@/types";
 import type {
   Client,
   FinancialCategory,
   FinancialRecurrenceWithRelations,
 } from "@/types";
+
+/**
+ * Cor da barra de fatia.
+ *
+ * Vinho claro da marca para despesa e verde para receita. Despesa em
+ * vermelho forte seriam vinte barras gritando na mesma tela, e aí
+ * nenhuma chama atenção. Os dois passam de 3:1 sobre o papel do cartão,
+ * que é o mínimo para uma marca colorida.
+ */
+const BARRA = {
+  Despesa: "bg-brand-400",
+  Receita: "bg-green-700",
+} as const;
 
 interface RecurrencesPanelProps {
   mes: string;
@@ -30,8 +47,20 @@ interface RecurrencesPanelProps {
 }
 
 /**
- * Tela de recorrências: o "contrato" de cada mensalidade e custo fixo.
- * É a lista que a planilha repetia manualmente em cada aba mensal.
+ * Fixos e ferramentas: o que se repete todo mês, agrupado por
+ * categoria, do grupo mais caro para o mais barato.
+ *
+ * Era uma lista achatada de vinte cartões, misturando a mensalidade do
+ * Kiku Sushi com o iCloud da Vitória, cada linha do mesmo tamanho. A
+ * Fran pediu "mais intuitiva e visível como na planilha", e a planilha
+ * dela faz exatamente o que faltava: um subtítulo "↳ Assinaturas e
+ * ferramentas digitais" com cada ferramenta embaixo e o total do grupo
+ * do lado.
+ *
+ * Aqui cada item ainda ganha uma barrinha com a fatia dele dentro do
+ * grupo, que é o que responde de olho a pergunta real: "o que está
+ * pesando?". Com oito ferramentas, uma delas é metade da conta, e numa
+ * lista de números iguais isso não aparece.
  */
 export function RecurrencesPanel({
   mes,
@@ -47,13 +76,22 @@ export function RecurrencesPanel({
   );
   const [processando, iniciar] = useTransition();
 
-  const ativas = recorrencias.filter((r) => r.active);
-  const receitaMensal = ativas
-    .filter((r) => r.kind === "Receita")
-    .reduce((t, r) => t + Number(r.amount), 0);
-  const despesaMensal = ativas
-    .filter((r) => r.kind === "Despesa")
-    .reduce((t, r) => t + Number(r.amount), 0);
+  const porId = new Map(recorrencias.map((r) => [r.id, r]));
+  const plano = montarPlanoFixo(
+    recorrencias.map((r) => ({
+      id: r.id,
+      description: r.description,
+      kind: r.kind,
+      amount: Number(r.amount),
+      active: r.active,
+      due_day: r.due_day,
+      start_month: r.start_month,
+      end_month: r.end_month,
+      categoria: r.category?.name ?? null,
+      cliente: r.client?.name ?? null,
+    })),
+    mes,
+  );
 
   function alternarAtiva(r: FinancialRecurrenceWithRelations) {
     iniciar(async () => {
@@ -82,38 +120,173 @@ export function RecurrencesPanel({
     });
   }
 
+  function Linha({ item, comparar }: { item: ItemFixo; comparar: boolean }) {
+    const r = porId.get(item.id);
+    if (!r) return null;
+
+    if (editando === item.id) {
+      return (
+        <li className="px-3 py-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Editar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RecurrenceForm
+                mes={mes}
+                categorias={categorias}
+                clientes={clientes}
+                recorrencia={r}
+                aoConcluir={() => setEditando(null)}
+              />
+            </CardContent>
+          </Card>
+        </li>
+      );
+    }
+
+    const acao =
+      "rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900";
+
+    return (
+      <li className={"group px-3 py-2 " + (item.vigente ? "" : "opacity-60")}>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
+            {item.description}
+            {item.vigente ? null : (
+              <Badge tom="cinza" className="ml-2 align-middle">
+                {item.active ? "Fora deste mês" : "Pausada"}
+              </Badge>
+            )}
+          </span>
+
+          <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
+            {formatarMoeda(item.amount)}
+          </span>
+
+          <span className="w-10 shrink-0 text-right text-xs tabular-nums text-gray-500">
+            {comparar && item.vigente && item.fatia > 0
+              ? `${Math.round(item.fatia * 100)}%`
+              : ""}
+          </span>
+
+          <span className="flex shrink-0 gap-0.5">
+            <button type="button" className={acao} onClick={() => setEditando(item.id)}>
+              Editar
+            </button>
+            <button
+              type="button"
+              className={acao}
+              onClick={() => alternarAtiva(r)}
+              disabled={processando}
+            >
+              {r.active ? "Pausar" : "Reativar"}
+            </button>
+            <button
+              type="button"
+              className={acao + " hover:bg-alerta-soft hover:text-alerta"}
+              onClick={() => setExcluindo(r)}
+              disabled={processando}
+            >
+              Excluir
+            </button>
+          </span>
+        </div>
+
+        {/* A barrinha é a fatia dentro do grupo: é ela que responde
+            "o que está pesando?" sem ninguém fazer conta.
+
+            Num grupo de um item só ela não aparece: seria sempre uma
+            barra cheia dizendo "100% de si mesmo", que é tinta sem
+            informação nenhuma. */}
+        <div className="mt-1 flex items-center gap-2">
+          {comparar ? (
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
+              <div
+                className={"h-full rounded-full " + BARRA[item.kind]}
+                style={{
+                  width: `${Math.max(item.fatia * 100, item.vigente ? 2 : 0)}%`,
+                }}
+              />
+            </div>
+          ) : (
+            <span className="flex-1" />
+          )}
+          <span className="shrink-0 text-xs text-gray-400">
+            {item.cliente ? `${item.cliente} · ` : ""}
+            {item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
+            {item.end_month ? ` · até ${rotuloMesCurto(item.end_month)}` : ""}
+          </span>
+        </div>
+      </li>
+    );
+  }
+
+  function Grupo({ grupo }: { grupo: GrupoFixo }) {
+    // Só faz sentido comparar fatias quando há com o que comparar.
+    const comparar = grupo.itens.filter((i) => i.vigente).length > 1;
+
+    return (
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2">
+          <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+            {grupo.categoria}
+          </h3>
+          <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
+            {formatarMoeda(grupo.total)}
+          </span>
+        </div>
+        <ul className="divide-y divide-gray-100">
+          {grupo.itens.map((i) => (
+            <Linha key={i.id} item={i} comparar={comparar} />
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Receita recorrente / mês
-          </p>
-          <p className="mt-1 text-xl font-bold text-green-700">
-            {formatarMoeda(receitaMensal)}
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Custo fixo / mês
-          </p>
-          <p className="mt-1 text-xl font-bold text-red-600">
-            {formatarMoeda(despesaMensal)}
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Sobra recorrente
-          </p>
-          <p
-            className={
-              "mt-1 text-xl font-bold " +
-              (receitaMensal - despesaMensal >= 0 ? "text-green-700" : "text-red-600")
-            }
+        {[
+          {
+            r: "Entra todo mês",
+            v: formatarMoeda(plano.entra),
+            d: "mensalidades em contrato",
+          },
+          {
+            r: "Sai todo mês",
+            v: formatarMoeda(plano.sai),
+            d: "pró-labore, ferramentas, impostos",
+          },
+          {
+            r: plano.sobra >= 0 ? "Sobra todo mês" : "Falta todo mês",
+            v: formatarMoeda(Math.abs(plano.sobra)),
+            d:
+              plano.sobra >= 0
+                ? "antes de qualquer gasto novo"
+                : "só do que se repete",
+            alerta: plano.sobra < 0,
+          },
+        ].map((x) => (
+          <div
+            key={x.r}
+            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
           >
-            {formatarMoeda(receitaMensal - despesaMensal)}
-          </p>
-        </Card>
+            <p className="text-[10.5px] font-semibold uppercase tracking-wider text-gray-500">
+              {x.r}
+            </p>
+            <p
+              className={
+                "mt-0.5 text-xl font-bold tabular-nums " +
+                (x.alerta ? "text-alerta" : "text-gray-900")
+              }
+            >
+              {x.v}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-500">{x.d}</p>
+          </div>
+        ))}
       </div>
 
       {criando ? (
@@ -131,7 +304,9 @@ export function RecurrencesPanel({
           </CardContent>
         </Card>
       ) : (
-        <Button onClick={() => setCriando(true)}>Nova recorrência</Button>
+        <Button variante="secundaria" onClick={() => setCriando(true)}>
+          Nova recorrência
+        </Button>
       )}
 
       {recorrencias.length === 0 ? (
@@ -140,81 +315,39 @@ export function RecurrencesPanel({
           descricao="Cadastre as mensalidades dos clientes e os custos fixos. Depois, em cada mês, um clique em 'Gerar do plano fixo' cria todos os lançamentos."
         />
       ) : (
-        <div className="space-y-3">
-          {recorrencias.map((r) =>
-            editando === r.id ? (
-              <Card key={r.id}>
-                <CardHeader>
-                  <CardTitle>Editar recorrência</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RecurrenceForm
-                    mes={mes}
-                    categorias={categorias}
-                    clientes={clientes}
-                    recorrencia={r}
-                    aoConcluir={() => setEditando(null)}
-                  />
-                </CardContent>
-              </Card>
-            ) : (
-              <Card
-                key={r.id}
-                className={"p-4 " + (r.active ? "" : "opacity-60")}
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-gray-900">{r.description}</span>
-                      <Badge tom={FINANCIAL_KIND_TONE[r.kind]}>{r.kind}</Badge>
-                      {r.active ? null : <Badge tom="cinza">Pausada</Badge>}
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      {r.category?.name ?? "Sem categoria"}
-                      {r.client ? ` · ${r.client.name}` : ""}
-                      {r.due_day ? ` · vence dia ${r.due_day}` : ""}
-                      {` · desde ${rotuloMesCurto(r.start_month)}`}
-                      {r.end_month ? ` até ${rotuloMesCurto(r.end_month)}` : ""}
-                    </p>
-                  </div>
+        <div className="space-y-6">
+          {plano.gruposDespesa.length > 0 ? (
+            <section>
+              <h2 className="mb-2 text-base font-bold text-gray-900">
+                O que sai todo mês
+              </h2>
+              <p className="mb-3 text-[13px] text-gray-500">
+                Por categoria, da mais cara para a mais barata. A barrinha é a
+                fatia do item dentro do grupo dele.
+              </p>
+              <div className="space-y-3">
+                {plano.gruposDespesa.map((g) => (
+                  <Grupo key={`d-${g.categoria}`} grupo={g} />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
-                  <div className="flex shrink-0 items-center gap-3">
-                    <span
-                      className={
-                        "font-semibold " +
-                        (r.kind === "Receita" ? "text-green-700" : "text-red-600")
-                      }
-                    >
-                      {formatarMoeda(Number(r.amount))}
-                    </span>
-                    <Button
-                      tamanho="sm"
-                      variante="secundaria"
-                      onClick={() => setEditando(r.id)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      tamanho="sm"
-                      variante="secundaria"
-                      onClick={() => alternarAtiva(r)}
-                      disabled={processando}
-                    >
-                      {r.active ? "Pausar" : "Reativar"}
-                    </Button>
-                    <Button
-                      tamanho="sm"
-                      variante="fantasma"
-                      onClick={() => setExcluindo(r)}
-                      disabled={processando}
-                    >
-                      Excluir
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ),
-          )}
+          {plano.gruposReceita.length > 0 ? (
+            <section>
+              <h2 className="mb-2 text-base font-bold text-gray-900">
+                O que entra todo mês
+              </h2>
+              <p className="mb-3 text-[13px] text-gray-500">
+                As mensalidades em contrato. Mudou aqui, muda a cobrança do mês.
+              </p>
+              <div className="space-y-3">
+                {plano.gruposReceita.map((g) => (
+                  <Grupo key={`r-${g.categoria}`} grupo={g} />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       )}
 

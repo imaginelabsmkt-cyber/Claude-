@@ -1015,6 +1015,73 @@ trabalha na agência e quanto custa", "Uma página para imprimir ou mandar
 para a contabilidade". É o mesmo espaço, custando uma informação nova em
 vez de uma repetida.
 
+## 5.17 Fixos e ferramentas, visíveis como na planilha
+
+> "a parte das ferramentas precisa ser mais intuitiva e visível como na
+> planilha"
+
+### O problema era de DADO, não só de tela
+
+O sistema tinha duas linhas que escondiam tudo:
+
+    Assinaturas e ferramentas     R$ 1.026,37
+    Pró-labore das sócias         R$ 13.000,00
+
+Nenhuma tela do mundo mostra quanto custa o Canva se o banco só tem um
+total. A planilha da Fran já tinha a resposta, e eu não tinha lido essa
+parte: a aba de cada mês traz "↳ Assinaturas e ferramentas digitais"
+com cada ferramenta embaixo, e o pró-labore separado por sócia.
+
+`supabase/detalhar_fixos.sql` troca as duas linhas-bloco pelas linhas
+de verdade, com os valores de novembro/2026:
+
+    Claude Max 454,10 · ChatGPT Plus 119,90 · Adobe 95,00 ·
+    iCloud Fran 66,90 · iCloud Vitória 66,90 · Canva 53,00 ·
+    Captions 51,90 · CapCut 32,90      = R$ 940,60
+
+    Pró-labore Fran 6.500 · Pró-labore Vitória 6.500
+
+O custo fixo passou de R$ 14.272,32 para **R$ 14.186,55**, que é
+exatamente o TOTAL DESPESAS da aba Novembro. O valor antigo era o de
+outubro: o Claude Max caiu de 612,77 para 454,10 e o Canva subiu de
+32,00 para 53,00.
+
+O arquivo foi rodado em Postgres de verdade **três vezes seguidas**: o
+total não se mexe e nada duplica. Também foi conferida a instalação do
+zero (stub, schema, seed), que já nasce com as linhas detalhadas, e
+rodar o `detalhar_fixos.sql` em cima dela não faz nada.
+
+### A tela: agrupada, com a fatia de cada item
+
+Era uma lista achatada de vinte cartões, misturando a mensalidade do
+Kiku Sushi com o iCloud da Vitória, cada linha do mesmo tamanho e com
+três botões grandes. Agora:
+
+- um grupo por categoria, do mais caro para o mais barato, com o total
+  do grupo no cabeçalho, igual ao "↳" da planilha;
+- dentro do grupo, os itens do maior para o menor;
+- uma barrinha com a **fatia do item dentro do grupo**, que é o que
+  responde de olho "o que está pesando?". Com oito ferramentas, uma
+  delas é metade da conta, e numa coluna de números parecidos isso não
+  aparece;
+- as ações viraram links pequenos, porque vinte linhas com três botões
+  cada é uma tela de botões.
+
+Num grupo de um item só a barra não aparece: seria sempre uma barra
+cheia dizendo "100% de si mesmo", que é tinta sem informação. Isso só
+ficou óbvio olhando a prévia renderizada.
+
+A cor da barra é o vinho claro da marca para despesa e verde para
+receita, os dois acima de 3:1 sobre o papel do cartão. Despesa em
+vermelho forte seriam vinte barras gritando ao mesmo tempo, e aí
+nenhuma chama atenção.
+
+### Linha pausada continua na lista
+
+Pausada ou fora da vigência do mês, a linha aparece no grupo dela, com
+etiqueta, sem entrar em soma nenhuma. Sumir com ela faz a pessoa achar
+que foi apagada.
+
 ## 6. Convenções de código
 
 ### Nada de travessão
