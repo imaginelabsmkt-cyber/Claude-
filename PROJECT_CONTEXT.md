@@ -1498,6 +1498,36 @@ cima. A tela que eu olhava era de uma versão antiga. É a terceira vez
 neste projeto que cortar a saída esconde uma falha: quando o que
 importa é "passou ou não", olhe a saída inteira, ou filtre pelo erro.
 
+## 5.27 O check, não o botão
+
+> "não consigo dar check no que já paguei e atualizar nos valores como
+> a planilha nossa"
+
+Eu tinha posto um botão escrito "Dar baixa". Ela quer a **caixinha de
+marcar**, que é o que a planilha tem. A diferença não é estética:
+
+- Botão com texto obriga a ler cada um para saber o que ele faz.
+- Caixinha é uma coluna só, e o olho desce marcando.
+
+É assim que ela trabalha: abre o mês e vai marcando o que pagou.
+
+Marcar baixa o lançamento e a página recarrega sozinha, então o total
+da coluna, a barra de situação e o saldo do mês acompanham na hora,
+como as fórmulas da planilha.
+
+O mesmo check está em Fixos e ferramentas, porque ela disse "e isso
+para tudo".
+
+### E a outra bronca, que é sobre método
+
+> "você precisa melhorar e não muda tudo, precisa deixar o que faz
+> sentido"
+
+Verdade. Eu vinha reescrevendo telas inteiras a cada bronca, e isso
+tem dois custos: ela perde a referência do que já conhecia, e eu
+arrisco quebrar o que estava bom. Nesta rodada mudou UMA coisa: o
+botão virou check. Mais nada.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

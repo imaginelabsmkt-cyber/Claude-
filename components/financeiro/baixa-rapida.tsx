@@ -8,21 +8,22 @@ import { toast } from "@/lib/ui/toast";
 interface BaixaRapidaProps {
   id: string;
   pago: boolean;
+  /** Para o leitor de tela saber de qual linha é o check. */
+  descricao: string;
 }
 
 /**
- * O botão de dar baixa, direto na linha do mês.
+ * O CHECK de pago, na linha.
  *
- * Existe para a tela do mês fazer o que a aba do mês da planilha fazia:
- * a Fran abre o mês, vê a lista e marca o que pagou, no mesmo lugar.
- * Antes ela via numa tela e agia em outra, e foi por isso que ela disse
- * que a planilha era mais simples que o sistema. Estava.
+ * É caixinha de marcar, e não botão, porque é isso que a planilha tem e
+ * é isso que a Fran pediu: ela vai descendo a lista e marcando o que
+ * pagou. Botão com texto obriga a ler cada um; caixinha é uma coluna só
+ * e o olho desce.
  *
- * É um componente de cliente minúsculo de propósito: a folha do mês
- * inteira continua sendo montada no servidor, e só este botão carrega
- * JavaScript.
+ * Marcar baixa o lançamento e a página recarrega sozinha, então os
+ * totais, a barra de situação e o saldo do mês acompanham na hora.
  */
-export function BaixaRapida({ id, pago }: BaixaRapidaProps) {
+export function BaixaRapida({ id, pago, descricao }: BaixaRapidaProps) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
 
@@ -34,23 +35,25 @@ export function BaixaRapida({ id, pago }: BaixaRapidaProps) {
         toast.erro(r.error ?? "Não foi possível atualizar.");
         return;
       }
-      toast.sucesso(pago ? "Reaberto." : "Baixado.");
       router.refresh();
     });
   }
 
   return (
-    <button
-      type="button"
-      onClick={alternar}
-      disabled={processando}
-      className={
-        pago
-          ? "rounded px-1.5 py-0.5 text-xs font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
-          : "rounded border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
-      }
+    <label
+      className="flex cursor-pointer items-center"
+      title={pago ? "Desmarcar" : "Marcar como pago"}
     >
-      {pago ? "Reabrir" : "Dar baixa"}
-    </button>
+      <input
+        type="checkbox"
+        checked={pago}
+        onChange={alternar}
+        disabled={processando}
+        className="h-[18px] w-[18px] cursor-pointer rounded border-gray-300 accent-green-700 disabled:opacity-50"
+      />
+      <span className="sr-only">
+        {pago ? `Desmarcar ${descricao}` : `Marcar ${descricao} como pago`}
+      </span>
+    </label>
   );
 }

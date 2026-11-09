@@ -138,8 +138,14 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
                 {g.linhas.map((x) => (
                   <li
                     key={x.id}
-                    className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-4 py-2"
                   >
+                    <BaixaRapida
+                      id={x.id}
+                      pago={x.pago}
+                      descricao={x.description}
+                    />
+
                     <Link
                       href={`/interno/financeiro/lancamentos/${x.id}/editar`}
                       className="min-w-0 flex-1 text-sm text-gray-900 hover:underline"
@@ -180,9 +186,6 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
                       />
                     </span>
 
-                    <span className="shrink-0">
-                      <BaixaRapida id={x.id} pago={x.pago} />
-                    </span>
                   </li>
                 ))}
               </ul>

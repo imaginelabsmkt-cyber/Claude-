@@ -10,9 +10,9 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { RecurrenceForm } from "@/components/financeiro/recurrence-form";
 import {
   definirAtivaRecorrenciaAction,
-  definirStatusLancamentoAction,
   excluirRecorrenciaAction,
 } from "@/lib/actions/financeiro";
+import { BaixaRapida } from "@/components/financeiro/baixa-rapida";
 import { Situacao, type Estado } from "@/components/financeiro/situacao";
 import { situacaoDoLancamento, textoDoPrazo } from "@/lib/financeiro/vencimento";
 import {
@@ -125,20 +125,6 @@ export function RecurrencesPanel({
     });
   }
 
-  /** Baixa (ou reabre) o lançamento do mês de uma linha do plano. */
-  function alternarBaixa(l: LancamentoDoMes) {
-    iniciar(async () => {
-      const novo = l.status === "Pago" ? "Pendente" : "Pago";
-      const r = await definirStatusLancamentoAction(l.id, novo);
-      if (!r.ok) {
-        toast.erro(r.error ?? "Não foi possível atualizar.");
-        return;
-      }
-      toast.sucesso(novo === "Pago" ? "Baixado." : "Reaberto.");
-      router.refresh();
-    });
-  }
-
   function confirmarExclusao() {
     if (!excluindo) return;
     const id = excluindo.id;
@@ -209,7 +195,17 @@ export function RecurrencesPanel({
 
     return (
       <li className={"group px-3 py-2 " + (item.vigente ? "" : "opacity-60")}>
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {doMes ? (
+            <BaixaRapida
+              id={doMes.id}
+              pago={doMes.status === "Pago"}
+              descricao={nome}
+            />
+          ) : (
+            <span aria-hidden className="h-[18px] w-[18px] shrink-0" />
+          )}
+
           <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
             {nome}
             {item.vigente ? null : (
@@ -234,20 +230,6 @@ export function RecurrencesPanel({
           </span>
 
           <span className="flex shrink-0 items-center gap-0.5">
-            {doMes ? (
-              <button
-                type="button"
-                onClick={() => alternarBaixa(doMes)}
-                disabled={processando}
-                className={
-                  doMes.status === "Pago"
-                    ? acao
-                    : "rounded border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
-                }
-              >
-                {doMes.status === "Pago" ? "Reabrir" : "Dar baixa"}
-              </button>
-            ) : null}
             <button type="button" className={acao} onClick={() => setEditando(item.id)}>
               Editar
             </button>

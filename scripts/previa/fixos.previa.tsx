@@ -102,7 +102,13 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
             key={item.id}
             className={"px-3 py-2 " + (item.vigente ? "" : "opacity-60")}
           >
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <input
+                type="checkbox"
+                readOnly
+                checked={item.description === "Canva" || item.description === "CapCut"}
+                className="h-[18px] w-[18px] rounded border-gray-300 accent-green-700"
+              />
               <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
                 {grupo.itens.length > 1
                   ? semRepetirOGrupo(item.description, grupo.categoria)
