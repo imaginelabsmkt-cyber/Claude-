@@ -734,6 +734,103 @@ o schema roda ANTES da carga e o backfill da migration não teria o que
 converter. Verificado nas duas ordens, em Postgres real, e rodar de novo
 não duplica.
 
+## 5.13 O documento do ERP, e a decisão de não começar de novo
+
+A Fran trouxe uma especificação inteira de sistema financeiro e
+administrativo, montada a partir de uma análise do Base by Asaas. O
+documento abre com "numa pasta de projeto nova" e "você vai construir do
+zero". A decisão dela, depois de ler a avaliação, foi outra:
+
+> "é uma base para a gente criar o nosso sistema. Só que levando em
+> consideração tudo que a gente já criou, não precisa criar uma coisa
+> totalmente do zero e mudar completamente, não. A gente tem que fazer
+> passo a passo, porque senão depois, se não der certo, aí a gente vai
+> ter que fazer tudo de novo."
+
+Então o documento é **mapa, não ordem de demolição**. Vale como lista do
+que falta; não vale como motivo para jogar fora o que já roda.
+
+O argumento técnico, que é o que pesou: a camada de segurança (conta
+liberada, RLS em todas as tabelas, a aba privada de gastos) foi provada
+em Postgres real, com duas contas atacando uma à outra. Recomeçar é
+refazer esse risco do zero, e sem ganho nenhum, porque a stack que o
+documento pede (web responsiva, Postgres, login por e-mail e senha,
+português, BRL) é exatamente a que já está rodando.
+
+### Uma exceção consciente ao documento
+
+Ele pede valores em **centavos (inteiro)**. Aqui eles são
+`numeric(12,2)`, que no Postgres é decimal exato, não ponto flutuante:
+não existe o erro de arredondamento que a regra dos centavos evita.
+Trocar significaria migrar 26 tabelas e reescrever 153 testes para
+corrigir um problema que não existe. Fica como está, e isto aqui é o
+registro de que foi decisão, não esquecimento.
+
+### Painel por painel
+
+> "eu quero que a gente consiga desenvolver painel por painel, né?
+> Tópico por tópico."
+
+Um painel por vez, cada um indo ao ar antes do próximo começar. A ordem
+sai do que ela disse que precisa: **clareza** ("quando eu entro, eu já
+consiga entender o que é cada coisa") e **uso** ("se a gente não
+utilizar, não vai ficar legal").
+
+| # | Painel | Estado |
+|---|---|---|
+| 1 | Início: o ano, o caixa, o que pede ação, o mês | no ar |
+| 2 | Financeiro: lançamentos, baixa e extrato por conta | a fazer |
+| 3 | Administrativo: ficha do cliente com contratos e histórico | a fazer |
+| 4 | Comercial: propostas com revisão e conversão em contrato | a fazer |
+| 5 | Relatórios: DRE, inadimplência, receita recorrente | a fazer |
+
+### Painel 1: o Início
+
+Três coisas mudaram, e cada uma responde uma frase dela.
+
+**"que o nosso dashboard tenha o nosso faturamento anual"**: o ano abre
+a tela. Faturamento do ano em número grande, quantos meses faturaram,
+média por mês, quanto saiu, quanto sobrou, melhor mês, e quanto ainda
+falta receber dos meses já lançados. Antes a tela abria no caixa, que é
+a pergunta do dia, não a do ano.
+
+**"que ele tenha clareza... eu já consiga entender o que é cada coisa"**
+: todo bloco da tela virou uma `<Secao>`, título em palavras dela e uma
+linha dizendo o que aquele bloco responde. "O mês de Outubro/2026 / Só o
+que já foi baixado neste mês. O que está em aberto aparece no bloco de
+cima" é a diferença entre um número e um número que a pessoa entende.
+
+**gráfico**: doze meses, duas colunas por mês, entrou e saiu. Duas
+colunas e não barra empilhada porque a pergunta é "entrou mais do que
+saiu?", e isso só duas alturas lado a lado respondem de olho.
+
+### O gráfico não tem JavaScript
+
+SVG montado no servidor. Cada coluna tem um `<title>` (o balãozinho do
+navegador) e todos os números estão na tabela de "Ver os números"
+embaixo. O `/interno` continua com 2,4 kB de JS. Funciona com leitor de
+tela, no celular e impresso.
+
+Duas armadilhas que só apareceram olhando o desenho renderizado:
+
+1. **Classe do Tailwind dentro de `<svg>` não funciona.** `fill-gray-400`
+   não é gerada neste projeto (conferido compilando o CSS). Texto dentro
+   do SVG leva cor literal (`fill="#9ca3af"`).
+2. **Um viewBox só não serve para as duas telas.** O SVG escala junto com
+   o cartão, então o desenho largo encolhia o texto a 5px no celular. São
+   duas geometrias, uma abaixo de 640px e outra acima, com a mesma lógica.
+
+Por isso existe `scripts/previa/`: renderiza o componente de verdade num
+HTML estático, com o CSS do projeto, para abrir e OLHAR. Não é teste e
+não afirma nada. Teste nenhum pega rótulo que colide.
+
+### Nenhum valor escrito em cima das colunas
+
+A primeira versão tinha o valor do melhor mês em cima do grupo. Ficava
+sobre a coluna mais alta do par, que quase sempre é a vermelha, então
+parecia etiqueta do que SAIU quando era do que entrou. O melhor mês já
+está por extenso no cartão acima; o gráfico não repete.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

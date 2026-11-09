@@ -3,8 +3,11 @@ import {
   listarCategorias,
   listarLancamentos,
   obterPainelMes,
+  obterResumoAnual,
   type PainelMes,
 } from "@/lib/data/financeiro";
+import { anoDoMes } from "@/lib/financeiro/meses";
+import { faturamentoAnual, type FaturamentoAnual } from "@/lib/interno/ano";
 import {
   areaDoAssunto,
   assuntoDaCategoria,
@@ -114,6 +117,8 @@ export interface PainelInterno {
   custoFixo: number;
   /** Quanto tempo o caixa aguenta no ritmo dos últimos meses. */
   folego: Folego;
+  /** O ano fechado: faturamento, resultado e as doze colunas do gráfico. */
+  ano: FaturamentoAnual;
 }
 
 /**
@@ -127,12 +132,14 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     financeiro,
     lancamentos,
     obrigacoes,
+    resumoAnual,
     { data: recorrencias },
     { count: ativos },
   ] = await Promise.all([
       obterPainelMes(mes),
       listarLancamentos({ mes }),
       listarObrigacoesUrgentes(),
+      obterResumoAnual(anoDoMes(mes)),
       supabase
         .from("financial_recurrences")
         .select("id, description, client_id, kind, amount, start_month, end_month, active")
@@ -220,6 +227,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       vigentes.filter((r) => r.kind === "Despesa").map((r) => Number(r.amount)),
     ),
     folego: calcularFolego(financeiro.resumo.saldoFinal, fechados, mes),
+    ano: faturamentoAnual(resumoAnual.ano, resumoAnual.serie),
   };
 }
 
