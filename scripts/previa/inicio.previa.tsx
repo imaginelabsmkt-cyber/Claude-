@@ -121,16 +121,16 @@ function Tela() {
 
           <div className="mt-5 border-t border-gray-100 pt-4">
             <p className="mb-2 text-sm font-semibold text-gray-700">
-              Entrou e saiu, mês a mês
+              O caixa no fim de cada mês
             </p>
-            <GraficoAno barras={ano.barras} mesFoco={MES} />
+            <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
           </div>
 
           <div className="mt-5 border-t border-gray-100 pt-4">
             <p className="mb-2 text-sm font-semibold text-gray-700">
-              O caixa no fim de cada mês
+              Entrou e saiu, mês a mês
             </p>
-            <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
+            <GraficoAno barras={ano.barras} mesFoco={MES} />
           </div>
         </div>
       </Secao>

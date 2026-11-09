@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { GraficoCaixa } from "@/components/interno/grafico-caixa";
@@ -9,7 +10,7 @@ import { formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Fluxo de caixa" };
+export const metadata = { title: "Caixa" };
 
 interface PageProps {
   searchParams: { mes?: string };
@@ -209,6 +210,15 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
           </div>
         </Secao>
       ) : null}
+
+      <p className="text-sm text-gray-500">
+        <Link
+          href={`/interno/financeiro/resumo-anual?mes=${mes}`}
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Ver o ano por categoria
+        </Link>
+      </p>
     </>
   );
 }

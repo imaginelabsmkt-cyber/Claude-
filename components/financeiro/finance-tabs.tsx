@@ -4,23 +4,43 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 /**
- * Abas do dia a dia do financeiro (mantêm o mês selecionado na URL).
+ * Abas do financeiro. CINCO, e cada uma responde o que nenhuma outra
+ * responde.
  *
- * "Categorias e saldo inicial" não entra aqui: é configuração que se mexe
- * uma vez, não uma tela de consulta. Ela fica no link discreto da direita.
+ * Eram oito, e a Fran disse que o financeiro estava confuso. Pela régua
+ * que ela mesma deu ("faz sentido se cada coisa tiver sua função"),
+ * três estavam respondendo o que outra já respondia:
+ *
+ *   Resumo anual      = o Mês, vezes doze. Virou link no Caixa.
+ *   Impostos          = Lançamentos filtrado por duas categorias.
+ *   Relatório do mês  = o Mês, formatado para imprimir.
+ *
+ * As três continuam existindo, e viraram link de onde elas pertencem.
+ * O que saiu foi a disputa por atenção no topo da tela.
+ *
+ * "Categorias e saldo inicial" também não entra: é configuração que se
+ * mexe uma vez. Fica no link discreto da direita.
  */
 const ABAS = [
-  { href: "/interno/financeiro", label: "Painel do mês" },
+  { href: "/interno/financeiro", label: "Mês" },
   { href: "/interno/financeiro/lancamentos", label: "Lançamentos" },
-  { href: "/interno/financeiro/fluxo-caixa", label: "Fluxo de caixa" },
-  { href: "/interno/financeiro/resumo-anual", label: "Resumo anual" },
   { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
-  { href: "/interno/financeiro/impostos", label: "Impostos" },
+  { href: "/interno/financeiro/fluxo-caixa", label: "Caixa" },
   { href: "/interno/financeiro/rentabilidade", label: "Por cliente" },
-  { href: "/interno/relatorio", label: "Relatório do mês" },
 ];
 
 const CONFIGURACAO = "/interno/financeiro/categorias";
+
+/**
+ * As telas que saíram do topo continuam acendendo a aba de onde
+ * vieram, senão a pessoa abre uma delas e a barra inteira fica apagada,
+ * como se ela tivesse saído do financeiro.
+ */
+const PERTENCE_A: Record<string, string> = {
+  "/interno/relatorio": "/interno/financeiro",
+  "/interno/financeiro/impostos": "/interno/financeiro",
+  "/interno/financeiro/resumo-anual": "/interno/financeiro/fluxo-caixa",
+};
 
 /**
  * Navegação interna do financeiro. Cada aba é uma responsabilidade só —
@@ -35,8 +55,10 @@ export function FinanceTabs() {
   return (
     <div className="mb-6 flex items-center gap-5 overflow-x-auto border-b border-gray-200">
       {ABAS.map((aba) => {
-        const ativa =
-          aba.href === "/interno/financeiro"
+        const herdada = PERTENCE_A[pathname];
+        const ativa = herdada
+          ? herdada === aba.href
+          : aba.href === "/interno/financeiro"
             ? pathname === "/interno/financeiro"
             : pathname.startsWith(aba.href);
         const href = mes ? `${aba.href}?mes=${mes}` : aba.href;

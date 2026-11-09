@@ -154,22 +154,16 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
 
       <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
         <Link
-          href={`/interno/financeiro/fluxo-caixa?mes=${mes}`}
+          href={`/interno/relatorio?mes=${mes}`}
           className="font-medium text-brand-700 hover:underline"
         >
-          O caixa mês a mês
+          Imprimir o fechamento
         </Link>
         <Link
-          href={`/interno/financeiro/rentabilidade?mes=${mes}`}
+          href={`/interno/financeiro/impostos?mes=${mes}`}
           className="font-medium text-brand-700 hover:underline"
         >
-          Quanto cada cliente deu
-        </Link>
-        <Link
-          href={`/interno/financeiro/recorrencias?mes=${mes}`}
-          className="font-medium text-brand-700 hover:underline"
-        >
-          O que se repete todo mês
+          Impostos e contabilidade
         </Link>
       </p>
     </>

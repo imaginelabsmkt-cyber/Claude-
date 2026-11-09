@@ -1405,6 +1405,54 @@ não troca o que já está em cache. O arquivo agora é
 `/public/icone-favie-financeiro.svg`, endereço que nunca existiu, mais
 o título por tela ("Lançamentos · Favie").
 
+## 5.25 O Financeiro tinha oito abas, e três repetiam
+
+> "o financeiro está totalmente confuso para mim"
+
+A régua para resolver isso não é "menos abas", é a que ela mesma deu
+quando eu tentei cortar áreas da primeira vez:
+
+> "manter os sete faz sentido se cada coisa tiver sua função. Mas é
+> porque tudo tá aparecendo as mesmas coisas, aí não faz sentido."
+
+Então a pergunta certa é: alguma aba responde o que outra já responde?
+Três respondiam.
+
+| Aba | O que ela era | Para onde foi |
+|---|---|---|
+| Resumo anual | o Mês, vezes doze | link no Caixa |
+| Impostos | Lançamentos filtrado por duas categorias | link no Mês |
+| Relatório do mês | o Mês, formatado para imprimir | link no Mês |
+
+Sobraram cinco, e cada uma responde uma pergunta que nenhuma outra
+responde:
+
+    Mês                   como foi este mês
+    Lançamentos           o que eu preciso resolver
+    Fixos e ferramentas   o que se repete, e se já paguei
+    Caixa                 para onde o caixa está indo
+    Por cliente           quanto cada cliente dá
+
+Nenhuma tela foi apagada: as três continuam existindo e abrem por link
+de onde elas pertencem, e a aba de origem continua acesa quando você
+está nelas (senão a barra apaga inteira e parece que você saiu do
+financeiro).
+
+### A ordem dos gráficos no dashboard
+
+Ela mandou o print do gráfico de LINHA dizendo "era esse que precisa
+aparecer primeiro", e eu pus as colunas na frente. A linha vem antes.
+Faz sentido: a linha responde "para onde isso está indo", que é a
+pergunta de quem abre o sistema; as colunas respondem "como foi cada
+mês", que é o detalhe de depois.
+
+### A aba do navegador começa com ADM
+
+"Lançamento não, tem que ser adm." A aba corta o texto no FIM, então o
+que identifica o sistema precisa ser a primeira palavra. Agora é
+"ADM · Lançamentos": com a aba estreita ela lê "ADM...", e com espaço
+lê também em que tela está.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

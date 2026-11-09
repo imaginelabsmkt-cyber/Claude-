@@ -3,11 +3,15 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   // O título da aba do navegador é o que diferencia este sistema do de
-  // demandas, que vive no mesmo navegador. Cada tela põe o próprio
-  // nome no lugar do %s, então a aba diz onde você está.
+  // demandas, que vive no mesmo navegador.
+  //
+  // "ADM" vem PRIMEIRO de propósito: a aba corta o texto no fim, não no
+  // começo, então o que identifica o sistema precisa ser a primeira
+  // palavra. Com a aba estreita ela lê "ADM..."; com espaço, lê
+  // "ADM · Lançamentos" e sabe também em que tela está.
   title: {
-    default: "Favie · Financeiro",
-    template: "%s · Favie",
+    default: "ADM · Favie",
+    template: "ADM · %s",
   },
   description: "Sistema financeiro e administrativo da Favie.",
   icons: {
