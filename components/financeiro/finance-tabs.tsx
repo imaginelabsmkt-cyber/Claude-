@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 /**
- * Abas do financeiro. CINCO, e cada uma responde o que nenhuma outra
+ * Abas do financeiro. QUATRO, e cada uma responde o que nenhuma outra
  * responde.
  *
  * Eram oito, e a Fran disse que o financeiro estava confuso. Pela régua
@@ -20,11 +20,22 @@ import { usePathname, useSearchParams } from "next/navigation";
  *
  * "Categorias e saldo inicial" também não entra: é configuração que se
  * mexe uma vez. Fica no link discreto da direita.
+ *
+ * A terceira aba chamava "Caixa" e levava ao caixa mês a mês. A Fran:
+ * "a gente tem o mensal, mas se eu quiser ver o anual eu não consigo,
+ * aí tá no caixa, mas o caixa é caixa anual". E é isso mesmo: a
+ * palavra "ano" não aparecia em lugar nenhum da barra, e o ano
+ * inteiro — que na planilha dela é a aba Resumo Anual — ficava
+ * escondido atrás de uma palavra que não é o nome dele.
+ *
+ * Agora a barra tem as duas vistas da planilha dela, com o nome que
+ * ela usa: o MÊS e o ANO. O caixa mês a mês continua existindo, como
+ * link dentro do Ano, e acende a aba Ano quando aberto.
  */
 const ABAS = [
   { href: "/interno/financeiro", label: "Mês" },
   { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
-  { href: "/interno/financeiro/fluxo-caixa", label: "Caixa" },
+  { href: "/interno/financeiro/resumo-anual", label: "Ano" },
   { href: "/interno/financeiro/rentabilidade", label: "Por cliente" },
 ];
 
@@ -39,7 +50,7 @@ const PERTENCE_A: Record<string, string> = {
   "/interno/relatorio": "/interno/financeiro",
   "/interno/financeiro/impostos": "/interno/financeiro",
   "/interno/financeiro/lancamentos": "/interno/financeiro",
-  "/interno/financeiro/resumo-anual": "/interno/financeiro/fluxo-caixa",
+  "/interno/financeiro/fluxo-caixa": "/interno/financeiro/resumo-anual",
 };
 
 /**

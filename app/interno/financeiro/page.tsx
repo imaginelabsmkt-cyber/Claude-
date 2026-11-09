@@ -5,6 +5,7 @@ import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
 import { GraficoDoMes } from "@/components/financeiro/grafico-do-mes";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
+import { Conta } from "@/components/interno/conta";
 import { Secao } from "@/components/interno/secao";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
@@ -82,55 +83,26 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
         titulo={`O mês de ${rotuloMes(mes)}`}
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-          <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Saldo no dia 1
-              </p>
-              <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
-                {formatarMoeda(resumo.saldoInicial)}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                {resumo.resultado >= 0 ? "Sobrou" : "Faltou"}
-              </p>
-              <p
-                className={
-                  "mt-0.5 text-xl font-bold tabular-nums " +
-                  (resumo.resultado < 0 ? "text-alerta" : "text-gray-900")
-                }
-              >
-                {formatarMoeda(Math.abs(resumo.resultado))}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Saldo no fim
-              </p>
-              <p
-                className={
-                  "mt-0.5 text-2xl font-bold tabular-nums " +
-                  (resumo.saldoFinal < 0 ? "text-alerta" : "text-gray-900")
-                }
-              >
-                {formatarMoeda(resumo.saldoFinal)}
-              </p>
-            </div>
-            {/* A margem só quando o mês já fechou. No dia 9, com três
-                mensalidades caídas e quase nada pago, ela dava 95,6%:
-                um número lindo que não quer dizer nada. */}
-            {resumo.receitas > 0 && emAberto === 0 ? (
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  Margem
-                </p>
-                <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
-                  {formatarPercentual(resumo.margem)}
-                </p>
-              </div>
-            ) : null}
-          </div>
+          {/* A conta do mês, com o sinal à vista: o saldo do dia 1,
+              mais (ou menos) o que o mês fez, dá o saldo do fim. É a
+              mesma conta da planilha e a mesma do dashboard. */}
+          <Conta
+            parcelas={[
+              { rotulo: "Saldo no dia 1", valor: resumo.saldoInicial },
+              {
+                rotulo: resumo.resultado >= 0 ? "Sobrou" : "Faltou",
+                valor: Math.abs(resumo.resultado),
+                sinal: resumo.resultado >= 0 ? "+" : "−",
+                alerta: resumo.resultado < 0,
+              },
+              {
+                rotulo: "Saldo no fim",
+                valor: resumo.saldoFinal,
+                sinal: "=",
+                alerta: resumo.saldoFinal < 0,
+              },
+            ]}
+          />
 
           <div className="mt-4 border-t border-gray-100 pt-4">
             <GraficoDoMes entrou={partes.entrou} saiu={partes.saiu} />

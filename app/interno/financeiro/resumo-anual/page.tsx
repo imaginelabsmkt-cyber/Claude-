@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
+import { Conta } from "@/components/interno/conta";
 import { Card } from "@/components/ui/card";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { obterResumoAnual, type LinhaResumoAnual } from "@/lib/data/financeiro";
@@ -113,52 +114,46 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
 
       <FinanceTabs />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Entrou
-          </p>
-          <p className="mt-1 text-xl font-bold text-green-700">
-            {formatarMoeda(resumo.totais.receitas)}
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Saiu
-          </p>
-          <p className="mt-1 text-xl font-bold text-red-600">
-            {formatarMoeda(resumo.totais.despesas)}
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Resultado
-          </p>
-          <p
-            className={
-              "mt-1 text-xl font-bold " +
-              (resumo.totais.resultado >= 0 ? "text-green-700" : "text-red-600")
-            }
+      {/* A mesma conta do painel do mês e do dashboard, para o ano
+          inteiro: entrou, saiu, o que sobrou e onde o caixa parou. */}
+      <div className="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+        <Conta
+          parcelas={[
+            { rotulo: "Entrou no ano", valor: resumo.totais.receitas },
+            { rotulo: "Saiu", valor: resumo.totais.despesas, sinal: "−" },
+            {
+              rotulo: resumo.totais.resultado >= 0 ? "Sobrou" : "Faltou",
+              valor: Math.abs(resumo.totais.resultado),
+              sinal: "=",
+              alerta: resumo.totais.resultado < 0,
+            },
+          ]}
+        />
+        <p className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-1 border-t border-gray-100 pt-3 text-sm text-gray-600">
+          <span>
+            em caixa no fim{" "}
+            <strong
+              className={
+                "font-semibold tabular-nums " +
+                (resumo.totais.saldoFinal < 0 ? "text-alerta" : "text-gray-900")
+              }
+            >
+              {formatarMoeda(resumo.totais.saldoFinal)}
+            </strong>
+          </span>
+          <span>
+            margem{" "}
+            <strong className="font-semibold tabular-nums text-gray-900">
+              {formatarPercentual(resumo.totais.margem)}
+            </strong>
+          </span>
+          <Link
+            href={`/interno/financeiro/fluxo-caixa?mes=${mesFoco}`}
+            className="font-medium text-brand-700 hover:underline"
           >
-            {formatarMoeda(resumo.totais.resultado)}
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Margem {formatarPercentual(resumo.totais.margem)}
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Em caixa no fim
-          </p>
-          <p
-            className={
-              "mt-1 text-xl font-bold " +
-              (resumo.totais.saldoFinal >= 0 ? "text-green-700" : "text-red-600")
-            }
-          >
-            {formatarMoeda(resumo.totais.saldoFinal)}
-          </p>
-        </Card>
+            Ver o caixa mês a mês
+          </Link>
+        </p>
       </div>
 
       <Card className="overflow-hidden">
