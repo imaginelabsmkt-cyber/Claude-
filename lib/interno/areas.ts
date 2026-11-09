@@ -39,6 +39,8 @@ export interface Area {
   pergunta: string;
   /** Cor da área em hex. Espelha `--area` no CSS; use só onde o CSS não alcança. */
   cor: string;
+  /** Nome do ícone em `components/interno/icone.tsx`. */
+  icone: string;
 }
 
 /** Áreas cujo conteúdo é privado de cada login. */
@@ -53,6 +55,7 @@ export const AREAS: Area[] = [
     contexto: "Cruzamento",
     pergunta: "Por onde eu começo hoje?",
     cor: "#3f3a3c",
+    icone: "inicio",
   },
   {
     id: "relatorio",
@@ -61,6 +64,7 @@ export const AREAS: Area[] = [
     contexto: "Fechamento",
     pergunta: "Como foi o mês que passou?",
     cor: "#3f3a3c",
+    icone: "relatorio",
   },
   {
     id: "comercial",
@@ -69,6 +73,7 @@ export const AREAS: Area[] = [
     contexto: "Carteira e funil",
     pergunta: "De onde vem o próximo cliente?",
     cor: "#7a2740",
+    icone: "comercial",
   },
   {
     id: "financeiro",
@@ -77,6 +82,7 @@ export const AREAS: Area[] = [
     contexto: "Fluxo de caixa",
     pergunta: "Quanto sobra no fim do mês?",
     cor: "#0f5d52",
+    icone: "financeiro",
   },
   {
     id: "pessoas",
@@ -85,6 +91,7 @@ export const AREAS: Area[] = [
     contexto: "Sócias e freelas",
     pergunta: "Quanto custa a equipe?",
     cor: "#6f4a9b",
+    icone: "pessoas",
   },
   {
     id: "contabil",
@@ -93,6 +100,7 @@ export const AREAS: Area[] = [
     contexto: "Obrigações",
     pergunta: "O que tem prazo com o governo?",
     cor: "#1d5a9e",
+    icone: "contabil",
   },
   {
     id: "administrativo",
@@ -101,6 +109,7 @@ export const AREAS: Area[] = [
     contexto: "Contratos e ferramentas",
     pergunta: "O que a empresa assina e paga?",
     cor: "#8a5a16",
+    icone: "administrativo",
   },
   {
     id: "pessoal",
@@ -109,6 +118,7 @@ export const AREAS: Area[] = [
     contexto: "Só você vê",
     pergunta: "Como está o MEU mês?",
     cor: "#a62a6a",
+    icone: "pessoal",
   },
 ];
 

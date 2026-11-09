@@ -562,6 +562,63 @@ Privacidade aqui é entre as telas, não contra o administrador — e isso
 está dito em `supabase/migrations/20261011120000_pessoal.sql`, no topo,
 para ninguém descobrir depois.
 
+## 5.10 Prospecção — qual canal vira cliente
+
+A Vitória trabalha a captação por canal, seguindo um guia próprio:
+social selling, indicação, eventos e parcerias. O guia tem roteiro,
+checklist e meta diária — e **nada disso entra aqui**. Roteiro de
+abordagem não é dado da empresa; vive onde ela já o mantém.
+
+O que o guia NÃO tem, e o sistema tem, são os números reais. Então a
+tela de Prospecção responde uma pergunta só: **em qual canal vale a
+pena gastar a próxima hora?**
+
+### `channel` substituiu `source`, em vez de conviver com ele
+
+Já existia `source`, um texto com lista de sugestões ("Indicação",
+"Instagram", "Evento"...). Pôr um campo de canal ao lado criaria dois
+seletores parecidos na mesma ficha — o tipo de coisa que faz quem usa
+parar para pensar qual é qual.
+
+Então `channel` (enum, 5 valores) virou a estrutura, e `source` virou
+o **detalhe em texto livre**: quem indicou, qual evento, qual parceiro.
+A migration ainda converte o `source` antigo para o canal
+correspondente, para não jogar fora o que já estava escrito.
+
+### `max_stage`: por que a etapa atual não basta
+
+O funil precisa dizer "de 40 contatos, 6 chegaram à proposta". Com
+apenas a etapa ATUAL isso é impossível: uma oportunidade perdida na
+negociação vira `Perdido` e some de todos os degraus, como se nunca
+tivesse existido. O funil ficaria otimista exatamente onde dói.
+
+`max_stage` guarda a etapa mais avançada já alcançada, mantida por
+gatilho no banco. Regras, verificadas em Postgres real:
+
+| Aconteceu | `stage` | `max_stage` |
+| --- | --- | --- |
+| Criou em Contato feito | Contato feito | Contato feito |
+| Avançou até Negociação | Negociação | Negociação |
+| **Perdeu** | Perdido | **Negociação** (lembra onde chegou) |
+| Voltou para Contato feito | Contato feito | **Negociação** (não retrocede) |
+| Fechou | Fechado | Fechado |
+
+### As decisões de leitura
+
+- **A conversão ignora as oportunidades abertas.** Incluir no
+  denominador quem ainda nem decidiu faz um canal novo parecer ruim só
+  por ser novo.
+- **A barra mede mensalidade conquistada, não contagem de leads.** Um
+  canal com 40 conversas e zero fechamentos vale menos que um com 4 e
+  dois fechamentos; contar leads diria o contrário.
+- **Um tom só nas barras, nome do canal ao lado.** Uma medida por
+  categoria é grandeza, não identidade: pintar cada linha de uma cor
+  seria decorar. A paleta categórica foi testada no validador da
+  skill de dataviz e reprovou na separação entre dois canais para quem
+  enxerga cor de outro jeito — motivo a mais para não usá-la aqui.
+- **`contatosPorCliente` devolve `null` sem nenhum fechamento.** Um
+  palpite ("costuma ser 100 para 1") seria pior que silêncio.
+
 ## 6. Convenções de código
 
 - **Rotas/arquivos:** `kebab-case`.

@@ -4,6 +4,7 @@ import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import type {
   FinancialEntry,
   Lead,
+  LeadChannel,
   LeadStage,
   LeadWithRelations,
   Proposal,
@@ -196,5 +197,38 @@ export async function listarEncerrados(
   return (data ?? []).map((l) => ({
     ...l,
     estimated_monthly: Number(l.estimated_monthly),
+  }));
+}
+
+// -------------------------------------------------------------
+// Prospecção
+// -------------------------------------------------------------
+
+/** O recorte mínimo que a tela de Prospecção precisa de cada lead. */
+export interface LeadProspeccao {
+  channel: LeadChannel;
+  stage: LeadStage;
+  max_stage: LeadStage;
+  estimated_monthly: number;
+}
+
+/**
+ * Todas as oportunidades, do jeito que a Prospecção lê.
+ *
+ * Sem filtro de etapa de propósito: o funil e a conversão por canal
+ * só fazem sentido com as perdidas e as fechadas dentro da conta —
+ * olhar só as abertas mostraria um funil que nunca perde ninguém.
+ */
+export async function listarProspeccao(): Promise<LeadProspeccao[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("commercial_leads")
+    .select("channel, stage, max_stage, estimated_monthly");
+
+  return (data ?? []).map((l) => ({
+    channel: l.channel,
+    stage: l.stage,
+    max_stage: l.max_stage,
+    estimated_monthly: Number(l.estimated_monthly) || 0,
   }));
 }

@@ -1,7 +1,7 @@
 -- =============================================================
 -- FAVIE — SCHEMA COMPLETO (arquivo único)
 --
--- Junta as 22 migrations na ordem correta, para você colar UMA VEZ
+-- Junta as 23 migrations na ordem correta, para você colar UMA VEZ
 -- no SQL Editor do Supabase em vez de rodar uma a uma.
 --
 -- É seguro rodar mais de uma vez: todas as partes são idempotentes.
@@ -14,7 +14,7 @@
 
 
 -- =============================================================
--- [01/22] 20260714120000_initial_schema.sql
+-- [01/23] 20260714120000_initial_schema.sql
 -- =============================================================
 
 -- =============================================================
@@ -353,7 +353,7 @@ create policy "comments_all_authenticated"
 
 
 -- =============================================================
--- [02/22] 20260715120000_client_niche_monthly_goal.sql
+-- [02/23] 20260715120000_client_niche_monthly_goal.sql
 -- =============================================================
 
 -- =============================================================
@@ -370,7 +370,7 @@ alter table public.clients drop column if exists posting_frequency;
 
 
 -- =============================================================
--- [03/22] 20260715130000_content_script_caption.sql
+-- [03/23] 20260715130000_content_script_caption.sql
 -- =============================================================
 
 -- =============================================================
@@ -385,7 +385,7 @@ alter table public.contents add column if not exists caption text;
 
 
 -- =============================================================
--- [04/22] 20260715140000_content_reference_url.sql
+-- [04/23] 20260715140000_content_reference_url.sql
 -- =============================================================
 
 -- =============================================================
@@ -399,7 +399,7 @@ alter table public.contents add column if not exists reference_url text;
 
 
 -- =============================================================
--- [05/22] 20260716120000_hardening_rls.sql
+-- [05/23] 20260716120000_hardening_rls.sql
 -- =============================================================
 
 -- =============================================================
@@ -527,7 +527,7 @@ $$;
 
 
 -- =============================================================
--- [06/22] 20260717120000_content_recording_time.sql
+-- [06/23] 20260717120000_content_recording_time.sql
 -- =============================================================
 
 -- =============================================================
@@ -541,7 +541,7 @@ alter table public.contents add column if not exists recording_time text;
 
 
 -- =============================================================
--- [07/22] 20260718120000_google_integration.sql
+-- [07/23] 20260718120000_google_integration.sql
 -- =============================================================
 
 -- =============================================================
@@ -596,7 +596,7 @@ create policy "google_sync_own"
 
 
 -- =============================================================
--- [08/22] 20260719120000_plannings.sql
+-- [08/23] 20260719120000_plannings.sql
 -- =============================================================
 
 -- =============================================================
@@ -639,7 +639,7 @@ create trigger trg_plannings_updated_at
 
 
 -- =============================================================
--- [09/22] 20260720120000_planning_google_sync.sql
+-- [09/23] 20260720120000_planning_google_sync.sql
 -- =============================================================
 
 -- =============================================================
@@ -671,7 +671,7 @@ create policy "planning_google_sync_own"
 
 
 -- =============================================================
--- [10/22] 20260721120000_planning_situation.sql
+-- [10/23] 20260721120000_planning_situation.sql
 -- =============================================================
 
 -- Situação MANUAL do planejamento (marcada pela planejadora, não automática).
@@ -681,7 +681,7 @@ alter table public.plannings
 
 
 -- =============================================================
--- [11/22] 20260722120000_google_calendars.sql
+-- [11/23] 20260722120000_google_calendars.sql
 -- =============================================================
 
 -- Calendários próprios da agência dentro da conta Google de cada usuário.
@@ -694,7 +694,7 @@ alter table public.google_accounts
 
 
 -- =============================================================
--- [12/22] 20260723120000_content_cover_source.sql
+-- [12/23] 20260723120000_content_cover_source.sql
 -- =============================================================
 
 -- Vincula uma CAPA (arte) ao vídeo de origem, para gerar a demanda de capa
@@ -707,7 +707,7 @@ create index if not exists idx_contents_cover_source
 
 
 -- =============================================================
--- [13/22] 20260724120000_client_files.sql
+-- [13/23] 20260724120000_client_files.sql
 -- =============================================================
 
 -- =============================================================
@@ -788,7 +788,7 @@ create policy "client_files_objects_delete"
 
 
 -- =============================================================
--- [14/22] 20260725120000_client_onboarding_reports.sql
+-- [14/23] 20260725120000_client_onboarding_reports.sql
 -- =============================================================
 
 -- =============================================================
@@ -870,7 +870,7 @@ on conflict (id) do nothing;
 
 
 -- =============================================================
--- [15/22] 20260726120000_client_diagnostics.sql
+-- [15/23] 20260726120000_client_diagnostics.sql
 -- =============================================================
 
 -- =============================================================
@@ -910,7 +910,7 @@ create policy "client_diagnostics_all_authenticated"
 
 
 -- =============================================================
--- [16/22] 20260727120000_report_analysis.sql
+-- [16/23] 20260727120000_report_analysis.sql
 -- =============================================================
 
 -- =============================================================
@@ -925,7 +925,7 @@ alter table public.client_reports
 
 
 -- =============================================================
--- [17/22] 20260908120000_financeiro.sql
+-- [17/23] 20260908120000_financeiro.sql
 -- =============================================================
 
 -- =============================================================
@@ -1129,7 +1129,7 @@ on conflict (kind, name) do nothing;
 
 
 -- =============================================================
--- [18/22] 20260921120000_comercial.sql
+-- [18/23] 20260921120000_comercial.sql
 -- =============================================================
 
 -- =============================================================
@@ -1296,7 +1296,7 @@ create policy "commercial_proposals_all_authenticated"
 
 
 -- =============================================================
--- [19/22] 20260922120000_empresa.sql
+-- [19/23] 20260922120000_empresa.sql
 -- =============================================================
 
 -- =============================================================
@@ -1501,7 +1501,7 @@ where not exists (select 1 from public.company_obligations);
 
 
 -- =============================================================
--- [20/22] 20260923120000_pessoas.sql
+-- [20/23] 20260923120000_pessoas.sql
 -- =============================================================
 
 -- =============================================================
@@ -1626,7 +1626,7 @@ update public.financial_recurrences r
 
 
 -- =============================================================
--- [21/22] 20260924120000_seguranca.sql
+-- [21/23] 20260924120000_seguranca.sql
 -- =============================================================
 
 -- =============================================================
@@ -1874,7 +1874,7 @@ drop policy if exists "company_files_objects_delete" on storage.objects;
 
 
 -- =============================================================
--- [22/22] 20261011120000_pessoal.sql
+-- [22/23] 20261011120000_pessoal.sql
 -- =============================================================
 
 -- =============================================================
@@ -2065,3 +2065,153 @@ $$;
 
 revoke all on function public.vincular_me_a_pessoa(uuid) from anon;
 grant execute on function public.vincular_me_a_pessoa(uuid) to authenticated;
+
+
+-- =============================================================
+-- [23/23] 20261109120000_prospeccao.sql
+-- =============================================================
+
+-- =============================================================
+-- Prospecção — de onde vem cada oportunidade
+--
+-- A Vitória trabalha a captação por CANAL (social selling,
+-- indicação, eventos, parcerias). Até aqui o funil sabia em que
+-- etapa cada oportunidade está, mas não de onde ela veio — então
+-- não dava para responder a única pergunta que decide onde investir
+-- tempo: "qual canal realmente vira cliente?".
+--
+-- Uma coluna resolve. Nada de tabela nova: canal é um atributo da
+-- oportunidade, não uma entidade.
+--
+-- Idempotente.
+-- =============================================================
+
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lead_channel') then
+    create type lead_channel as enum (
+      'Social selling',
+      'Indicação',
+      'Evento',
+      'Parceria',
+      'Outro'
+    );
+  end if;
+end
+$$;
+
+alter table public.commercial_leads
+  add column if not exists channel lead_channel not null default 'Outro';
+
+comment on column public.commercial_leads.channel is
+  'Canal de prospecção de onde a oportunidade veio.';
+
+-- A consulta da tela de prospecção parte sempre de (canal, etapa).
+create index if not exists idx_commercial_leads_channel
+  on public.commercial_leads (channel, stage);
+
+-- -------------------------------------------------------------
+-- 2. Até onde a oportunidade chegou
+--
+-- O funil precisa responder "de 40 contatos, quantos chegaram à
+-- proposta?". Só com a etapa ATUAL isso é impossível: uma
+-- oportunidade perdida na negociação vira "Perdido" e some do funil
+-- inteiro, como se nunca tivesse passado por lugar nenhum. O funil
+-- ficaria otimista justamente onde dói.
+--
+-- `max_stage` guarda a etapa mais avançada já alcançada. O gatilho
+-- que já existia (marcar_mudanca_etapa) passa a mantê-la: ela só
+-- anda para a frente, nunca para trás.
+--
+-- 'Fechado' e 'Perdido' não são "mais avançados" que 'Negociação'
+-- para este fim — são as saídas. Fechado avança (é o fim bom do
+-- funil); Perdido não mexe, preservando o último degrau real.
+-- -------------------------------------------------------------
+alter table public.commercial_leads
+  add column if not exists max_stage lead_stage not null default 'Contato feito';
+
+comment on column public.commercial_leads.max_stage is
+  'Etapa mais avançada já alcançada. Só avança. Alimenta o funil acumulado.';
+
+create or replace function public.posicao_da_etapa(e lead_stage)
+returns int
+language sql
+immutable
+as $$
+  select case e
+    when 'Contato feito'    then 1
+    when 'Diagnóstico'      then 2
+    when 'Proposta enviada' then 3
+    when 'Negociação'       then 4
+    when 'Fechado'          then 5
+    else 0                                  -- Perdido: não é degrau
+  end;
+$$;
+
+create or replace function public.marcar_mudanca_etapa()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.stage is distinct from old.stage then
+    new.stage_changed_at = now();
+  end if;
+
+  -- max_stage só anda para a frente.
+  if public.posicao_da_etapa(new.stage)
+     > public.posicao_da_etapa(new.max_stage) then
+    new.max_stage = new.stage;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_leads_stage_changed on public.commercial_leads;
+create trigger trg_leads_stage_changed
+  before update on public.commercial_leads
+  for each row execute function public.marcar_mudanca_etapa();
+
+-- Na inserção, a etapa inicial já é a máxima.
+create or replace function public.definir_etapa_maxima_inicial()
+returns trigger
+language plpgsql
+as $$
+begin
+  if public.posicao_da_etapa(new.stage) > 0 then
+    new.max_stage = new.stage;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_leads_max_stage_insert on public.commercial_leads;
+create trigger trg_leads_max_stage_insert
+  before insert on public.commercial_leads
+  for each row execute function public.definir_etapa_maxima_inicial();
+
+-- Para as oportunidades que já existem: a etapa atual é o que se sabe.
+update public.commercial_leads
+   set max_stage = stage
+ where public.posicao_da_etapa(stage) > public.posicao_da_etapa(max_stage);
+
+-- -------------------------------------------------------------
+-- 3. Aproveita o que já estava escrito em `source`
+--
+-- Antes desta migration o único registro de origem era `source`, um
+-- texto escolhido numa lista ("Indicação", "Instagram", "Evento"...).
+-- Em vez de jogar fora, mapeia para o canal e deixa o texto original
+-- no lugar — ele passa a ser o detalhe ("quem indicou", "qual
+-- evento"), que o canal não guarda.
+-- -------------------------------------------------------------
+update public.commercial_leads
+   set channel = case
+         when source ilike 'indica%'                      then 'Indicação'
+         when source ilike 'evento%'                      then 'Evento'
+         when source ilike 'instagram%'
+           or source ilike 'prospec%'                     then 'Social selling'
+         when source ilike 'parceri%'                     then 'Parceria'
+         else 'Outro'
+       end::lead_channel
+ where channel = 'Outro'
+   and source is not null;

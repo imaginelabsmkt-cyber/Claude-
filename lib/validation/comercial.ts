@@ -32,6 +32,13 @@ export const leadFormSchema = z.object({
     .optional(),
   contact_phone: z.string().trim().max(40).or(z.literal("")).optional(),
   source: z.string().trim().max(40).or(z.literal("")).optional(),
+  channel: z.enum([
+    "Social selling",
+    "Indicação",
+    "Evento",
+    "Parceria",
+    "Outro",
+  ]),
   stage: z.enum([
     "Contato feito",
     "Diagnóstico",
@@ -52,6 +59,7 @@ export const LEAD_FORM_PADRAO: LeadFormValues = {
   contact_email: "",
   contact_phone: "",
   source: "",
+  channel: "Social selling",
   stage: "Contato feito",
   estimated_monthly: "",
   notes: "",

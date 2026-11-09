@@ -62,6 +62,7 @@ function normalizarLead(values: LeadFormValues) {
     contact_email: limpar(values.contact_email),
     contact_phone: limpar(values.contact_phone),
     source: limpar(values.source),
+    channel: values.channel,
     stage: values.stage,
     estimated_monthly: paraNumero(values.estimated_monthly ?? "") ?? 0,
     notes: limpar(values.notes),

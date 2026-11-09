@@ -467,6 +467,19 @@ export type LeadStage =
   | "Fechado"
   | "Perdido";
 
+/**
+ * Canal de prospecção. Estruturado de propósito: é com ele que a tela
+ * de Prospecção responde "qual canal vira cliente?". O campo `source`
+ * continua existindo ao lado, em texto livre, para o detalhe — quem
+ * indicou, qual evento, qual parceiro.
+ */
+export type LeadChannel =
+  | "Social selling"
+  | "Indicação"
+  | "Evento"
+  | "Parceria"
+  | "Outro";
+
 export type ProposalStatus = "Rascunho" | "Enviada" | "Aceita" | "Recusada";
 
 /** commercial_leads — uma oportunidade no funil. */
@@ -477,7 +490,11 @@ export type Lead = {
   contact_email: string | null;
   contact_phone: string | null;
   source: string | null;
+  /** De onde a oportunidade veio. */
+  channel: LeadChannel;
   stage: LeadStage;
+  /** Etapa mais avançada já alcançada. Mantida pelo banco; só avança. */
+  max_stage: LeadStage;
   estimated_monthly: number;
   notes: string | null;
   /** Preenchido quando o lead é ganho: o cliente que nasceu dele. */
@@ -513,17 +530,21 @@ export type LeadInsert = Omit<
   | "updated_at"
   | "stage_changed_at"
   | "stage"
+  | "max_stage"
   | "estimated_monthly"
   | "contact_name"
   | "contact_email"
   | "contact_phone"
   | "source"
+  | "channel"
   | "notes"
   | "client_id"
   | "lost_reason"
 > & {
   id?: UUID;
   stage?: LeadStage;
+  max_stage?: LeadStage;
+  channel?: LeadChannel;
   estimated_monthly?: number;
   contact_name?: string | null;
   contact_email?: string | null;
@@ -1061,6 +1082,7 @@ export interface Database {
       financial_kind: FinancialKind;
       financial_status: FinancialStatus;
       lead_stage: LeadStage;
+      lead_channel: LeadChannel;
       proposal_status: ProposalStatus;
       obligation_cadence: ObligationCadence;
       team_kind: TeamKind;

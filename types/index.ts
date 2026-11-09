@@ -24,6 +24,7 @@ import type {
   Lead,
   ObligationCadence,
   TeamKind,
+  LeadChannel,
   LeadStage,
   Proposal,
   ProposalStatus,
@@ -209,6 +210,15 @@ export const PAYMENT_METHOD_OPTIONS: string[] = [
 // -------------------------------------------------------------
 
 /** Etapas na ordem do funil (as duas últimas encerram). */
+/** Canais de prospecção, na ordem em que aparecem nas telas. */
+export const LEAD_CHANNEL_OPTIONS: LeadChannel[] = [
+  "Social selling",
+  "Indicação",
+  "Evento",
+  "Parceria",
+  "Outro",
+];
+
 export const LEAD_STAGE_OPTIONS: LeadStage[] = [
   "Contato feito",
   "Diagnóstico",

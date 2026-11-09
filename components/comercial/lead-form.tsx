@@ -15,7 +15,7 @@ import {
   leadFormSchema,
   type LeadFormValues,
 } from "@/lib/validation/comercial";
-import { LEAD_SOURCE_OPTIONS, LEAD_STAGES_ABERTAS } from "@/types";
+import { LEAD_CHANNEL_OPTIONS, LEAD_STAGES_ABERTAS } from "@/types";
 import type { Lead } from "@/types";
 
 interface LeadFormProps {
@@ -36,6 +36,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
           contact_email: lead.contact_email ?? "",
           contact_phone: lead.contact_phone ?? "",
           source: lead.source ?? "",
+          channel: lead.channel,
           stage: lead.stage,
           estimated_monthly: paraCampo(Number(lead.estimated_monthly)),
           notes: lead.notes ?? "",
@@ -138,19 +139,32 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
           </p>
         </div>
         <div>
-          <Label htmlFor="l-source">Como chegou</Label>
+          <Label htmlFor="l-channel">Canal de prospecção</Label>
           <Select
-            id="l-source"
-            value={values.source ?? ""}
-            onChange={(e) => atualizar("source", e.target.value)}
+            id="l-channel"
+            value={values.channel}
+            onChange={(e) =>
+              atualizar("channel", e.target.value as LeadFormValues["channel"])
+            }
           >
-            <option value="">—</option>
-            {LEAD_SOURCE_OPTIONS.map((o) => (
+            {LEAD_CHANNEL_OPTIONS.map((o) => (
               <option key={o} value={o}>
                 {o}
               </option>
             ))}
           </Select>
+          <p className="mt-1 text-xs text-gray-500">
+            É por aqui que a Prospecção mostra qual canal vira cliente.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="l-source">Detalhe (opcional)</Label>
+          <Input
+            id="l-source"
+            value={values.source ?? ""}
+            onChange={(e) => atualizar("source", e.target.value)}
+            placeholder="quem indicou, qual evento, qual parceiro"
+          />
         </div>
         <div>
           <Label htmlFor="l-contact">Contato</Label>
