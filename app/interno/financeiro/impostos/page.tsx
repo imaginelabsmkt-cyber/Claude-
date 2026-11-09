@@ -33,7 +33,6 @@ export default async function ContabilPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Impostos e contábil"
         contexto="O que o governo e a contabilidade levam"
         acao={<MonthNav mes={mes} />}
       />

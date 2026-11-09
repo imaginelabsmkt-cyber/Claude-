@@ -46,7 +46,7 @@ function Painel() {
           <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Faturamento de {ano.ano}
+                Faturamento
               </p>
               <p className="mt-0.5 text-4xl font-bold tabular-nums tracking-tight text-gray-900 sm:text-5xl">
                 {formatarMoeda(ano.recebido)}
@@ -61,11 +61,11 @@ function Painel() {
             </div>
             <dl className="flex flex-wrap gap-x-8 gap-y-3">
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Saiu no ano</dt>
+                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Saiu</dt>
                 <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">{formatarMoeda(ano.pago)}</dd>
               </div>
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Faltou no ano</dt>
+                <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Faltou</dt>
                 <dd className="mt-0.5 text-xl font-bold tabular-nums text-alerta">
                   {formatarMoeda(Math.abs(ano.resultado))}
                 </dd>
@@ -85,7 +85,7 @@ function Painel() {
           <p className="mt-4 border-t border-gray-100 pt-3 text-sm text-gray-600">
             Ainda falta receber{" "}
             <strong className="font-semibold text-gray-900">{formatarMoeda(ano.aReceber)}</strong>{" "}
-            de lançamentos deste ano. Se tudo entrar, {ano.ano} fecha em{" "}
+            de lançamentos já feitos. Se tudo entrar, o ano fecha em{" "}
             <strong className="font-semibold text-gray-900">{formatarMoeda(ano.previsto)}</strong>.
           </p>
 
@@ -101,7 +101,7 @@ function Painel() {
 
       <Secao
         titulo="O caixa hoje"
-        explicacao="O dinheiro que existe agora, e por quanto tempo ele cobre a operação."
+        explicacao="Quanto tem agora, e até quando isso dura."
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
           <p className="text-3xl font-bold tabular-nums tracking-tight text-gray-900">
@@ -115,7 +115,7 @@ function Painel() {
           </p>
 
           <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="mb-1 text-sm font-semibold text-gray-700">O caixa ao longo de {ano.ano}</p>
+            <p className="mb-1 text-sm font-semibold text-gray-700">O caixa ao longo do ano</p>
             <p className="mb-3 text-[13px] text-gray-500">
               Quanto sobrou no fim de cada mês. As colunas acima contam como foi cada mês; esta
               linha conta para onde isso está indo.
@@ -144,9 +144,9 @@ function Painel() {
       >
         <div className="grid gap-3 sm:grid-cols-3">
           {[
-            { r: "Entrou no mês", v: formatarMoeda(11350), d: "2 ainda a receber" },
-            { r: "Saiu no mês", v: formatarMoeda(15837.74), d: "3 ainda a pagar" },
-            { r: "Faltou", v: formatarMoeda(4487.74), d: "no mês até agora" },
+            { r: "Entrou", v: formatarMoeda(11350), d: "2 ainda a receber" },
+            { r: "Saiu", v: formatarMoeda(15837.74), d: "3 ainda a pagar" },
+            { r: "Faltou", v: formatarMoeda(4487.74), d: "até agora" },
           ].map((x) => (
             <div key={x.r} className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
               <p className="text-[10.5px] font-semibold uppercase tracking-wider text-gray-500">{x.r}</p>

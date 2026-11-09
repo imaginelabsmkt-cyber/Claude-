@@ -39,7 +39,6 @@ export default async function RecorrenciasPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Fixos e ferramentas"
         contexto="O que se repete todo mês, sem ninguém precisar lançar"
       />
 

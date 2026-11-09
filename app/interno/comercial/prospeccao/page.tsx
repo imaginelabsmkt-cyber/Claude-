@@ -42,8 +42,7 @@ export default async function ProspeccaoPage() {
   return (
     <>
       <AreaHeader
-        titulo="Prospecção"
-        contexto="De onde vêm os clientes"
+        contexto="De onde vêm os clientes, e qual canal fecha"
       />
 
       <ComercialTabs />

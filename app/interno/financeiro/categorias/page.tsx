@@ -14,7 +14,7 @@ export default async function CategoriasFinanceiroPage() {
 
   return (
     <>
-      <AreaHeader titulo="Categorias e saldo inicial" contexto="Configuração" />
+      <AreaHeader contexto="Categorias e saldo inicial: mexe uma vez e esquece" />
 
       <FinanceTabs />
 

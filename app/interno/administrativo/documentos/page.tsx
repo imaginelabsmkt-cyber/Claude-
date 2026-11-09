@@ -41,7 +41,6 @@ export default async function DocumentosPage() {
   return (
     <>
       <AreaHeader
-        titulo="Documentos"
         contexto={
           abertas > 0
             ? `${documentos.length + contratos.length} arquivos · ${abertas} ${abertas === 1 ? "prazo em aberto" : "prazos em aberto"}`

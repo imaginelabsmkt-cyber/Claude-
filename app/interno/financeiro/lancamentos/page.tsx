@@ -72,7 +72,6 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Lançamentos"
         contexto="Tudo que entrou e saiu, linha por linha"
         acao={<MonthNav mes={mes} />}
       />

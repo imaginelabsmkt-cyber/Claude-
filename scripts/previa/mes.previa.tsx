@@ -96,10 +96,10 @@ function Tela() {
           <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
             {[
               ["Saldo no dia 1", formatarMoeda(SALDO_INICIAL), false, "text-xl"],
-              ["Sobrou no mês", formatarMoeda(resultado), false, "text-xl"],
+              ["Sobrou", formatarMoeda(resultado), false, "text-xl"],
               ["Saldo no fim", formatarMoeda(saldoFinal), false, "text-2xl"],
               [
-                "Margem do mês",
+                "Margem",
                 formatarPercentual(resultado / RECEITAS_PAGAS),
                 false,
                 "text-xl",
@@ -123,8 +123,8 @@ function Tela() {
             Ainda falta movimentar{" "}
             <strong className="font-semibold text-gray-900">
               {formatarMoeda(A_RECEBER + A_PAGAR)}
-            </strong>{" "}
-            deste mês. Se tudo se confirmar, o mês fecha em{" "}
+            </strong>
+            . Se tudo se confirmar, fecha em{" "}
             <strong className="font-semibold text-gray-900">
               {formatarMoeda(previsto)}
             </strong>

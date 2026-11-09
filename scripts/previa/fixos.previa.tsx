@@ -18,6 +18,10 @@ import {
   type GrupoFixo,
   type RecorrenciaFixa,
 } from "@/lib/financeiro/fixos";
+import {
+  clienteSeFizerFalta,
+  semRepetirOGrupo,
+} from "@/lib/financeiro/nomes";
 import { formatarMoeda } from "@/lib/utils";
 
 const BARRA = {
@@ -82,14 +86,16 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2">
-        <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-          {grupo.categoria}
-        </h3>
-        <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
-          {formatarMoeda(grupo.total)}
-        </span>
-      </div>
+      {grupo.itens.length > 1 ? (
+        <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2">
+          <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+            {grupo.categoria}
+          </h3>
+          <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
+            {formatarMoeda(grupo.total)}
+          </span>
+        </div>
+      ) : null}
       <ul className="divide-y divide-gray-100">
         {grupo.itens.map((item) => (
           <li
@@ -98,7 +104,9 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
           >
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
-                {item.description}
+                {grupo.itens.length > 1
+                  ? semRepetirOGrupo(item.description, grupo.categoria)
+                  : item.description}
                 {item.vigente ? null : (
                   <span className="ml-2 inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 align-middle text-xs font-medium text-gray-700">
                     Pausada
@@ -138,7 +146,14 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
                 <span className="flex-1" />
               )}
               <span className="shrink-0 text-xs text-gray-400">
-                {item.cliente ? `${item.cliente} · ` : ""}
+                {clienteSeFizerFalta(
+                  grupo.itens.length > 1
+                    ? semRepetirOGrupo(item.description, grupo.categoria)
+                    : item.description,
+                  item.cliente,
+                )
+                  ? `${item.cliente} · `
+                  : ""}
                 {item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
               </span>
             </div>
@@ -157,17 +172,17 @@ function Tela() {
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         {[
           {
-            r: "Entra todo mês",
+            r: "Entra",
             v: formatarMoeda(plano.entra),
             d: "mensalidades em contrato",
           },
           {
-            r: "Sai todo mês",
+            r: "Sai",
             v: formatarMoeda(plano.sai),
             d: "pró-labore, ferramentas, impostos",
           },
           {
-            r: "Falta todo mês",
+            r: "Falta",
             v: formatarMoeda(Math.abs(plano.sobra)),
             d: "só do que se repete",
             alerta: true,
@@ -194,7 +209,7 @@ function Tela() {
       </div>
 
       <Secao
-        titulo="O que sai todo mês"
+        titulo="O que sai"
         explicacao="Por categoria, da mais cara para a mais barata. A barrinha é a fatia do item dentro do grupo dele."
       >
         <div className="space-y-3">
@@ -205,8 +220,8 @@ function Tela() {
       </Secao>
 
       <Secao
-        titulo="O que entra todo mês"
-        explicacao="As mensalidades em contrato. Mudou aqui, muda a cobrança do mês."
+        titulo="O que entra"
+        explicacao="As mensalidades em contrato. Mudou aqui, muda a cobrança."
       >
         <div className="space-y-3">
           {plano.gruposReceita.map((g) => (

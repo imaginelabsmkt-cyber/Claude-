@@ -121,7 +121,6 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Fluxo de caixa"
         contexto="O caixa mês a mês, do primeiro lançamento até hoje"
         acao={<MonthNav mes={mes} />}
       />

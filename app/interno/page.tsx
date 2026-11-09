@@ -58,7 +58,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Faturamento de {ano.ano}
+                Faturamento
               </p>
               <p className="mt-0.5 text-4xl font-bold tabular-nums tracking-tight text-gray-900 sm:text-5xl">
                 {formatarMoeda(ano.recebido)}
@@ -82,7 +82,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
             <dl className="flex flex-wrap gap-x-8 gap-y-3">
               <div>
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  Saiu no ano
+                  Saiu
                 </dt>
                 <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
                   {formatarMoeda(ano.pago)}
@@ -90,7 +90,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
               </div>
               <div>
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  {ano.resultado >= 0 ? "Sobrou no ano" : "Faltou no ano"}
+                  {ano.resultado >= 0 ? "Sobrou" : "Faltou"}
                 </dt>
                 <dd
                   className={
@@ -123,7 +123,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
               <strong className="font-semibold text-gray-900">
                 {formatarMoeda(ano.aReceber)}
               </strong>{" "}
-              de lançamentos deste ano. Se tudo entrar, {ano.ano} fecha em{" "}
+              de lançamentos já feitos. Se tudo entrar, o ano fecha em{" "}
               <strong className="font-semibold text-gray-900">
                 {formatarMoeda(ano.previsto)}
               </strong>
@@ -147,7 +147,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
       {/* 2. O CAIXA — quanto tem hoje e por quanto tempo dura */}
       <Secao
         titulo="O caixa hoje"
-        explicacao="O dinheiro que existe agora, e por quanto tempo ele cobre a operação."
+        explicacao="Quanto tem agora, e até quando isso dura."
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5">
           <p
@@ -191,7 +191,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
 
           <div className="mt-5 border-t border-gray-100 pt-4">
             <p className="mb-1 text-sm font-semibold text-gray-700">
-              O caixa ao longo de {ano.ano}
+              O caixa ao longo do ano
             </p>
             <p className="mb-3 text-[13px] text-gray-500">
               Quanto sobrou no fim de cada mês. As colunas acima contam
@@ -283,19 +283,19 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             {
-              r: "Entrou no mês",
+              r: "Entrou",
               v: formatarMoeda(financeiro.resumo.receitas),
               d: `${financeiro.aReceber.length} ainda a receber`,
             },
             {
-              r: "Saiu no mês",
+              r: "Saiu",
               v: formatarMoeda(financeiro.resumo.despesas),
               d: `${financeiro.aPagar.length} ainda a pagar`,
             },
             {
               r: financeiro.resumo.resultado >= 0 ? "Sobrou" : "Faltou",
               v: formatarMoeda(Math.abs(financeiro.resumo.resultado)),
-              d: "no mês até agora",
+              d: "até agora",
             },
           ].map((x) => (
             <div

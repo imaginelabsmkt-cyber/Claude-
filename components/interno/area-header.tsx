@@ -6,7 +6,19 @@ import { Icone } from "@/components/interno/icone";
 import { area, areaDaRota } from "@/lib/interno/areas";
 
 interface AreaHeaderProps {
-  titulo: string;
+  /**
+   * Título da tela. Omitido, usa o nome da ÁREA.
+   *
+   * Numa área com abas, o título era sempre o nome da aba ativa, que
+   * já está escrita e sublinhada logo embaixo. "Clientes" aparecia
+   * duas vezes a dois centímetros de distância. Então a tela com abas
+   * não passa título: o H1 é a área, a aba diz em que parte dela você
+   * está, e a linha de apoio diz o que aquela parte responde.
+   *
+   * Tela sem aba (um formulário, a ficha de uma oportunidade) continua
+   * passando o próprio título.
+   */
+  titulo?: string;
   /** Linha de apoio: o período, ou o que a tela responde. */
   contexto?: string;
   /** Canto direito do cabeçalho — normalmente o período ou uma ação. */
@@ -39,7 +51,9 @@ export function AreaHeader({ titulo, contexto, acao, icone }: AreaHeaderProps) {
           <Icone nome={icone ?? atual.icone} className="h-6 w-6" />
         </span>
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900">{titulo}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {titulo ?? atual.label}
+          </h1>
           {contexto ? (
             <p className="mt-0.5 text-sm text-gray-500">{contexto}</p>
           ) : null}

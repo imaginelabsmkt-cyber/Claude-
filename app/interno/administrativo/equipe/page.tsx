@@ -39,7 +39,6 @@ export default async function PessoasPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Equipe"
         contexto="Quem trabalha na agência e quanto custa"
         acao={<MonthNav mes={mes} />}
       />

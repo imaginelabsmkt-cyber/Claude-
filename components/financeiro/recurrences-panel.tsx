@@ -18,6 +18,10 @@ import {
   type ItemFixo,
 } from "@/lib/financeiro/fixos";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
+import {
+  clienteSeFizerFalta,
+  semRepetirOGrupo,
+} from "@/lib/financeiro/nomes";
 import { toast } from "@/lib/ui/toast";
 import { formatarMoeda } from "@/lib/utils";
 import type {
@@ -120,7 +124,17 @@ export function RecurrencesPanel({
     });
   }
 
-  function Linha({ item, comparar }: { item: ItemFixo; comparar: boolean }) {
+  function Linha({
+    item,
+    comparar,
+    categoria,
+    sozinho,
+  }: {
+    item: ItemFixo;
+    comparar: boolean;
+    categoria: string;
+    sozinho: boolean;
+  }) {
     const r = porId.get(item.id);
     if (!r) return null;
 
@@ -145,6 +159,11 @@ export function RecurrencesPanel({
       );
     }
 
+    const nome = sozinho
+      ? item.description
+      : semRepetirOGrupo(item.description, categoria);
+    const cliente = clienteSeFizerFalta(nome, item.cliente);
+
     const acao =
       "rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900";
 
@@ -152,7 +171,7 @@ export function RecurrencesPanel({
       <li className={"group px-3 py-2 " + (item.vigente ? "" : "opacity-60")}>
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
-            {item.description}
+            {nome}
             {item.vigente ? null : (
               <Badge tom="cinza" className="ml-2 align-middle">
                 {item.active ? "Fora deste mês" : "Pausada"}
@@ -213,7 +232,7 @@ export function RecurrencesPanel({
             <span className="flex-1" />
           )}
           <span className="shrink-0 text-xs text-gray-400">
-            {item.cliente ? `${item.cliente} · ` : ""}
+            {cliente ? `${cliente} · ` : ""}
             {item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
             {item.end_month ? ` · até ${rotuloMesCurto(item.end_month)}` : ""}
           </span>
@@ -228,17 +247,27 @@ export function RecurrencesPanel({
 
     return (
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2">
-          <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-            {grupo.categoria}
-          </h3>
-          <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
-            {formatarMoeda(grupo.total)}
-          </span>
-        </div>
+        {/* Categoria de uma linha só não ganha subtítulo: o subtítulo e
+            a linha diriam quase a mesma coisa, uma embaixo da outra. */}
+        {grupo.itens.length > 1 ? (
+          <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+              {grupo.categoria}
+            </h3>
+            <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
+              {formatarMoeda(grupo.total)}
+            </span>
+          </div>
+        ) : null}
         <ul className="divide-y divide-gray-100">
           {grupo.itens.map((i) => (
-            <Linha key={i.id} item={i} comparar={comparar} />
+            <Linha
+              key={i.id}
+              item={i}
+              comparar={comparar}
+              categoria={grupo.categoria}
+              sozinho={grupo.itens.length === 1}
+            />
           ))}
         </ul>
       </div>
@@ -250,17 +279,17 @@ export function RecurrencesPanel({
       <div className="grid gap-3 sm:grid-cols-3">
         {[
           {
-            r: "Entra todo mês",
+            r: "Entra",
             v: formatarMoeda(plano.entra),
             d: "mensalidades em contrato",
           },
           {
-            r: "Sai todo mês",
+            r: "Sai",
             v: formatarMoeda(plano.sai),
             d: "pró-labore, ferramentas, impostos",
           },
           {
-            r: plano.sobra >= 0 ? "Sobra todo mês" : "Falta todo mês",
+            r: plano.sobra >= 0 ? "Sobra" : "Falta",
             v: formatarMoeda(Math.abs(plano.sobra)),
             d:
               plano.sobra >= 0
@@ -319,7 +348,7 @@ export function RecurrencesPanel({
           {plano.gruposDespesa.length > 0 ? (
             <section>
               <h2 className="mb-2 text-base font-bold text-gray-900">
-                O que sai todo mês
+                O que sai
               </h2>
               <p className="mb-3 text-[13px] text-gray-500">
                 Por categoria, da mais cara para a mais barata. A barrinha é a
@@ -336,10 +365,10 @@ export function RecurrencesPanel({
           {plano.gruposReceita.length > 0 ? (
             <section>
               <h2 className="mb-2 text-base font-bold text-gray-900">
-                O que entra todo mês
+                O que entra
               </h2>
               <p className="mb-3 text-[13px] text-gray-500">
-                As mensalidades em contrato. Mudou aqui, muda a cobrança do mês.
+                As mensalidades em contrato. Mudou aqui, muda a cobrança.
               </p>
               <div className="space-y-3">
                 {plano.gruposReceita.map((g) => (

@@ -50,11 +50,10 @@ export default async function ClientesPage() {
   return (
     <>
       <AreaHeader
-        titulo="Clientes"
         contexto={
           naRelacao === 0
             ? "Nenhum cliente ativo"
-            : `${naRelacao} ${naRelacao === 1 ? "cliente ativo" : "clientes ativos"} · ${formatarMoeda(contratado)} por mês em contrato`
+            : `${naRelacao} ${naRelacao === 1 ? "cliente ativo" : "clientes ativos"}, somando ${formatarMoeda(contratado)} por mês em contrato`
         }
       />
 
@@ -100,7 +99,7 @@ export default async function ClientesPage() {
       ) : null}
 
       <Secao
-        titulo="Os clientes"
+        titulo="Quem é cliente hoje"
         explicacao="Um por linha, com o que está combinado: desde quando, até quando, quanto e quando reajustar. Quem ainda não tem contrato aparece primeiro."
       >
         <ContratosPanel

@@ -32,8 +32,7 @@ export default async function FunilPage() {
   return (
     <>
       <AreaHeader
-        titulo="Funil"
-        contexto="Oportunidades"
+        contexto="As oportunidades em andamento, por etapa"
         acao={
           <Link href="/interno/comercial/novo">
             <Button>Nova oportunidade</Button>

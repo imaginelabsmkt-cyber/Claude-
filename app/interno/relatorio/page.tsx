@@ -109,7 +109,6 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
     <>
       <div className="print:hidden">
         <AreaHeader
-          titulo="Relatório do mês"
           contexto="Uma página para imprimir ou mandar para a contabilidade"
           acao={<MonthNav mes={mes} />}
         />

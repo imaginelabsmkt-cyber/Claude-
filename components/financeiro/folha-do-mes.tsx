@@ -5,6 +5,10 @@ import {
   type GrupoFolha,
   type LancamentoFolha,
 } from "@/lib/financeiro/folha";
+import {
+  clienteSeFizerFalta,
+  semRepetirOGrupo,
+} from "@/lib/financeiro/nomes";
 import { formatarData, formatarMoeda } from "@/lib/utils";
 import type { FinancialKind } from "@/types";
 
@@ -19,12 +23,6 @@ function textoDoPrazo(due: string | null, mes: string): string {
   if (!due) return "em aberto";
   if (due.startsWith(mes)) return `vence dia ${Number(due.slice(8, 10))}`;
   return `vence ${formatarData(due)}`;
-}
-
-/** O nome do cliente só aparece quando a descrição já não o diz. */
-function clienteExtra(descricao: string, cliente: string | null): string | null {
-  if (!cliente) return null;
-  return descricao.toLowerCase().includes(cliente.toLowerCase()) ? null : cliente;
 }
 
 interface ColunaProps {
@@ -75,14 +73,19 @@ function Coluna({
         <div className="divide-y divide-gray-200">
           {grupos.map((g) => (
             <div key={g.categoria}>
-              <div className="flex items-baseline justify-between gap-3 bg-gray-50 px-4 py-1.5">
-                <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-                  {g.categoria}
-                </h4>
-                <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
-                  {formatarMoeda(g.total)}
-                </span>
-              </div>
+              {/* Categoria de uma linha só não ganha subtítulo: viraria
+                  "DAS - Simples Nacional" com "DAS do Simples Nacional"
+                  logo embaixo. Na planilha ela também é uma linha só. */}
+              {g.linhas.length > 1 ? (
+                <div className="flex items-baseline justify-between gap-3 bg-gray-50 px-4 py-1.5">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+                    {g.categoria}
+                  </h4>
+                  <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
+                    {formatarMoeda(g.total)}
+                  </span>
+                </div>
+              ) : null}
               <ul className="divide-y divide-gray-100">
                 {g.linhas.map((x) => (
                   <li
@@ -90,11 +93,20 @@ function Coluna({
                     className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2"
                   >
                     <span className="min-w-0 flex-1 text-sm text-gray-900">
-                      {x.description}
-                      {clienteExtra(x.description, x.cliente) ? (
+                      {g.linhas.length > 1
+                        ? semRepetirOGrupo(x.description, g.categoria)
+                        : x.description}
+                      {clienteSeFizerFalta(
+                        semRepetirOGrupo(x.description, g.categoria),
+                        x.cliente,
+                      ) ? (
                         <span className="text-gray-500">
                           {" "}
-                          · {clienteExtra(x.description, x.cliente)}
+                          ·{" "}
+                          {clienteSeFizerFalta(
+                            semRepetirOGrupo(x.description, g.categoria),
+                            x.cliente,
+                          )}
                         </span>
                       ) : null}
                     </span>

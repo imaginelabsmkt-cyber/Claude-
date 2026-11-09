@@ -1116,6 +1116,62 @@ E "Mensalidade Kiku Sushi · Kiku Sushi" repetia o cliente, porque a
 checagem era de igualdade exata. Agora o nome do cliente só aparece
 quando a descrição ainda não o diz.
 
+## 5.19 A varredura do que se repete
+
+> "nao precisa repetir mensalidade" · "busque coisas que se repitam"
+
+Ela apontou uma linha e eu fui atrás de todas. Eram nove, e nenhuma era
+bug: eram palavras ocupando espaço sem dizer nada novo.
+
+### A regra: o grupo já falou, a linha não repete
+
+`lib/financeiro/nomes.ts` tem as duas funções, com teste:
+
+- `semRepetirOGrupo(descricao, categoria)`: dentro de "MENSALIDADES /
+  CLIENTES RECORRENTES", "Mensalidade Kiku Sushi" vira "Kiku Sushi". E
+  dentro de "PRÓ-LABORE (SÓCIAS)", "Pró-labore Fran" vira "Fran".
+- `clienteSeFizerFalta(nomeNaTela, cliente)`: a linha que já se chama
+  "Kiku Sushi" não escreve "Kiku Sushi" de novo do outro lado.
+
+O corte é conservador de propósito: só acontece quando a primeira
+palavra tem **pelo menos cinco letras** e a categoria **começa** por
+ela. Com três letras o corte erra: "DAS do Simples Nacional" dentro de
+"DAS - Simples Nacional" viraria "do Simples Nacional". Nome cortado
+errado é pior do que nome repetido.
+
+### Categoria de uma linha só não ganha subtítulo
+
+Era "DAS - SIMPLES NACIONAL" com "DAS do Simples Nacional" logo
+embaixo. Na planilha da Fran, categoria de uma linha só É uma linha só.
+Agora aqui também.
+
+### O título da tela repetia a aba aberta
+
+Em treze telas o H1 era exatamente o nome da aba sublinhada dois
+centímetros abaixo: "Clientes" e a aba "Clientes", "Lançamentos" e a
+aba "Lançamentos".
+
+A regra agora: **tela com aba não passa título**. O `AreaHeader` usa o
+nome da ÁREA, a aba diz em que parte dela você está, e a linha de apoio
+diz o que aquela parte responde. Tela sem aba (um formulário, a ficha
+de uma oportunidade) continua passando o próprio título.
+
+Isso também abriu espaço: onde antes estava o nome repetido, agora está
+"Quem é cliente, desde quando e com qual contrato".
+
+### As palavras que se repetiam dentro de uma tela
+
+| Tela | Antes | Agora |
+|---|---|---|
+| Fixos e ferramentas | "todo mês" 6 vezes | 1 |
+| Painel do mês | "mês" em 7 rótulos | nos 2 títulos |
+| Início | "no mês" em 3 cartões | 0, a seção já diz |
+| Início | o ano escrito 7 vezes | 1 |
+
+O padrão é sempre o mesmo: o título da seção nomeia o período, e os
+rótulos dentro dela param de repetir. "ENTROU NO MÊS" embaixo de "O mês
+de Outubro/2026" é a mesma informação duas vezes; "ENTROU" basta.
+
 ## 6. Convenções de código
 
 ### Nada de travessão

@@ -48,7 +48,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Financeiro"
-        contexto="Quanto entrou e quanto saiu no mês"
+        contexto="Quanto entrou e quanto saiu"
         acao={<MonthNav mes={mes} />}
       />
 
@@ -74,7 +74,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                {resumo.resultado >= 0 ? "Sobrou no mês" : "Faltou no mês"}
+                {resumo.resultado >= 0 ? "Sobrou" : "Faltou"}
               </p>
               <p
                 className={
@@ -101,7 +101,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
             {resumo.receitas > 0 ? (
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  Margem do mês
+                  Margem
                 </p>
                 <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">
                   {formatarPercentual(resumo.margem)}
@@ -117,8 +117,8 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
                   Ainda falta movimentar{" "}
                   <strong className="font-semibold text-gray-900">
                     {formatarMoeda(emAberto)}
-                  </strong>{" "}
-                  deste mês. Se tudo se confirmar, o mês fecha em{" "}
+                  </strong>
+                  . Se tudo se confirmar, fecha em{" "}
                   <strong className="font-semibold text-gray-900">
                     {formatarMoeda(resumo.saldoFinalPrevisto)}
                   </strong>
