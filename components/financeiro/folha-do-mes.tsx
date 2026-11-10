@@ -40,21 +40,17 @@ interface ColunaProps {
   /** Data de hoje em "YYYY-MM-DD", calculada no servidor. */
   hoje: string;
   grupos: GrupoFolha[];
-  verTudo: string;
   vazio: string;
 }
 
 /** Um lado da folha: tudo que entrou, ou tudo que saiu. */
-function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
+function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
   const total = totalDaFolha(grupos);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <header className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-gray-200 px-4 py-2.5">
+      <header className="border-b border-gray-200 px-4 py-2.5">
         <h3 className="text-base font-bold text-gray-900">{titulo}</h3>
-        <span className="text-lg font-bold tabular-nums text-gray-900">
-          {formatarMoeda(total)}
-        </span>
       </header>
 
       {grupos.length === 0 ? (
@@ -63,10 +59,13 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
         <div className="divide-y divide-gray-200">
           {grupos.map((g) => (
             <div key={g.categoria}>
-              {/* Categoria de uma linha só não ganha subtítulo: viraria
-                  "DAS - Simples Nacional" com "DAS do Simples Nacional"
-                  logo embaixo. Na planilha ela também é uma linha só. */}
-              {g.linhas.length > 1 ? (
+              {/* Subtítulo de categoria só quando há mais de uma
+                  categoria na coluna E mais de uma linha nela. Com uma
+                  só, o subtítulo repetia o total da coluna duas vezes,
+                  um embaixo do outro — e com uma linha só viraria
+                  "DAS - Simples Nacional" com "DAS do Simples
+                  Nacional" logo embaixo. */}
+              {grupos.length > 1 && g.linhas.length > 1 ? (
                 <div className="flex items-baseline justify-between gap-3 bg-gray-50 px-4 py-1.5">
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
                     {g.categoria}
@@ -92,7 +91,7 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
                       href={`/interno/financeiro/lancamentos/${x.id}/editar`}
                       className="min-w-0 flex-1 text-sm text-gray-900 hover:underline"
                     >
-                      {g.linhas.length > 1
+                      {grupos.length > 1 && g.linhas.length > 1
                         ? semRepetirOGrupo(x.description, g.categoria)
                         : x.description}
                       {clienteSeFizerFalta(
@@ -136,13 +135,16 @@ function Coluna({ titulo, mes, hoje, grupos, verTudo, vazio }: ColunaProps) {
         </div>
       )}
 
-      <footer className="border-t border-gray-200 px-4 py-2">
-        <Link
-          href={verTudo}
-          className="text-sm font-medium text-gray-600 hover:underline"
-        >
-          Procurar e filtrar
-        </Link>
+      {/* O total no FIM da lista, como a linha "TOTAL RECEITAS" da
+          planilha. Estava em cima, no cabeçalho, e aí aparecia duas
+          vezes seguidas quando a coluna tinha uma categoria só. */}
+      <footer className="flex items-baseline justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-2.5">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+          Total {titulo.toLowerCase()}
+        </span>
+        <span className="text-lg font-bold tabular-nums text-gray-900">
+          {formatarMoeda(total)}
+        </span>
       </footer>
     </section>
   );
@@ -176,7 +178,6 @@ export function FolhaDoMes({ lancamentos, mes, hoje }: FolhaDoMesProps) {
         hoje={hoje}
         grupos={lado("Receita")}
         vazio="Nenhuma receita lançada neste mês."
-        verTudo={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Receita`}
       />
       <Coluna
         titulo="Saiu"
@@ -184,7 +185,6 @@ export function FolhaDoMes({ lancamentos, mes, hoje }: FolhaDoMesProps) {
         hoje={hoje}
         grupos={lado("Despesa")}
         vazio="Nenhuma despesa lançada neste mês."
-        verTudo={`/interno/financeiro/lancamentos?mes=${mes}&tipo=Despesa`}
       />
     </div>
   );

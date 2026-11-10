@@ -18,14 +18,15 @@ vi.mock("next/navigation", () => ({
 }));
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
+import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
-import { GraficoDoMes } from "@/components/financeiro/grafico-do-mes";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
 import { Secao } from "@/components/interno/secao";
 import type { LancamentoFolha } from "@/lib/financeiro/folha";
-import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
+
+const HOJE = "2026-11-10";
 const FERRAMENTAS = "Assinaturas e ferramentas digitais";
 
 function r(
@@ -98,68 +99,38 @@ const MES: LancamentoFolha[] = [
 ];
 
 const SALDO_INICIAL = 11923.38;
-const RECEITAS_PAGAS = 1550 + 1800 + 1700;
-const DESPESAS_PAGAS = 66.9 + 66.9 + 35;
-const A_RECEBER = 1300 + 2000 + 2200 + 2600 + 1300;
-const A_PAGAR = 6500 + 6500 + 454.1 + 119.9 + 95 + 32.9 + 86.05;
 
 function Tela() {
   const venceu = (l: { due_date: string | null; status: string }) =>
-    situacaoDoLancamento(l, "2026-11-09") === "Vencido";
+    situacaoDoLancamento(l, HOJE) === "Vencido";
   const partes = {
     entrou: partirPorSituacao(montarFolha(MES, "Receita"), venceu),
     saiu: partirPorSituacao(montarFolha(MES, "Despesa"), venceu),
   };
-  const resultado = RECEITAS_PAGAS - DESPESAS_PAGAS;
-  const saldoFinal = SALDO_INICIAL + resultado;
-  const previsto = saldoFinal + A_RECEBER - A_PAGAR;
+
+  // Como a planilha soma: o mês inteiro, caído ou não.
+  const resultado = partes.entrou.total - partes.saiu.total;
+  const emAberto =
+    partes.entrou.total -
+    partes.entrou.pago +
+    (partes.saiu.total - partes.saiu.pago);
 
   return (
     <>
-      <Secao
-        titulo="O mês de Novembro/2026"
-      >
-        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-          <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
-            {[
-              ["Saldo no dia 1", formatarMoeda(SALDO_INICIAL), false, "text-xl"],
-              ["Sobrou", formatarMoeda(resultado), false, "text-xl"],
-              ["Saldo no fim", formatarMoeda(saldoFinal), false, "text-2xl"],
-            ].map(([rotulo, valor, alerta, tam]) => (
-              <div key={String(rotulo)}>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  {rotulo}
-                </p>
-                <p
-                  className={`mt-0.5 ${tam} font-bold tabular-nums ${
-                    alerta ? "text-alerta" : "text-gray-900"
-                  }`}
-                >
-                  {valor}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <GraficoDoMes entrou={partes.entrou} saiu={partes.saiu} />
-          </div>
-
-          <p className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
-            Ainda falta movimentar{" "}
-            <strong className="font-semibold text-gray-900">
-              {formatarMoeda(A_RECEBER + A_PAGAR)}
-            </strong>
-            . Se tudo se confirmar, fecha em{" "}
-            <strong className="font-semibold text-gray-900">
-              {formatarMoeda(previsto)}
-            </strong>
-            .
-          </p>
-        </div>
+      <Secao titulo="O mês de Novembro/2026">
+        <CartaoDoMes
+          saldoInicial={SALDO_INICIAL}
+          resultado={resultado}
+          saldoFinal={SALDO_INICIAL + resultado}
+          emAberto={emAberto}
+          variacao="+2,1% contra o mês anterior"
+          entrou={partes.entrou}
+          saiu={partes.saiu}
+        />
       </Secao>
 
       <div className="mb-6">
-        <FolhaDoMes mes="2026-11" hoje="2026-11-09" lancamentos={MES} />
+        <FolhaDoMes mes="2026-11" hoje={HOJE} lancamentos={MES} />
       </div>
     </>
   );

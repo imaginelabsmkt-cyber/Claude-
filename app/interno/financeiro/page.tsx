@@ -2,10 +2,9 @@ import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
-import { GraficoDoMes } from "@/components/financeiro/grafico-do-mes";
+import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { Conta } from "@/components/interno/conta";
 import { Secao } from "@/components/interno/secao";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
@@ -82,50 +81,15 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
       <Secao
         titulo={`O mês de ${rotuloMes(mes)}`}
       >
-        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-          {/* A conta do mês, com o sinal à vista: o saldo do dia 1,
-              mais (ou menos) o que o mês fez, dá o saldo do fim. É a
-              mesma conta da planilha e a mesma do dashboard. */}
-          <Conta
-            parcelas={[
-              { rotulo: "Saldo no dia 1", valor: resumo.saldoInicial },
-              {
-                rotulo: resumo.resultado >= 0 ? "Sobrou" : "Faltou",
-                valor: Math.abs(resumo.resultado),
-                sinal: resumo.resultado >= 0 ? "+" : "−",
-                alerta: resumo.resultado < 0,
-              },
-              {
-                rotulo: "Saldo no fim",
-                valor: resumo.saldoFinal,
-                sinal: "=",
-                alerta: resumo.saldoFinal < 0,
-              },
-            ]}
-          />
-
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <GraficoDoMes entrou={partes.entrou} saiu={partes.saiu} />
-          </div>
-
-          {emAberto > 0 || variacao ? (
-            <p className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
-              {/* O mês já está somado por inteiro, como na planilha.
-                  O que falta aqui é a BAIXA: quanto ainda não caiu
-                  nem saiu da conta. */}
-              {emAberto > 0 ? (
-                <>
-                  Ainda não caiu nem saiu da conta{" "}
-                  <strong className="font-semibold text-gray-900">
-                    {formatarMoeda(emAberto)}
-                  </strong>
-                  .{" "}
-                </>
-              ) : null}
-              {variacao ? <>A receita está {variacao}.</> : null}
-            </p>
-          ) : null}
-        </div>
+        <CartaoDoMes
+          saldoInicial={resumo.saldoInicial}
+          resultado={resumo.resultado}
+          saldoFinal={resumo.saldoFinal}
+          emAberto={emAberto}
+          variacao={variacao}
+          entrou={partes.entrou}
+          saiu={partes.saiu}
+        />
       </Secao>
 
       <div className="mb-6">
