@@ -10,6 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 ORDEM=(
+  00_colunas_novas
   ajustar_planilha_novembro
   vencimentos_por_cliente
   meta_de_faturamento
@@ -27,6 +28,8 @@ ORDEM=(
 --
 -- Junta, na ordem certa, tudo que ainda falta aplicar no banco:
 --
+--   0. 00_colunas_novas — as colunas que o sistema passou a precisar.
+--      Vem primeiro porque os blocos seguintes usam elas.
 --   1. ajustar_planilha_novembro — tira o Captions e a
 --      Contabilidade / MEI, põe o Canva em R$ 35,00, entra a Salte,
 --      e acerta o dia do pró-labore (10) e do cartão (20).

@@ -6,6 +6,8 @@
 --
 -- Junta, na ordem certa, tudo que ainda falta aplicar no banco:
 --
+--   0. 00_colunas_novas — as colunas que o sistema passou a precisar.
+--      Vem primeiro porque os blocos seguintes usam elas.
 --   1. ajustar_planilha_novembro — tira o Captions e a
 --      Contabilidade / MEI, põe o Canva em R$ 35,00, entra a Salte,
 --      e acerta o dia do pró-labore (10) e do cartão (20).
@@ -25,6 +27,22 @@
 -- certo, e nada toca no que já foi pago.
 -- =============================================================
 
+
+-- =============================================================
+-- 00_colunas_novas
+-- =============================================================
+alter table public.financial_recurrences
+  add column if not exists vencimento_meses smallint not null default 1;
+
+comment on column public.financial_recurrences.vencimento_meses is
+  'Quantos meses depois da competência a conta vence. +1 é o normal; -1 é quem paga antecipado (Studio Bambu).';
+
+-- Meta de faturamento do ano, em reais. Null = sem meta.
+alter table public.financial_settings
+  add column if not exists annual_revenue_goal numeric(14, 2);
+
+comment on column public.financial_settings.annual_revenue_goal is
+  'Meta de faturamento do ano, em reais. Null = sem meta.';
 
 -- =============================================================
 -- ajustar_planilha_novembro
