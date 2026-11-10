@@ -1,5 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
-import { ClientesTabs } from "@/components/interno/clientes-tabs";
+import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
 import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { PessoasPanel } from "@/components/pessoas/pessoas-panel";
@@ -46,7 +46,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
         acao={<MonthNav mes={mes} />}
       />
 
-      <ClientesTabs />
+      <AdministrativoTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat

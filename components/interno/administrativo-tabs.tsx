@@ -4,38 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Abas de CLIENTES.
+ * Abas do Administrativo.
  *
- * Já foram cinco itens de menu em duas áreas: Comercial (funil,
- * prospecção) e Administrativo (clientes, equipe, documentos). São
- * abas de um item só porque respondem partes da mesma pergunta: quem
- * paga a gente, quem pode vir a pagar, e o que a empresa combinou com
- * cada um.
- *
- * As rotas não mudaram — só o lugar de onde se chega nelas.
+ * Clientes, Equipe e Documentos já foram três itens de menu separados.
+ * São abas porque respondem partes da mesma pergunta: como a empresa
+ * se organiza. O cadastro do cliente e o contrato dele, quem trabalha
+ * aqui e em que condição, e os papéis da empresa.
  */
 const ABAS = [
   { href: "/interno/administrativo/clientes", label: "Clientes" },
-  {
-    href: "/interno/comercial/funil",
-    label: "Oportunidades",
-    /** Outras rotas que acendem esta aba. */
-    tambem: ["/interno/comercial"],
-  },
   { href: "/interno/administrativo/equipe", label: "Equipe" },
   { href: "/interno/administrativo/documentos", label: "Documentos" },
 ];
 
-export function ClientesTabs() {
+export function AdministrativoTabs() {
   const pathname = usePathname();
   return (
     <div className="mb-5 flex items-center gap-5 overflow-x-auto border-b border-gray-200">
       {ABAS.map((a) => {
-        const ativa =
-          pathname.startsWith(a.href) ||
-          (a.tambem ?? []).some(
-            (r) => pathname === r || pathname.startsWith(`${r}/`),
-          );
+        const ativa = pathname.startsWith(a.href);
         return (
           <Link
             key={a.href}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
-import { ClientesTabs } from "@/components/interno/clientes-tabs";
+import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
 import { Secao } from "@/components/interno/secao";
 import { DocumentosPanel } from "@/components/empresa/documentos-panel";
 import { ObrigacoesPanel } from "@/components/empresa/obrigacoes-panel";
@@ -50,7 +50,7 @@ export default async function DocumentosPage() {
         }
       />
 
-      <ClientesTabs />
+      <AdministrativoTabs />
 
       <Secao
         titulo="Prazos do administrativo"

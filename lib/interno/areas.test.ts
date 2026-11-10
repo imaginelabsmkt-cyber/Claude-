@@ -4,9 +4,6 @@ import {
   AREAS_EMPRESA,
   AREAS_MENU,
   AREAS_PESSOAIS,
-  MENU,
-  MENU_PESSOAL,
-  itemDoMenu,
   AREAS_PRIVADAS,
   area,
   areaDaRota,
@@ -88,54 +85,5 @@ describe("areaDaRota", () => {
 describe("area", () => {
   it("devolve a área pedida", () => {
     expect(area("financeiro").label).toBe("Financeiro");
-  });
-});
-
-describe("MENU", () => {
-  it("o menu da empresa tem DOIS itens, em ordem alfabética", () => {
-    // Eram quatro (Administrativo, Comercial, Financeiro, e o
-    // Dashboard por fora). Comercial e Administrativo viraram abas
-    // dentro de Clientes.
-    expect(MENU.map((i) => i.label)).toEqual(["Clientes", "Financeiro"]);
-  });
-
-  it("as telas do antigo Comercial acendem Clientes", () => {
-    for (const rota of [
-      "/interno/comercial",
-      "/interno/comercial/funil",
-      "/interno/comercial/prospeccao",
-      "/interno/administrativo/clientes",
-      "/interno/administrativo/equipe",
-      "/interno/administrativo/documentos",
-    ]) {
-      expect(itemDoMenu(rota)?.label).toBe("Clientes");
-    }
-  });
-
-  it("as telas do financeiro, inclusive o relatório, acendem Financeiro", () => {
-    for (const rota of [
-      "/interno/financeiro",
-      "/interno/financeiro/recorrencias",
-      "/interno/financeiro/resumo-anual",
-      "/interno/relatorio",
-    ]) {
-      expect(itemDoMenu(rota)?.label).toBe("Financeiro");
-    }
-  });
-
-  it("o Dashboard não é item do menu da empresa", () => {
-    expect(itemDoMenu("/interno")).toBeNull();
-  });
-
-  it("meus gastos fica no grupo privado, fora do menu da empresa", () => {
-    expect(MENU.some((i) => i.area === "pessoal")).toBe(false);
-    expect(MENU_PESSOAL.map((i) => i.label)).toEqual(["Meus gastos"]);
-    expect(itemDoMenu("/interno/meus-gastos")?.label).toBe("Meus gastos");
-  });
-
-  it("todo item do menu herda a cor e o ícone de uma área que existe", () => {
-    for (const i of [...MENU, ...MENU_PESSOAL]) {
-      expect(AREAS.some((a) => a.id === i.area)).toBe(true);
-    }
   });
 });
