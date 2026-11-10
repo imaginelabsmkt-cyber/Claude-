@@ -18,11 +18,14 @@ vi.mock("next/navigation", () => ({
 }));
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
+import { AreaHeader } from "@/components/interno/area-header";
+import { FinanceTabs } from "@/components/financeiro/finance-tabs";
+import { MonthActions } from "@/components/financeiro/month-actions";
+import { MonthNav } from "@/components/financeiro/month-nav";
 import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
-import { Secao } from "@/components/interno/secao";
 import type { LancamentoFolha } from "@/lib/financeiro/folha";
 
 
@@ -117,7 +120,15 @@ function Tela() {
 
   return (
     <>
-      <Secao titulo="O mês de Novembro/2026">
+      <AreaHeader titulo="Financeiro" acao={<MonthNav mes="2026-11" />} />
+
+      <FinanceTabs />
+
+      <div className="mb-6">
+        <MonthActions mes="2026-11" recorrenciasPendentes={3} />
+      </div>
+
+      <div className="mb-6">
         <CartaoDoMes
           saldoInicial={SALDO_INICIAL}
           resultado={resultado}
@@ -127,7 +138,7 @@ function Tela() {
           entrou={partes.entrou}
           saiu={partes.saiu}
         />
-      </Secao>
+      </div>
 
       <div className="mb-6">
         <FolhaDoMes mes="2026-11" hoje={HOJE} lancamentos={MES} />

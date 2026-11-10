@@ -21,7 +21,7 @@
 --    O que ENTRA, porque não existia no sistema:
 --      · ElevenLabs .......................... R$  33,57
 --      · Jim.Com (o Pilates), parcela 1/3 .... R$ 493,00
---      · Adobe, a segunda cobrança ........... R$  65,00
+--      · Adobe Premiere (a 2ª cobrança do Adobe) R$  65,00
 --      · IOF das compras internacionais ...... R$  24,83
 --        (3,64 + 20,02 + 1,17)
 --
@@ -74,6 +74,17 @@ delete from public.financial_entries e
    and e.due_date is not null;
 
 -- -------------------------------------------------------------
+-- 1b. "Adobe (segunda cobrança)" é o PREMIERE
+--
+-- Vem ANTES do bloco da fatura de propósito: se o nome velho ainda
+-- estiver no banco, ele é corrigido primeiro e o bloco seguinte não
+-- cria uma segunda linha achando que falta.
+-- -------------------------------------------------------------
+update public.financial_entries
+   set description = 'Adobe Premiere', updated_at = now()
+ where description = 'Adobe (segunda cobrança)';
+
+-- -------------------------------------------------------------
 -- 2. A fatura de outubro
 -- -------------------------------------------------------------
 do $$
@@ -120,7 +131,7 @@ begin
       select *
         from (values
           ('ElevenLabs',                      33.57),
-          ('Adobe (segunda cobrança)',        65.00),
+          ('Adobe Premiere',                  65.00),
           ('IOF das compras internacionais',  24.83)
         ) as t(descricao, valor)
     loop

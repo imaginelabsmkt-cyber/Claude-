@@ -1,15 +1,13 @@
-import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
 import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { Secao } from "@/components/interno/secao";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
 import { contarRecorrenciasPendentes, obterPainelMes } from "@/lib/data/financeiro";
-import { mesAtual, mesValido, rotuloMes, hojeISO } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido, hojeISO } from "@/lib/financeiro/meses";
 import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -78,9 +76,7 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
         <MonthActions mes={mes} recorrenciasPendentes={recorrenciasPendentes} />
       </div>
 
-      <Secao
-        titulo={`O mês de ${rotuloMes(mes)}`}
-      >
+      <div className="mb-6">
         <CartaoDoMes
           saldoInicial={resumo.saldoInicial}
           resultado={resumo.resultado}
@@ -90,32 +86,12 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
           entrou={partes.entrou}
           saiu={partes.saiu}
         />
-      </Secao>
+      </div>
 
       <div className="mb-6">
         <FolhaDoMes mes={mes} hoje={hoje} lancamentos={lancamentos} />
       </div>
 
-      <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
-        <Link
-          href={`/interno/financeiro/lancamentos?mes=${mes}`}
-          className="font-medium text-brand-700 hover:underline"
-        >
-          Procurar um lançamento
-        </Link>
-        <Link
-          href={`/interno/relatorio?mes=${mes}`}
-          className="font-medium text-brand-700 hover:underline"
-        >
-          Imprimir o fechamento
-        </Link>
-        <Link
-          href={`/interno/financeiro/impostos?mes=${mes}`}
-          className="font-medium text-brand-700 hover:underline"
-        >
-          Impostos e contabilidade
-        </Link>
-      </p>
     </>
   );
 }

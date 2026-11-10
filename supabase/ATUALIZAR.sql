@@ -18,6 +18,11 @@
 --   5. antecipado_e_fatura_outubro — o Studio Bambu paga adiantado,
 --      a Salte fica sem dia até fechar o contrato, e a fatura do
 --      cartão de outubro entra com o que faltava.
+--   6. destravar_fixos — as recorrências passam a valer desde o
+--      começo da série, cada lançamento passado se liga à sua
+--      recorrência (é o que faz aparecer a caixinha de pago nos
+--      meses anteriores), o Softbox duplicado sai e a "segunda
+--      cobrança do Adobe" vira "Adobe Premiere".
 --
 -- COMO RODAR
 --
@@ -1324,6 +1329,17 @@ delete from public.financial_entries e
    and e.due_date is not null;
 
 -- -------------------------------------------------------------
+-- 1b. "Adobe (segunda cobrança)" é o PREMIERE
+--
+-- Vem ANTES do bloco da fatura de propósito: se o nome velho ainda
+-- estiver no banco, ele é corrigido primeiro e o bloco seguinte não
+-- cria uma segunda linha achando que falta.
+-- -------------------------------------------------------------
+update public.financial_entries
+   set description = 'Adobe Premiere', updated_at = now()
+ where description = 'Adobe (segunda cobrança)';
+
+-- -------------------------------------------------------------
 -- 2. A fatura de outubro
 -- -------------------------------------------------------------
 do $$
@@ -1370,7 +1386,7 @@ begin
       select *
         from (values
           ('ElevenLabs',                      33.57),
-          ('Adobe (segunda cobrança)',        65.00),
+          ('Adobe Premiere',                  65.00),
           ('IOF das compras internacionais',  24.83)
         ) as t(descricao, valor)
     loop
@@ -1402,3 +1418,73 @@ begin
        493.00, 'Pendente', '2026-11-20');
   end if;
 end $$;
+
+-- =============================================================
+-- destravar_fixos
+-- =============================================================
+delete from public.financial_entries
+ where reference_month = '2026-10'
+   and description = 'Softbox Octabox e Aputure Amaran (Parcela 3/4)'
+   and status <> 'Pago';
+
+-- -------------------------------------------------------------
+-- 2. Linha repetida no mesmo mês
+--
+-- Mesmo mês, mesmo nome, mesmo valor: fica uma só. Some apenas o
+-- que está EM ABERTO — o que já foi pago nunca é apagado.
+--
+-- Isto limpa o estrago de rodadas anteriores (o Softbox apareceu
+-- duas vezes, e o Premiere também). Se um dia houver duas cobranças
+-- iguais de verdade no mesmo mês, diferencie pelo nome ("Adobe" e
+-- "Adobe Premiere"), que é o que elas são.
+-- -------------------------------------------------------------
+delete from public.financial_entries e
+ where e.status <> 'Pago'
+   and exists (
+     select 1
+       from public.financial_entries x
+      where x.reference_month = e.reference_month
+        and x.description = e.description
+        and x.amount = e.amount
+        and x.id < e.id
+   );
+
+-- -------------------------------------------------------------
+-- 3. As recorrências começam quando a empresa começou
+--
+-- Menos a Salte, que é nova: o contrato é de novembro.
+-- -------------------------------------------------------------
+update public.financial_recurrences r
+   set start_month = s.opening_month, updated_at = now()
+  from public.financial_settings s
+ where s.id = true
+   and r.start_month > s.opening_month
+   and r.description <> 'Mensalidade Salte';
+
+-- -------------------------------------------------------------
+-- 4. Ligar cada lançamento à recorrência que o representa
+--
+-- Pelo nome e pelo tipo, e só onde aquele mês ainda não tem
+-- nenhum lançamento ligado àquela recorrência — o par
+-- (recorrência, mês) é único no banco.
+-- -------------------------------------------------------------
+with alvo as (
+  select distinct on (r.id, e.reference_month)
+         e.id as lancamento, r.id as recorrencia
+    from public.financial_entries e
+    join public.financial_recurrences r
+      on r.description = e.description
+     and r.kind = e.kind
+   where e.recurrence_id is null
+     and not exists (
+       select 1
+         from public.financial_entries x
+        where x.recurrence_id = r.id
+          and x.reference_month = e.reference_month
+     )
+   order by r.id, e.reference_month, e.id
+)
+update public.financial_entries e
+   set recurrence_id = a.recorrencia, updated_at = now()
+  from alvo a
+ where e.id = a.lancamento;

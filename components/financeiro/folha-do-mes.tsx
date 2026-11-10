@@ -87,10 +87,7 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
                       descricao={x.description}
                     />
 
-                    <Link
-                      href={`/interno/financeiro/lancamentos/${x.id}/editar`}
-                      className="min-w-0 flex-1 text-sm text-gray-900 hover:underline"
-                    >
+                    <span className="min-w-0 flex-1 text-sm text-gray-900">
                       {grupos.length > 1 && g.linhas.length > 1
                         ? semRepetirOGrupo(x.description, g.categoria)
                         : x.description}
@@ -107,7 +104,7 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
                           )}
                         </span>
                       ) : null}
-                    </Link>
+                    </span>
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
                       {formatarMoeda(x.amount)}
                     </span>
@@ -126,6 +123,18 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
                         </span>
                       )}
                     </span>
+
+                    {/* "Não tem onde eu clicar e ajustar." Tinha: o
+                        nome era link. Mas link que só se revela ao
+                        passar o mouse não existe para quem está no
+                        celular, e não existia para ela. Agora a
+                        palavra está escrita. */}
+                    <Link
+                      href={`/interno/financeiro/lancamentos/${x.id}/editar`}
+                      className="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                    >
+                      Editar
+                    </Link>
 
                   </li>
                 ))}

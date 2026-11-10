@@ -19,8 +19,9 @@ interface MonthActionsProps {
  *  - "Novo lançamento": o que é avulso;
  *  - "Gerar do plano fixo": o que repete todo mês, a partir das recorrências.
  *
- * Mais o link para o cadastro dos fixos, que era aba no topo e desceu
- * para cá, ao lado do botão que o consome.
+ * Mais o link de procurar, que era uma fila de links no pé da tela.
+ * Esta fila é O QUE FAZER; as abas lá em cima são ONDE IR. Eram
+ * quatro lugares com navegação na mesma tela.
  *
  * Existia também um "Copiar mês anterior". Saiu: ele repetia TUDO do mês
  * passado, inclusive o que foi compra única, e o plano fixo já cobre o que
@@ -59,14 +60,14 @@ export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) 
           : `Gerar do plano fixo${recorrenciasPendentes ? ` (${recorrenciasPendentes})` : ""}`}
       </Button>
 
-      {/* O cadastro do que se repete fica aqui, ao lado do botão que o
-          usa, e não como aba no topo: é configuração, não uma vista do
-          dinheiro. */}
+      {/* Procurar é coisa que se FAZ, então mora na fila de botões,
+          junto com lançar e gerar. Antes era um link solto no pé da
+          página, numa terceira fila de navegação. */}
       <Link
-        href="/interno/financeiro/recorrencias"
+        href={`/interno/financeiro/lancamentos?mes=${mes}`}
         className="self-center text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline"
       >
-        Fixos e ferramentas
+        Procurar um lançamento
       </Link>
     </div>
   );

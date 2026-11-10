@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 /**
- * Abas do financeiro. TRÊS: o MÊS, o ANO e os RELATÓRIOS.
+ * Abas do financeiro. QUATRO: o MÊS, o que se REPETE, o ANO e os
+ * RELATÓRIOS. E é a ÚNICA navegação da tela.
  *
  * Não inventei a forma: fui ver como os outros fazem, que é o que a
  * Fran vinha pedindo. Conta Azul, Nibo, Granatum, QuickBooks e Xero
@@ -42,14 +43,20 @@ import { usePathname, useSearchParams } from "next/navigation";
  * do mês E a aba Resumo Anual, lado a lado, e é assim que ela navega.
  * Então o ANO é aba, e Relatórios fica com o resto.
  *
- * "Fixos e ferramentas" desceu para dentro do Mês, ao lado de "Gerar
- * do plano fixo", que é onde ele é usado. Ela mesma hesitou sobre o
- * que ele fazia no topo: "mensalmente eu vou alimentando as coisas
- * lá, e aí os fixos e ferramentas seria só...". É cadastro do que se
- * repete, não uma vista do dinheiro.
+ * "Fixos e ferramentas" já foi aba, virou link dentro do Mês e
+ * voltou. Virou link porque ela hesitou sobre o que ele fazia no
+ * topo; voltou porque a pergunta seguinte foi "onde eu consigo
+ * ajustar as ferramentas?". Ela usa. Fica, e não se move mais.
+ *
+ * A tela tinha QUATRO lugares com navegação: estas abas, a fila de
+ * botões, uma fila de links no pé e o "Configuração" no canto. "Tá
+ * muito bagunçado e nada intuitivo" — e estava mesmo. Agora é um
+ * lugar só: aqui em cima para ONDE IR, e a fila de botões do Mês
+ * para O QUE FAZER.
  */
 const ABAS = [
   { href: "/interno/financeiro", label: "Mês" },
+  { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
   { href: "/interno/financeiro/resumo-anual", label: "Ano" },
   { href: "/interno/financeiro/relatorios", label: "Relatórios" },
 ];
@@ -63,7 +70,6 @@ const CONFIGURACAO = "/interno/financeiro/categorias";
  */
 const PERTENCE_A: Record<string, string> = {
   "/interno/financeiro/lancamentos": "/interno/financeiro",
-  "/interno/financeiro/recorrencias": "/interno/financeiro",
   "/interno/relatorio": "/interno/financeiro/relatorios",
   "/interno/financeiro/impostos": "/interno/financeiro/relatorios",
   "/interno/financeiro/fluxo-caixa": "/interno/financeiro/relatorios",
