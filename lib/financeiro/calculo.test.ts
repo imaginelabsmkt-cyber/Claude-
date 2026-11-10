@@ -91,6 +91,19 @@ describe("meses", () => {
     expect(dataVencimento("2026-12", 5)).toBe("2027-01-05");
     expect(dataVencimento("2026-04", null)).toBeNull();
   });
+
+  it("aceita quem paga ANTECIPADO, como o Studio Bambu", () => {
+    // "O Bambu pagou setembro e outubro todo dia 25. Eles pagam
+    // antecipado: eles pagam o próximo mês." Então a mensalidade de
+    // novembro vence no dia 25 de OUTUBRO.
+    expect(dataVencimento("2026-11", 25, -1)).toBe("2026-10-25");
+    expect(dataVencimento("2026-01", 25, -1)).toBe("2025-12-25");
+    // Dentro do próprio mês, se um dia aparecer alguém assim.
+    expect(dataVencimento("2026-11", 5, 0)).toBe("2026-11-05");
+    // Dia que não existe no mês do pagamento continua caindo no último.
+    expect(dataVencimento("2026-03", 31, -1)).toBe("2026-02-28");
+    expect(dataVencimento("2026-11", null, -1)).toBeNull();
+  });
 });
 
 describe("arredondamento", () => {

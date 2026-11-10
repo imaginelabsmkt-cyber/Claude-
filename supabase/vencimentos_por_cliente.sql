@@ -107,12 +107,12 @@ end $$;
 update public.financial_entries e
    set due_date = (
          (date_trunc('month', (e.reference_month || '-01')::date)
-            + interval '1 month')::date
+            + (coalesce(r.vencimento_meses, 1) || ' month')::interval)::date
          + (least(
               r.due_day,
               extract(day from (
                 date_trunc('month', (e.reference_month || '-01')::date)
-                  + interval '2 month' - interval '1 day'))::int
+                  + ((coalesce(r.vencimento_meses, 1) + 1) || ' month')::interval - interval '1 day'))::int
             ) - 1)
        ),
        updated_at = now()
@@ -122,11 +122,11 @@ update public.financial_entries e
    and r.due_day is not null
    and e.due_date is distinct from (
          (date_trunc('month', (e.reference_month || '-01')::date)
-            + interval '1 month')::date
+            + (coalesce(r.vencimento_meses, 1) || ' month')::interval)::date
          + (least(
               r.due_day,
               extract(day from (
                 date_trunc('month', (e.reference_month || '-01')::date)
-                  + interval '2 month' - interval '1 day'))::int
+                  + ((coalesce(r.vencimento_meses, 1) + 1) || ' month')::interval - interval '1 day'))::int
             ) - 1)
        );

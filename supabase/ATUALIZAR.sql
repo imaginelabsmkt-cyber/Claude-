@@ -13,6 +13,9 @@
 --   3. meta_de_faturamento — cria o campo da meta do ano.
 --   4. detalhar_historico — abre os meses passados item por item,
 --      no lugar das linhas-bloco e do "A CLASSIFICAR".
+--   5. antecipado_e_fatura_outubro — o Studio Bambu paga adiantado,
+--      a Salte fica sem dia até fechar o contrato, e a fatura do
+--      cartão de outubro entra com o que faltava.
 --
 -- COMO RODAR
 --
@@ -232,12 +235,12 @@ end $$;
 update public.financial_entries e
    set due_date = (
          (date_trunc('month', (e.reference_month || '-01')::date)
-            + interval '1 month')::date
+            + (coalesce(r.vencimento_meses, 1) || ' month')::interval)::date
          + (least(
               r.due_day,
               extract(day from (
                 date_trunc('month', (e.reference_month || '-01')::date)
-                  + interval '2 month' - interval '1 day'))::int
+                  + ((coalesce(r.vencimento_meses, 1) + 1) || ' month')::interval - interval '1 day'))::int
             ) - 1)
        ),
        updated_at = now()
@@ -247,12 +250,12 @@ update public.financial_entries e
    and r.due_day is not null
    and e.due_date is distinct from (
          (date_trunc('month', (e.reference_month || '-01')::date)
-            + interval '1 month')::date
+            + (coalesce(r.vencimento_meses, 1) || ' month')::interval)::date
          + (least(
               r.due_day,
               extract(day from (
                 date_trunc('month', (e.reference_month || '-01')::date)
-                  + interval '2 month' - interval '1 day'))::int
+                  + ((coalesce(r.vencimento_meses, 1) + 1) || ' month')::interval - interval '1 day'))::int
             ) - 1)
        );
 
@@ -283,7 +286,6 @@ select '2026-04', 'Despesa', c.id, 'Pró-labore Fran', 5500.00, 'Pago', '2026-05
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'Pró-labore Fran'
-        and e.amount = 5500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -294,7 +296,6 @@ select '2026-04', 'Despesa', c.id, 'Pró-labore Vitória', 5500.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'Pró-labore Vitória'
-        and e.amount = 5500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -305,7 +306,6 @@ select '2026-04', 'Despesa', c.id, 'Adobe', 95.00, 'Pago', '2026-05-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'Adobe'
-        and e.amount = 95.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -316,7 +316,6 @@ select '2026-04', 'Despesa', c.id, 'Asana', 124.43, 'Pago', '2026-05-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'Asana'
-        and e.amount = 124.43
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -327,7 +326,6 @@ select '2026-04', 'Despesa', c.id, 'CapCut', 32.90, 'Pago', '2026-05-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'CapCut'
-        and e.amount = 32.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -338,7 +336,6 @@ select '2026-04', 'Despesa', c.id, 'Captions', 51.90, 'Pago', '2026-05-20', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'Captions'
-        and e.amount = 51.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -349,7 +346,6 @@ select '2026-04', 'Despesa', c.id, 'Claude (assinatura)', 110.00, 'Pago', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'Claude (assinatura)'
-        and e.amount = 110.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -360,7 +356,6 @@ select '2026-04', 'Despesa', c.id, 'iCloud Fran', 66.90, 'Pago', '2026-05-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'iCloud Fran'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -371,7 +366,6 @@ select '2026-04', 'Despesa', c.id, 'iCloud Vitória', 66.90, 'Pago', '2026-05-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-04'
         and e.description = 'iCloud Vitória'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -382,7 +376,6 @@ select '2026-05', 'Despesa', c.id, 'Pró-labore Fran', 6500.00, 'Pago', '2026-06
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Pró-labore Fran'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -393,7 +386,6 @@ select '2026-05', 'Despesa', c.id, 'Pró-labore Vitória', 6500.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Pró-labore Vitória'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -404,7 +396,6 @@ select '2026-05', 'Despesa', c.id, 'Tráfego pago (gestão)', 304.76, 'Pago', '2
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Tráfego pago (gestão)'
-        and e.amount = 304.76
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -415,7 +406,6 @@ select '2026-05', 'Despesa', c.id, 'Gasolina - carro Fran', 200.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Gasolina - carro Fran'
-        and e.amount = 200.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -426,7 +416,6 @@ select '2026-05', 'Despesa', c.id, 'Gasolina - carro Vitória', 200.00, 'Pago', 
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Gasolina - carro Vitória'
-        and e.amount = 200.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -437,7 +426,6 @@ select '2026-05', 'Despesa', c.id, 'Honorários da contabilidade', 159.90, 'Pago
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Honorários da contabilidade'
-        and e.amount = 159.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -448,7 +436,6 @@ select '2026-05', 'Despesa', c.id, 'DAS do Simples Nacional', 86.05, 'Pago', '20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'DAS do Simples Nacional'
-        and e.amount = 86.05
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -459,7 +446,6 @@ select '2026-05', 'Despesa', c.id, 'Microfone Hollyland Lark M2 (parcela 1/2)', 
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Microfone Hollyland Lark M2 (parcela 1/2)'
-        and e.amount = 387.33
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -470,7 +456,6 @@ select '2026-05', 'Despesa', c.id, 'Mouse', 99.00, 'Pago', '2026-06-10', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Mouse'
-        and e.amount = 99.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -481,7 +466,6 @@ select '2026-05', 'Despesa', c.id, 'Capa Macbook Fran', 89.97, 'Pago', '2026-06-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Capa Macbook Fran'
-        and e.amount = 89.97
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -492,7 +476,6 @@ select '2026-05', 'Despesa', c.id, 'Capa Macbook Vitória', 89.97, 'Pago', '2026
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Capa Macbook Vitória'
-        and e.amount = 89.97
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -503,7 +486,6 @@ select '2026-05', 'Despesa', c.id, 'Pilates', 342.00, 'Pago', '2026-06-10', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Pilates'
-        and e.amount = 342.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -514,7 +496,6 @@ select '2026-05', 'Despesa', c.id, 'Janta comemoração meta', 151.57, 'Pago', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Janta comemoração meta'
-        and e.amount = 151.57
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -525,7 +506,6 @@ select '2026-05', 'Despesa', c.id, 'Material ensaio cliente (cartolinas/fitas)',
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Material ensaio cliente (cartolinas/fitas)'
-        and e.amount = 35.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -536,7 +516,6 @@ select '2026-05', 'Despesa', c.id, 'Adobe', 99.00, 'Pago', '2026-06-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Adobe'
-        and e.amount = 99.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -547,7 +526,6 @@ select '2026-05', 'Despesa', c.id, 'CapCut', 32.90, 'Pago', '2026-06-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'CapCut'
-        and e.amount = 32.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -558,7 +536,6 @@ select '2026-05', 'Despesa', c.id, 'Canva', 35.00, 'Pago', '2026-06-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Canva'
-        and e.amount = 35.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -569,7 +546,6 @@ select '2026-05', 'Despesa', c.id, 'Captions', 51.90, 'Pago', '2026-06-20', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Captions'
-        and e.amount = 51.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -580,7 +556,6 @@ select '2026-05', 'Despesa', c.id, 'ChatGPT Plus', 119.90, 'Pago', '2026-06-20',
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'ChatGPT Plus'
-        and e.amount = 119.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -591,7 +566,6 @@ select '2026-05', 'Despesa', c.id, 'Claude (assinatura)', 118.50, 'Pago', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Claude (assinatura)'
-        and e.amount = 118.50
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -602,7 +576,6 @@ select '2026-05', 'Despesa', c.id, 'Claude Max', 487.56, 'Pago', '2026-06-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'Claude Max'
-        and e.amount = 487.56
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -613,7 +586,6 @@ select '2026-05', 'Despesa', c.id, 'iCloud Fran', 66.90, 'Pago', '2026-06-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'iCloud Fran'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -624,7 +596,6 @@ select '2026-05', 'Despesa', c.id, 'iCloud Vitória', 66.90, 'Pago', '2026-06-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-05'
         and e.description = 'iCloud Vitória'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -635,7 +606,6 @@ select '2026-06', 'Despesa', c.id, 'Pró-labore Fran', 6500.00, 'Pago', '2026-07
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Pró-labore Fran'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -646,7 +616,6 @@ select '2026-06', 'Despesa', c.id, 'Pró-labore Vitória', 6500.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Pró-labore Vitória'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -657,7 +626,6 @@ select '2026-06', 'Despesa', c.id, 'Honorários da contabilidade', 159.90, 'Pago
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Honorários da contabilidade'
-        and e.amount = 159.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -668,7 +636,6 @@ select '2026-06', 'Despesa', c.id, 'DAS do Simples Nacional', 86.05, 'Pago', '20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'DAS do Simples Nacional'
-        and e.amount = 86.05
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -679,7 +646,6 @@ select '2026-06', 'Despesa', c.id, 'Microfone Hollyland Lark M2 (parcela 2/2)', 
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Microfone Hollyland Lark M2 (parcela 2/2)'
-        and e.amount = 387.33
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -690,7 +656,6 @@ select '2026-06', 'Despesa', c.id, 'Adobe', 160.00, 'Pago', '2026-07-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Adobe'
-        and e.amount = 160.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -701,7 +666,6 @@ select '2026-06', 'Despesa', c.id, 'CapCut', 32.90, 'Pago', '2026-07-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'CapCut'
-        and e.amount = 32.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -712,7 +676,6 @@ select '2026-06', 'Despesa', c.id, 'Canva', 35.00, 'Pago', '2026-07-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Canva'
-        and e.amount = 35.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -723,7 +686,6 @@ select '2026-06', 'Despesa', c.id, 'Captions', 51.90, 'Pago', '2026-07-20', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Captions'
-        and e.amount = 51.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -734,7 +696,6 @@ select '2026-06', 'Despesa', c.id, 'ChatGPT Plus', 107.51, 'Pago', '2026-07-20',
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'ChatGPT Plus'
-        and e.amount = 107.51
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -745,7 +706,6 @@ select '2026-06', 'Despesa', c.id, 'Claude Max', 612.77, 'Pago', '2026-07-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'Claude Max'
-        and e.amount = 612.77
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -756,7 +716,6 @@ select '2026-06', 'Despesa', c.id, 'iCloud Fran', 66.90, 'Pago', '2026-07-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'iCloud Fran'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -767,7 +726,6 @@ select '2026-06', 'Despesa', c.id, 'iCloud Vitória', 66.90, 'Pago', '2026-07-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-06'
         and e.description = 'iCloud Vitória'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -778,7 +736,6 @@ select '2026-07', 'Despesa', c.id, 'Pró-labore Fran', 6500.00, 'Pago', '2026-08
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Pró-labore Fran'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -789,7 +746,6 @@ select '2026-07', 'Despesa', c.id, 'Pró-labore Vitória', 6500.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Pró-labore Vitória'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -800,7 +756,6 @@ select '2026-07', 'Despesa', c.id, 'Honorários da contabilidade', 159.90, 'Pago
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Honorários da contabilidade'
-        and e.amount = 159.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -811,7 +766,6 @@ select '2026-07', 'Despesa', c.id, 'DAS do Simples Nacional', 86.05, 'Pago', '20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'DAS do Simples Nacional'
-        and e.amount = 86.05
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -822,7 +776,6 @@ select '2026-07', 'Despesa', c.id, 'Gasolina - carro Fran', 200.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Gasolina - carro Fran'
-        and e.amount = 200.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -833,7 +786,6 @@ select '2026-07', 'Despesa', c.id, 'Softbox Octabox e Aputure Amaran (Parcela 1/
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Softbox Octabox e Aputure Amaran (Parcela 1/4)'
-        and e.amount = 671.04
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -844,7 +796,6 @@ select '2026-07', 'Despesa', c.id, 'Tripé K&f (Parcela 1/2)', 368.76, 'Pago', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Tripé K&f (Parcela 1/2)'
-        and e.amount = 368.76
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -855,7 +806,6 @@ select '2026-07', 'Despesa', c.id, 'Adobe', 95.00, 'Pago', '2026-08-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Adobe'
-        and e.amount = 95.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -866,7 +816,6 @@ select '2026-07', 'Despesa', c.id, 'CapCut', 32.90, 'Pago', '2026-08-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'CapCut'
-        and e.amount = 32.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -877,7 +826,6 @@ select '2026-07', 'Despesa', c.id, 'Canva', 35.00, 'Pago', '2026-08-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Canva'
-        and e.amount = 35.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -888,7 +836,6 @@ select '2026-07', 'Despesa', c.id, 'Captions', 51.90, 'Pago', '2026-08-20', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Captions'
-        and e.amount = 51.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -899,7 +846,6 @@ select '2026-07', 'Despesa', c.id, 'ChatGPT Plus', 119.90, 'Pago', '2026-08-20',
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'ChatGPT Plus'
-        and e.amount = 119.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -910,7 +856,6 @@ select '2026-07', 'Despesa', c.id, 'Claude Max', 612.77, 'Pago', '2026-08-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'Claude Max'
-        and e.amount = 612.77
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -921,7 +866,6 @@ select '2026-07', 'Despesa', c.id, 'iCloud Fran', 66.90, 'Pago', '2026-08-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'iCloud Fran'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -932,7 +876,6 @@ select '2026-07', 'Despesa', c.id, 'iCloud Vitória', 66.90, 'Pago', '2026-08-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-07'
         and e.description = 'iCloud Vitória'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -943,7 +886,6 @@ select '2026-08', 'Despesa', c.id, 'Pró-labore Fran', 6500.00, 'Pago', '2026-09
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Pró-labore Fran'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -954,7 +896,6 @@ select '2026-08', 'Despesa', c.id, 'Pró-labore Vitória', 6500.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Pró-labore Vitória'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -965,7 +906,6 @@ select '2026-08', 'Despesa', c.id, 'Tráfego pago (gestão)', 250.00, 'Pendente'
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Tráfego pago (gestão)'
-        and e.amount = 250.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -976,7 +916,6 @@ select '2026-08', 'Despesa', c.id, 'DAS do Simples Nacional', 86.05, 'Pago', '20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'DAS do Simples Nacional'
-        and e.amount = 86.05
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -987,7 +926,6 @@ select '2026-08', 'Despesa', c.id, 'Pilates', 495.00, 'Pago', '2026-09-10', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Pilates'
-        and e.amount = 495.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -998,7 +936,6 @@ select '2026-08', 'Despesa', c.id, 'Softbox Octabox e Aputure Amaran (Parcela 2/
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Softbox Octabox e Aputure Amaran (Parcela 2/4)'
-        and e.amount = 671.04
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1009,7 +946,6 @@ select '2026-08', 'Despesa', c.id, 'Tripé K&f (Parcela 2/2)', 368.76, 'Pago', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Tripé K&f (Parcela 2/2)'
-        and e.amount = 368.76
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1020,7 +956,6 @@ select '2026-08', 'Despesa', c.id, 'Adobe', 95.00, 'Pago', '2026-09-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Adobe'
-        and e.amount = 95.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1031,7 +966,6 @@ select '2026-08', 'Despesa', c.id, 'CapCut', 32.90, 'Pago', '2026-09-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'CapCut'
-        and e.amount = 32.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1042,7 +976,6 @@ select '2026-08', 'Despesa', c.id, 'Canva', 35.00, 'Pago', '2026-09-20', '2026-0
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Canva'
-        and e.amount = 35.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1053,7 +986,6 @@ select '2026-08', 'Despesa', c.id, 'ChatGPT Plus', 119.90, 'Pago', '2026-09-20',
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'ChatGPT Plus'
-        and e.amount = 119.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1064,7 +996,6 @@ select '2026-08', 'Despesa', c.id, 'Claude Max', 612.77, 'Pago', '2026-09-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'Claude Max'
-        and e.amount = 612.77
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1075,7 +1006,6 @@ select '2026-08', 'Despesa', c.id, 'iCloud Fran', 66.90, 'Pago', '2026-09-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'iCloud Fran'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1086,7 +1016,6 @@ select '2026-08', 'Despesa', c.id, 'iCloud Vitória', 66.90, 'Pago', '2026-09-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-08'
         and e.description = 'iCloud Vitória'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1097,7 +1026,6 @@ select '2026-09', 'Despesa', c.id, 'Pró-labore Fran', 6500.00, 'Pago', '2026-10
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Pró-labore Fran'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1108,7 +1036,6 @@ select '2026-09', 'Despesa', c.id, 'Pró-labore Vitória', 6500.00, 'Pago', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Pró-labore Vitória'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1119,7 +1046,6 @@ select '2026-09', 'Despesa', c.id, 'Pilates', 495.00, 'Pago', '2026-10-10', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Pilates'
-        and e.amount = 495.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1130,7 +1056,6 @@ select '2026-09', 'Despesa', c.id, 'DAS do Simples Nacional', 86.05, 'Pago', '20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'DAS do Simples Nacional'
-        and e.amount = 86.05
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1141,7 +1066,6 @@ select '2026-09', 'Despesa', c.id, 'Softbox Octabox e Aputure Amaran (Parcela 2/
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Softbox Octabox e Aputure Amaran (Parcela 2/4)'
-        and e.amount = 671.04
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1152,7 +1076,6 @@ select '2026-09', 'Despesa', c.id, 'Tripé K&f (Parcela 2/2)', 368.76, 'Pago', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Tripé K&f (Parcela 2/2)'
-        and e.amount = 368.76
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1163,7 +1086,6 @@ select '2026-09', 'Despesa', c.id, 'Mentoria Ultralize', 2166.70, 'Pago', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Mentoria Ultralize'
-        and e.amount = 2166.70
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1174,7 +1096,6 @@ select '2026-09', 'Despesa', c.id, 'Adobe', 95.00, 'Pago', '2026-10-20', '2026-1
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Adobe'
-        and e.amount = 95.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1185,7 +1106,6 @@ select '2026-09', 'Despesa', c.id, 'CapCut', 32.90, 'Pago', '2026-10-20', '2026-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'CapCut'
-        and e.amount = 32.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1196,7 +1116,6 @@ select '2026-09', 'Despesa', c.id, 'Canva', 32.00, 'Pago', '2026-10-20', '2026-1
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Canva'
-        and e.amount = 32.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1207,7 +1126,6 @@ select '2026-09', 'Despesa', c.id, 'ChatGPT Plus', 119.90, 'Pago', '2026-10-20',
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'ChatGPT Plus'
-        and e.amount = 119.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1218,7 +1136,6 @@ select '2026-09', 'Despesa', c.id, 'Claude Max', 612.77, 'Pago', '2026-10-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'Claude Max'
-        and e.amount = 612.77
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1229,7 +1146,6 @@ select '2026-09', 'Despesa', c.id, 'iCloud Fran', 66.90, 'Pago', '2026-10-20', '
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'iCloud Fran'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1240,7 +1156,6 @@ select '2026-09', 'Despesa', c.id, 'iCloud Vitória', 66.90, 'Pago', '2026-10-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-09'
         and e.description = 'iCloud Vitória'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1251,7 +1166,6 @@ select '2026-10', 'Despesa', c.id, 'Pró-labore Fran', 6500.00, 'Pendente', '202
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'Pró-labore Fran'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1262,7 +1176,6 @@ select '2026-10', 'Despesa', c.id, 'Pró-labore Vitória', 6500.00, 'Pendente', 
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'Pró-labore Vitória'
-        and e.amount = 6500.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1273,7 +1186,6 @@ select '2026-10', 'Despesa', c.id, 'DAS do Simples Nacional', 86.05, 'Pago', '20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'DAS do Simples Nacional'
-        and e.amount = 86.05
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1284,7 +1196,6 @@ select '2026-10', 'Despesa', c.id, 'Softbox Octabox e Aputure Amaran (Parcela 3/
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'Softbox Octabox e Aputure Amaran (Parcela 3/4)'
-        and e.amount = 671.04
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1295,7 +1206,6 @@ select '2026-10', 'Despesa', c.id, 'Mentoria Ultralize', 2166.70, 'Pendente', '2
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'Mentoria Ultralize'
-        and e.amount = 2166.70
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1306,7 +1216,6 @@ select '2026-10', 'Despesa', c.id, 'Adobe', 95.00, 'Pendente', '2026-11-20', nul
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'Adobe'
-        and e.amount = 95.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1317,7 +1226,6 @@ select '2026-10', 'Despesa', c.id, 'CapCut', 32.90, 'Pendente', '2026-11-20', nu
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'CapCut'
-        and e.amount = 32.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1328,7 +1236,6 @@ select '2026-10', 'Despesa', c.id, 'Canva', 32.00, 'Pendente', '2026-11-20', nul
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'Canva'
-        and e.amount = 32.00
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1339,7 +1246,6 @@ select '2026-10', 'Despesa', c.id, 'ChatGPT Plus', 119.90, 'Pendente', '2026-11-
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'ChatGPT Plus'
-        and e.amount = 119.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1350,7 +1256,6 @@ select '2026-10', 'Despesa', c.id, 'Claude Max', 612.77, 'Pendente', '2026-11-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'Claude Max'
-        and e.amount = 612.77
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1361,7 +1266,6 @@ select '2026-10', 'Despesa', c.id, 'iCloud Fran', 66.90, 'Pendente', '2026-11-20
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'iCloud Fran'
-        and e.amount = 66.90
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1372,5 +1276,103 @@ select '2026-10', 'Despesa', c.id, 'iCloud Vitória', 66.90, 'Pendente', '2026-1
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
         and e.description = 'iCloud Vitória'
-        and e.amount = 66.90
    );
+
+-- =============================================================
+-- antecipado_e_fatura_outubro
+-- =============================================================
+alter table public.financial_recurrences
+  add column if not exists vencimento_meses smallint not null default 1;
+
+comment on column public.financial_recurrences.vencimento_meses is
+  'Quantos meses depois da competência a conta vence. +1 é o normal; -1 é quem paga antecipado (Studio Bambu).';
+
+update public.financial_recurrences
+   set vencimento_meses = -1, updated_at = now()
+ where description = 'Mensalidade Studio Bambu'
+   and vencimento_meses is distinct from -1;
+
+-- A Salte ainda não tem contrato fechado, então não tem dia.
+update public.financial_recurrences
+   set due_day = null, updated_at = now()
+ where description = 'Mensalidade Salte'
+   and due_day is not null;
+
+delete from public.financial_entries e
+ using public.financial_recurrences r
+ where e.recurrence_id = r.id
+   and r.description = 'Mensalidade Salte'
+   and e.status <> 'Pago'
+   and e.due_date is not null;
+
+-- -------------------------------------------------------------
+-- 2. A fatura de outubro
+-- -------------------------------------------------------------
+do $$
+declare
+  cat_ferramentas uuid;
+  cat_outros      uuid;
+  item            record;
+begin
+  select id into cat_ferramentas
+    from public.financial_categories
+   where kind = 'Despesa' and name = 'Assinaturas e ferramentas digitais';
+
+  select id into cat_outros
+    from public.financial_categories
+   where kind = 'Despesa' and name = 'Outros custos operacionais';
+
+  -- Os valores que o cartão desmente.
+  update public.financial_entries
+     set amount = 572.00, updated_at = now()
+   where reference_month = '2026-10' and description = 'Claude Max'
+     and status <> 'Pago' and amount = 612.77;
+
+  update public.financial_entries
+     set amount = 103.90, updated_at = now()
+   where reference_month = '2026-10' and description = 'ChatGPT Plus'
+     and status <> 'Pago' and amount = 119.90;
+
+  update public.financial_entries
+     set amount = 35.00, updated_at = now()
+   where reference_month = '2026-10' and description = 'Canva'
+     and status <> 'Pago' and amount = 32.00;
+
+  -- O que faltava.
+  if cat_ferramentas is not null then
+    for item in
+      select *
+        from (values
+          ('ElevenLabs',                      33.57),
+          ('Adobe (segunda cobrança)',        65.00),
+          ('IOF das compras internacionais',  24.83)
+        ) as t(descricao, valor)
+    loop
+      if not exists (
+        select 1 from public.financial_entries
+         where reference_month = '2026-10' and description = item.descricao
+      ) then
+        insert into public.financial_entries
+          (reference_month, kind, category_id, description, amount,
+           status, due_date)
+        values
+          ('2026-10', 'Despesa', cat_ferramentas, item.descricao,
+           item.valor, 'Pendente', '2026-11-20');
+      end if;
+    end loop;
+  end if;
+
+  if cat_outros is not null
+     and not exists (
+       select 1 from public.financial_entries
+        where reference_month = '2026-10'
+          and description = 'Pilates (parcela 1/3)'
+     ) then
+    insert into public.financial_entries
+      (reference_month, kind, category_id, description, amount,
+       status, due_date)
+    values
+      ('2026-10', 'Despesa', cat_outros, 'Pilates (parcela 1/3)',
+       493.00, 'Pendente', '2026-11-20');
+  end if;
+end $$;

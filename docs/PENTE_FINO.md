@@ -67,7 +67,7 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 
 | "É o faturamento bruto, não faz sentido já tirar tudo" | ✓ O mês agora soma TUDO que está lançado, como a planilha: o TOTAL RECEITAS de outubro lá é R$ 14.150,00 e inclui a Malukies de R$ 2.600,00 marcada "Pendente". O status virou marcação (já caiu / ainda não), não a base do cálculo. Conferido contra o Resumo Anual: os sete meses e o Saldo Acumulado batem na vírgula. |
 
-| Cada cliente tem seu dia de vencimento | ✓ Kiku 10, Malukies 10, Laura 25, Natural Concept 25, pró-labore 10, cartão das ferramentas 20 — sempre no mês seguinte ao da competência. `supabase/vencimentos_por_cliente.sql`. Studio Bambu dia 25 (Cláusula 5 do contrato no Drive) e Izabela em duas parcelas de R$ 900,00, dia 10 e dia 25. **Falta só a Salte.** |
+| Cada cliente tem seu dia de vencimento | ✓ Kiku 10, Malukies 10, Laura 25, Natural Concept 25, pró-labore 10, cartão das ferramentas 20 — sempre no mês seguinte ao da competência. `supabase/vencimentos_por_cliente.sql`. Studio Bambu dia 25 (Cláusula 5 do contrato no Drive) e Izabela em duas parcelas de R$ 900,00, dia 10 e dia 25. A Salte fica **sem dia** até fechar o contrato. O **Studio Bambu paga ANTECIPADO** (novembro no dia 25 de outubro): a recorrência ganhou o campo `vencimento_meses` (+1 é o normal, −1 é adiantado). |
 | Um arquivo só para atualizar o banco | ✓ `supabase/ATUALIZAR.sql`, montado por `scripts/montar-atualizar.sh`. Eram quatro arquivos em ordem; por isso outubro ficou agrupado e o Captions continuou em novembro. |
 
 ## O que os outros sistemas fazem (pesquisa, nov/2026)

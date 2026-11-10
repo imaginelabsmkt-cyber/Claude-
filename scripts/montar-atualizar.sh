@@ -14,6 +14,7 @@ ORDEM=(
   vencimentos_por_cliente
   meta_de_faturamento
   detalhar_historico
+  antecipado_e_fatura_outubro
 )
 
 {
@@ -33,6 +34,9 @@ ORDEM=(
 --   3. meta_de_faturamento — cria o campo da meta do ano.
 --   4. detalhar_historico — abre os meses passados item por item,
 --      no lugar das linhas-bloco e do "A CLASSIFICAR".
+--   5. antecipado_e_fatura_outubro — o Studio Bambu paga adiantado,
+--      a Salte fica sem dia até fechar o contrato, e a fatura do
+--      cartão de outubro entra com o que faltava.
 --
 -- COMO RODAR
 --

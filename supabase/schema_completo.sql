@@ -1010,6 +1010,10 @@ create table if not exists public.financial_recurrences (
   client_id    uuid references public.clients(id) on delete set null,
   amount       numeric(12, 2) not null check (amount >= 0),
   due_day      integer check (due_day between 1 and 31),
+  -- Quantos meses depois da competência a conta vence. +1 é o normal
+  -- ("as contas de outubro eu fecho em novembro"); -1 é quem paga
+  -- antecipado (o Studio Bambu paga novembro no dia 25 de outubro).
+  vencimento_meses smallint not null default 1,
   start_month  text not null,  -- "YYYY-MM"
   end_month    text,           -- "YYYY-MM" (null = sem fim previsto)
   active       boolean not null default true,

@@ -143,11 +143,24 @@ export function anoDoMes(mes: string): number {
  * que mês o dinheiro PERTENCE (e é ela que monta o fluxo de caixa); o
  * vencimento diz QUANDO ele é pago.
  *
+ * NEM TODO MUNDO PAGA DEPOIS. O Studio Bambu paga ANTECIPADO: no dia
+ * 25 de outubro ele paga novembro. Por isso `deslocamento`, em meses,
+ * contado a partir da competência:
+ *
+ *    +1  paga no mês seguinte   (o normal aqui: Kiku, Malukies, o
+ *        pró-labore, o cartão das ferramentas)
+ *     0  paga dentro do próprio mês
+ *    -1  paga ANTECIPADO, no mês anterior (Studio Bambu)
+ *
  * Dias que não existem no mês (ex.: 31 em abril) caem no último dia.
  */
-export function dataVencimento(mes: string, dia: number | null): string | null {
+export function dataVencimento(
+  mes: string,
+  dia: number | null,
+  deslocamento = 1,
+): string | null {
   if (!dia) return null;
-  const mesDoPagamento = proximoMes(mes);
+  const mesDoPagamento = deslocarMes(mes, deslocamento);
   const { ano, mes: m } = partesMes(mesDoPagamento);
   if (!ano) return null;
   const ultimoDia = new Date(ano, m, 0).getDate();

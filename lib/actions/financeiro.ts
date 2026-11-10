@@ -326,7 +326,7 @@ export async function gerarLancamentosDoMesAction(
     description: r.description,
     amount: Number(r.amount),
     status: "Pendente" as const,
-    due_date: dataVencimento(mes, r.due_day),
+    due_date: dataVencimento(mes, r.due_day, r.vencimento_meses ?? 1),
     paid_date: null,
     payment_method: null,
     notes: r.notes,

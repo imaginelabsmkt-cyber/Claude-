@@ -358,6 +358,14 @@ export type FinancialRecurrence = {
   amount: number;
   /** Dia do mês do vencimento (1 a 31). */
   due_day: number | null;
+  /**
+   * Quantos meses depois da competência a conta vence.
+   *
+   * +1 é o normal aqui ("as contas de outubro eu fecho em novembro").
+   * -1 é quem paga ANTECIPADO: o Studio Bambu paga novembro no dia 25
+   * de outubro. 0 é dentro do próprio mês.
+   */
+  vencimento_meses: number;
   start_month: MonthString;
   end_month: MonthString | null;
   active: boolean;
@@ -422,11 +430,13 @@ export type FinancialRecurrenceInsert = Omit<
   | "active"
   | "notes"
   | "team_member_id"
+  | "vencimento_meses"
 > & {
   team_member_id?: UUID | null;
   id?: UUID;
   client_id?: UUID | null;
   due_day?: number | null;
+  vencimento_meses?: number;
   end_month?: MonthString | null;
   active?: boolean;
   notes?: string | null;

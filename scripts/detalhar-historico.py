@@ -254,7 +254,6 @@ def sql(itens):
             "     select 1 from public.financial_entries e",
             f"      where e.reference_month = {aspas(i['mes'])}",
             f"        and e.description = {aspas(i['descricao'])}",
-            f"        and e.amount = {i['valor']:.2f}",
             "   );",
         ]
     return "\n".join(linhas_sql) + "\n"
