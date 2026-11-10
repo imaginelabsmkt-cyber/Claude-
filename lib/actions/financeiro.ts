@@ -167,6 +167,39 @@ export async function definirStatusLancamentoAction(
   return { ok: true, id };
 }
 
+/**
+ * Muda SÓ o valor de um lançamento.
+ *
+ * As ferramentas são cobradas em dólar e mudam de preço todo mês: o
+ * Claude foi R$ 612,77 em outubro, R$ 572,00 na fatura e R$ 454,10 em
+ * novembro. Corrigir isso abrindo o formulário inteiro é quatro
+ * cliques por item, oito itens por mês. A Fran escolheu: "editar o
+ * valor na própria linha".
+ *
+ * Por isso esta ação existe separada da `atualizarLancamentoAction`:
+ * ela não toca em mais nada do lançamento.
+ */
+export async function definirValorLancamentoAction(
+  id: string,
+  valor: string,
+): Promise<ActionResult> {
+  const numero = paraNumero(valor);
+  if (numero === null || numero < 0) {
+    return { ok: false, error: "Valor inválido." };
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("financial_entries")
+    .update({ amount: numero })
+    .eq("id", id);
+
+  if (error) return { ok: false, error: "Não foi possível mudar o valor." };
+
+  revalidarFinanceiro();
+  return { ok: true, id };
+}
+
 /** Exclui um lançamento. */
 export async function excluirLancamentoAction(id: string): Promise<ActionResult> {
   const supabase = createClient();

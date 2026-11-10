@@ -6,6 +6,7 @@ import {
   type LancamentoFolha,
 } from "@/lib/financeiro/folha";
 import { BaixaRapida } from "@/components/financeiro/baixa-rapida";
+import { ValorEditavel } from "@/components/financeiro/valor-editavel";
 import { Situacao } from "@/components/financeiro/situacao";
 import { situacaoDoLancamento, textoDoPrazo } from "@/lib/financeiro/vencimento";
 import {
@@ -105,8 +106,16 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
                         </span>
                       ) : null}
                     </span>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
-                      {formatarMoeda(x.amount)}
+                    {/* O valor se edita aqui mesmo: as ferramentas
+                        mudam de preço todo mês com o dólar, e abrir o
+                        formulário inteiro para trocar um número eram
+                        quatro cliques por item. */}
+                    <span className="shrink-0">
+                      <ValorEditavel
+                        id={x.id}
+                        valor={x.amount}
+                        descricao={x.description}
+                      />
                     </span>
                     {/* Etiqueta é alarme, e alarme que toca em toda
                         linha ninguém escuta: antes havia uma em cada
