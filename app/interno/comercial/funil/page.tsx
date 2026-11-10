@@ -4,9 +4,15 @@ import { ComercialTabs } from "@/components/comercial/comercial-tabs";
 import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { Button } from "@/components/ui/button";
+import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
 import { FunilBoard } from "@/components/comercial/funil-board";
 import { listarEncerrados, listarLeads, obterCarteira } from "@/lib/data/comercial";
-import { clientesParaCobrir, estaParado, valorDoFunil } from "@/lib/comercial/funil";
+import {
+  ETAPAS_ABERTAS,
+  clientesParaCobrir,
+  estaParado,
+  valorDoFunil,
+} from "@/lib/comercial/funil";
 import { mesAtual } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 import { LEAD_STAGES_ABERTAS } from "@/types";
@@ -33,6 +39,20 @@ export default async function FunilPage() {
   ]);
 
   const noFunil = valorDoFunil(leads);
+
+  // O funil desenhado: uma barra por etapa, do primeiro contato ao
+  // fechamento. É o gráfico que a área comercial existe para ter.
+  const etapas = ETAPAS_ABERTAS.map((etapa) => {
+    const naEtapa = leads.filter((l) => l.stage === etapa);
+    return {
+      rotulo: etapa,
+      valor: naEtapa.reduce((t, l) => t + Number(l.estimated_monthly ?? 0), 0),
+      detalhe:
+        naEtapa.length === 1
+          ? "1 oportunidade"
+          : `${naEtapa.length} oportunidades`,
+    };
+  });
   const parados = leads.filter((l) => estaParado(l)).length;
   const falta = carteira.custoFixo - carteira.recorrente;
   const faltamClientes = clientesParaCobrir(falta, carteira.ticketMedio);
@@ -79,6 +99,16 @@ export default async function FunilPage() {
           }
         />
       </div>
+
+      {leads.length > 0 ? (
+        <div className="mb-5">
+          <Secao titulo="O funil, por etapa">
+            <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+              <BarrasRanqueadas itens={etapas} cor="#7a2740" />
+            </div>
+          </Secao>
+        </div>
+      ) : null}
 
       {leads.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">

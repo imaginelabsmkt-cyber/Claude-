@@ -284,6 +284,18 @@ export function RecurrencesPanel({
 
   return (
     <div className="space-y-6">
+      {/* O botão de ADICIONAR fica no topo, antes das listas.
+          Estava embaixo dos três cartões e a Fran não achou: "as
+          ferramentas de novembro eu não sei onde eu adiciono". É aqui
+          que se põe uma ferramenta nova, e é aqui que se põe o que
+          dura alguns meses — a Mentoria até fevereiro — pelos campos
+          "Começa em" e "Termina em". */}
+      {criando ? null : (
+        <Button onClick={() => setCriando(true)}>
+          Adicionar uma conta que se repete
+        </Button>
+      )}
+
       <div className="grid gap-3 sm:grid-cols-3">
         {[
           {
@@ -329,7 +341,7 @@ export function RecurrencesPanel({
       {criando ? (
         <Card>
           <CardHeader>
-            <CardTitle>Nova recorrência</CardTitle>
+            <CardTitle>Uma conta que se repete todo mês</CardTitle>
           </CardHeader>
           <CardContent>
             <RecurrenceForm
@@ -340,11 +352,7 @@ export function RecurrencesPanel({
             />
           </CardContent>
         </Card>
-      ) : (
-        <Button variante="secundaria" onClick={() => setCriando(true)}>
-          Nova recorrência
-        </Button>
-      )}
+      ) : null}
 
       {recorrencias.length === 0 ? (
         <EmptyState

@@ -1,5 +1,6 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
+import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
 import { ContratosPanel } from "@/components/contratos/contratos-panel";
 import { Secao } from "@/components/interno/secao";
 import { listarContratosDeCliente } from "@/lib/data/contratos";
@@ -52,6 +53,14 @@ export default async function ClientesPage() {
 
   const naRelacao = carteira.ativos.length;
 
+  // Quem paga a conta. A relação de clientes diz QUEM é cliente; esta
+  // barra diz quanto cada um pesa — que é o que faz decidir renovar,
+  // reajustar ou ir atrás de outro.
+  const porCliente = [...carteira.ativos, ...carteira.inativos].map((c) => ({
+    rotulo: c.nome,
+    valor: rendeuNoAno[c.id] ?? 0,
+  }));
+
   return (
     <>
       <AreaHeader
@@ -99,6 +108,14 @@ export default async function ClientesPage() {
               </li>
             ))}
           </ul>
+        </Secao>
+      ) : null}
+
+      {porCliente.some((c) => c.valor > 0) ? (
+        <Secao titulo={`Quem paga a conta em ${new Date().getFullYear()}`}>
+          <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+            <BarrasRanqueadas itens={porCliente} cor="#1d5a9e" />
+          </div>
         </Secao>
       ) : null}
 
