@@ -88,8 +88,17 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
                       descricao={x.description}
                     />
 
+                    {/* O nome perde a palavra que a categoria já diz
+                        SEMPRE que o grupo tem mais de uma linha —
+                        "Mensalidade Kiku Sushi" vira "Kiku Sushi".
+                        Isto NÃO depende de o subtítulo da categoria
+                        estar na tela: quando eu amarrei as duas
+                        coisas na mesma condição, a coluna "Entrou",
+                        que tem uma categoria só, voltou a repetir
+                        "Mensalidade" em todas as oito linhas. Era
+                        o primeiro pedido dela sobre esta lista. */}
                     <span className="min-w-0 flex-1 text-sm text-gray-900">
-                      {grupos.length > 1 && g.linhas.length > 1
+                      {g.linhas.length > 1
                         ? semRepetirOGrupo(x.description, g.categoria)
                         : x.description}
                       {clienteSeFizerFalta(
