@@ -20,6 +20,7 @@
 import { describe, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
+import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
 import { CartaoDoAno } from "@/components/interno/cartao-do-ano";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
@@ -128,6 +129,46 @@ function Tela() {
           <Indicador rotulo="Contratos" valor="2" detalhe="pedem conversa" alerta />
         </div>
       </Secao>
+
+      <div className="grid gap-x-4 lg:grid-cols-2">
+        <Secao
+          titulo="O funil, por etapa"
+          acao={<span className="font-medium text-gray-600">Abrir o comercial</span>}
+        >
+          <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+            <BarrasRanqueadas
+              itens={[
+                { rotulo: "Contato feito", valor: 1800, detalhe: "2 oportunidades" },
+                { rotulo: "Diagnóstico", valor: 2200, detalhe: "1 oportunidade" },
+                { rotulo: "Proposta enviada", valor: 1400, detalhe: "1 oportunidade" },
+              ]}
+              cor="#7a2740"
+              ordenar={false}
+            />
+          </div>
+        </Secao>
+
+        <Secao
+          titulo="Quem paga a conta em 2026"
+          acao={<span className="font-medium text-gray-600">Abrir os clientes</span>}
+        >
+          <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+            <BarrasRanqueadas
+              itens={[
+                { rotulo: "Kiku Sushi", valor: 17600 },
+                { rotulo: "Malukies Cookies & Co", valor: 15400 },
+                { rotulo: "Laura Chioquetta", valor: 12400 },
+                { rotulo: "Natural Concept", valor: 11900 },
+                { rotulo: "Dra. Hemilayne", valor: 9794 },
+                { rotulo: "Izabela Schipitoski", valor: 7200 },
+                { rotulo: "Studio Bambu", valor: 3900 },
+              ]}
+              cor="#1d5a9e"
+              limite={6}
+            />
+          </div>
+        </Secao>
+      </div>
 
       <Secao titulo="Precisa de você">
         <OrigemLista>

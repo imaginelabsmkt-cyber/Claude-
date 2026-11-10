@@ -104,7 +104,7 @@ export default async function FunilPage() {
         <div className="mb-5">
           <Secao titulo="O funil, por etapa">
             <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-              <BarrasRanqueadas itens={etapas} cor="#7a2740" />
+              <BarrasRanqueadas itens={etapas} cor="#7a2740" ordenar={false} />
             </div>
           </Secao>
         </div>

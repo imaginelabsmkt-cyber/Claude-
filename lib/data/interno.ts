@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   listarCategorias,
+  listarClientesFinanceiro,
   listarLancamentos,
   obterConfiguracaoFinanceira,
+  receitaPorClienteNoAno,
   obterPainelMes,
   obterResumoAnual,
   type PainelMes,
@@ -20,7 +22,7 @@ import { listarObrigacoesUrgentes } from "@/lib/data/empresa";
 import { listarContratosDeCliente } from "@/lib/data/contratos";
 import { listarLeads } from "@/lib/data/comercial";
 import { contratosQuePedemConversa } from "@/lib/empresa/contratos";
-import { valorDoFunil } from "@/lib/comercial/funil";
+import { ETAPAS_ABERTAS, valorDoFunil } from "@/lib/comercial/funil";
 import {
   contarUrgentes,
   situacaoDoLancamento,
@@ -136,6 +138,16 @@ export interface PainelInterno {
   vencido: { aReceber: number; aPagar: number; quantos: number };
   /** O comercial em uma linha. */
   comercial: { emAberto: number; seTudoFechar: number };
+  /**
+   * O funil por etapa, para o painel desenhar.
+   *
+   * O Dashboard mostrava o dinheiro e mais nada: "não parece um
+   * sistema de gestão de uma empresa, onde tem administrativo, onde
+   * tem comercial". Cada área tem a sua barra aqui.
+   */
+  funilPorEtapa: { rotulo: string; valor: number; detalhe: string }[];
+  /** Quanto cada cliente rendeu no ano. */
+  receitaPorCliente: { rotulo: string; valor: number }[];
   /** O administrativo em uma linha. */
   administrativo: { contratosQuePedemConversa: number };
 }
@@ -156,6 +168,8 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     contratosDeCliente,
     leadsAbertos,
     configuracao,
+    receitaCliente,
+    clientesDoFinanceiro,
     { data: recorrencias },
     { count: ativos },
   ] = await Promise.all([
@@ -166,6 +180,8 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       listarContratosDeCliente(),
       listarLeads(LEAD_STAGES_ABERTAS),
       obterConfiguracaoFinanceira(),
+      receitaPorClienteNoAno(anoDoMes(mes)),
+      listarClientesFinanceiro(),
       supabase
         .from("financial_recurrences")
         .select("id, description, client_id, kind, amount, start_month, end_month, active")
@@ -177,6 +193,9 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     ]);
 
   const anoFechado = faturamentoAnual(resumoAnual.ano, resumoAnual.serie);
+  const nomesDeCliente = new Map(
+    clientesDoFinanceiro.map((c) => [c.id, c.name]),
+  );
 
   const vigentes = (recorrencias ?? []).filter(
     (r) => r.start_month <= mes && (!r.end_month || r.end_month >= mes),
@@ -282,6 +301,21 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       emAberto: leadsAbertos.length,
       seTudoFechar: valorDoFunil(leadsAbertos),
     },
+    funilPorEtapa: ETAPAS_ABERTAS.map((etapa) => {
+      const naEtapa = leadsAbertos.filter((l) => l.stage === etapa);
+      return {
+        rotulo: etapa,
+        valor: somar(naEtapa.map((l) => Number(l.estimated_monthly ?? 0))),
+        detalhe:
+          naEtapa.length === 1
+            ? "1 oportunidade"
+            : `${naEtapa.length} oportunidades`,
+      };
+    }),
+    receitaPorCliente: Object.entries(receitaCliente).map(([id, valor]) => ({
+      rotulo: nomesDeCliente.get(id) ?? "Cliente",
+      valor,
+    })),
     administrativo: {
       contratosQuePedemConversa: contratosQuePedemConversa(
         contratosDeCliente,

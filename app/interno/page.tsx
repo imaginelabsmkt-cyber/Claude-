@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
+import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
 import { CartaoDoAno } from "@/components/interno/cartao-do-ano";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
@@ -78,7 +79,17 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
   const painel = await obterPainelInterno(mes);
-  const { financeiro, carteira, custoFixo, folego, ano, meta, vencido } = painel;
+  const {
+    financeiro,
+    carteira,
+    custoFixo,
+    folego,
+    ano,
+    meta,
+    vencido,
+    funilPorEtapa,
+    receitaPorCliente,
+  } = painel;
   const caixa = financeiro.resumo.saldoFinal;
   const sobra = carteira.recorrente - custoFixo;
 
@@ -162,7 +173,56 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
         ) : null}
       </Secao>
 
-      {/* 3. O QUE PEDE AÇÃO, DE TODAS AS ETAPAS */}
+      {/* 3. AS OUTRAS DUAS ÁREAS, DESENHADAS
+          "Não parece um sistema de gestão de uma empresa, onde tem
+          administrativo, onde tem comercial." O painel mostrava o
+          dinheiro e mais nada. */}
+      {funilPorEtapa.some((e) => e.valor > 0) ||
+      receitaPorCliente.some((c) => c.valor > 0) ? (
+        <div className="grid gap-x-4 lg:grid-cols-2">
+          {funilPorEtapa.some((e) => e.valor > 0) ? (
+            <Secao
+              titulo="O funil, por etapa"
+              acao={
+                <Link
+                  href="/interno/comercial/funil"
+                  className="font-medium text-gray-600 hover:underline"
+                >
+                  Abrir o comercial
+                </Link>
+              }
+            >
+              <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+                <BarrasRanqueadas itens={funilPorEtapa} cor="#7a2740" ordenar={false} />
+              </div>
+            </Secao>
+          ) : null}
+
+          {receitaPorCliente.some((c) => c.valor > 0) ? (
+            <Secao
+              titulo={`Quem paga a conta em ${ano.ano}`}
+              acao={
+                <Link
+                  href="/interno/administrativo/clientes"
+                  className="font-medium text-gray-600 hover:underline"
+                >
+                  Abrir os clientes
+                </Link>
+              }
+            >
+              <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+                <BarrasRanqueadas
+                  itens={receitaPorCliente}
+                  cor="#1d5a9e"
+                  limite={6}
+                />
+              </div>
+            </Secao>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* 4. O QUE PEDE AÇÃO, DE TODAS AS ETAPAS */}
       <Secao
         titulo="Precisa de você"
         acao={

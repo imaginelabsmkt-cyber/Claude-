@@ -32,6 +32,15 @@ interface BarrasRanqueadasProps {
   limite?: number;
   /** Como escrever o valor. Dinheiro, por padrão. */
   formatar?: (v: number) => string;
+  /**
+   * Ordenar do maior para o menor. Verdadeiro por padrão.
+   *
+   * O FUNIL é a exceção: as etapas têm ordem própria (contato,
+   * diagnóstico, proposta, negociação) e embaralhar por valor
+   * destrói a única coisa que um funil conta — o caminho. Ordenado
+   * por dinheiro, ele deixa de ser funil e vira ranking de etapa.
+   */
+  ordenar?: boolean;
 }
 
 export function BarrasRanqueadas({
@@ -39,28 +48,35 @@ export function BarrasRanqueadas({
   cor = "#6a2336",
   limite = 8,
   formatar = formatarMoeda,
+  ordenar = true,
 }: BarrasRanqueadasProps) {
-  const ordenados = [...itens]
-    .filter((i) => i.valor > 0)
-    .sort((a, b) => b.valor - a.valor);
+  const vivos = [...itens].filter((i) => i.valor > 0);
+  const ordenados = ordenar
+    ? vivos.sort((a, b) => b.valor - a.valor)
+    : vivos;
 
   if (ordenados.length === 0) return null;
 
   const mostrar = ordenados.slice(0, limite);
   const resto = ordenados.slice(limite);
   const sobra = resto.reduce((t, i) => t + i.valor, 0);
-  const linhas = sobra
-    ? [
-        ...mostrar,
-        {
-          rotulo: `outros ${resto.length}`,
-          valor: sobra,
-          detalhe: undefined,
-        },
-      ]
-    : mostrar;
+  // Com UM sobrando, "outros 1" é pior do que o nome dele: esconde
+  // a informação e não economiza linha nenhuma.
+  const linhas =
+    resto.length === 1
+      ? [...mostrar, resto[0]]
+      : sobra
+        ? [
+            ...mostrar,
+            {
+              rotulo: `outros ${resto.length}`,
+              valor: sobra,
+              detalhe: undefined,
+            },
+          ]
+        : mostrar;
 
-  const maior = linhas[0].valor;
+  const maior = Math.max(...linhas.map((i) => i.valor));
   const total = ordenados.reduce((t, i) => t + i.valor, 0);
 
   return (
