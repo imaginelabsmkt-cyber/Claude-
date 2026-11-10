@@ -477,6 +477,27 @@ export async function obterResumoAnual(ano: number): Promise<ResumoAnual> {
   };
 }
 
+/**
+ * Quanto cada cliente rendeu no ano, somando tudo que foi lançado
+ * para ele — caído ou não, como a planilha soma.
+ *
+ * É o número que falta na tela de Clientes para ela deixar de ser um
+ * cadastro: "Kiku Sushi, 8 meses de casa, R$ 2.200 por mês" não diz
+ * nada sozinho; "já rendeu R$ 17.600 no ano" diz.
+ */
+export async function receitaPorClienteNoAno(
+  ano: number,
+): Promise<Record<string, number>> {
+  const meses = mesesDoAno(ano);
+  const lancamentos = await lancamentosDoIntervalo(meses[0], meses[11]);
+  const total: Record<string, number> = {};
+  for (const l of lancamentos) {
+    if (l.kind !== "Receita" || !l.client_id) continue;
+    total[l.client_id] = arredondar((total[l.client_id] ?? 0) + Number(l.amount));
+  }
+  return total;
+}
+
 /** Lista as recorrências cadastradas, com categoria e cliente resolvidos. */
 export async function listarRecorrencias(): Promise<
   FinancialRecurrenceWithRelations[]

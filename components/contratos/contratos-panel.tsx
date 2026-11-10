@@ -65,6 +65,14 @@ interface ContratosPanelProps {
   semContrato?: ClienteEscolhivel[];
   /** Data de hoje em "YYYY-MM-DD", calculada no servidor. */
   hoje: string;
+  /**
+   * Quanto cada cliente já rendeu no ano, por id.
+   *
+   * É o número que tira esta tela de "cadastro". "Kiku Sushi, 8 meses
+   * de casa, R$ 2.200 por mês" não diz nada sozinho; "já rendeu
+   * R$ 17.600 no ano" diz.
+   */
+  rendeuNoAno?: Record<string, number>;
 }
 
 /**
@@ -79,6 +87,7 @@ export function ContratosPanel({
   clientes,
   semContrato = [],
   hoje,
+  rendeuNoAno = {},
 }: ContratosPanelProps) {
   const router = useRouter();
   const [editando, setEditando] = useState<string | "novo" | null>(null);
@@ -175,6 +184,7 @@ export function ContratosPanel({
             ) : (
               <Linha
                 key={c.id}
+                rendeu={c.client_id ? rendeuNoAno[c.client_id] : undefined}
                 contrato={c}
                 hoje={hoje}
                 aoEditar={() => setEditando(c.id)}
@@ -206,11 +216,13 @@ export function ContratosPanel({
 function Linha({
   contrato,
   hoje,
+  rendeu,
   aoEditar,
   aoExcluir,
 }: {
   contrato: ContratoComCliente;
   hoje: string;
+  rendeu?: number;
   aoEditar: () => void;
   aoExcluir: () => void;
 }) {
@@ -269,8 +281,16 @@ function Linha({
           </span>
         </span>
 
-        <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-gray-900">
-          {formatarMoeda(Number(contrato.monthly_amount))}
+        <span className="w-32 shrink-0 text-right">
+          <span className="block text-sm font-semibold tabular-nums text-gray-900">
+            {formatarMoeda(Number(contrato.monthly_amount))}
+            <span className="font-normal text-gray-500">/mês</span>
+          </span>
+          {rendeu ? (
+            <span className="block text-xs tabular-nums text-gray-500">
+              {formatarMoeda(rendeu)} no ano
+            </span>
+          ) : null}
         </span>
 
         <span className="flex shrink-0 gap-1">

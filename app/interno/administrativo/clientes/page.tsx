@@ -1,10 +1,12 @@
-import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { ClientesTabs } from "@/components/interno/clientes-tabs";
 import { ContratosPanel } from "@/components/contratos/contratos-panel";
 import { Secao } from "@/components/interno/secao";
 import { listarContratosDeCliente } from "@/lib/data/contratos";
-import { listarClientesFinanceiro } from "@/lib/data/financeiro";
+import {
+  listarClientesFinanceiro,
+  receitaPorClienteNoAno,
+} from "@/lib/data/financeiro";
 import { obterCarteira } from "@/lib/data/comercial";
 import { receitaContratada } from "@/lib/empresa/contratos";
 import { contratosQuePedemConversa } from "@/lib/empresa/contratos";
@@ -31,12 +33,13 @@ export const metadata = { title: "Clientes" };
 export default async function ClientesPage() {
   const hoje = hojeISO();
 
-  const [contratos, clientes, carteira] = await Promise.all([
+  const [contratos, clientes, carteira, rendeuNoAno] = await Promise.all([
     listarContratosDeCliente(),
     listarClientesFinanceiro(),
     // A carteira é "hoje", não um mês escolhido: é a relação de quem é
     // cliente agora.
     obterCarteira(mesAtual()),
+    receitaPorClienteNoAno(Number(mesAtual().slice(0, 4))),
   ]);
 
   const conversas = contratosQuePedemConversa(contratos, hoje);
@@ -107,6 +110,7 @@ export default async function ClientesPage() {
           clientes={clientes}
           semContrato={semContrato}
           hoje={hoje}
+          rendeuNoAno={rendeuNoAno}
         />
       </Secao>
 
@@ -135,23 +139,6 @@ export default async function ClientesPage() {
         </Secao>
       ) : null}
 
-      <p className="border-l-4 border-area pl-3 text-sm text-gray-600">
-        O contrato manda no valor: mudou a mensalidade aqui, a cobrança no{" "}
-        <Link
-          href="/interno/financeiro/recorrencias"
-          className="font-medium text-area hover:underline"
-        >
-          financeiro
-        </Link>{" "}
-        acompanha sozinha. O arquivo assinado é anexo do cliente e fica em{" "}
-        <Link
-          href="/interno/administrativo/documentos"
-          className="font-medium text-area hover:underline"
-        >
-          Documentos
-        </Link>
-        .
-      </p>
     </>
   );
 }
