@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Somadora } from "@/components/financeiro/somadora";
 import { gerarLancamentosDoMesAction } from "@/lib/actions/financeiro";
 import { rotuloMes } from "@/lib/financeiro/meses";
 import { toast } from "@/lib/ui/toast";
@@ -69,6 +70,8 @@ export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) 
       >
         Procurar um lançamento
       </Link>
+
+      <Somadora />
     </div>
   );
 }

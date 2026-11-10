@@ -17,6 +17,7 @@ ORDEM=(
   detalhar_historico
   antecipado_e_fatura_outubro
   destravar_fixos
+  vencimento_das_receitas
 )
 
 {
@@ -46,6 +47,8 @@ ORDEM=(
 --      recorrência (é o que faz aparecer a caixinha de pago nos
 --      meses anteriores), o Softbox duplicado sai e a "segunda
 --      cobrança do Adobe" vira "Adobe Premiere".
+--   7. vencimento_das_receitas — receita vence no próprio mês (menos
+--      a Malukies, no seguinte, e o Studio Bambu, antecipado).
 --
 -- COMO RODAR
 --

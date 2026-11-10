@@ -38,6 +38,7 @@ function r(
   amount: number,
   status: string,
   cliente: string,
+  vence: string,
 ): LancamentoFolha {
   return {
     id: "r-" + description,
@@ -45,8 +46,10 @@ function r(
     kind: "Receita",
     amount,
     status,
-    // A mensalidade de novembro cai em dezembro, dia 10.
-    due_date: "2026-12-10",
+    // A receita vence no PRÓPRIO mês: "as entradas dos clientes das
+    // receitas de novembro vencem em novembro". Menos a Malukies, no
+    // mês seguinte, e o Studio Bambu, que paga antecipado.
+    due_date: vence || null,
     categoria: "Mensalidades / clientes recorrentes",
     cliente,
   };
@@ -82,22 +85,25 @@ function d(
  * sem nome na coluna A (linhas 16, 17 e 18).
  */
 const MES: LancamentoFolha[] = [
-  r("Mensalidade Studio Bambu", 1300, "Pendente", "Studio Bambu"),
-  r("Mensalidade Dra. Hemilayne", 2000, "Pendente", "Dra. Hemilayne"),
-  r("Mensalidade Kiku Sushi", 2200, "Pendente", "Kiku Sushi"),
-  r("Mensalidade Laura Chioquetta", 1550, "Pago", "Laura Chioquetta"),
-  r("Mensalidade Izabela Schipitoski", 1800, "Pago", "Izabela Schipitoski"),
-  r("Mensalidade Malukies Cookies & Co", 2600, "Pendente", "Malukies Cookies & Co"),
-  r("Mensalidade Natural Concept", 1700, "Pago", "Natural Concept"),
-  r("Mensalidade Salte", 1300, "Pendente", "Salte"),
+  r("Mensalidade Studio Bambu", 1300, "Pendente", "Studio Bambu", "2026-10-25"),
+  r("Mensalidade Dra. Hemilayne", 2000, "Pendente", "Dra. Hemilayne", "2026-11-10"),
+  r("Mensalidade Kiku Sushi", 2200, "Pendente", "Kiku Sushi", "2026-11-10"),
+  r("Mensalidade Laura Chioquetta", 1550, "Pago", "Laura Chioquetta", "2026-11-25"),
+  r("Mensalidade Izabela Schipitoski (1ª parcela)", 900, "Pago", "Izabela Schipitoski", "2026-11-10"),
+  r("Mensalidade Izabela Schipitoski (2ª parcela)", 900, "Pendente", "Izabela Schipitoski", "2026-11-25"),
+  r("Mensalidade Malukies Cookies & Co", 2600, "Pendente", "Malukies Cookies & Co", "2026-12-10"),
+  r("Mensalidade Natural Concept", 1700, "Pago", "Natural Concept", "2026-11-25"),
+  r("Mensalidade Salte", 1300, "Pendente", "Salte", ""),
   d("Pró-labore Fran", 6500, "Pendente", "Pró-labore (sócias)", 10),
   d("Pró-labore Vitória", 6500, "Pendente", "Pró-labore (sócias)", 10),
   d("Claude Max", 454.1, "Pendente", FERRAMENTAS),
   d("ChatGPT Plus", 119.9, "Pendente", FERRAMENTAS),
   d("Adobe", 95, "Pendente", FERRAMENTAS),
+  d("Adobe Premiere", 65, "Pendente", FERRAMENTAS),
   d("iCloud Fran", 66.9, "Pago", FERRAMENTAS),
   d("iCloud Vitória", 66.9, "Pago", FERRAMENTAS),
   d("Canva", 35, "Pago", FERRAMENTAS),
+  d("ElevenLabs", 33.57, "Pendente", FERRAMENTAS),
   d("CapCut", 32.9, "Pendente", FERRAMENTAS),
   d("DAS do Simples Nacional", 86.05, "Pendente", "DAS - Simples Nacional"),
 ];
