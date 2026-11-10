@@ -74,6 +74,16 @@ CATEGORIA_POR_SECAO = {
     "Projetos avulsos": "Projetos avulsos",
 }
 
+# Correções que a Fran fez depois, olhando a fatura do cartão. A
+# planilha ainda tem o valor antigo; aqui fica o certo, para o
+# arquivo gerado não desfazer a correção a cada rodada.
+#
+#   (mês, descrição na planilha) -> (descrição certa, valor certo)
+CORRECOES = {
+    ("2026-10", "Softbox Octabox e Aputure Amaran (Parcela 3/4)"):
+        ("Softbox Octabox e Aputure Amaran (Parcela 4/4)", 671.03),
+}
+
 # A linha-bloco tem a descrição igual ao nome da categoria. Duas
 # categorias são itens de verdade com o mesmo nome, e por isso o item
 # detalhado entra com outro nome (o mesmo da recorrência).
@@ -194,6 +204,10 @@ def ler(caminho):
                 else:
                     categoria = "Mensalidades / clientes recorrentes"
                     descricao = f"Mensalidade {cliente}"
+
+            correcao = CORRECOES.get((mes, descricao))
+            if correcao:
+                descricao, valor = correcao
 
             itens.append({
                 "mes": mes, "kind": bloco, "categoria": categoria,

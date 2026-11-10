@@ -1189,13 +1189,13 @@ select '2026-10', 'Despesa', c.id, 'DAS do Simples Nacional', 86.05, 'Pago', '20
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
-select '2026-10', 'Despesa', c.id, 'Softbox Octabox e Aputure Amaran (Parcela 3/4)', 671.04, 'Pendente', '2026-11-10', null
+select '2026-10', 'Despesa', c.id, 'Softbox Octabox e Aputure Amaran (Parcela 4/4)', 671.03, 'Pendente', '2026-11-10', null
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Equipamentos'
    and not exists (
      select 1 from public.financial_entries e
       where e.reference_month = '2026-10'
-        and e.description = 'Softbox Octabox e Aputure Amaran (Parcela 3/4)'
+        and e.description = 'Softbox Octabox e Aputure Amaran (Parcela 4/4)'
    );
 insert into public.financial_entries
   (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -1337,6 +1337,14 @@ begin
      set amount = 35.00, updated_at = now()
    where reference_month = '2026-10' and description = 'Canva'
      and status <> 'Pago' and amount = 32.00;
+
+  -- A Mentoria saiu do cartão da Vitória, e não deste. Fica
+  -- anotado para ninguém procurar de novo na fatura errada.
+  update public.financial_entries
+     set payment_method = 'Cartão da Vitória', updated_at = now()
+   where reference_month = '2026-10'
+     and description = 'Mentoria Ultralize'
+     and payment_method is distinct from 'Cartão da Vitória';
 
   -- O que faltava.
   if cat_ferramentas is not null then

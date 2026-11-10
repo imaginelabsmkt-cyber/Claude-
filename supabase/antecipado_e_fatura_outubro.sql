@@ -30,14 +30,16 @@
 --      · ChatGPT ...... R$ 119,90 -> R$ 103,90
 --      · Canva ........ R$  32,00 -> R$  35,00
 --
---    NÃO mexi em duas coisas, porque o print não me deixa decidir:
---      · O print está cortado em cima e embaixo. Se houver compra
---        antes de 09/11 ou depois de 14/10, ela não está aqui.
---      · No cartão, o Mercado Livre é "Parcela 4/4 R$ 671,03"; na
---        planilha, outubro tem "Softbox Octabox e Aputure Amaran
---        (Parcela 3/4) R$ 671,04". Deixei como está na planilha.
---      · A Mentoria Ultralize (R$ 2.166,70) está na planilha de
---        outubro e não aparece no cartão. Deixei como está.
+--    O que a Fran confirmou depois:
+--      · O Mercado Livre é a parcela 4/4 mesmo, R$ 671,03 (a
+--        planilha ainda diz 3/4, R$ 671,04). Corrigido na origem,
+--        em scripts/detalhar-historico.py.
+--      · A Mentoria Ultralize foi paga no CARTÃO DA VITÓRIA, por
+--        isso não aparece nesta fatura. Continua como despesa de
+--        outubro, agora com a forma de pagamento anotada.
+--
+--    O print está cortado em cima e embaixo: se houver compra antes
+--    de 09/11 ou depois de 14/10, ela não está aqui.
 --
 --   Supabase > SQL Editor > New query > colar > Run.
 --
@@ -103,6 +105,14 @@ begin
      set amount = 35.00, updated_at = now()
    where reference_month = '2026-10' and description = 'Canva'
      and status <> 'Pago' and amount = 32.00;
+
+  -- A Mentoria saiu do cartão da Vitória, e não deste. Fica
+  -- anotado para ninguém procurar de novo na fatura errada.
+  update public.financial_entries
+     set payment_method = 'Cartão da Vitória', updated_at = now()
+   where reference_month = '2026-10'
+     and description = 'Mentoria Ultralize'
+     and payment_method is distinct from 'Cartão da Vitória';
 
   -- O que faltava.
   if cat_ferramentas is not null then
