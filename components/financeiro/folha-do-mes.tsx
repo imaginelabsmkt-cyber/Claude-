@@ -200,14 +200,14 @@ export function FolhaDoMes({ lancamentos, mes, hoje }: FolhaDoMesProps) {
   return (
     <div className="grid items-start gap-4 lg:grid-cols-2">
       <Coluna
-        titulo="Entrou"
+        titulo="Receitas"
         mes={mes}
         hoje={hoje}
         grupos={lado("Receita")}
         vazio="Nenhuma receita lançada neste mês."
       />
       <Coluna
-        titulo="Saiu"
+        titulo="Despesas"
         mes={mes}
         hoje={hoje}
         grupos={lado("Despesa")}

@@ -30,11 +30,11 @@ export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
       <Conta
         parcelas={[
           {
-            rotulo: "Faturamento do ano",
+            rotulo: "Receita do ano",
             valor: ano.recebido,
             destaque: true,
           },
-          { rotulo: "Saiu", valor: ano.pago, sinal: "−" },
+          { rotulo: "Despesas", valor: ano.pago, sinal: "−" },
           {
             rotulo: sobrou ? "Sobrou" : "Faltou",
             valor: Math.abs(ano.resultado),

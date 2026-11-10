@@ -21,7 +21,7 @@ import type { ParteDaFolha } from "@/lib/financeiro/folha";
  */
 
 interface LadoDoMes {
-  /** "Entrou" ou "Saiu". */
+  /** "Receitas" ou "Despesas". */
   rotulo: string;
   partes: ParteDaFolha;
 }
@@ -112,8 +112,8 @@ export function GraficoDoMes({ entrou, saiu }: GraficoDoMesProps) {
   return (
     <figure className="m-0">
       <div className="space-y-2">
-        <Barra lado={{ rotulo: "Entrou", partes: entrou }} regua={regua} />
-        <Barra lado={{ rotulo: "Saiu", partes: saiu }} regua={regua} />
+        <Barra lado={{ rotulo: "Receitas", partes: entrou }} regua={regua} />
+        <Barra lado={{ rotulo: "Despesas", partes: saiu }} regua={regua} />
       </div>
 
       <figcaption className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">

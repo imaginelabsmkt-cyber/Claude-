@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -30,19 +31,6 @@ import type {
   FinancialRecurrenceWithRelations,
 } from "@/types";
 
-/**
- * Cor da barra de fatia.
- *
- * Vinho claro da marca para despesa e verde para receita. Despesa em
- * vermelho forte seriam vinte barras gritando na mesma tela, e aí
- * nenhuma chama atenção. Os dois passam de 3:1 sobre o papel do cartão,
- * que é o mínimo para uma marca colorida.
- */
-const BARRA = {
-  Despesa: "bg-brand-400",
-  Receita: "bg-green-700",
-} as const;
-
 /** O lançamento que uma recorrência já gerou no mês em foco. */
 export interface LancamentoDoMes {
   id: string;
@@ -55,7 +43,6 @@ interface RecurrencesPanelProps {
   recorrencias: FinancialRecurrenceWithRelations[];
   categorias: FinancialCategory[];
   clientes: Pick<Client, "id" | "name" | "active">[];
-  /** Por id de recorrência, o lançamento dela neste mês. */
 }
 
 /**
@@ -69,10 +56,12 @@ interface RecurrencesPanelProps {
  * ferramentas digitais" com cada ferramenta embaixo e o total do grupo
  * do lado.
  *
- * Aqui cada item ainda ganha uma barrinha com a fatia dele dentro do
- * grupo, que é o que responde de olho a pergunta real: "o que está
- * pesando?". Com oito ferramentas, uma delas é metade da conta, e numa
- * lista de números iguais isso não aparece.
+ * O formato é TABELA, e não a lista com caixinha da folha do mês. A
+ * Fran disse duas vezes que "o que está em Mês está repetido em Fixos
+ * e ferramentas": duas telas com o mesmo desenho parecem a mesma
+ * tela, mesmo respondendo coisas diferentes. Tabela com cabeçalho é a
+ * forma de um cadastro — o que vale, em que dia, até quando. A folha
+ * do mês é a forma de uma conferência.
  */
 export function RecurrencesPanel({
   mes,
@@ -134,12 +123,10 @@ export function RecurrencesPanel({
 
   function Linha({
     item,
-    comparar,
     categoria,
     sozinho,
   }: {
     item: ItemFixo;
-    comparar: boolean;
     categoria: string;
     sozinho: boolean;
   }) {
@@ -148,22 +135,24 @@ export function RecurrencesPanel({
 
     if (editando === item.id) {
       return (
-        <li className="px-3 py-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Editar</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RecurrenceForm
-                mes={mes}
-                categorias={categorias}
-                clientes={clientes}
-                recorrencia={r}
-                aoConcluir={() => setEditando(null)}
-              />
-            </CardContent>
-          </Card>
-        </li>
+        <tr>
+          <td colSpan={5} className="px-3 py-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Editar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RecurrenceForm
+                  mes={mes}
+                  categorias={categorias}
+                  clientes={clientes}
+                  recorrencia={r}
+                  aoConcluir={() => setEditando(null)}
+                />
+              </CardContent>
+            </Card>
+          </td>
+        </tr>
       );
     }
 
@@ -176,28 +165,39 @@ export function RecurrencesPanel({
       "rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900";
 
     return (
-      <li className={"group px-3 py-2 " + (item.vigente ? "" : "opacity-60")}>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
-            {nome}
-            {item.vigente ? null : (
-              <Badge tom="cinza" className="ml-2 align-middle">
-                {!item.active
-                  ? "Pausada"
-                  : item.start_month > mes
-                    ? `começa em ${rotuloMesCurto(item.start_month)}`
-                    : item.end_month
-                      ? `terminou em ${rotuloMesCurto(item.end_month)}`
-                      : "fora deste mês"}
-              </Badge>
-            )}
-          </span>
+      <tr className={item.vigente ? "" : "opacity-60"}>
+        <td className="px-3 py-2">
+          <span className="text-sm font-medium text-gray-900">{nome}</span>
+          {cliente ? (
+            <span className="ml-2 text-xs text-gray-500">{cliente}</span>
+          ) : null}
+          {item.vigente ? null : (
+            <Badge tom="cinza" className="ml-2 align-middle">
+              {!item.active
+                ? "Pausada"
+                : item.start_month > mes
+                  ? `começa em ${rotuloMesCurto(item.start_month)}`
+                  : item.end_month
+                    ? `terminou em ${rotuloMesCurto(item.end_month)}`
+                    : "fora deste mês"}
+            </Badge>
+          )}
+        </td>
 
-          <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
-            {formatarMoeda(item.amount)}
-          </span>
+        <td className="whitespace-nowrap px-3 py-2 text-right text-sm font-semibold tabular-nums text-gray-900">
+          {formatarMoeda(item.amount)}
+        </td>
 
-          <span className="flex shrink-0 items-center gap-0.5">
+        <td className="whitespace-nowrap px-3 py-2 text-right text-sm tabular-nums text-gray-600">
+          {item.due_day ? `dia ${item.due_day}` : "—"}
+        </td>
+
+        <td className="whitespace-nowrap px-3 py-2 text-right text-xs text-gray-500">
+          {item.end_month ? `até ${rotuloMesCurto(item.end_month)}` : "sem fim"}
+        </td>
+
+        <td className="whitespace-nowrap px-3 py-2 text-right">
+          <span className="inline-flex items-center gap-0.5">
             <button type="button" className={acao} onClick={() => setEditando(item.id)}>
               Editar
             </button>
@@ -218,66 +218,71 @@ export function RecurrencesPanel({
               Excluir
             </button>
           </span>
-        </div>
-
-        {/* A barrinha é a fatia dentro do grupo: é ela que responde
-            "o que está pesando?" sem ninguém fazer conta.
-
-            Num grupo de um item só ela não aparece: seria sempre uma
-            barra cheia dizendo "100% de si mesmo", que é tinta sem
-            informação nenhuma. */}
-        <div className="mt-1 flex items-center gap-2">
-          {comparar ? (
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
-              <div
-                className={"h-full rounded-full " + BARRA[item.kind]}
-                style={{
-                  width: `${Math.max(item.fatia * 100, item.vigente ? 2 : 0)}%`,
-                }}
-              />
-            </div>
-          ) : (
-            <span className="flex-1" />
-          )}
-          <span className="shrink-0 text-xs text-gray-400">
-            {cliente ? `${cliente} · ` : ""}
-            {item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
-            {item.end_month ? ` · até ${rotuloMesCurto(item.end_month)}` : ""}
-          </span>
-        </div>
-      </li>
+        </td>
+      </tr>
     );
   }
 
-  function Grupo({ grupo }: { grupo: GrupoFixo }) {
-    // Só faz sentido comparar fatias quando há com o que comparar.
-    const comparar = grupo.itens.filter((i) => i.vigente).length > 1;
-
+  /**
+   * A lista do que se repete, em TABELA.
+   *
+   * Era o mesmo desenho da folha do mês — cartão por categoria,
+   * linhas com barrinha —, e a Fran disse duas vezes: "o que está em
+   * Mês está repetido em Fixos e ferramentas". Duas telas com o mesmo
+   * formato parecem a mesma tela, mesmo quando respondem coisas
+   * diferentes.
+   *
+   * Tabela com cabeçalho é a forma de um CADASTRO, e é isso que esta
+   * tela é: o que vale, em que dia, até quando. A folha do mês
+   * continua sendo lista com caixinha de marcar, que é a forma de uma
+   * CONFERÊNCIA.
+   */
+  function Tabela({ grupos }: { grupos: GrupoFixo[] }) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        {/* Categoria de uma linha só não ganha subtítulo: o subtítulo e
-            a linha diriam quase a mesma coisa, uma embaixo da outra. */}
-        {grupo.itens.length > 1 ? (
-          <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-              {grupo.categoria}
-            </h3>
-            <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
-              {formatarMoeda(grupo.total)}
-            </span>
-          </div>
-        ) : null}
-        <ul className="divide-y divide-gray-100">
-          {grupo.itens.map((i) => (
-            <Linha
-              key={i.id}
-              item={i}
-              comparar={comparar}
-              categoria={grupo.categoria}
-              sozinho={grupo.itens.length === 1}
-            />
+      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-600">
+            <tr>
+              <th scope="col" className="px-3 py-2.5 text-left font-bold">
+                Conta
+              </th>
+              <th scope="col" className="px-3 py-2.5 text-right font-bold">
+                Valor
+              </th>
+              <th scope="col" className="px-3 py-2.5 text-right font-bold">
+                Vence
+              </th>
+              <th scope="col" className="px-3 py-2.5 text-right font-bold">
+                Até quando
+              </th>
+              <th scope="col" className="px-3 py-2.5" />
+            </tr>
+          </thead>
+          {grupos.map((grupo) => (
+            <tbody key={grupo.categoria} className="divide-y divide-gray-100">
+              <tr className="bg-gray-50/70">
+                <th
+                  scope="colgroup"
+                  className="px-3 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider text-gray-600"
+                >
+                  {grupo.categoria}
+                </th>
+                <td className="px-3 py-1.5 text-right text-sm font-bold tabular-nums text-gray-900">
+                  {formatarMoeda(grupo.total)}
+                </td>
+                <td colSpan={3} />
+              </tr>
+              {grupo.itens.map((i) => (
+                <Linha
+                  key={i.id}
+                  item={i}
+                  categoria={grupo.categoria}
+                  sozinho={grupo.itens.length === 1}
+                />
+              ))}
+            </tbody>
           ))}
-        </ul>
+        </table>
       </div>
     );
   }
@@ -290,21 +295,30 @@ export function RecurrencesPanel({
           que se põe uma ferramenta nova, e é aqui que se põe o que
           dura alguns meses — a Mentoria até fevereiro — pelos campos
           "Começa em" e "Termina em". */}
+      {/* Duas portas, lado a lado, porque a pergunta dela foi exata:
+          "e se for uma conta nova que NÃO se repete, como que eu
+          adiciono?". Esta tela só sabia da que se repete, e a outra
+          morava em outra aba. */}
       {criando ? null : (
-        <Button onClick={() => setCriando(true)}>
-          Adicionar uma conta que se repete
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button onClick={() => setCriando(true)}>
+            Conta que se repete todo mês
+          </Button>
+          <Link href={`/interno/financeiro/lancamentos/novo?mes=${mes}`}>
+            <Button variante="secundaria">Conta avulsa, só deste mês</Button>
+          </Link>
+        </div>
       )}
 
       <div className="grid gap-3 sm:grid-cols-3">
         {[
           {
-            r: "Entra",
+            r: "Receitas",
             v: formatarMoeda(plano.entra),
             d: "mensalidades em contrato",
           },
           {
-            r: "Sai",
+            r: "Despesas",
             v: formatarMoeda(plano.sai),
             d: "custo fixo por mês",
           },
@@ -364,26 +378,18 @@ export function RecurrencesPanel({
           {plano.gruposDespesa.length > 0 ? (
             <section>
               <h2 className="mb-3 text-base font-bold text-gray-900">
-                O que sai
+                Despesas
               </h2>
-              <div className="space-y-3">
-                {plano.gruposDespesa.map((g) => (
-                  <Grupo key={`d-${g.categoria}`} grupo={g} />
-                ))}
-              </div>
+              <Tabela grupos={plano.gruposDespesa} />
             </section>
           ) : null}
 
           {plano.gruposReceita.length > 0 ? (
             <section>
               <h2 className="mb-3 text-base font-bold text-gray-900">
-                O que entra
+                Receitas
               </h2>
-              <div className="space-y-3">
-                {plano.gruposReceita.map((g) => (
-                  <Grupo key={`r-${g.categoria}`} grupo={g} />
-                ))}
-              </div>
+              <Tabela grupos={plano.gruposReceita} />
             </section>
           ) : null}
         </div>

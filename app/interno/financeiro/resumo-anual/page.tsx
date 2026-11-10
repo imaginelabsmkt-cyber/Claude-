@@ -121,8 +121,8 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
       <div className="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
         <Conta
           parcelas={[
-            { rotulo: "Entrou no ano", valor: resumo.totais.receitas },
-            { rotulo: "Saiu", valor: resumo.totais.despesas, sinal: "−" },
+            { rotulo: "Receitas no ano", valor: resumo.totais.receitas },
+            { rotulo: "Despesas", valor: resumo.totais.despesas, sinal: "−" },
             {
               rotulo: resumo.totais.resultado >= 0 ? "Sobrou" : "Faltou",
               valor: Math.abs(resumo.totais.resultado),

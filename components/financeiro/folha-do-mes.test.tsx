@@ -111,8 +111,8 @@ describe("folha do mês: o que está escrito", () => {
       despesa("Canva", 35, FERRAMENTAS),
     ]);
     // Escrito em minúscula; quem deixa em caixa alta é o CSS.
-    expect(html).toContain("Total entrou");
-    expect(html).toContain("Total saiu");
+    expect(html).toContain("Total receitas");
+    expect(html).toContain("Total despesas");
     expect(html).toContain("3.500,00");
   });
 
