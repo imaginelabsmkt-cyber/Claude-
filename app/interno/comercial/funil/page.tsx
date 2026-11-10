@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
-import { ComercialTabs } from "@/components/comercial/comercial-tabs";
+import { ClientesTabs } from "@/components/interno/clientes-tabs";
 import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { Button } from "@/components/ui/button";
@@ -40,15 +40,26 @@ export default async function FunilPage() {
   return (
     <>
       <AreaHeader
-        contexto="As oportunidades em andamento, por etapa"
+        titulo="Oportunidades"
         acao={
-          <Link href="/interno/comercial/novo">
-            <Button>Nova oportunidade</Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            {/* Prospecção deixou de ser aba quando Comercial virou
+                parte de Clientes: é uma LEITURA do funil, não um
+                lugar onde se trabalha. Fica como link daqui. */}
+            <Link
+              href="/interno/comercial/prospeccao"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline"
+            >
+              De onde vêm os clientes
+            </Link>
+            <Link href="/interno/comercial/novo">
+              <Button>Nova oportunidade</Button>
+            </Link>
+          </div>
         }
       />
 
-      <ComercialTabs />
+      <ClientesTabs />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat

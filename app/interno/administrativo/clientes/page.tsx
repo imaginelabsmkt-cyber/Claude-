@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
-import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
+import { ClientesTabs } from "@/components/interno/clientes-tabs";
 import { ContratosPanel } from "@/components/contratos/contratos-panel";
 import { Secao } from "@/components/interno/secao";
 import { listarContratosDeCliente } from "@/lib/data/contratos";
@@ -59,7 +59,7 @@ export default async function ClientesPage() {
         }
       />
 
-      <AdministrativoTabs />
+      <ClientesTabs />
 
       {conversas.length > 0 ? (
         <Secao

@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { Icone } from "@/components/interno/icone";
 import { Sair } from "@/components/interno/sair";
 import {
-  AREAS_EMPRESA,
-  AREAS_PESSOAIS,
+  MENU,
+  MENU_PESSOAL,
   area,
-  areaDaRota,
-  type Area,
+  itemDoMenu,
+  type ItemDeMenu,
 } from "@/lib/interno/areas";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,9 @@ interface InternoSidebarProps {
  * Dois grupos, separados por uma linha: acima é a EMPRESA (as duas sócias
  * veem o mesmo dado); abaixo é PESSOAL (cada uma vê só o seu, garantido
  * por RLS no banco).
+ *
+ * TRÊS itens acima da linha, não cinco. Comercial e Administrativo
+ * viraram abas dentro de Clientes — ver `MENU` em lib/interno/areas.ts.
  */
 export function InternoSidebar({
   aberta = false,
@@ -40,16 +43,16 @@ export function InternoSidebar({
   nomeUsuario,
 }: InternoSidebarProps) {
   const pathname = usePathname();
-  const ativa = areaDaRota(pathname);
+  const aberto = itemDoMenu(pathname);
   const inicio = area("inicio");
   const noInicio = pathname === "/interno";
 
-  const item = (a: Area, ligado: boolean) => (
+  const item = (a: ItemDeMenu, ligado: boolean) => (
     <Link
-      key={a.id}
+      key={a.href}
       href={a.href}
       onClick={aoFechar}
-      data-area={a.id}
+      data-area={a.area}
       aria-current={ligado ? "page" : undefined}
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
@@ -59,7 +62,7 @@ export function InternoSidebar({
       )}
     >
       <Icone
-        nome={a.icone}
+        nome={area(a.area).icone}
         className={cn("h-5 w-5 shrink-0", ligado ? "" : "text-area")}
       />
       {a.label}
@@ -93,11 +96,19 @@ export function InternoSidebar({
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
-          {item(inicio, noInicio)}
+          {item(
+            {
+              label: inicio.label,
+              href: inicio.href,
+              area: inicio.id,
+              rotas: [inicio.href],
+            },
+            noInicio,
+          )}
 
           <div className="my-1.5 h-px bg-gray-200" />
 
-          {AREAS_EMPRESA.map((a) => item(a, ativa === a.id))}
+          {MENU.map((a) => item(a, aberto?.href === a.href))}
 
           <div className="mt-3 flex items-center gap-2 px-3 pb-1">
             <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-400">
@@ -106,7 +117,7 @@ export function InternoSidebar({
             <span className="h-px flex-1 bg-gray-200" />
           </div>
 
-          {AREAS_PESSOAIS.map((a) => item(a, ativa === a.id))}
+          {MENU_PESSOAL.map((a) => item(a, aberto?.href === a.href))}
         </nav>
 
         <div className="border-t border-gray-200 p-3">

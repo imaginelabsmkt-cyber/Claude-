@@ -1,5 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
-import { ComercialTabs } from "@/components/comercial/comercial-tabs";
+import { ClientesTabs } from "@/components/interno/clientes-tabs";
 import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { listarProspeccao } from "@/lib/data/comercial";
@@ -45,10 +45,10 @@ export default async function ProspeccaoPage() {
   return (
     <>
       <AreaHeader
-        contexto="De onde vêm os clientes, e qual canal fecha"
+        titulo="De onde vêm os clientes"
       />
 
-      <ComercialTabs />
+      <ClientesTabs />
 
       {oportunidades.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">

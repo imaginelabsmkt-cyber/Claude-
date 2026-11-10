@@ -137,6 +137,65 @@ export const AREAS: Area[] = [
   },
 ];
 
+/**
+ * O MENU LATERAL. Menos itens do que áreas, de propósito.
+ *
+ * As áreas acima continuam existindo: elas são a ORIGEM de cada
+ * coisa, e é delas que vem a cor das tarjas na lista misturada do
+ * Dashboard. Mas origem não precisa virar item de menu.
+ *
+ * A Fran, depois de abrir o sistema: "comecei criando um negócio
+ * muito complexo, sendo que sempre falei que eu queria algo
+ * intuitivo e básico". Eram cinco itens para duas pessoas e dez
+ * clientes. Comercial e Administrativo respondem a mesma pergunta —
+ * QUEM é cliente, quem vai ser, e o que a empresa combinou com cada
+ * um — então viraram abas de um item só: CLIENTES.
+ *
+ * Nenhuma rota mudou. O que mudou foi o que aparece no menu.
+ */
+export interface ItemDeMenu {
+  label: string;
+  href: string;
+  /** De qual área ele herda a cor e o ícone. */
+  area: AreaId;
+  /** Prefixos de rota que acendem este item. */
+  rotas: string[];
+}
+
+export const MENU: ItemDeMenu[] = [
+  {
+    label: "Clientes",
+    href: "/interno/administrativo/clientes",
+    area: "administrativo",
+    rotas: ["/interno/administrativo", "/interno/comercial"],
+  },
+  {
+    label: "Financeiro",
+    href: "/interno/financeiro",
+    area: "financeiro",
+    rotas: ["/interno/financeiro", "/interno/relatorio"],
+  },
+];
+
+/** O menu de baixo: o que só a dona do login vê. */
+export const MENU_PESSOAL: ItemDeMenu[] = [
+  {
+    label: "Meus gastos",
+    href: "/interno/meus-gastos",
+    area: "pessoal",
+    rotas: ["/interno/meus-gastos"],
+  },
+];
+
+/** O item do menu que a rota atual acende (null = o Dashboard). */
+export function itemDoMenu(pathname: string): ItemDeMenu | null {
+  return (
+    [...MENU, ...MENU_PESSOAL].find((i) =>
+      i.rotas.some((r) => pathname === r || pathname.startsWith(`${r}/`)),
+    ) ?? null
+  );
+}
+
 /** Áreas do menu, exceto o Início (que abre o grupo). */
 export const AREAS_MENU: Area[] = AREAS.filter((a) => a.id !== "inicio");
 
