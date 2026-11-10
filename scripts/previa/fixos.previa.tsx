@@ -139,11 +139,6 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
               <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
                 {formatarMoeda(item.amount)}
               </span>
-              <span className="w-10 shrink-0 text-right text-xs tabular-nums text-gray-500">
-                {comparar && item.vigente && item.fatia > 0
-                  ? `${Math.round(item.fatia * 100)}%`
-                  : ""}
-              </span>
               <span className="flex shrink-0 gap-0.5">
                 {["Editar", "Pausar", "Excluir"].map((a) => (
                   <span
@@ -177,7 +172,11 @@ function Grupo({ grupo }: { grupo: GrupoFixo }) {
                 )
                   ? `${item.cliente} · `
                   : ""}
-                {item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
+                {item.vigente
+                  ? ""
+                  : item.due_day
+                    ? `dia ${item.due_day}`
+                    : "sem dia fixo"}
               </span>
             </div>
           </li>
@@ -233,7 +232,6 @@ function Tela() {
 
       <Secao
         titulo="O que sai"
-        explicacao="Por categoria, da mais cara para a mais barata. A barrinha é a fatia do item dentro do grupo dele."
       >
         <div className="space-y-3">
           {plano.gruposDespesa.map((g) => (
@@ -244,7 +242,6 @@ function Tela() {
 
       <Secao
         titulo="O que entra"
-        explicacao="As mensalidades em contrato. Mudou aqui, muda a cobrança."
       >
         <div className="space-y-3">
           {plano.gruposReceita.map((g) => (

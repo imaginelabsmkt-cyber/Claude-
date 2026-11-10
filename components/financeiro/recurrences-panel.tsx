@@ -238,12 +238,6 @@ export function RecurrencesPanel({
             <Situacao estado={estado} texto={rotuloEstado} />
           ) : null}
 
-          <span className="w-10 shrink-0 text-right text-xs tabular-nums text-gray-500">
-            {comparar && item.vigente && item.fatia > 0
-              ? `${Math.round(item.fatia * 100)}%`
-              : ""}
-          </span>
-
           <span className="flex shrink-0 items-center gap-0.5">
             <button type="button" className={acao} onClick={() => setEditando(item.id)}>
               Editar
@@ -286,9 +280,13 @@ export function RecurrencesPanel({
           ) : (
             <span className="flex-1" />
           )}
+          {/* O dia só aparece quando a etiqueta de prazo NÃO está na
+              linha. Com as duas, a mesma informação vinha escrita
+              duas vezes a dois centímetros de distância: "vence
+              amanhã" em cima e "dia 10" embaixo. */}
           <span className="shrink-0 text-xs text-gray-400">
             {cliente ? `${cliente} · ` : ""}
-            {item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
+            {item.vigente ? "" : item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
             {item.end_month ? ` · até ${rotuloMesCurto(item.end_month)}` : ""}
           </span>
         </div>
@@ -420,13 +418,9 @@ export function RecurrencesPanel({
         <div className="space-y-6">
           {plano.gruposDespesa.length > 0 ? (
             <section>
-              <h2 className="mb-2 text-base font-bold text-gray-900">
+              <h2 className="mb-3 text-base font-bold text-gray-900">
                 O que sai
               </h2>
-              <p className="mb-3 text-[13px] text-gray-500">
-                Por categoria, da mais cara para a mais barata. A barrinha é a
-                fatia do item dentro do grupo dele.
-              </p>
               <div className="space-y-3">
                 {plano.gruposDespesa.map((g) => (
                   <Grupo key={`d-${g.categoria}`} grupo={g} />
@@ -437,12 +431,9 @@ export function RecurrencesPanel({
 
           {plano.gruposReceita.length > 0 ? (
             <section>
-              <h2 className="mb-2 text-base font-bold text-gray-900">
+              <h2 className="mb-3 text-base font-bold text-gray-900">
                 O que entra
               </h2>
-              <p className="mb-3 text-[13px] text-gray-500">
-                As mensalidades em contrato. Mudou aqui, muda a cobrança.
-              </p>
               <div className="space-y-3">
                 {plano.gruposReceita.map((g) => (
                   <Grupo key={`r-${g.categoria}`} grupo={g} />
