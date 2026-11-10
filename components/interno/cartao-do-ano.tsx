@@ -72,11 +72,26 @@ export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
         </div>
       ) : null}
 
+      {/* A linha do PAINEL é o faturamento bruto, mês a mês.
+          Era o caixa acumulado, e a Fran: "não quero isso, quero o
+          valor do faturamento bruto". O caixa continua desenhado em
+          Relatórios > O caixa mês a mês, que é a tela que existe para
+          responder isso.
+
+          Só entram os meses que faturaram. Com os doze, janeiro a
+          março apareciam como pontos no chão, lendo-se "faturamos
+          zero" quando a verdade é "ainda não existia lançamento". */}
       <div className="mt-5 border-t border-gray-100 pt-4">
         <p className="mb-2 text-sm font-semibold text-gray-700">
-          O caixa no fim de cada mês
+          Quanto a gente faturou em cada mês
         </p>
-        <GraficoCaixa pontos={ano.pontos} meses={mesesDoAno(ano.ano)} />
+        <GraficoCaixa
+          modo="faturamento"
+          pontos={ano.barras
+            .filter((b) => b.entrou > 0)
+            .map((b) => ({ mes: b.mes, saldo: b.entrou }))}
+          meses={mesesDoAno(ano.ano)}
+        />
       </div>
 
     </div>

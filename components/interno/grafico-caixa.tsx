@@ -162,7 +162,7 @@ function Desenho({
           >
             <title>
               {temPonto
-                ? `${rotuloMesCurto(mes)}: ${formatarMoeda(saldo ?? 0)} em caixa`
+                ? `${rotuloMesCurto(mes)}: ${formatarMoeda(saldo ?? 0)}`
                 : `${rotuloMesCurto(mes)}: sem lançamento`}
             </title>
           </rect>
@@ -208,8 +208,19 @@ function Desenho({
   );
 }
 
+/**
+ * O que a linha está contando.
+ *
+ * "caixa": quanto sobrou no fim de cada mês, encadeado.
+ * "faturamento": quanto a agência faturou em cada mês, bruto.
+ *
+ * Muda só as palavras da leitura e do resumo — o desenho é o mesmo.
+ */
+type ModoDaLinha = "caixa" | "faturamento";
+
 interface GraficoCaixaProps {
   pontos: PontoDeCaixa[];
+  modo?: ModoDaLinha;
   /**
    * A régua de baixo. No Início são os doze meses do ano; no Fluxo de
    * caixa são todos os meses lançados, que podem ser trinta.
@@ -228,7 +239,7 @@ interface GraficoCaixaProps {
  * alerta se o último mês fechou negativo, porque aí não é mais uma
  * leitura, é um aviso.
  */
-export function GraficoCaixa({ pontos, meses }: GraficoCaixaProps) {
+export function GraficoCaixa({ pontos, meses, modo = "caixa" }: GraficoCaixaProps) {
   const [escolhido, setEscolhido] = useState<string | null>(
     pontos[pontos.length - 1]?.mes ?? null,
   );
@@ -241,7 +252,8 @@ export function GraficoCaixa({ pontos, meses }: GraficoCaixaProps) {
     );
   }
 
-  const descricao = `Caixa no fim de cada mês. ${pontos
+  const faturamento = modo === "faturamento";
+  const descricao = `${faturamento ? "Faturamento de cada mês" : "Caixa no fim de cada mês"}. ${pontos
     .map((p) => `${rotuloMesCurto(p.mes)}: ${formatarMoeda(p.saldo)}`)
     .join(". ")}`;
 
@@ -280,7 +292,7 @@ export function GraficoCaixa({ pontos, meses }: GraficoCaixaProps) {
               {rotuloMes(lido.mes)}
             </span>
             <span className="text-sm text-gray-600">
-              terminou com{" "}
+              {faturamento ? "faturou" : "terminou com"}{" "}
               <strong
                 className={
                   "font-semibold tabular-nums " +
@@ -301,7 +313,7 @@ export function GraficoCaixa({ pontos, meses }: GraficoCaixaProps) {
                 >
                   {formatarMoeda(Math.abs(variacao))}
                 </strong>{" "}
-                no mês
+                {faturamento ? "contra o mês anterior" : "no mês"}
               </span>
             ) : null}
           </>
@@ -320,7 +332,7 @@ export function GraficoCaixa({ pontos, meses }: GraficoCaixaProps) {
                   Mês
                 </th>
                 <th scope="col" className="py-1.5 text-right font-semibold text-gray-600">
-                  Caixa no fim do mês
+                  {faturamento ? "Faturamento" : "Caixa no fim do mês"}
                 </th>
               </tr>
             </thead>
