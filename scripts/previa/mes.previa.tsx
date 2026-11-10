@@ -23,6 +23,7 @@ import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
+import { FechamentoDoMes } from "@/components/financeiro/fechamento-do-mes";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
@@ -143,6 +144,16 @@ function Tela() {
       <div className="mb-6">
         <FolhaDoMes mes="2026-11" hoje={HOJE} lancamentos={MES} />
       </div>
+
+      <FechamentoDoMes
+        mes="2026-11"
+        rotulo="Novembro/2026"
+        entrou={partes.entrou}
+        saiu={partes.saiu}
+        emAberto={MES.filter((l) => l.status !== "Pago").length}
+        resultado={resultado}
+        saldoFinal={SALDO_INICIAL + resultado}
+      />
     </>
   );
 }

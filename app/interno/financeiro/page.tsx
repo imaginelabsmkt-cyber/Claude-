@@ -2,12 +2,13 @@ import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
 import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
+import { FechamentoDoMes } from "@/components/financeiro/fechamento-do-mes";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
 import { contarRecorrenciasPendentes, obterPainelMes } from "@/lib/data/financeiro";
-import { mesAtual, mesValido, hojeISO } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido, rotuloMes, hojeISO } from "@/lib/financeiro/meses";
 import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -91,6 +92,20 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
       <div className="mb-6">
         <FolhaDoMes mes={mes} hoje={hoje} lancamentos={lancamentos} />
       </div>
+
+      {/* O FIM do mês. A tela terminava numa lista, e lista não tem
+          fim: "não existe o momento em que eu digo que acabei". */}
+      <FechamentoDoMes
+        mes={mes}
+        rotulo={rotuloMes(mes)}
+        entrou={partes.entrou}
+        saiu={partes.saiu}
+        emAberto={
+          lancamentos.filter((l) => l.status !== "Pago").length
+        }
+        resultado={resumo.resultado}
+        saldoFinal={resumo.saldoFinal}
+      />
 
     </>
   );
