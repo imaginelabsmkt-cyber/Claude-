@@ -1,257 +1,108 @@
 /**
  * Prévia visual de "Fixos e ferramentas".
  *
- * Não é teste: não afirma nada. Desenha a tela com os valores reais da
- * planilha de novembro/2026 para a gente abrir e olhar se o
- * agrupamento ficou legível com vinte linhas na tela.
+ * Não é teste: não afirma nada. Renderiza o PAINEL DE VERDADE —
+ * `RecurrencesPanel` —, com o roteador fingido, porque ele é
+ * componente de cliente.
  *
- * O painel de verdade é um componente de cliente (tem formulário e
- * botões), então aqui o markup das linhas é copiado dele. O que
- * importa, que é o desenho, é o mesmo.
+ * A versão anterior tinha uma cópia do markup das linhas, e cópia
+ * envelhece: já me fez mandar para a Fran a imagem de uma tela que
+ * não existia mais. Não tem mais cópia.
  */
-import { describe, it } from "vitest";
+import { describe, it, vi } from "vitest";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: () => {}, push: () => {} }),
+  usePathname: () => "/interno/financeiro/recorrencias",
+  useSearchParams: () => new URLSearchParams("mes=2026-11"),
+}));
+
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
-import { Secao } from "@/components/interno/secao";
-import {
-  montarPlanoFixo,
-  type GrupoFixo,
-  type RecorrenciaFixa,
-} from "@/lib/financeiro/fixos";
-import {
-  clienteSeFizerFalta,
-  semRepetirOGrupo,
-} from "@/lib/financeiro/nomes";
-import { formatarMoeda } from "@/lib/utils";
+import { RecurrencesPanel } from "@/components/financeiro/recurrences-panel";
+import type { FinancialCategory, FinancialRecurrenceWithRelations } from "@/types";
 
-const BARRA = {
-  Despesa: "bg-brand-400",
-  Receita: "bg-green-700",
-} as const;
+const FERRAMENTAS = "Assinaturas e ferramentas digitais";
+const PROLABORE = "Pró-labore (sócias)";
+const DAS = "DAS - Simples Nacional";
+const MENSALIDADES = "Mensalidades / clientes recorrentes";
 
-function d(
+const CATEGORIAS: FinancialCategory[] = [
+  [FERRAMENTAS, "Despesa"],
+  [PROLABORE, "Despesa"],
+  [DAS, "Despesa"],
+  [MENSALIDADES, "Receita"],
+].map(([name, kind], i) => ({
+  id: `cat-${i}`,
+  name: name as string,
+  kind: kind as "Receita" | "Despesa",
+  sort_order: i,
+  active: true,
+  created_at: "2026-04-01T00:00:00Z",
+  updated_at: "2026-04-01T00:00:00Z",
+}));
+
+const catId = (nome: string) => CATEGORIAS.find((c) => c.name === nome)!.id;
+
+function recorrencia(
   description: string,
   amount: number,
   categoria: string,
-  due_day = 20,
-): RecorrenciaFixa {
+  due_day: number | null,
+  extra: Partial<FinancialRecurrenceWithRelations> = {},
+): FinancialRecurrenceWithRelations {
+  const cat = CATEGORIAS.find((c) => c.name === categoria)!;
   return {
     id: description,
     description,
-    kind: "Despesa",
+    kind: cat.kind,
+    category_id: cat.id,
+    client_id: null,
     amount,
-    active: true,
     due_day,
-    start_month: "2026-01",
+    vencimento_meses: 1,
+    start_month: "2026-04",
     end_month: null,
-    categoria,
-    cliente: null,
-  };
+    active: true,
+    notes: null,
+    team_member_id: null,
+    created_at: "2026-04-01T00:00:00Z",
+    updated_at: "2026-04-01T00:00:00Z",
+    category: cat,
+    client: null,
+    ...extra,
+  } as FinancialRecurrenceWithRelations;
 }
 
-function r(description: string, amount: number, cliente: string): RecorrenciaFixa {
-  return {
-    ...d(description, amount, "Mensalidades / clientes recorrentes", 10),
-    kind: "Receita",
-    cliente,
-  };
-}
-
-const FERRAMENTAS = "Assinaturas e ferramentas digitais";
-
-/**
- * Os fixos como estão na planilha do Drive depois do que a Fran
- * corrigiu: pró-labore dia 10, o cartão das ferramentas dia 20, sem
- * Captions, sem Contabilidade / MEI, Canva em R$ 35,00 e a Salte
- * entrando como mensalidade.
- */
-const REAIS: RecorrenciaFixa[] = [
-  d("Pró-labore Fran", 6500, "Pró-labore (sócias)", 10),
-  d("Pró-labore Vitória", 6500, "Pró-labore (sócias)", 10),
-  d("Claude Max", 454.1, FERRAMENTAS, 20),
-  d("ChatGPT Plus", 119.9, FERRAMENTAS, 20),
-  d("Adobe", 95, FERRAMENTAS, 20),
-  d("iCloud Fran", 66.9, FERRAMENTAS, 20),
-  d("iCloud Vitória", 66.9, FERRAMENTAS, 20),
-  d("Canva", 35, FERRAMENTAS, 20),
-  { ...d("CapCut", 32.9, FERRAMENTAS, 20), active: false },
-  d("DAS do Simples Nacional", 86.05, "DAS - Simples Nacional", 20),
-  r("Mensalidade Malukies Cookies & Co", 2600, "Malukies Cookies & Co"),
-  r("Mensalidade Kiku Sushi", 2200, "Kiku Sushi"),
-  r("Mensalidade Dra. Hemilayne", 2000, "Dra. Hemilayne"),
-  r("Mensalidade Izabela Schipitoski", 1800, "Izabela Schipitoski"),
-  r("Mensalidade Natural Concept", 1700, "Natural Concept"),
-  r("Mensalidade Laura Chioquetta", 1550, "Laura Chioquetta"),
-  r("Mensalidade Salte", 1300, "Salte"),
-  r("Mensalidade Studio Bambu", 1300, "Studio Bambu"),
+/** Os fixos como estão na planilha do Drive, depois das correções. */
+const REAIS: FinancialRecurrenceWithRelations[] = [
+  recorrencia("Pró-labore Fran", 6500, PROLABORE, 10),
+  recorrencia("Pró-labore Vitória", 6500, PROLABORE, 10),
+  recorrencia("Claude Max", 454.1, FERRAMENTAS, 20),
+  recorrencia("ChatGPT Plus", 119.9, FERRAMENTAS, 20),
+  recorrencia("Adobe", 95, FERRAMENTAS, 20),
+  recorrencia("Adobe Premiere", 65, FERRAMENTAS, 20),
+  recorrencia("iCloud Fran", 66.9, FERRAMENTAS, 20),
+  recorrencia("iCloud Vitória", 66.9, FERRAMENTAS, 20),
+  recorrencia("Canva", 35, FERRAMENTAS, 20),
+  recorrencia("ElevenLabs", 33.57, FERRAMENTAS, 20),
+  recorrencia("CapCut", 32.9, FERRAMENTAS, 20, { active: false }),
+  recorrencia("Mentoria Ultralize", 2166.7, FERRAMENTAS, 10, {
+    end_month: "2027-02",
+  }),
+  recorrencia("DAS do Simples Nacional", 86.05, DAS, 20),
+  recorrencia("Mensalidade Malukies Cookies & Co", 2600, MENSALIDADES, 10),
+  recorrencia("Mensalidade Kiku Sushi", 2200, MENSALIDADES, 10),
+  recorrencia("Mensalidade Dra. Hemilayne", 2000, MENSALIDADES, 10),
+  recorrencia("Mensalidade Natural Concept", 1700, MENSALIDADES, 25),
+  recorrencia("Mensalidade Laura Chioquetta", 1550, MENSALIDADES, 25),
+  recorrencia("Mensalidade Studio Bambu", 1300, MENSALIDADES, 25),
+  recorrencia("Mensalidade Salte", 1300, MENSALIDADES, null, {
+    start_month: "2026-11",
+  }),
+  recorrencia("Mensalidade Izabela Schipitoski (1ª parcela)", 900, MENSALIDADES, 10),
+  recorrencia("Mensalidade Izabela Schipitoski (2ª parcela)", 900, MENSALIDADES, 25),
 ];
-
-function Grupo({ grupo }: { grupo: GrupoFixo }) {
-  const comparar = grupo.itens.filter((i) => i.vigente).length > 1;
-  // na prévia, finjo que o Canva e o CapCut já foram pagos
-  const PAGOS = ["Canva", "iCloud Fran"];
-  const pago = grupo.itens
-    .filter((i) => i.vigente && PAGOS.includes(i.description))
-    .reduce((t, i) => t + i.amount, 0);
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      {grupo.itens.length > 1 ? (
-        <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2">
-          <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-            {grupo.categoria}
-          </h3>
-          <span className="shrink-0 text-right">
-            <span className="block text-sm font-bold tabular-nums text-gray-900">
-              {formatarMoeda(grupo.total)}
-            </span>
-            {pago > 0 ? (
-              <span className="block text-xs font-semibold tabular-nums text-green-700">
-                {formatarMoeda(pago)} pago
-              </span>
-            ) : null}
-          </span>
-        </div>
-      ) : null}
-      <ul className="divide-y divide-gray-100">
-        {grupo.itens.map((item) => (
-          <li
-            key={item.id}
-            className={"px-3 py-2 " + (item.vigente ? "" : "opacity-60")}
-          >
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <input
-                type="checkbox"
-                readOnly
-                checked={PAGOS.includes(item.description)}
-                className="h-[18px] w-[18px] rounded border-gray-300 accent-green-700"
-              />
-              <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
-                {grupo.itens.length > 1
-                  ? semRepetirOGrupo(item.description, grupo.categoria)
-                  : item.description}
-                {item.vigente ? null : (
-                  <span className="ml-2 inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 align-middle text-xs font-medium text-gray-700">
-                    Pausada
-                  </span>
-                )}
-              </span>
-              <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
-                {formatarMoeda(item.amount)}
-              </span>
-              <span className="flex shrink-0 gap-0.5">
-                {["Editar", "Pausar", "Excluir"].map((a) => (
-                  <span
-                    key={a}
-                    className="rounded px-1.5 py-0.5 text-xs font-medium text-gray-500"
-                  >
-                    {a}
-                  </span>
-                ))}
-              </span>
-            </div>
-            <div className="mt-1 flex items-center gap-2">
-              {comparar ? (
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
-                  <div
-                    className={"h-full rounded-full " + BARRA[item.kind]}
-                    style={{
-                      width: `${Math.max(item.fatia * 100, item.vigente ? 2 : 0)}%`,
-                    }}
-                  />
-                </div>
-              ) : (
-                <span className="flex-1" />
-              )}
-              <span className="shrink-0 text-xs text-gray-400">
-                {clienteSeFizerFalta(
-                  grupo.itens.length > 1
-                    ? semRepetirOGrupo(item.description, grupo.categoria)
-                    : item.description,
-                  item.cliente,
-                )
-                  ? `${item.cliente} · `
-                  : ""}
-                {item.vigente
-                  ? ""
-                  : item.due_day
-                    ? `dia ${item.due_day}`
-                    : "sem dia fixo"}
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function Tela() {
-  const plano = montarPlanoFixo(REAIS, "2026-11");
-
-  return (
-    <>
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        {[
-          {
-            r: "Entra",
-            v: formatarMoeda(plano.entra),
-            d: "mensalidades em contrato",
-          },
-          {
-            r: "Sai",
-            v: formatarMoeda(plano.sai),
-            d: `${formatarMoeda(85.9)} já pago neste mês`,
-          },
-          {
-            r: "Falta",
-            v: formatarMoeda(Math.abs(plano.sobra)),
-            d: "só do que se repete",
-            alerta: true,
-          },
-        ].map((x) => (
-          <div
-            key={x.r}
-            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
-          >
-            <p className="text-[10.5px] font-semibold uppercase tracking-wider text-gray-500">
-              {x.r}
-            </p>
-            <p
-              className={
-                "mt-0.5 text-xl font-bold tabular-nums " +
-                (x.alerta ? "text-alerta" : "text-gray-900")
-              }
-            >
-              {x.v}
-            </p>
-            <p className="mt-0.5 text-xs text-gray-500">{x.d}</p>
-          </div>
-        ))}
-      </div>
-
-      <Secao
-        titulo="O que sai"
-      >
-        <div className="space-y-3">
-          {plano.gruposDespesa.map((g) => (
-            <Grupo key={g.categoria} grupo={g} />
-          ))}
-        </div>
-      </Secao>
-
-      <Secao
-        titulo="O que entra"
-      >
-        <div className="space-y-3">
-          {plano.gruposReceita.map((g) => (
-            <Grupo key={g.categoria} grupo={g} />
-          ))}
-        </div>
-      </Secao>
-    </>
-  );
-}
 
 describe("prévia", () => {
   it("escreve o HTML de Fixos e ferramentas", () => {
@@ -261,7 +112,12 @@ describe("prévia", () => {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="app.css"></head>
 <body data-area="financeiro"><div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">${renderToStaticMarkup(
-        <Tela />,
+        <RecurrencesPanel
+          mes="2026-11"
+          recorrencias={REAIS}
+          categorias={CATEGORIAS}
+          clientes={[]}
+        />,
       )}</div></body></html>`,
     );
   });
