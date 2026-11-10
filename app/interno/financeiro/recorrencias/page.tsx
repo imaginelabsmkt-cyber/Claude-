@@ -1,16 +1,14 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
-import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { RecurrencesPanel } from "@/components/financeiro/recurrences-panel";
 import {
   contarRecorrenciasPendentes,
   listarCategorias,
   listarClientesFinanceiro,
-  listarLancamentos,
   listarRecorrencias,
 } from "@/lib/data/financeiro";
-import { mesAtual, mesValido, hojeISO } from "@/lib/financeiro/meses";
+import { mesAtual, mesValido } from "@/lib/financeiro/meses";
 
 export const dynamic = "force-dynamic";
 
@@ -34,25 +32,12 @@ interface PageProps {
 export default async function RecorrenciasPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
-  const hoje = hojeISO();
 
-  const [recorrencias, categorias, clientes, doMes, aGerar] = await Promise.all([
+  const [recorrencias, categorias, clientes] = await Promise.all([
     listarRecorrencias(),
     listarCategorias(),
     listarClientesFinanceiro(),
-    listarLancamentos({ mes }),
-    contarRecorrenciasPendentes(mes),
   ]);
-
-  // O lançamento do mês de cada recorrência, quando já foi gerado.
-  const lancamentoDaRecorrencia = Object.fromEntries(
-    doMes
-      .filter((l) => l.recurrence_id)
-      .map((l) => [
-        l.recurrence_id as string,
-        { id: l.id, status: l.status, due_date: l.due_date },
-      ]),
-  );
 
   return (
     <>
@@ -63,17 +48,11 @@ export default async function RecorrenciasPage({ searchParams }: PageProps) {
 
       <FinanceTabs />
 
-      <div className="mb-5">
-        <MonthActions mes={mes} recorrenciasPendentes={aGerar} />
-      </div>
-
       <RecurrencesPanel
         mes={mes}
-        hoje={hoje}
         recorrencias={recorrencias}
         categorias={categorias}
         clientes={clientes}
-        lancamentoDaRecorrencia={lancamentoDaRecorrencia}
       />
     </>
   );

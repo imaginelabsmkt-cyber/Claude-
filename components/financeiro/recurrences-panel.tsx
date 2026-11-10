@@ -12,9 +12,6 @@ import {
   definirAtivaRecorrenciaAction,
   excluirRecorrenciaAction,
 } from "@/lib/actions/financeiro";
-import { BaixaRapida } from "@/components/financeiro/baixa-rapida";
-import { Situacao, type Estado } from "@/components/financeiro/situacao";
-import { situacaoDoLancamento, textoDoPrazo } from "@/lib/financeiro/vencimento";
 import {
   montarPlanoFixo,
   type GrupoFixo,
@@ -55,13 +52,10 @@ export interface LancamentoDoMes {
 
 interface RecurrencesPanelProps {
   mes: string;
-  /** Data de hoje em "YYYY-MM-DD", calculada no servidor. */
-  hoje: string;
   recorrencias: FinancialRecurrenceWithRelations[];
   categorias: FinancialCategory[];
   clientes: Pick<Client, "id" | "name" | "active">[];
   /** Por id de recorrência, o lançamento dela neste mês. */
-  lancamentoDaRecorrencia: Record<string, LancamentoDoMes>;
 }
 
 /**
@@ -82,11 +76,9 @@ interface RecurrencesPanelProps {
  */
 export function RecurrencesPanel({
   mes,
-  hoje,
   recorrencias,
   categorias,
   clientes,
-  lancamentoDaRecorrencia,
 }: RecurrencesPanelProps) {
   const router = useRouter();
   const [criando, setCriando] = useState(false);
@@ -112,15 +104,6 @@ export function RecurrencesPanel({
     })),
     mes,
   );
-
-  /** Quanto do plano fixo deste mês já foi baixado. Sobe a cada check. */
-  const pagoNoMes = plano.gruposDespesa
-    .flatMap((g) => g.itens)
-    .filter((i) => i.vigente)
-    .reduce((t, i) => {
-      const l = lancamentoDaRecorrencia[i.id];
-      return l?.status === "Pago" ? t + i.amount : t;
-    }, 0);
 
   function alternarAtiva(r: FinancialRecurrenceWithRelations) {
     iniciar(async () => {
@@ -189,32 +172,12 @@ export function RecurrencesPanel({
       : semRepetirOGrupo(item.description, categoria);
     const cliente = clienteSeFizerFalta(nome, item.cliente);
 
-    const doMes = lancamentoDaRecorrencia[item.id];
-    const estado: Estado = doMes
-      ? situacaoDoLancamento(doMes, hoje)
-      : "Não lançado";
-    const rotuloEstado = doMes
-      ? estado === "Pago"
-        ? "pago"
-        : textoDoPrazo(doMes, hoje)
-      : "não lançado";
-
     const acao =
       "rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900";
 
     return (
       <li className={"group px-3 py-2 " + (item.vigente ? "" : "opacity-60")}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          {doMes ? (
-            <BaixaRapida
-              id={doMes.id}
-              pago={doMes.status === "Pago"}
-              descricao={nome}
-            />
-          ) : (
-            <span aria-hidden className="h-[18px] w-[18px] shrink-0" />
-          )}
-
           <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
             {nome}
             {item.vigente ? null : (
@@ -233,10 +196,6 @@ export function RecurrencesPanel({
           <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
             {formatarMoeda(item.amount)}
           </span>
-
-          {item.vigente ? (
-            <Situacao estado={estado} texto={rotuloEstado} />
-          ) : null}
 
           <span className="flex shrink-0 items-center gap-0.5">
             <button type="button" className={acao} onClick={() => setEditando(item.id)}>
@@ -280,13 +239,9 @@ export function RecurrencesPanel({
           ) : (
             <span className="flex-1" />
           )}
-          {/* O dia só aparece quando a etiqueta de prazo NÃO está na
-              linha. Com as duas, a mesma informação vinha escrita
-              duas vezes a dois centímetros de distância: "vence
-              amanhã" em cima e "dia 10" embaixo. */}
           <span className="shrink-0 text-xs text-gray-400">
             {cliente ? `${cliente} · ` : ""}
-            {item.vigente ? "" : item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
+            {item.due_day ? `dia ${item.due_day}` : "sem dia fixo"}
             {item.end_month ? ` · até ${rotuloMesCurto(item.end_month)}` : ""}
           </span>
         </div>
@@ -298,14 +253,6 @@ export function RecurrencesPanel({
     // Só faz sentido comparar fatias quando há com o que comparar.
     const comparar = grupo.itens.filter((i) => i.vigente).length > 1;
 
-    // Quanto deste grupo já foi pago no mês. Sobe a cada check.
-    const pago = grupo.itens
-      .filter((i) => i.vigente)
-      .reduce((t, i) => {
-        const l = lancamentoDaRecorrencia[i.id];
-        return l?.status === "Pago" ? t + i.amount : t;
-      }, 0);
-
     return (
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         {/* Categoria de uma linha só não ganha subtítulo: o subtítulo e
@@ -315,15 +262,8 @@ export function RecurrencesPanel({
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
               {grupo.categoria}
             </h3>
-            <span className="shrink-0 text-right">
-              <span className="block text-sm font-bold tabular-nums text-gray-900">
-                {formatarMoeda(grupo.total)}
-              </span>
-              {pago > 0 ? (
-                <span className="block text-xs font-semibold tabular-nums text-green-700">
-                  {formatarMoeda(pago)} pago
-                </span>
-              ) : null}
+            <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
+              {formatarMoeda(grupo.total)}
             </span>
           </div>
         ) : null}
@@ -354,10 +294,7 @@ export function RecurrencesPanel({
           {
             r: "Sai",
             v: formatarMoeda(plano.sai),
-            d:
-              pagoNoMes > 0
-                ? `${formatarMoeda(pagoNoMes)} já pago neste mês`
-                : "nada pago ainda neste mês",
+            d: "custo fixo por mês",
           },
           {
             r: plano.sobra >= 0 ? "Sobra" : "Falta",
