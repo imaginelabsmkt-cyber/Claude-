@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ETAPAS_DO_FUNIL,
   contatosPorCliente,
   montarFunil,
   resultadoPorCanal,
@@ -22,22 +23,37 @@ const ateOndeChegou =
   (o: T) =>
     mapa.get(o) ?? o.stage;
 
+/**
+ * O degrau da etapa, procurado pelo NOME.
+ *
+ * Estes testes eram escritos por índice (`f[2]`), e quando a Fran
+ * contou que a proposta é apresentada na reunião — e o funil ganhou
+ * "Reunião marcada" no meio — os três quebraram de uma vez sem que
+ * nada de errado tivesse acontecido. Índice não é o que se quer
+ * afirmar; a etapa é.
+ */
+const degrau = (f: ReturnType<typeof montarFunil>, etapa: LeadStage) => {
+  const d = f.find((x) => x.etapa === etapa);
+  if (!d) throw new Error(`etapa fora do funil: ${etapa}`);
+  return d;
+};
+
 describe("montarFunil", () => {
   it("conta quem CHEGOU na etapa, não só quem está nela", () => {
     const ops = [
       op("Indicação", "Contato feito"),
-      op("Indicação", "Proposta enviada"),
+      op("Indicação", "Proposta apresentada"),
       op("Indicação", "Fechado"),
     ];
     const f = montarFunil(ops, (o) => o.stage);
 
     // Os três passaram por "Contato feito".
-    expect(f[0].chegaram).toBe(3);
-    expect(f[0].agora).toBe(1);
+    expect(degrau(f, "Contato feito").chegaram).toBe(3);
+    expect(degrau(f, "Contato feito").agora).toBe(1);
     // Dois chegaram à proposta; só um está parado lá.
-    expect(f[2].chegaram).toBe(2);
-    expect(f[2].agora).toBe(1);
-    expect(f[4].chegaram).toBe(1);
+    expect(degrau(f, "Proposta apresentada").chegaram).toBe(2);
+    expect(degrau(f, "Proposta apresentada").agora).toBe(1);
+    expect(degrau(f, "Fechado").chegaram).toBe(1);
   });
 
   it("quem foi perdido ainda conta até onde chegou", () => {
@@ -45,10 +61,10 @@ describe("montarFunil", () => {
     const mapa = new Map([[perdido, "Negociação" as LeadStage]]);
     const f = montarFunil([perdido], ateOndeChegou(mapa));
 
-    expect(f[0].chegaram).toBe(1);
-    expect(f[3].chegaram).toBe(1); // chegou à negociação
-    expect(f[4].chegaram).toBe(0); // mas não fechou
-    expect(f[3].agora).toBe(0); // e não está mais lá
+    expect(degrau(f, "Contato feito").chegaram).toBe(1);
+    expect(degrau(f, "Negociação").chegaram).toBe(1); // chegou à negociação
+    expect(degrau(f, "Fechado").chegaram).toBe(0); // mas não fechou
+    expect(degrau(f, "Negociação").agora).toBe(0); // e não está mais lá
   });
 
   it("a fração do topo cai ao longo do funil", () => {
@@ -59,13 +75,13 @@ describe("montarFunil", () => {
       op("Indicação", "Fechado"),
     ];
     const f = montarFunil(ops, (o) => o.stage);
-    expect(f[0].doTopo).toBe(1);
-    expect(f[4].doTopo).toBeCloseTo(0.25, 10);
+    expect(degrau(f, "Contato feito").doTopo).toBe(1);
+    expect(degrau(f, "Fechado").doTopo).toBeCloseTo(0.25, 10);
   });
 
   it("funil vazio não divide por zero", () => {
     const f = montarFunil<OportunidadeProspeccao>([], (o) => o.stage);
-    expect(f).toHaveLength(5);
+    expect(f).toHaveLength(ETAPAS_DO_FUNIL.length);
     expect(f.every((d) => d.chegaram === 0 && d.doTopo === 0)).toBe(true);
   });
 });

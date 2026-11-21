@@ -263,7 +263,7 @@ function Tela() {
                   detalhe: "1 oportunidade",
                 },
                 {
-                  rotulo: "Proposta enviada",
+                  rotulo: "Proposta apresentada",
                   valor: 1400,
                   detalhe: "1 oportunidade",
                 },

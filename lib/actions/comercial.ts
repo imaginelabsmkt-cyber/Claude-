@@ -236,17 +236,21 @@ export async function criarPropostaAction(
 
   // Enviar uma proposta move a oportunidade para a etapa correspondente,
   // se ela ainda estiver atrás — assim o quadro não fica desatualizado.
-  if (parsed.data.status === "Enviada") {
+  if (parsed.data.status === "Apresentada") {
     const { data: lead } = await supabase
       .from("commercial_leads")
       .select("stage")
       .eq("id", leadId)
       .maybeSingle();
 
-    if (lead?.stage === "Contato feito" || lead?.stage === "Diagnóstico") {
+    if (
+      lead?.stage === "Contato feito" ||
+      lead?.stage === "Diagnóstico" ||
+      lead?.stage === "Reunião marcada"
+    ) {
       await supabase
         .from("commercial_leads")
-        .update({ stage: "Proposta enviada" })
+        .update({ stage: "Proposta apresentada" })
         .eq("id", leadId);
     }
   }

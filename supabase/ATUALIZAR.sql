@@ -25,6 +25,9 @@
 --      cobrança do Adobe" vira "Adobe Premiere".
 --   7. vencimento_das_receitas — receita vence no próprio mês (menos
 --      a Malukies, no seguinte, e o Studio Bambu, antecipado).
+--   8. funil_da_reuniao — o funil ganha "Reunião marcada", a proposta
+--      passa a ser APRESENTADA (não enviada) e entra o canal
+--      "Tráfego pago".
 --
 -- COMO RODAR
 --
@@ -1547,3 +1550,59 @@ update public.financial_entries e
                   - interval '1 day'))::int
             ) - 1)
        );
+
+-- =============================================================
+-- funil_da_reuniao
+-- =============================================================
+alter type lead_stage add value if not exists 'Reunião marcada'
+  before 'Proposta enviada';
+
+-- 2. "Proposta enviada" vira "Proposta apresentada".
+--    `rename value` não é idempotente, então pergunta antes.
+do $$
+begin
+  if exists (
+    select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+     where t.typname = 'lead_stage' and e.enumlabel = 'Proposta enviada'
+  ) then
+    alter type lead_stage rename value 'Proposta enviada' to 'Proposta apresentada';
+  end if;
+end
+$$;
+
+-- 3. A proposta também não é mais "Enviada": é "Apresentada".
+do $$
+begin
+  if exists (
+    select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+     where t.typname = 'proposal_status' and e.enumlabel = 'Enviada'
+  ) then
+    alter type proposal_status rename value 'Enviada' to 'Apresentada';
+  end if;
+end
+$$;
+
+-- 4. O canal que faltava.
+alter type lead_channel add value if not exists 'Tráfego pago' after 'Social selling';
+
+-- 5. A posição de cada etapa, com o degrau novo.
+--
+--    Compara `e::text`, e não o literal do enum, de propósito: um
+--    valor recém-criado por `add value` não pode ser resolvido como
+--    literal na mesma transação, e o SQL Editor do Supabase roda
+--    tudo numa transação só. Em texto, funciona na primeira passada.
+create or replace function public.posicao_da_etapa(e lead_stage)
+returns int
+language sql
+immutable
+as $$
+  select case e::text
+    when 'Contato feito'        then 1
+    when 'Diagnóstico'          then 2
+    when 'Reunião marcada'      then 3
+    when 'Proposta apresentada' then 4
+    when 'Negociação'           then 5
+    when 'Fechado'              then 6
+    else 0                                  -- Perdido: não é degrau
+  end;
+$$;

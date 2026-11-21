@@ -19,7 +19,8 @@ import type { Lead, LeadStage, Proposal } from "@/types";
 export const LIMITE_PARADO: Record<LeadStage, number> = {
   "Contato feito": 3,
   Diagnóstico: 5,
-  "Proposta enviada": 5,
+  "Reunião marcada": 7,
+  "Proposta apresentada": 5,
   Negociação: 7,
   Fechado: Infinity,
   Perdido: Infinity,
@@ -29,7 +30,8 @@ export const LIMITE_PARADO: Record<LeadStage, number> = {
 export const ETAPAS_ABERTAS: LeadStage[] = [
   "Contato feito",
   "Diagnóstico",
-  "Proposta enviada",
+  "Reunião marcada",
+  "Proposta apresentada",
   "Negociação",
 ];
 
@@ -94,7 +96,7 @@ export function propostaVencida(
   proposta: Pick<Proposal, "status" | "valid_until">,
   hoje: Date = new Date(),
 ): boolean {
-  if (proposta.status !== "Enviada" || !proposta.valid_until) return false;
+  if (proposta.status !== "Apresentada" || !proposta.valid_until) return false;
   const [a, m, d] = proposta.valid_until.split("-").map(Number);
   return diasEntre(hoje, new Date(a, m - 1, d)) < 0;
 }

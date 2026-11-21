@@ -86,7 +86,9 @@ export function PropostasPanel({
 
             <p className="mt-1 text-xs text-gray-500">
               {p.monthly_goal ? `${p.monthly_goal} conteúdos/mês · ` : ""}
-              {p.sent_at ? `enviada ${formatarData(p.sent_at)}` : "ainda não enviada"}
+              {p.sent_at
+                ? `apresentada ${formatarData(p.sent_at)}`
+                : "ainda não apresentada"}
               {p.valid_until ? ` · vale até ${formatarData(p.valid_until)}` : ""}
             </p>
 
@@ -257,7 +259,11 @@ function PropostaForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="p-envio">Enviada em</Label>
+          {/* A coluna no banco continua `sent_at`; o que mudou é o
+              mundo: a proposta é APRESENTADA na reunião, não mandada
+              depois. Renomear coluna de banco por causa de rótulo é
+              risco sem ganho. */}
+          <Label htmlFor="p-envio">Apresentada em</Label>
           <Input
             id="p-envio"
             type="date"

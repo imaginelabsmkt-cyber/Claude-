@@ -213,6 +213,7 @@ export const PAYMENT_METHOD_OPTIONS: string[] = [
 /** Canais de prospecção, na ordem em que aparecem nas telas. */
 export const LEAD_CHANNEL_OPTIONS: LeadChannel[] = [
   "Social selling",
+  "Tráfego pago",
   "Indicação",
   "Evento",
   "Parceria",
@@ -222,7 +223,8 @@ export const LEAD_CHANNEL_OPTIONS: LeadChannel[] = [
 export const LEAD_STAGE_OPTIONS: LeadStage[] = [
   "Contato feito",
   "Diagnóstico",
-  "Proposta enviada",
+  "Reunião marcada",
+  "Proposta apresentada",
   "Negociação",
   "Fechado",
   "Perdido",
@@ -232,20 +234,21 @@ export const LEAD_STAGE_OPTIONS: LeadStage[] = [
 export const LEAD_STAGES_ABERTAS: LeadStage[] = [
   "Contato feito",
   "Diagnóstico",
-  "Proposta enviada",
+  "Reunião marcada",
+  "Proposta apresentada",
   "Negociação",
 ];
 
 export const PROPOSAL_STATUS_OPTIONS: ProposalStatus[] = [
   "Rascunho",
-  "Enviada",
+  "Apresentada",
   "Aceita",
   "Recusada",
 ];
 
 export const PROPOSAL_STATUS_TONE: Record<ProposalStatus, BadgeTone> = {
   Rascunho: "cinza",
-  Enviada: "azul",
+  Apresentada: "azul",
   Aceita: "verde",
   Recusada: "vermelho",
 };

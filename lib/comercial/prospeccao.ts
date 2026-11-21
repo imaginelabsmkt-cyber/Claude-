@@ -29,7 +29,8 @@ export interface OportunidadeProspeccao {
 export const ETAPAS_DO_FUNIL: LeadStage[] = [
   "Contato feito",
   "Diagnóstico",
-  "Proposta enviada",
+  "Reunião marcada",
+  "Proposta apresentada",
   "Negociação",
   "Fechado",
 ];

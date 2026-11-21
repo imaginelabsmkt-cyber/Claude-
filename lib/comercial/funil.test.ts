@@ -26,8 +26,8 @@ function lead(over: Partial<Lead> = {}): Lead {
     contact_phone: null,
     source: null,
     channel: "Social selling",
-    stage: "Proposta enviada",
-    max_stage: "Proposta enviada",
+    stage: "Proposta apresentada",
+    max_stage: "Proposta apresentada",
     estimated_monthly: 1900,
     notes: null,
     client_id: null,
@@ -43,7 +43,7 @@ function proposta(over: Partial<Proposal> = {}): Proposal {
   return {
     id: "p1",
     lead_id: "l1",
-    status: "Enviada",
+    status: "Apresentada",
     monthly_amount: 1900,
     setup_amount: 0,
     scope: null,
@@ -119,10 +119,10 @@ describe("propostas", () => {
     expect(propostaVigente([])).toBeNull();
   });
 
-  it("só considera vencida uma proposta enviada com prazo passado", () => {
-    expect(propostaVencida({ status: "Enviada", valid_until: "2026-09-20" }, HOJE)).toBe(true);
-    expect(propostaVencida({ status: "Enviada", valid_until: "2026-09-21" }, HOJE)).toBe(false);
-    expect(propostaVencida({ status: "Enviada", valid_until: null }, HOJE)).toBe(false);
+  it("só considera vencida uma proposta apresentada com prazo passado", () => {
+    expect(propostaVencida({ status: "Apresentada", valid_until: "2026-09-20" }, HOJE)).toBe(true);
+    expect(propostaVencida({ status: "Apresentada", valid_until: "2026-09-21" }, HOJE)).toBe(false);
+    expect(propostaVencida({ status: "Apresentada", valid_until: null }, HOJE)).toBe(false);
     expect(propostaVencida({ status: "Aceita", valid_until: "2026-01-01" }, HOJE)).toBe(false);
   });
 });

@@ -1172,7 +1172,8 @@ begin
     create type lead_stage as enum (
       'Contato feito',
       'Diagnóstico',
-      'Proposta enviada',
+      'Reunião marcada',
+      'Proposta apresentada',
       'Negociação',
       'Fechado',
       'Perdido'
@@ -1186,7 +1187,7 @@ begin
   if not exists (select 1 from pg_type where typname = 'proposal_status') then
     create type proposal_status as enum (
       'Rascunho',
-      'Enviada',
+      'Apresentada',
       'Aceita',
       'Recusada'
     );
@@ -2097,6 +2098,7 @@ begin
   if not exists (select 1 from pg_type where typname = 'lead_channel') then
     create type lead_channel as enum (
       'Social selling',
+      'Tráfego pago',
       'Indicação',
       'Evento',
       'Parceria',
@@ -2144,12 +2146,13 @@ returns int
 language sql
 immutable
 as $$
-  select case e
-    when 'Contato feito'    then 1
-    when 'Diagnóstico'      then 2
-    when 'Proposta enviada' then 3
-    when 'Negociação'       then 4
-    when 'Fechado'          then 5
+  select case e::text
+    when 'Contato feito'        then 1
+    when 'Diagnóstico'          then 2
+    when 'Reunião marcada'      then 3
+    when 'Proposta apresentada' then 4
+    when 'Negociação'           then 5
+    when 'Fechado'              then 6
     else 0                                  -- Perdido: não é degrau
   end;
 $$;

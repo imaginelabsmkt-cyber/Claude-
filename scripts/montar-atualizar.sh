@@ -18,6 +18,7 @@ ORDEM=(
   antecipado_e_fatura_outubro
   destravar_fixos
   vencimento_das_receitas
+  funil_da_reuniao
 )
 
 {
@@ -49,6 +50,9 @@ ORDEM=(
 --      cobrança do Adobe" vira "Adobe Premiere".
 --   7. vencimento_das_receitas — receita vence no próprio mês (menos
 --      a Malukies, no seguinte, e o Studio Bambu, antecipado).
+--   8. funil_da_reuniao — o funil ganha "Reunião marcada", a proposta
+--      passa a ser APRESENTADA (não enviada) e entra o canal
+--      "Tráfego pago".
 --
 -- COMO RODAR
 --

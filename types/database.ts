@@ -475,7 +475,8 @@ export type FinancialEntryInsert = Omit<
 export type LeadStage =
   | "Contato feito"
   | "Diagnóstico"
-  | "Proposta enviada"
+  | "Reunião marcada"
+  | "Proposta apresentada"
   | "Negociação"
   | "Fechado"
   | "Perdido";
@@ -488,12 +489,13 @@ export type LeadStage =
  */
 export type LeadChannel =
   | "Social selling"
+  | "Tráfego pago"
   | "Indicação"
   | "Evento"
   | "Parceria"
   | "Outro";
 
-export type ProposalStatus = "Rascunho" | "Enviada" | "Aceita" | "Recusada";
+export type ProposalStatus = "Rascunho" | "Apresentada" | "Aceita" | "Recusada";
 
 /** commercial_leads — uma oportunidade no funil. */
 export type Lead = {
@@ -575,7 +577,7 @@ export type ClientContractInsert = Omit<
   recurrence_id?: UUID | null;
 };
 
-/** commercial_proposals — uma proposta enviada a uma oportunidade. */
+/** commercial_proposals — uma proposta apresentada a uma oportunidade. */
 export type Proposal = {
   id: UUID;
   lead_id: UUID;

@@ -34,6 +34,7 @@ export const leadFormSchema = z.object({
   source: z.string().trim().max(40).or(z.literal("")).optional(),
   channel: z.enum([
     "Social selling",
+    "Tráfego pago",
     "Indicação",
     "Evento",
     "Parceria",
@@ -42,7 +43,8 @@ export const leadFormSchema = z.object({
   stage: z.enum([
     "Contato feito",
     "Diagnóstico",
-    "Proposta enviada",
+    "Reunião marcada",
+    "Proposta apresentada",
     "Negociação",
     "Fechado",
     "Perdido",
@@ -80,7 +82,7 @@ export const propostaFormSchema = z
       .regex(/^\d*$/, "Use apenas números")
       .optional(),
     scope: z.string().trim().max(1000).or(z.literal("")).optional(),
-    status: z.enum(["Rascunho", "Enviada", "Aceita", "Recusada"]),
+    status: z.enum(["Rascunho", "Apresentada", "Aceita", "Recusada"]),
     sent_at: DATA,
     valid_until: DATA,
     notes: z.string().trim().max(1000).or(z.literal("")).optional(),
