@@ -142,3 +142,36 @@ export const fechamentoSchema = z.object({
 });
 
 export type FechamentoValues = z.infer<typeof fechamentoSchema>;
+
+/**
+ * Uma atividade: o que precisa ser feito com um cliente.
+ *
+ * O prazo é opcional de propósito. "Ligar para a Laura" sem dia é uma
+ * anotação legítima; obrigar uma data faria a pessoa inventar uma, e
+ * data inventada entope a fila de falso atraso.
+ */
+export const atividadeFormSchema = z.object({
+  kind: z.enum(["Tarefa", "Reunião", "Ligação", "WhatsApp"]),
+  subject: z
+    .string()
+    .trim()
+    .min(2, "Escreva o que precisa ser feito")
+    .max(200, "Use no máximo 200 caracteres"),
+  /** "YYYY-MM-DDTHH:mm" no fuso da agência, ou vazio. */
+  due_at: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Prazo inválido")
+    .or(z.literal(""))
+    .optional(),
+  notes: z.string().trim().max(2000).or(z.literal("")).optional(),
+});
+
+export type AtividadeFormValues = z.infer<typeof atividadeFormSchema>;
+
+export const ATIVIDADE_FORM_PADRAO: AtividadeFormValues = {
+  kind: "Tarefa",
+  subject: "",
+  due_at: "",
+  notes: "",
+};

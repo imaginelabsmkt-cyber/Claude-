@@ -19,6 +19,7 @@ ORDEM=(
   destravar_fixos
   vencimento_das_receitas
   funil_da_reuniao
+  comercial_historico_e_atividades
 )
 
 {
@@ -53,6 +54,9 @@ ORDEM=(
 --   8. funil_da_reuniao — o funil ganha "Reunião marcada", a proposta
 --      passa a ser APRESENTADA (não enviada) e entra o canal
 --      "Tráfego pago".
+--   9. comercial_historico_e_atividades — o comercial passa a guardar
+--      cada mudança de etapa (com data) e ganha as atividades:
+--      tarefa, reunião, ligação e WhatsApp presas ao cliente.
 --
 -- COMO RODAR
 --

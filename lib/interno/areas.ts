@@ -44,6 +44,7 @@
 
 export type AreaId =
   | "inicio"
+  | "fila"
   | "comercial"
   | "administrativo"
   | "financeiro"
@@ -137,6 +138,30 @@ export const AREAS: Area[] = [
   },
 ];
 
+/**
+ * A FILA DE TRABALHO: fora do array `AREAS` de propósito.
+ *
+ * A régua lá em cima diz que etapa nova precisa responder uma
+ * pergunta que nenhuma outra responde. A fila responde "o que eu faço
+ * AGORA?", que nenhuma das três etapas responde — mas ela também não
+ * é etapa da empresa: ela junta as três, como o Dashboard.
+ *
+ * Veio do raio-X do Zoho que a Vitória fez: "a Fila de trabalho é a
+ * tela que mais vale replicar primeiro. Ela responde 'o que eu faço
+ * agora?' sem relatório nenhum." Por isso fica ao lado do Dashboard,
+ * acima da linha, e não na lista alfabética das etapas.
+ */
+export const FILA: Area = {
+  id: "fila",
+  label: "Fila de trabalho",
+  curto: "Fila",
+  href: "/interno/fila",
+  contexto: "O que precisa de você",
+  pergunta: "O que eu faço agora?",
+  cor: "#3f3a3c",
+  icone: "inicio",
+};
+
 /** Áreas do menu, exceto o Início (que abre o grupo). */
 export const AREAS_MENU: Area[] = AREAS.filter((a) => a.id !== "inicio");
 
@@ -170,6 +195,7 @@ export function area(id: AreaId): Area {
  */
 const ROTAS_EXTRAS: [string, AreaId][] = [
   ["/interno/relatorio", "financeiro"],
+  ["/interno/fila", "fila"],
 ];
 
 /**

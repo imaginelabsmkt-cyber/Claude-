@@ -56,7 +56,11 @@ textarea:focus-visible,
   --alerta-soft: #fae0da;
 }
 
-[data-area="inicio"] {
+[data-area="inicio"],
+/* A fila de trabalho não é etapa da empresa: ela junta as três. Por
+   isso usa o mesmo cinza do Dashboard — nenhuma área é dona dela, e
+   dar a ela uma cor nova diria o contrário. */
+[data-area="fila"] {
   --area: #3f3a3c;
   --area-soft: #ece7e1;
 }

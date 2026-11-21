@@ -260,17 +260,22 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
       ) : null}
 
       {/* 4. O QUE PEDE AÇÃO, DE TODAS AS ETAPAS */}
+      {/* O Dashboard responde "como a empresa está"; a Fila de
+          trabalho responde "o que eu faço agora". Esta lista é a
+          ponte entre as duas: mostra as cinco primeiras e manda para
+          lá. Antes mostrava dez e levava para uma lista filtrada do
+          financeiro, que é só um pedaço do que pede ação. */}
       <Secao
         titulo="Precisa de você"
         acao={
-          painel.compromissos.length > 10 ? (
-            <Link
-              href={`/interno/financeiro/lancamentos?mes=${mes}&situacao=aberto`}
-              className="font-medium text-gray-600 hover:underline"
-            >
-              Ver todos os {painel.compromissos.length}
-            </Link>
-          ) : undefined
+          <Link
+            href="/interno/fila"
+            className="font-medium text-gray-600 hover:underline"
+          >
+            {painel.compromissos.length > 5
+              ? `Abrir a fila (${painel.compromissos.length})`
+              : "Abrir a fila de trabalho"}
+          </Link>
         }
       >
         {painel.compromissos.length === 0 ? (
@@ -281,7 +286,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <OrigemLista>
-            {painel.compromissos.slice(0, 10).map((c) => (
+            {painel.compromissos.slice(0, 5).map((c) => (
               <OrigemItem
                 key={c.id}
                 origem={c.origem}

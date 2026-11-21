@@ -1270,6 +1270,59 @@ create trigger trg_proposals_updated_at
 -- 4.1 Carimba a data quando a etapa muda — é o relógio do "parado há
 --     N dias". Fica no banco para valer mesmo se a etapa for mudada
 --     fora da tela do funil.
+-- 2.3 Histórico de etapas: cada mudança, com data.
+--     "Datas gravadas desde o primeiro dia" é a lição do raio-X do
+--     Zoho: sem elas não há tempo de ciclo nem conversão por etapa.
+create table if not exists public.commercial_stage_history (
+  id          uuid primary key default gen_random_uuid(),
+  lead_id     uuid not null references public.commercial_leads(id) on delete cascade,
+  -- Nula na primeira linha: a oportunidade nasceu nesta etapa.
+  de          lead_stage,
+  para        lead_stage not null,
+  em          timestamptz not null default now(),
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists idx_stage_history_lead
+  on public.commercial_stage_history (lead_id, em);
+
+-- 2.4 Atividades: o que alguém precisa fazer com um cliente.
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'activity_kind') then
+    create type activity_kind as enum ('Tarefa', 'Reunião', 'Ligação', 'WhatsApp');
+  end if;
+end
+$$;
+
+create table if not exists public.commercial_activities (
+  id           uuid primary key default gen_random_uuid(),
+  kind         activity_kind not null default 'Tarefa',
+  subject      text not null,
+  -- Presa a uma oportunidade OU a um cliente, nunca a nenhum dos dois.
+  lead_id      uuid references public.commercial_leads(id) on delete cascade,
+  client_id    uuid references public.clients(id) on delete cascade,
+  due_at       timestamptz,
+  done_at      timestamptz,
+  notes        text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  constraint commercial_activities_tem_dono
+    check (lead_id is not null or client_id is not null)
+);
+
+create index if not exists idx_atividades_abertas
+  on public.commercial_activities (due_at) where done_at is null;
+create index if not exists idx_atividades_lead
+  on public.commercial_activities (lead_id);
+create index if not exists idx_atividades_cliente
+  on public.commercial_activities (client_id);
+
+drop trigger if exists trg_atividades_updated on public.commercial_activities;
+create trigger trg_atividades_updated
+  before update on public.commercial_activities
+  for each row execute function public.set_updated_at();
+
 create or replace function public.marcar_mudanca_etapa()
 returns trigger
 language plpgsql
@@ -1277,6 +1330,8 @@ as $$
 begin
   if new.stage is distinct from old.stage then
     new.stage_changed_at = now();
+    insert into public.commercial_stage_history (lead_id, de, para, em)
+    values (new.id, old.stage, new.stage, now());
   end if;
   return new;
 end;
@@ -1287,11 +1342,29 @@ create trigger trg_leads_stage_changed
   before update on public.commercial_leads
   for each row execute function public.marcar_mudanca_etapa();
 
+create or replace function public.nascer_na_etapa()
+returns trigger
+language plpgsql
+as $$
+begin
+  insert into public.commercial_stage_history (lead_id, de, para, em)
+  values (new.id, null, new.stage, coalesce(new.created_at, now()));
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_leads_nasceu on public.commercial_leads;
+create trigger trg_leads_nasceu
+  after insert on public.commercial_leads
+  for each row execute function public.nascer_na_etapa();
+
 -- -------------------------------------------------------------
 -- 5. Row Level Security (mesma filosofia das demais tabelas)
 -- -------------------------------------------------------------
-alter table public.commercial_leads     enable row level security;
-alter table public.commercial_proposals enable row level security;
+alter table public.commercial_leads         enable row level security;
+alter table public.commercial_proposals     enable row level security;
+alter table public.commercial_stage_history enable row level security;
+alter table public.commercial_activities    enable row level security;
 
 drop policy if exists "commercial_leads_all_authenticated" on public.commercial_leads;
 create policy "commercial_leads_all_authenticated"
@@ -1301,6 +1374,16 @@ create policy "commercial_leads_all_authenticated"
 drop policy if exists "commercial_proposals_all_authenticated" on public.commercial_proposals;
 create policy "commercial_proposals_all_authenticated"
   on public.commercial_proposals for all
+  to authenticated using (true) with check (true);
+
+drop policy if exists "stage_history_all_authenticated" on public.commercial_stage_history;
+create policy "stage_history_all_authenticated"
+  on public.commercial_stage_history for all
+  to authenticated using (true) with check (true);
+
+drop policy if exists "atividades_all_authenticated" on public.commercial_activities;
+create policy "atividades_all_authenticated"
+  on public.commercial_activities for all
   to authenticated using (true) with check (true);
 
 

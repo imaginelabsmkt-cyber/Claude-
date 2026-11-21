@@ -18,6 +18,7 @@ import type {
   FinancialEntry,
   FinancialKind,
   FinancialRecurrence,
+  ActivityKind,
   ClientFileKind,
   CompanyFileKind,
   FinancialStatus,
@@ -237,6 +238,13 @@ export const LEAD_STAGES_ABERTAS: LeadStage[] = [
   "Reunião marcada",
   "Proposta apresentada",
   "Negociação",
+];
+
+export const ACTIVITY_KIND_OPTIONS: ActivityKind[] = [
+  "Tarefa",
+  "Reunião",
+  "Ligação",
+  "WhatsApp",
 ];
 
 export const PROPOSAL_STATUS_OPTIONS: ProposalStatus[] = [

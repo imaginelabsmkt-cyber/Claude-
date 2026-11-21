@@ -630,6 +630,52 @@ export type LeadInsert = Omit<
   meeting_at?: string | null;
 };
 
+/** Uma mudança de etapa de uma oportunidade, com data. */
+export type StageHistory = {
+  id: UUID;
+  lead_id: UUID;
+  /** Nula na primeira linha: a oportunidade nasceu nesta etapa. */
+  de: LeadStage | null;
+  para: LeadStage;
+  em: ISODateString;
+  created_at: ISODateString;
+};
+
+/** O que se faz com um cliente. */
+export type ActivityKind = "Tarefa" | "Reunião" | "Ligação" | "WhatsApp";
+
+/** commercial_activities — presa a uma oportunidade OU a um cliente. */
+export type Activity = {
+  id: UUID;
+  kind: ActivityKind;
+  subject: string;
+  lead_id: UUID | null;
+  client_id: UUID | null;
+  due_at: ISODateString | null;
+  done_at: ISODateString | null;
+  notes: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+
+export type StageHistoryInsert = Omit<StageHistory, "id" | "created_at" | "em"> & {
+  id?: UUID;
+  em?: ISODateString;
+};
+
+export type ActivityInsert = Omit<
+  Activity,
+  "id" | "created_at" | "updated_at" | "kind" | "lead_id" | "client_id" | "due_at" | "done_at" | "notes"
+> & {
+  id?: UUID;
+  kind?: ActivityKind;
+  lead_id?: UUID | null;
+  client_id?: UUID | null;
+  due_at?: ISODateString | null;
+  done_at?: ISODateString | null;
+  notes?: string | null;
+};
+
 export type ProposalInsert = Omit<
   Proposal,
   | "id"
@@ -1105,6 +1151,18 @@ export interface Database {
         Row: Proposal;
         Insert: ProposalInsert;
         Update: Partial<ProposalInsert>;
+        Relationships: [];
+      };
+      commercial_stage_history: {
+        Row: StageHistory;
+        Insert: StageHistoryInsert;
+        Update: Partial<StageHistoryInsert>;
+        Relationships: [];
+      };
+      commercial_activities: {
+        Row: Activity;
+        Insert: ActivityInsert;
+        Update: Partial<ActivityInsert>;
         Relationships: [];
       };
       company_files: {

@@ -7,6 +7,7 @@ import { Sair } from "@/components/interno/sair";
 import {
   AREAS_EMPRESA,
   AREAS_PESSOAIS,
+  FILA,
   area,
   areaDaRota,
   type Area,
@@ -94,6 +95,7 @@ export function InternoSidebar({
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
           {item(inicio, noInicio)}
+          {item(FILA, ativa === "fila")}
 
           <div className="my-1.5 h-px bg-gray-200" />
 

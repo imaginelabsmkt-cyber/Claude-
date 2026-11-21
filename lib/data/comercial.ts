@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { somar } from "@/lib/financeiro/calculo";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import type {
+  Activity,
   FinancialEntry,
   Lead,
   LeadChannel,
@@ -240,6 +241,78 @@ export async function listarTodasEncerradas(): Promise<LeadEncerrada[]> {
     lost_reason: (l.lost_reason as string | null) ?? null,
     client_id: (l.client_id as string | null) ?? null,
     encerrada_em: l.stage_changed_at as string,
+  }));
+}
+
+// -------------------------------------------------------------
+// Histórico de etapas e atividades
+// -------------------------------------------------------------
+
+/** Uma linha da linha do tempo, já com o nome do que mudou. */
+export interface PassoDaEtapa {
+  id: string;
+  de: LeadStage | null;
+  para: LeadStage;
+  em: string;
+}
+
+/** A linha do tempo de uma oportunidade, da mais antiga para a mais nova. */
+export async function listarHistoricoDeEtapas(
+  leadId: string,
+): Promise<PassoDaEtapa[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("commercial_stage_history")
+    .select("id, de, para, em")
+    .eq("lead_id", leadId)
+    .order("em", { ascending: true });
+  return (data ?? []) as PassoDaEtapa[];
+}
+
+/** Uma atividade com o nome de quem ela pertence. */
+export interface AtividadeComDono extends Activity {
+  leadNome: string | null;
+  clienteNome: string | null;
+}
+
+interface FiltrosAtividades {
+  leadId?: string;
+  clientId?: string;
+  /** Só as que ainda não foram feitas. Verdadeiro por padrão. */
+  abertas?: boolean;
+}
+
+/**
+ * As atividades, com o nome do dono resolvido.
+ *
+ * O dono é uma oportunidade OU um cliente (o banco não deixa ser
+ * nenhum dos dois). A tela precisa do nome, não do id, porque uma
+ * fila de trabalho que diz "ligar para 7f3a-..." não serve.
+ */
+export async function listarAtividades(
+  filtros: FiltrosAtividades = {},
+): Promise<AtividadeComDono[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("commercial_activities")
+    .select(
+      "*, lead:commercial_leads(name), client:clients(name)",
+    )
+    .order("due_at", { ascending: true, nullsFirst: false });
+
+  if (filtros.leadId) query = query.eq("lead_id", filtros.leadId);
+  if (filtros.clientId) query = query.eq("client_id", filtros.clientId);
+  if (filtros.abertas !== false) query = query.is("done_at", null);
+
+  const { data } = await query;
+
+  return ((data ?? []) as unknown as (Activity & {
+    lead: { name: string } | null;
+    client: { name: string } | null;
+  })[]).map(({ lead, client, ...a }) => ({
+    ...a,
+    leadNome: lead?.name ?? null,
+    clienteNome: client?.name ?? null,
   }));
 }
 

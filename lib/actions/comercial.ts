@@ -6,9 +6,11 @@ import { dadosDoFechamento, propostaVigente } from "@/lib/comercial/funil";
 import { instanteDaReuniao } from "@/lib/comercial/reuniao";
 import { paraNumero } from "@/lib/financeiro/valores";
 import {
+  atividadeFormSchema,
   fechamentoSchema,
   leadFormSchema,
   propostaFormSchema,
+  type AtividadeFormValues,
   type FechamentoValues,
   type LeadFormValues,
   type PropostaFormValues,
@@ -38,8 +40,12 @@ function limpar(v?: string | null): string | null {
 }
 
 function revalidarComercial() {
+  // A mesma linha estava escrita duas vezes, e a Prospecção — que lê
+  // os mesmos leads — não era revalidada nunca.
   revalidatePath("/interno/comercial/funil");
-  revalidatePath("/interno/comercial/funil");
+  revalidatePath("/interno/comercial/prospeccao");
+  revalidatePath("/interno/comercial/encerrados");
+  revalidatePath("/interno/fila");
   revalidatePath("/interno");
 }
 
@@ -484,4 +490,83 @@ export async function fecharNegocioAction(
       setup: Boolean(dados.setup),
     },
   };
+}
+
+// -------------------------------------------------------------
+// Atividades
+// -------------------------------------------------------------
+
+/** Cria uma atividade presa a uma oportunidade ou a um cliente. */
+export async function criarAtividadeAction(
+  dono: { leadId?: string; clientId?: string },
+  input: AtividadeFormValues,
+): Promise<ActionResult> {
+  if (!dono.leadId && !dono.clientId) {
+    return { ok: false, error: "A atividade precisa de um dono." };
+  }
+
+  const parsed = atividadeFormSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: "Verifique os campos destacados.",
+      fieldErrors: primeirosErros(parsed.error.flatten().fieldErrors),
+    };
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("commercial_activities")
+    .insert({
+      kind: parsed.data.kind,
+      subject: parsed.data.subject,
+      lead_id: dono.leadId ?? null,
+      client_id: dono.clientId ?? null,
+      due_at: instante(parsed.data.due_at),
+      notes: limpar(parsed.data.notes),
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    return { ok: false, error: "Não foi possível criar a atividade." };
+  }
+
+  revalidarComercial();
+  return { ok: true, id: data.id };
+}
+
+/**
+ * Marca como feita, ou desmarca.
+ *
+ * Desmarcar existe porque marcar é um clique, e um clique errado numa
+ * lista de dez não pode custar a informação.
+ */
+export async function concluirAtividadeAction(
+  id: string,
+  feita: boolean,
+): Promise<ActionResult> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("commercial_activities")
+    .update({ done_at: feita ? new Date().toISOString() : null })
+    .eq("id", id);
+
+  if (error) return { ok: false, error: "Não foi possível salvar." };
+  revalidarComercial();
+  return { ok: true, id };
+}
+
+/** Exclui uma atividade. */
+export async function excluirAtividadeAction(
+  id: string,
+): Promise<ActionResult> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("commercial_activities")
+    .delete()
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível excluir." };
+  revalidarComercial();
+  return { ok: true };
 }
