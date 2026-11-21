@@ -16,9 +16,9 @@ interface EntriesToolbarProps {
 const ATALHOS: { rotulo: string; params: Record<string, string> }[] = [
   { rotulo: "Tudo", params: { situacao: "", tipo: "" } },
   { rotulo: "Em aberto", params: { situacao: "aberto", tipo: "" } },
-  { rotulo: "Vencidos", params: { situacao: "vencido", tipo: "" } },
-  { rotulo: "Só o que entrou", params: { situacao: "", tipo: "Receita" } },
-  { rotulo: "Só o que saiu", params: { situacao: "", tipo: "Despesa" } },
+  { rotulo: "Em atraso", params: { situacao: "vencido", tipo: "" } },
+  { rotulo: "Só receitas", params: { situacao: "", tipo: "Receita" } },
+  { rotulo: "Só despesas", params: { situacao: "", tipo: "Despesa" } },
 ];
 
 /**

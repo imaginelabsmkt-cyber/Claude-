@@ -1,19 +1,27 @@
 /**
  * Prévia visual da lista de Lançamentos.
  *
- * Não é teste: não afirma nada. A tabela de verdade é um componente de
- * cliente (tem botões e navegação), então o markup aqui é copiado dela.
- * O que importa, que é o desenho, é o mesmo.
+ * Não é teste: não afirma nada.
+ *
+ * DESENHA O COMPONENTE DE VERDADE. A versão anterior copiava o markup
+ * da tabela "porque é componente de cliente", e a cópia mentiu: ela me
+ * mostrou uma tabela de três colunas espremida em 390px, quando a
+ * tela real já tinha a lista de celular. Componente de cliente
+ * renderiza estático igual — só precisa do roteador fingido.
  */
-import { describe, it } from "vitest";
+import { describe, it, vi } from "vitest";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: () => {}, push: () => {} }),
+  usePathname: () => "/interno/financeiro/lancamentos",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
-import {
-  ordenarPorUrgencia,
-  situacaoDoLancamento,
-  textoDoPrazo,
-} from "@/lib/financeiro/vencimento";
-import { clienteSeFizerFalta } from "@/lib/financeiro/nomes";
+import { ordenarPorUrgencia } from "@/lib/financeiro/vencimento";
+import { EntriesTable } from "@/components/financeiro/entries-table";
+import type { FinancialEntryWithRelations } from "@/types";
 import { formatarMoeda } from "@/lib/utils";
 
 const HOJE = "2026-11-09";
@@ -40,10 +48,32 @@ const LANCAMENTOS: Linha[] = [
   { id: "8", description: "Canva", kind: "Despesa", amount: 53, status: "Pago", due_date: "2026-11-02", categoria: "Assinaturas e ferramentas digitais", cliente: null },
 ];
 
-const ATALHOS = ["Tudo", "Em aberto", "Vencidos", "Só o que entrou", "Só o que saiu"];
+const ATALHOS = ["Tudo", "Em aberto", "Em atraso", "Só receitas", "Só despesas"];
 
-const acao =
-  "rounded px-1.5 py-0.5 text-xs font-medium text-gray-500";
+/** Os mesmos lançamentos, no formato que o componente lê. */
+const PARA_TABELA = LANCAMENTOS.map(
+  (l) =>
+    ({
+      id: l.id,
+      reference_month: "2026-11",
+      kind: l.kind,
+      category_id: "c",
+      client_id: l.cliente ? "k" : null,
+      description: l.description,
+      amount: l.amount,
+      status: l.status,
+      due_date: l.due_date,
+      paid_date: null,
+      payment_method: null,
+      notes: null,
+      recurrence_id: null,
+      team_member_id: null,
+      created_at: "2026-11-01T00:00:00Z",
+      updated_at: "2026-11-01T00:00:00Z",
+      category: { id: "c", name: l.categoria, kind: l.kind, sort_order: 0 },
+      client: l.cliente ? { id: "k", name: l.cliente } : null,
+    }) as unknown as FinancialEntryWithRelations,
+);
 
 function Tela() {
   const lista = ordenarPorUrgencia(LANCAMENTOS, HOJE);
@@ -53,13 +83,6 @@ function Tela() {
   const saiu = lista
     .filter((l) => l.kind === "Despesa")
     .reduce((t, l) => t + l.amount, 0);
-
-  const corDoPrazo = (l: Linha) => {
-    const s = situacaoDoLancamento(l, HOJE);
-    if (s === "Vencido" || s === "Vence hoje") return "text-alerta font-semibold";
-    if (s === "Pago") return "text-gray-400";
-    return "text-gray-500";
-  };
 
   return (
     <>
@@ -109,74 +132,27 @@ function Tela() {
       <p className="mb-3 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm text-gray-600">
         <span>{lista.length} lançamentos</span>
         <span>
-          entrou{" "}
+          receitas{" "}
           <strong className="font-semibold tabular-nums text-gray-900">
             {formatarMoeda(entrou)}
           </strong>
         </span>
         <span>
-          saiu{" "}
+          despesas{" "}
           <strong className="font-semibold tabular-nums text-gray-900">
             {formatarMoeda(saiu)}
           </strong>
         </span>
         <span>
-          diferença{" "}
+          resultado{" "}
           <strong className="font-semibold tabular-nums text-alerta">
             {formatarMoeda(entrou - saiu)}
           </strong>
         </span>
       </p>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-600">
-            <tr>
-              <th className="px-4 py-2.5 font-bold">Lançamento</th>
-              <th className="px-4 py-2.5 font-bold">Categoria</th>
-              <th className="px-4 py-2.5 text-right font-bold">Valor</th>
-              <th className="px-4 py-2.5 font-bold">Prazo</th>
-              <th className="px-4 py-2.5" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {lista.map((l) => (
-              <tr key={l.id}>
-                <td className="px-4 py-2.5">
-                  <span className="font-medium text-gray-900">{l.description}</span>
-                  {clienteSeFizerFalta(l.description, l.cliente) ? (
-                    <span className="block text-xs text-gray-500">{l.cliente}</span>
-                  ) : null}
-                </td>
-                <td className="px-4 py-2.5 text-gray-600">{l.categoria}</td>
-                <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-gray-900">
-                  {l.kind === "Receita" ? "+" : "-"} {formatarMoeda(l.amount)}
-                </td>
-                <td className={"px-4 py-2.5 " + corDoPrazo(l)}>
-                  {textoDoPrazo(l, HOJE)}
-                </td>
-                <td className="px-4 py-2.5">
-                  <div className="flex justify-end">
-                    <span className="flex shrink-0 items-center gap-0.5">
-                      <span
-                        className={
-                          l.status === "Pago"
-                            ? acao
-                            : "rounded border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-800"
-                        }
-                      >
-                        {l.status === "Pago" ? "Reabrir" : "Dar baixa"}
-                      </span>
-                      <span className={acao}>Editar</span>
-                      <span className={acao}>Excluir</span>
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <EntriesTable lancamentos={PARA_TABELA} hoje={HOJE} />
+
     </>
   );
 }

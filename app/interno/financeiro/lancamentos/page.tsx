@@ -111,7 +111,7 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
         contexto={
           urgentes > 0
             ? `${urgentes} ${urgentes === 1 ? "lançamento vencido ou vencendo hoje" : "lançamentos vencidos ou vencendo hoje"}`
-            : "Tudo que entrou e saiu, linha por linha"
+            : "Receitas e despesas, linha por linha"
         }
         acao={<MonthNav mes={mes} />}
       />
@@ -148,19 +148,19 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
               {temFiltro ? " no filtro" : ""}
             </span>
             <span>
-              entrou{" "}
+              receitas{" "}
               <strong className="font-semibold tabular-nums text-gray-900">
                 {formatarMoeda(receitas)}
               </strong>
             </span>
             <span>
-              saiu{" "}
+              despesas{" "}
               <strong className="font-semibold tabular-nums text-gray-900">
                 {formatarMoeda(despesas)}
               </strong>
             </span>
             <span>
-              diferença{" "}
+              resultado{" "}
               <strong
                 className={
                   "font-semibold tabular-nums " +
