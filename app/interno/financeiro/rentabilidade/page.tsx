@@ -105,7 +105,7 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
       </div>
 
       <Secao
-        titulo="Quanto sobra de cada cliente"
+        titulo="Margem por cliente"
       >
       {r.clientes.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">

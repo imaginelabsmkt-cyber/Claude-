@@ -239,9 +239,6 @@ export function EntryForm({
               </option>
             ))}
           </Select>
-          <p className="mt-1 text-xs text-gray-500">
-            Vincular o cliente alimenta o faturamento por cliente.
-          </p>
         </div>
 
         {ehDePessoas && pessoas.length > 0 ? (
@@ -259,9 +256,6 @@ export function EntryForm({
                 </option>
               ))}
             </Select>
-            <p className="mt-1 text-xs text-gray-500">
-              Faz o pagamento aparecer na tela de Pessoas.
-            </p>
           </div>
         ) : null}
 

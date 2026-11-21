@@ -62,7 +62,7 @@ export default async function FilaPage() {
   /* Oportunidades paradas além do prazo da etapa. */
   const parados = leads.filter((l) => estaParado(l, agora));
 
-  /* Dinheiro vencido, dos dois lados. */
+  /* Contas em atraso, dos dois lados. */
   const vencidos = lancamentos.filter(
     (l) => situacaoDoLancamento(l, hoje) === "Vencido" && l.status !== "Pago",
   );
@@ -93,15 +93,15 @@ export default async function FilaPage() {
     <>
       <AreaHeader
         titulo="Fila de trabalho"
-        contexto="O que precisa de você"
+        contexto="Pendências de hoje"
       />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
-          rotulo="Pedem atenção"
+          rotulo="Pendentes"
           valor={String(agora_pedem)}
           alerta={agora_pedem > 0}
-          detalhe="atividades vencidas ou de hoje"
+          detalhe="atividades em atraso ou de hoje"
         />
         <Stat
           rotulo="Reuniões marcadas"
@@ -109,37 +109,34 @@ export default async function FilaPage() {
           alerta={reuniaoVencida.length > 0}
           detalhe={
             reuniaoVencida.length > 0
-              ? `${reuniaoVencida.length} já passou`
-              : "nenhuma atrasada"
+              ? `${reuniaoVencida.length} em atraso`
+              : "nenhuma em atraso"
           }
         />
         <Stat
-          rotulo="Oportunidades paradas"
+          rotulo="Sem movimentação"
           valor={String(parados.length)}
           origem="comercial"
           alerta={parados.length > 0}
-          detalhe="passaram do prazo da etapa"
+          detalhe="oportunidades além do prazo"
         />
         <Stat
-          rotulo="Vencido no mês"
+          rotulo="Em atraso"
           valor={String(vencidos.length)}
           origem="financeiro"
           alerta={vencidos.length > 0}
-          detalhe="lançamentos em aberto"
+          detalhe="títulos em aberto no mês"
         />
       </div>
 
       {nada ? (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
-          <p className="font-medium text-gray-900">A fila está limpa</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
-            Nada vencido, nada marcado para hoje e nada parado.
-          </p>
+          <p className="font-medium text-gray-900">Nenhuma pendência</p>
         </div>
       ) : null}
 
       {fila.atrasadas.length > 0 ? (
-        <Secao titulo={`Venceu (${fila.atrasadas.length})`}>
+        <Secao titulo={`Em atraso (${fila.atrasadas.length})`}>
           <OrigemLista>{fila.atrasadas.map(linhaDaAtividade)}</OrigemLista>
         </Secao>
       ) : null}
@@ -180,13 +177,13 @@ export default async function FilaPage() {
 
       {vencidos.length > 0 ? (
         <Secao
-          titulo={`Dinheiro vencido (${vencidos.length})`}
+          titulo={`Contas em atraso (${vencidos.length})`}
           acao={
             <Link
               href={`/interno/financeiro?mes=${mes}`}
               className="font-medium text-gray-600 hover:underline"
             >
-              Abrir o mês
+              Abrir o financeiro
             </Link>
           }
         >
@@ -207,7 +204,7 @@ export default async function FilaPage() {
       ) : null}
 
       {parados.length > 0 ? (
-        <Secao titulo={`Parados no funil (${parados.length})`}>
+        <Secao titulo={`Sem movimentação (${parados.length})`}>
           <OrigemLista>
             {parados.map((l) => {
               const d = diasParado(l, agora);
@@ -218,7 +215,7 @@ export default async function FilaPage() {
                   titulo={l.name}
                   descricao={l.stage}
                   valor={formatarMoeda(Number(l.estimated_monthly))}
-                  prazo={`${d} dia${d > 1 ? "s" : ""} parado`}
+                  prazo={`${d} dia${d > 1 ? "s" : ""} sem movimentação`}
                   atrasado
                 />
               );

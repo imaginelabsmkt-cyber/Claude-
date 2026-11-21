@@ -50,13 +50,13 @@ export default async function ProspeccaoPage() {
           pergunta dela é "em qual canal vale gastar a próxima hora".
           Quem são fica no funil, e agora o caminho está escrito. */}
       <AreaHeader
-        contexto="De onde vêm os clientes, e qual canal fecha"
+        contexto="Origem e conversão"
         acao={
           <Link
             href="/interno/comercial/funil?v=lista"
             className="text-sm font-medium text-gray-600 hover:underline"
           >
-            Ver a lista de oportunidades
+            Lista de oportunidades
           </Link>
         }
       />
@@ -78,22 +78,22 @@ export default async function ProspeccaoPage() {
         <>
           <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat rotulo="Oportunidades" valor={String(topo)} />
-            <Stat rotulo="Viraram cliente" valor={String(fecharam)} />
+            <Stat rotulo="Convertidas" valor={String(fecharam)} />
             {custoEmContatos ? (
               <Stat
-                rotulo="Custo em contatos"
+                rotulo="Contatos por conversão"
                 valor={String(custoEmContatos)}
-                detalhe="para fechar um cliente"
+                detalhe="média até o ganho"
               />
             ) : null}
             <Stat
-              rotulo="Mensalidade conquistada"
+              rotulo="Receita contratada"
               valor={formatarMoeda(receitaFechada)}
             />
           </div>
 
           <Secao
-            titulo="O caminho até o sim"
+            titulo="Conversão por etapa"
           >
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <ul className="space-y-3">
@@ -134,7 +134,7 @@ export default async function ProspeccaoPage() {
           </Secao>
 
           <Secao
-            titulo="Qual canal vira cliente"
+            titulo="Desempenho por canal"
           >
           {comMovimento.length === 0 ? (
             <p className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">

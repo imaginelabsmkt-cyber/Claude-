@@ -85,7 +85,7 @@ export default async function FunilPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        contexto="As oportunidades em andamento, por etapa"
+        contexto="Oportunidades em aberto"
         acao={
           <Link href="/interno/comercial/novo">
             <Button>Nova oportunidade</Button>
@@ -102,24 +102,24 @@ export default async function FunilPage({ searchParams }: PageProps) {
           detalhe={leads.length === 1 ? "oportunidade" : "oportunidades"}
         />
         <Stat
-          rotulo="Se tudo fechar"
+          rotulo="Valor em negociação"
           valor={formatarMoeda(noFunil)}
-          detalhe="de mensalidade por mês"
+          detalhe="receita recorrente potencial"
         />
         <Stat
-          rotulo="Parados"
+          rotulo="Sem movimentação"
           valor={String(parados)}
           alerta={parados > 0}
-          detalhe={parados > 0 ? "Passaram do prazo da etapa" : "Nenhum esquecido"}
+          detalhe={parados > 0 ? "além do prazo da etapa" : "todas em dia"}
         />
         <Stat
-          rotulo={falta > 0 ? "Falta para o fixo" : "Já cobre o fixo"}
+          rotulo="Cobertura do custo fixo"
           valor={formatarMoeda(Math.abs(falta))}
           origem="financeiro"
           alerta={falta > 0}
           detalhe={
             faltamClientes
-              ? `~${faltamClientes} cliente(s) do tamanho médio`
+              ? `${faltamClientes} cliente(s) no ticket médio`
               : undefined
           }
         />
@@ -127,7 +127,7 @@ export default async function FunilPage({ searchParams }: PageProps) {
 
       {leads.length > 0 ? (
         <div className="mb-5">
-          <Secao titulo="O funil, por etapa">
+          <Secao titulo="Funil por etapa">
             <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
               <BarrasRanqueadas itens={etapas} cor="#7a2740" ordenar={false} />
             </div>
@@ -137,10 +137,8 @@ export default async function FunilPage({ searchParams }: PageProps) {
 
       {leads.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
-          <p className="font-medium text-gray-900">O funil está vazio</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
-            Cadastre a primeira oportunidade. Quando ela for ganha, o cliente e a
-            mensalidade nascem sozinhos no financeiro.
+          <p className="font-medium text-gray-900">
+            Nenhuma oportunidade em aberto
           </p>
           <Link href="/interno/comercial/novo" className="mt-4 inline-block">
             <Button>Nova oportunidade</Button>
@@ -160,7 +158,7 @@ export default async function FunilPage({ searchParams }: PageProps) {
       {encerrados.length > 0 ? (
         <div className="mt-7">
         <Secao
-          titulo="As últimas que acabaram"
+          titulo="Encerradas recentemente"
         >
           <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
             {encerrados.map((l) => (
@@ -173,8 +171,8 @@ export default async function FunilPage({ searchParams }: PageProps) {
                 </Link>
                 <span className="text-xs text-gray-500">
                   {l.stage === "Fechado"
-                    ? "ganhamos"
-                    : `perdemos${l.lost_reason ? `: ${l.lost_reason}` : ""}`}
+                    ? "Ganho"
+                    : `Perda${l.lost_reason ? ` · ${l.lost_reason}` : ""}`}
                 </span>
                 <span className="w-28 shrink-0 text-right text-sm tabular-nums text-gray-600">
                   {formatarMoeda(Number(l.estimated_monthly))}

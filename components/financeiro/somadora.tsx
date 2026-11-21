@@ -31,7 +31,7 @@ export function Somadora() {
         onClick={() => setAberta(true)}
         className="self-center text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline"
       >
-        Somar
+        Calculadora
       </button>
     );
   }
@@ -39,7 +39,7 @@ export function Somadora() {
   return (
     <div className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-bold text-gray-900">Somar</span>
+        <span className="text-sm font-bold text-gray-900">Calculadora</span>
         <button
           type="button"
           onClick={() => {

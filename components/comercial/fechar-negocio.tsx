@@ -76,7 +76,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
         mensal: r.criou?.mensal ?? mensal,
       });
       toast.sucesso(
-        `${r.criou?.cliente} virou cliente, com mensalidade de ${formatarMoeda(r.criou?.mensal ?? 0)}.`,
+        `Ganho registrado: ${r.criou?.cliente}, ${formatarMoeda(r.criou?.mensal ?? 0)}/mês.`,
       );
       router.refresh();
     });
@@ -89,7 +89,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
         toast.erro(r.error ?? "Não foi possível encerrar.");
         return;
       }
-      toast.sucesso("Oportunidade marcada como perdida.");
+      toast.sucesso("Perda registrada.");
       router.refresh();
     });
   }
@@ -98,25 +98,20 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
     return (
       <div className="rounded-xl border border-area bg-area-soft p-4">
         <p className="text-sm font-semibold text-area">
-          {feito.cliente} já é cliente.
+          Ganho registrado · {feito.cliente} · {formatarMoeda(feito.mensal)}/mês
         </p>
-        <p className="mt-1 text-sm text-gray-700">
-          Entrou no Administrativo e a mensalidade de{" "}
-          {formatarMoeda(feito.mensal)} está no financeiro. Não precisa
-          cadastrar de novo em lugar nenhum.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
+        <div className="mt-2 flex flex-wrap gap-3 text-sm font-semibold">
           <Link
             href="/interno/administrativo/clientes"
             className="text-area underline"
           >
-            Ver na relação de clientes
+            Abrir o cliente
           </Link>
           <Link
             href="/interno/financeiro/recorrencias"
             className="text-area underline"
           >
-            Ver a mensalidade
+            Abrir a mensalidade
           </Link>
         </div>
       </div>
@@ -124,22 +119,16 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
   }
 
   if (aba === "nada") {
+    /* Sem frase embaixo dos botões. A Fran, sobre a explicação que
+       estava aqui: "não precisa aparecer isso, é automático, não
+       precisa de explicação". O painel de confirmação, depois do
+       clique, já mostra o que foi criado e leva até lá. */
     return (
-      <div>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setAba("ganhar")}>Ganhamos</Button>
-          <Button variante="secundaria" onClick={() => setAba("perder")}>
-            Perdemos
-          </Button>
-        </div>
-        {/* A frase existe porque a Fran não sabia que isso acontecia:
-            "quando a gente fecha, ele já tem que ir para o
-            administrativo automaticamente, a gente não precisa
-            cadastrar de novo". Ia. Só não estava escrito. */}
-        <p className="mt-2 text-xs text-gray-500">
-          Ganhando, o cliente entra sozinho no Administrativo e a mensalidade no
-          financeiro. Perdendo, fica guardado com o motivo.
-        </p>
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={() => setAba("ganhar")}>Registrar ganho</Button>
+        <Button variante="secundaria" onClick={() => setAba("perder")}>
+          Registrar perda
+        </Button>
       </div>
     );
   }
@@ -148,22 +137,18 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-4">
         <h3 className="text-sm font-semibold text-gray-900">
-          Por que essa não deu certo?
+          Motivo da perda
         </h3>
-        <p className="mt-1 text-xs text-gray-500">
-          Anotar o motivo é o que, daqui a seis meses, mostra o padrão do que
-          faz a agência perder negócio.
-        </p>
         <Input
           className="mt-3"
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
-          placeholder="Ex.: achou caro, fechou com concorrente, sumiu"
+          placeholder="Ex.: preço, concorrência, sem retorno"
           aria-label="Motivo da perda"
         />
         <div className="mt-3 flex gap-2">
           <Button variante="perigo" onClick={perder} disabled={processando}>
-            {processando ? "Encerrando..." : "Marcar como perdida"}
+            {processando ? "Registrando..." : "Registrar perda"}
           </Button>
           <Button variante="secundaria" onClick={() => setAba("nada")} disabled={processando}>
             Voltar
@@ -176,12 +161,8 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
   return (
     <form onSubmit={ganhar} className="rounded-xl border border-area bg-white p-4" noValidate>
       <h3 className="text-sm font-semibold text-gray-900">
-        Fechar o contrato de {lead.name}
+        Contrato de {lead.name}
       </h3>
-      <p className="mt-1 text-xs text-gray-500">
-        Isso cria o cliente, cadastra a mensalidade no financeiro e define a
-        vigência, tudo de uma vez.
-      </p>
 
       {mensagem ? (
         <div className="mt-3">
@@ -236,28 +217,27 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
       </div>
 
       <div className="mt-4 rounded-lg bg-area-soft p-3 text-sm text-gray-700">
-        <p className="font-semibold text-area">O que vai acontecer</p>
+        <p className="font-semibold text-area">Resumo</p>
         <ul className="mt-1.5 space-y-0.5 text-xs">
           <li>
-            Cliente <strong>{lead.name}</strong> criado e ativo.
+            Cliente: <strong>{lead.name}</strong>
           </li>
           <li>
             Mensalidade de <strong>{formatarMoeda(mensal)}</strong>
             {proposta ? " (valor da proposta)" : " (valor estimado)"}, a partir de{" "}
             <strong>{rotuloMes(values.mesInicio)}</strong>
-            {meses > 0 ? ` por ${meses} meses` : " sem prazo definido"}.
+            {meses > 0 ? ` por ${meses} meses` : ", sem prazo definido"}.
           </li>
           {proposta && Number(proposta.setup_amount) > 0 ? (
             <li>
               Entrada de{" "}
-              <strong>{formatarMoeda(Number(proposta.setup_amount))}</strong> lançada
-              como projeto avulso.
+              <strong>{formatarMoeda(Number(proposta.setup_amount))}</strong> em
+              projetos avulsos.
             </li>
           ) : null}
           {proposta?.monthly_goal ? (
             <li>
-              Meta de <strong>{proposta.monthly_goal} conteúdos/mês</strong> no cadastro
-              do cliente.
+              Meta de <strong>{proposta.monthly_goal} conteúdos/mês</strong>.
             </li>
           ) : null}
         </ul>
@@ -265,7 +245,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
 
       <div className="mt-4 flex gap-2">
         <Button type="submit" disabled={processando}>
-          {processando ? "Fechando..." : "Confirmar e criar cliente"}
+          {processando ? "Registrando..." : "Confirmar"}
         </Button>
         <Button
           type="button"

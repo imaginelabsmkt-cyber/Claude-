@@ -43,10 +43,6 @@ export function VincularPessoa({ pessoas }: { pessoas: TeamMember[] }) {
       <p className="text-sm font-semibold text-gray-900">
         Qual pessoa da equipe é você?
       </p>
-      <p className="mt-0.5 text-xs text-gray-500">
-        Respondendo uma vez, o pró-labore que a agência te paga entra aqui
-        sozinho todo mês, em vez de você digitar.
-      </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Select
           value={escolhida}

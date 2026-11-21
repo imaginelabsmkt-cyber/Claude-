@@ -36,7 +36,7 @@ export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
           },
           { rotulo: "Despesas", valor: ano.pago, sinal: "−" },
           {
-            rotulo: sobrou ? "Sobrou" : "Faltou",
+            rotulo: "Resultado",
             valor: Math.abs(ano.resultado),
             sinal: "=",
             alerta: !sobrou,

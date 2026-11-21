@@ -54,14 +54,14 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="O caixa mês a mês"
+        titulo="Fluxo de caixa mensal"
         acao={<MonthNav mes={mes} />}
       />
 
       <FinanceTabs />
 
       <Secao
-        titulo="Para onde o caixa está indo"
+        titulo="Composição das despesas"
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
           <GraficoCaixa pontos={pontos} meses={meses} />
@@ -88,7 +88,7 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
                   Saiu
                 </th>
                 <th scope="col" className="px-4 py-2.5 text-right font-bold">
-                  Sobrou
+                  Resultado
                 </th>
                 <th scope="col" className="px-4 py-2.5 text-right font-bold">
                   Terminou com
@@ -170,12 +170,12 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
 
       {melhor && pior && melhor.mes !== pior.mes ? (
         <Secao
-          titulo="O melhor e o pior mês"
+          titulo="Melhor e pior resultado"
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              { r: "Sobrou mais em", m: melhor },
-              { r: "Sobrou menos em", m: pior },
+              { r: "Melhor resultado", m: melhor },
+              { r: "Pior resultado", m: pior },
             ].map(({ r, m }) => (
               <div
                 key={r}

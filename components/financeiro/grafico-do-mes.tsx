@@ -119,18 +119,18 @@ export function GraficoDoMes({ entrou, saiu }: GraficoDoMesProps) {
       <figcaption className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
         <Chave
           cor={CORES_SITUACAO.pago}
-          texto="já caiu"
+          texto="baixado"
           mostrar={entrou.pago + saiu.pago > 0}
         />
         <Chave
           cor={CORES_SITUACAO.vencido}
-          texto="venceu"
+          texto="em atraso"
           mostrar={entrou.vencido + saiu.vencido > 0}
           alerta
         />
         <Chave
           cor={CORES_SITUACAO.aVencer}
-          texto="ainda vai vencer"
+          texto="a vencer"
           mostrar={entrou.aVencer + saiu.aVencer > 0}
         />
         <span className="text-gray-600">

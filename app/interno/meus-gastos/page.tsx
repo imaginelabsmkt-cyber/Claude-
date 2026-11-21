@@ -44,7 +44,7 @@ export default async function PessoalPage({ searchParams }: PageProps) {
     <>
       <AreaHeader
         titulo="Meus gastos"
-        contexto="Só você vê o que está aqui dentro"
+        contexto="Acesso restrito"
         acao={<MonthNav mes={mes} />}
       />
 
@@ -87,7 +87,7 @@ export default async function PessoalPage({ searchParams }: PageProps) {
         />
         <Stat rotulo="Saiu" valor={formatarMoeda(resumo.saiu)} />
         <Stat
-          rotulo={resumo.sobrou >= 0 ? "Sobrou" : "Faltou"}
+          rotulo="Resultado"
           valor={formatarMoeda(Math.abs(resumo.sobrou))}
           alerta={resumo.sobrou < 0}
           detalhe={

@@ -41,15 +41,15 @@ export function CartaoDoMes({
           conta da planilha e a mesma do dashboard. */}
       <Conta
         parcelas={[
-          { rotulo: "Saldo no dia 1", valor: saldoInicial },
+          { rotulo: "Saldo inicial", valor: saldoInicial },
           {
-            rotulo: resultado >= 0 ? "Sobrou" : "Faltou",
+            rotulo: "Resultado",
             valor: Math.abs(resultado),
             sinal: resultado >= 0 ? "+" : "−",
             alerta: resultado < 0,
           },
           {
-            rotulo: "Saldo no fim",
+            rotulo: "Saldo final",
             valor: saldoFinal,
             sinal: "=",
             alerta: saldoFinal < 0,
@@ -67,14 +67,14 @@ export function CartaoDoMes({
               falta aqui é a BAIXA: quanto ainda não caiu nem saiu. */}
           {emAberto > 0 ? (
             <>
-              Ainda não caiu nem saiu da conta{" "}
+              Pendente de baixa{" "}
               <strong className="font-semibold text-gray-900">
                 {formatarMoeda(emAberto)}
               </strong>
               .{" "}
             </>
           ) : null}
-          {variacao ? <>A receita está {variacao}.</> : null}
+          {variacao ? <>Receita {variacao} sobre o mês anterior.</> : null}
         </p>
       ) : null}
     </div>

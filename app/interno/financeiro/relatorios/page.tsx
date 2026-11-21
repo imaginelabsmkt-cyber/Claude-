@@ -45,7 +45,7 @@ export default function RelatoriosPage({ searchParams }: PageProps) {
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
   const RELATORIOS: Relatorio[] = [
-    { titulo: "O caixa mês a mês", href: `/interno/financeiro/fluxo-caixa?mes=${mes}` },
+    { titulo: "Fluxo de caixa mensal", href: `/interno/financeiro/fluxo-caixa?mes=${mes}` },
     { titulo: "Quanto cada cliente rende", href: `/interno/financeiro/rentabilidade?mes=${mes}` },
     { titulo: "Impostos e contabilidade", href: `/interno/financeiro/impostos?mes=${mes}` },
     { titulo: "Fechamento do mês, para imprimir", href: `/interno/relatorio?mes=${mes}` },

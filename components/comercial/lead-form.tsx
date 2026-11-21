@@ -169,7 +169,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="l-channel">De onde veio</Label>
+        <Label htmlFor="l-channel">Origem</Label>
         <Select
           id="l-channel"
           value={values.channel}
@@ -192,7 +192,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
           exatamente a reclamação. */}
       {values.stage === "Reunião marcada" || (values.meeting_at ?? "") !== "" ? (
         <div>
-          <Label htmlFor="l-reuniao">Quando é a reunião</Label>
+          <Label htmlFor="l-reuniao">Data da reunião</Label>
           <Input
             id="l-reuniao"
             type="datetime-local"
@@ -226,13 +226,10 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
                   </option>
                 ))}
               </Select>
-              <p className="mt-1 text-xs text-gray-500">
-                No dia a dia é só arrastar no quadro. Ganhar e perder ficam na
-                ficha.
-              </p>
+
             </div>
             <div>
-              <Label htmlFor="l-source">Detalhe de onde veio</Label>
+              <Label htmlFor="l-source">Detalhe da origem</Label>
               <Input
                 id="l-source"
                 value={values.source ?? ""}
@@ -289,7 +286,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={salvando}>
-          {salvando ? "Salvando..." : edicao ? "Salvar" : "Criar oportunidade"}
+          {salvando ? "Salvando..." : edicao ? "Salvar" : "Cadastrar"}
         </Button>
         {aoConcluir ? (
           <Button type="button" variante="secundaria" onClick={aoConcluir} disabled={salvando}>

@@ -33,12 +33,7 @@ export function ContratosLista({ contratos }: { contratos: ContratoCliente[] }) 
   if (contratos.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-gray-300 bg-white px-5 py-8 text-center">
-        <p className="text-sm text-gray-600">Nenhum contrato anexado ainda.</p>
-        <p className="mx-auto mt-1 max-w-md text-xs text-gray-500">
-          O contrato assinado é um arquivo do cliente: anexe na ficha dele e marque
-          o tipo como <strong>Contrato</strong>: ele passa a aparecer aqui, sem
-          deixar de estar lá.
-        </p>
+        <p className="text-sm text-gray-600">Nenhum contrato anexado.</p>
         <Link
           href="/clientes"
           className="mt-3 inline-block text-sm font-medium text-area hover:underline"

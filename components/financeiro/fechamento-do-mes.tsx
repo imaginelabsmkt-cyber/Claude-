@@ -64,7 +64,7 @@ export function FechamentoDoMes({
             </strong>
           </span>
           <span>
-            {resultado >= 0 ? "sobrou" : "faltou"}{" "}
+            {resultado >= 0 ? "resultado" : "déficit"}{" "}
             <strong
               className={
                 "font-semibold tabular-nums " +
@@ -75,7 +75,7 @@ export function FechamentoDoMes({
             </strong>
           </span>
           <span>
-            em caixa{" "}
+            saldo em caixa{" "}
             <strong className="font-semibold tabular-nums">
               {formatarMoeda(saldoFinal)}
             </strong>
@@ -88,8 +88,9 @@ export function FechamentoDoMes({
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
       <p className="text-sm font-bold text-gray-900">
-        Falta dar baixa em {emAberto}{" "}
-        {emAberto === 1 ? "lançamento" : "lançamentos"} para fechar {rotulo}.
+        {rotulo} · {emAberto}{" "}
+        {emAberto === 1 ? "lançamento pendente" : "lançamentos pendentes"} de
+        baixa.
       </p>
       <p className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-600">
         {faltaReceber > 0 ? (

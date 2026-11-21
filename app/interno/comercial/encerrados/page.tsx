@@ -10,7 +10,7 @@ import { formatarData, formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Fechados e perdidos" };
+export const metadata = { title: "Negociações encerradas" };
 
 /**
  * A base de dados do comercial: quem virou cliente e quem não virou.
@@ -35,51 +35,47 @@ export default async function EncerradosPage() {
 
   return (
     <>
-      <AreaHeader contexto="Tudo que já foi ganho e perdido" />
+      <AreaHeader contexto="Negociações encerradas" />
 
       <ComercialTabs />
 
       {encerradas.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
           <p className="font-medium text-gray-900">
-            Nenhuma oportunidade encerrada ainda
-          </p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
-            Quando você ganhar ou perder uma, ela aparece aqui — com o motivo,
-            no caso das perdidas.
+            Nenhuma negociação encerrada
           </p>
         </div>
       ) : (
         <>
           <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat
-              rotulo="Viraram cliente"
+              rotulo="Ganhos"
               valor={String(p.ganhas)}
-              detalhe={`${formatarMoeda(p.ganho)} de mensalidade`}
+              detalhe={`${formatarMoeda(p.ganho)} em receita recorrente`}
             />
             <Stat
-              rotulo="Não fecharam"
+              rotulo="Perdas"
               valor={String(p.perdidas)}
-              detalhe={`${formatarMoeda(p.perdido)} que não entrou`}
+              detalhe={`${formatarMoeda(p.perdido)} não convertidos`}
             />
             <Stat
-              rotulo="Aproveitamento"
+              rotulo="Taxa de conversão"
               valor={
                 p.aproveitamento === null
                   ? "—"
                   : `${p.aproveitamento.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`
               }
-              detalhe="das que acabaram"
+              detalhe="sobre as encerradas"
             />
             <Stat
-              rotulo="Encerradas"
+              rotulo="Total encerradas"
               valor={String(encerradas.length)}
-              detalhe="no total"
+              detalhe="ganhos e perdas"
             />
           </div>
 
           {motivos.length > 0 ? (
-            <Secao titulo="Por que a gente perde">
+            <Secao titulo="Motivos de perda">
               <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
                 {/* Ranqueado por QUANTAS vezes, não por dinheiro: a
                     pergunta aqui é o padrão que se repete, e um
@@ -88,7 +84,7 @@ export default async function EncerradosPage() {
                   itens={motivos.map((m) => ({
                     rotulo: m.motivo,
                     valor: m.quantas,
-                    detalhe: `${formatarMoeda(m.valor)} de mensalidade`,
+                    detalhe: `${formatarMoeda(m.valor)} em receita recorrente`,
                   }))}
                   cor="#b8301f"
                   formatar={(v) => (v === 1 ? "1 vez" : `${v} vezes`)}
@@ -100,19 +96,19 @@ export default async function EncerradosPage() {
           <div className="lg:columns-2 lg:gap-x-4">
             <Secao
               className="break-inside-avoid"
-              titulo={`Viraram cliente (${ganhas.length})`}
+              titulo={`Ganhos (${ganhas.length})`}
               acao={
                 ganhas.length > 0 ? (
                   <Link
                     href="/interno/administrativo/clientes"
                     className="font-medium text-gray-600 hover:underline"
                   >
-                    Abrir os clientes
+                    Carteira de clientes
                   </Link>
                 ) : undefined
               }
             >
-              <Lista vazia="Nenhuma ganha ainda.">
+              <Lista vazia="Nenhum ganho registrado.">
                 {ganhas.map((l) => (
                   <li
                     key={l.id}
@@ -137,9 +133,9 @@ export default async function EncerradosPage() {
 
             <Secao
               className="break-inside-avoid"
-              titulo={`Não fecharam (${perdidas.length})`}
+              titulo={`Perdas (${perdidas.length})`}
             >
-              <Lista vazia="Nenhuma perdida — por enquanto.">
+              <Lista vazia="Nenhuma perda registrada.">
                 {perdidas.map((l) => (
                   <li key={l.id} className="px-4 py-2.5">
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">

@@ -54,7 +54,7 @@ function Proxima({
     const d = diasParado(lead, agora);
     return (
       <span className="text-xs font-semibold text-alerta">
-        Parado há {d} dia{d > 1 ? "s" : ""}
+        Sem movimentação há {d} dia{d > 1 ? "s" : ""}
       </span>
     );
   }
@@ -62,7 +62,7 @@ function Proxima({
   const d = diasParado(lead, agora);
   return (
     <span className="text-xs text-gray-500">
-      {d === 0 ? "entrou hoje" : `${d} dia${d > 1 ? "s" : ""} nesta etapa`}
+      {d === 0 ? "entrou hoje" : `${d} dia${d > 1 ? "s" : ""} na etapa`}
     </span>
   );
 }
@@ -78,7 +78,7 @@ export function ListaOportunidades({
   if (leads.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-10 text-center text-sm text-gray-500">
-        Nenhuma oportunidade com esse recorte.
+        Nenhuma oportunidade neste filtro.
       </p>
     );
   }
@@ -117,9 +117,9 @@ export function ListaOportunidades({
           <tr className="border-b border-gray-200 bg-gray-50 text-[11px] uppercase tracking-wider text-gray-600">
             <th className="px-4 py-2 text-left font-bold">Oportunidade</th>
             <th className="px-4 py-2 text-left font-bold">Etapa</th>
-            <th className="px-4 py-2 text-left font-bold">De onde veio</th>
-            <th className="px-4 py-2 text-right font-bold">Por mês</th>
-            <th className="px-4 py-2 text-left font-bold">Próxima coisa</th>
+            <th className="px-4 py-2 text-left font-bold">Origem</th>
+            <th className="px-4 py-2 text-right font-bold">Valor mensal</th>
+            <th className="px-4 py-2 text-left font-bold">Próxima ação</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">

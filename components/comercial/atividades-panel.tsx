@@ -113,7 +113,7 @@ export function AtividadesPanel({
     <>
       {atividades.length === 0 && !aberto ? (
         <p className="mb-3 text-sm text-gray-500">
-          Nada marcado. Anote a próxima ligação, reunião ou mensagem.
+          Nenhuma atividade registrada.
         </p>
       ) : null}
 
@@ -131,7 +131,7 @@ export function AtividadesPanel({
                   checked={Boolean(a.done_at)}
                   onChange={() => alternar(a)}
                   disabled={processando}
-                  aria-label={`Marcar "${a.subject}" como feita`}
+                  aria-label={`Concluir "${a.subject}"`}
                   className="h-4 w-4 shrink-0 accent-area"
                 />
                 <span className="min-w-0 flex-1">
@@ -190,14 +190,14 @@ export function AtividadesPanel({
         >
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
             <div>
-              <Label htmlFor="a-assunto">O que precisa ser feito</Label>
+              <Label htmlFor="a-assunto">Descrição</Label>
               <Input
                 id="a-assunto"
                 value={values.subject}
                 onChange={(e) =>
                   setValues((v) => ({ ...v, subject: e.target.value }))
                 }
-                placeholder="Ex.: mandar a proposta revisada"
+                placeholder="Ex.: enviar proposta revisada"
                 aria-invalid={Boolean(erros.subject)}
               />
               {erros.subject ? (
@@ -224,7 +224,7 @@ export function AtividadesPanel({
               </Select>
             </div>
             <div>
-              <Label htmlFor="a-prazo">Quando</Label>
+              <Label htmlFor="a-prazo">Prazo</Label>
               <Input
                 id="a-prazo"
                 type="datetime-local"
@@ -242,7 +242,7 @@ export function AtividadesPanel({
 
           <div className="mt-3 flex gap-2">
             <Button type="submit" disabled={processando}>
-              {processando ? "Salvando..." : "Marcar"}
+              {processando ? "Salvando..." : "Registrar"}
             </Button>
             <Button
               type="button"
@@ -256,14 +256,14 @@ export function AtividadesPanel({
         </form>
       ) : (
         <Button variante="secundaria" onClick={() => setAberto(true)}>
-          Marcar uma atividade
+          Nova atividade
         </Button>
       )}
 
       <ConfirmDialog
         aberto={Boolean(excluindo)}
         titulo="Excluir atividade?"
-        descricao={excluindo ? `"${excluindo.subject}" sai da lista.` : undefined}
+        descricao={excluindo ? `"${excluindo.subject}" será removida.` : undefined}
         textoConfirmar="Excluir"
         varianteConfirmar="perigo"
         carregando={processando}

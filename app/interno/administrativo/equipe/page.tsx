@@ -42,7 +42,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        contexto="Quem trabalha na agência e quanto custa"
+        contexto="Equipe e custos"
         acao={<MonthNav mes={mes} />}
       />
 
@@ -78,7 +78,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
       ) : null}
 
       <Secao
-        titulo="Quem é da casa"
+        titulo="Equipe"
       >
         <PessoasPanel pessoas={pessoas} />
       </Secao>

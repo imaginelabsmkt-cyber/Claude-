@@ -181,7 +181,7 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
           <Linha rotulo="Receita recorrente" valor={formatarMoeda(carteira.recorrente)} />
           <Linha rotulo="Custo fixo" valor={formatarMoeda(carteira.custoFixo)} />
           <Linha
-            rotulo={sobraRecorrente >= 0 ? "Sobra recorrente" : "Falta para o fixo"}
+            rotulo="Cobertura do custo fixo"
             valor={formatarMoeda(Math.abs(sobraRecorrente))}
             forte
             alerta={sobraRecorrente < 0}
@@ -193,7 +193,7 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
           />
         </Bloco>
 
-        <Bloco titulo="Para onde foi o dinheiro">
+        <Bloco titulo="Despesas por categoria">
           <Linha
             rotulo="Pessoas"
             valor={formatarMoeda(pessoas.realizado + pessoas.pendente)}
@@ -216,7 +216,7 @@ export default async function RelatorioPage({ searchParams }: PageProps) {
           />
         </Bloco>
 
-        <Bloco titulo="Quem mais rendeu">
+        <Bloco titulo="Receita por cliente">
           {rent.clientes.length === 0 ? (
             <p className="py-2 text-sm text-gray-500">
               Nenhuma receita paga com cliente apontado neste mês.

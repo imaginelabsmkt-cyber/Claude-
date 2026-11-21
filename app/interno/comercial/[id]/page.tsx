@@ -53,7 +53,7 @@ export default async function OportunidadePage({ params }: PageProps) {
             href="/interno/comercial/funil"
             className="text-sm font-medium text-gray-500 hover:underline"
           >
-            Voltar ao funil
+            Funil
           </Link>
         }
       />
@@ -73,8 +73,8 @@ export default async function OportunidadePage({ params }: PageProps) {
         {lead.source ? <Badge>{lead.source}</Badge> : null}
         {aberta ? (
           <span className={parado ? "text-xs font-semibold text-alerta" : "text-xs text-gray-500"}>
-            {dias === 0 ? "entrou hoje nesta etapa" : `${dias} dia(s) nesta etapa`}
-            {parado ? ", passou do prazo" : ""}
+            {dias === 0 ? "entrou hoje na etapa" : `${dias} dia(s) na etapa`}
+            {parado ? " · além do prazo" : ""}
           </span>
         ) : null}
         {lead.client ? (
@@ -82,7 +82,7 @@ export default async function OportunidadePage({ params }: PageProps) {
             href={`/clientes/${lead.client.id}`}
             className="ml-auto text-sm font-medium text-area hover:underline"
           >
-            Ver o cliente {lead.client.name} →
+            Abrir {lead.client.name} →
           </Link>
         ) : null}
       </div>
@@ -95,14 +95,9 @@ export default async function OportunidadePage({ params }: PageProps) {
         <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
           <p className="text-sm font-semibold text-gray-900">
             {lead.stage === "Fechado"
-              ? "Negócio ganho"
-              : `Negócio perdido${lead.lost_reason ? `: ${lead.lost_reason}` : ""}`}
+              ? "Ganho registrado"
+              : `Perda registrada${lead.lost_reason ? ` · ${lead.lost_reason}` : ""}`}
           </p>
-          {lead.stage === "Fechado" ? (
-            <p className="mt-1 text-xs text-gray-500">
-              O cliente e a mensalidade já foram criados no financeiro.
-            </p>
-          ) : null}
           <div className="mt-3">
             <ReabrirLead id={lead.id} />
           </div>

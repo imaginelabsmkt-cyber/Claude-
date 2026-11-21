@@ -82,7 +82,7 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
 
       <p className="mt-1 text-[11px] text-gray-500">
         {lead.source ? `${lead.source} · ` : ""}
-        {dias === 0 ? "entrou hoje" : `${dias} dia${dias > 1 ? "s" : ""} aqui`}
+        {dias === 0 ? "entrou hoje" : `${dias} dia${dias > 1 ? "s" : ""} na etapa`}
       </p>
 
       {reuniao ? (
@@ -98,11 +98,11 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
 
       {vencida ? (
         <p className="mt-1 text-[11px] font-semibold text-alerta">
-          Proposta passou da validade
+          Proposta vencida
         </p>
       ) : parado ? (
         <p className="mt-1 text-[11px] font-semibold text-alerta">
-          Parado, hora de cutucar
+          Sem movimentação
         </p>
       ) : null}
     </div>

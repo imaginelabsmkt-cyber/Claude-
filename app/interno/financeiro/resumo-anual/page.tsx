@@ -95,7 +95,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo={`O ano de ${ano}`}
+        titulo={`Resumo anual · ${ano}`}
         acao={
           <div className="flex gap-2">
             <Link
@@ -124,7 +124,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
             { rotulo: "Receitas no ano", valor: resumo.totais.receitas },
             { rotulo: "Despesas", valor: resumo.totais.despesas, sinal: "−" },
             {
-              rotulo: resumo.totais.resultado >= 0 ? "Sobrou" : "Faltou",
+              rotulo: "Resultado",
               valor: Math.abs(resumo.totais.resultado),
               sinal: "=",
               alerta: resumo.totais.resultado < 0,
@@ -153,7 +153,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
             href={`/interno/financeiro/fluxo-caixa?mes=${mesFoco}`}
             className="font-medium text-brand-700 hover:underline"
           >
-            O caixa mês a mês
+            Fluxo de caixa mensal
           </Link>
           <Link
             href={`/interno/financeiro/rentabilidade?mes=${mesFoco}`}

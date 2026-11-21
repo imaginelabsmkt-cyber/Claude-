@@ -53,7 +53,7 @@ export default async function ContabilPage({ searchParams }: PageProps) {
           detalhe={rotuloMes(mes)}
         />
         <Stat
-          rotulo="Ainda não foi pago"
+          rotulo="Em aberto"
           valor={formatarMoeda(recorte.pendente)}
           alerta={recorte.pendente > 0}
           detalhe={
@@ -65,7 +65,7 @@ export default async function ContabilPage({ searchParams }: PageProps) {
       </div>
 
       <Secao
-        titulo="O que é dinheiro"
+        titulo="Tributos e honorários"
       >
         <RecorteLista
           lancamentos={recorte.lancamentos}
@@ -74,7 +74,7 @@ export default async function ContabilPage({ searchParams }: PageProps) {
       </Secao>
 
       <Secao
-        titulo="O que é prazo, e não dinheiro"
+        titulo="Obrigações acessórias"
       >
         <ObrigacoesPanel obrigacoes={obrigacoes} area="contabil" />
       </Secao>

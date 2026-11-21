@@ -75,7 +75,7 @@ export default async function ClientesPage() {
 
       {conversas.length > 0 ? (
         <Secao
-          titulo="Precisa de conversa"
+          titulo="Contratos a revisar"
         >
           <ul className="space-y-2">
             {conversas.map(({ contrato, motivo, dias }) => (
@@ -96,10 +96,10 @@ export default async function ClientesPage() {
                   </span>
                   <span className="block text-xs text-gray-500">
                     {motivo === "Vencido"
-                      ? `Contrato venceu há ${Math.abs(dias ?? 0)} dia(s)`
+                      ? `Contrato vencido há ${Math.abs(dias ?? 0)} dia(s)`
                       : motivo === "Vence em breve"
                         ? `Contrato vence em ${dias} dia(s), em ${formatarData(contrato.end_date ?? "")}`
-                        : `Reajuste por ${contrato.readjust_index} está na hora`}
+                        : `Reajuste por ${contrato.readjust_index} em aberto`}
                   </span>
                 </span>
                 <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
@@ -112,7 +112,7 @@ export default async function ClientesPage() {
       ) : null}
 
       {porCliente.some((c) => c.valor > 0) ? (
-        <Secao titulo={`Quem paga a conta em ${new Date().getFullYear()}`}>
+        <Secao titulo={`Receita por cliente · ${new Date().getFullYear()}`}>
           <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
             <BarrasRanqueadas itens={porCliente} cor="#1d5a9e" />
           </div>
@@ -120,7 +120,7 @@ export default async function ClientesPage() {
       ) : null}
 
       <Secao
-        titulo="Quem é cliente hoje"
+        titulo="Carteira de clientes"
       >
         <ContratosPanel
           contratos={contratos}
@@ -133,7 +133,7 @@ export default async function ClientesPage() {
 
       {carteira.inativos.length > 0 ? (
         <Secao
-          titulo="Quem já foi cliente"
+          titulo="Clientes inativos"
         >
           <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             {carteira.inativos.map((c) => (
@@ -145,7 +145,7 @@ export default async function ClientesPage() {
                   {c.nome}
                 </span>
                 <span className="shrink-0 text-xs text-gray-500">
-                  último pagamento em {c.ultimoMes}
+                  último pagamento: {c.ultimoMes}
                 </span>
                 <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-gray-700">
                   {formatarMoeda(c.ultimoValor)}

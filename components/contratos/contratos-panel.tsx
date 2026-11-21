@@ -145,10 +145,6 @@ export function ContratosPanel({
                   </span>
                   <Badge tom="vermelho">Sem contrato</Badge>
                 </span>
-                <span className="mt-0.5 block text-xs text-gray-500">
-                  paga todo mês, mas o sistema não sabe desde quando, até
-                  quando vale nem quando reajustar
-                </span>
               </span>
               <Button
                 variante="secundaria"
@@ -167,8 +163,7 @@ export function ContratosPanel({
 
       {contratos.length === 0 && semContrato.length === 0 ? (
         <p className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
-          Nenhum contrato cadastrado. Cada cliente tem um: desde quando é
-          cliente, até quando vale, o que está incluído e quando reajustar.
+          Nenhum contrato cadastrado.
         </p>
       ) : (
         <ul className="space-y-2">
@@ -493,7 +488,7 @@ function ContratoForm({
             onChange={(e) => campo("end_date", e.target.value)}
           />
           <p className="mt-1 text-xs text-gray-500">
-            Em branco = sem data de fim combinada.
+            Em branco: sem data de término.
           </p>
         </div>
         <div>
@@ -511,7 +506,7 @@ function ContratoForm({
             ))}
           </datalist>
           <p className="mt-1 text-xs text-gray-500">
-            Em branco = sem reajuste combinado.
+            Em branco: sem reajuste previsto.
           </p>
         </div>
         <div>

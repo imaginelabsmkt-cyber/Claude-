@@ -100,13 +100,13 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
 
       {/* 1. O ANO */}
       <Secao
-        titulo={`O ano de ${ano.ano}`}
+        titulo={`Desempenho anual · ${ano.ano}`}
         acao={
           <Link
             href={`/interno/financeiro/resumo-anual?ano=${ano.ano}&mes=${mes}`}
             className="font-medium text-gray-600 hover:underline"
           >
-            Abrir o resumo do ano
+            Resumo anual
           </Link>
         }
       >
@@ -117,32 +117,32 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
       <Secao titulo={rotuloMes(mes)}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Indicador
-            rotulo="Em caixa"
+            rotulo="Saldo em caixa"
             valor={formatarMoeda(caixa)}
             detalhe={
               folego.meses !== null && folego.ate
-                ? `cobre até ${rotuloMes(folego.ate)}`
+                ? `cobertura até ${rotuloMes(folego.ate)}`
                 : undefined
             }
             href={`/interno/financeiro/fluxo-caixa?mes=${mes}`}
             alerta={caixa < 0}
           />
           <Indicador
-            rotulo="Vencido a receber"
+            rotulo="A receber em atraso"
             valor={formatarMoeda(vencido.aReceber)}
-            detalhe={`${financeiro.aReceber.length} em aberto no mês`}
+            detalhe={`${financeiro.aReceber.length} títulos em aberto`}
             href={`/interno/financeiro/lancamentos?mes=${mes}&situacao=vencido&tipo=Receita`}
             alerta={vencido.aReceber > 0}
           />
           <Indicador
-            rotulo="Vencido a pagar"
+            rotulo="A pagar em atraso"
             valor={formatarMoeda(vencido.aPagar)}
-            detalhe={`${financeiro.aPagar.length} em aberto no mês`}
+            detalhe={`${financeiro.aPagar.length} títulos em aberto`}
             href={`/interno/financeiro/lancamentos?mes=${mes}&situacao=vencido&tipo=Despesa`}
             alerta={vencido.aPagar > 0}
           />
           <Indicador
-            rotulo="No funil"
+            rotulo="Em negociação"
             valor={formatarMoeda(painel.comercial.seTudoFechar)}
             detalhe={`${painel.comercial.emAberto} ${painel.comercial.emAberto === 1 ? "oportunidade" : "oportunidades"}`}
             href="/interno/comercial/funil"
@@ -150,7 +150,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           <Indicador
             rotulo="Contratos"
             valor={String(painel.administrativo.contratosQuePedemConversa)}
-            detalhe="pedem conversa"
+            detalhe="a revisar"
             href="/interno/administrativo/clientes"
             alerta={painel.administrativo.contratosQuePedemConversa > 0}
           />
@@ -160,15 +160,15 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-l-4 border-alerta bg-alerta-soft py-2.5 pl-3 pr-3 text-sm text-gray-700">
             <span>
               <strong className="font-semibold text-alerta">
-                Faltam {formatarMoeda(Math.abs(sobra))} por mês
+                Déficit de {formatarMoeda(Math.abs(sobra))}/mês
               </strong>{" "}
-              para as mensalidades cobrirem o custo fixo.
+              entre a receita recorrente e o custo fixo.
             </span>
             <Link
               href="/interno/comercial/funil"
               className="font-semibold text-alerta underline"
             >
-              Ver o funil
+              Abrir o funil
             </Link>
           </p>
         ) : null}
@@ -190,13 +190,13 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           {funilPorEtapa.some((e) => e.valor > 0) ? (
             <Secao
               className="break-inside-avoid"
-              titulo="O funil, por etapa"
+              titulo="Funil por etapa"
               acao={
                 <Link
                   href="/interno/comercial/funil"
                   className="font-medium text-gray-600 hover:underline"
                 >
-                  Abrir o comercial
+                  Funil
                 </Link>
               }
             >
@@ -209,13 +209,13 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           {receitaPorCliente.some((c) => c.valor > 0) ? (
             <Secao
               className="break-inside-avoid"
-              titulo={`Quem paga a conta em ${ano.ano}`}
+              titulo={`Receita por cliente · ${ano.ano}`}
               acao={
                 <Link
                   href="/interno/administrativo/clientes"
                   className="font-medium text-gray-600 hover:underline"
                 >
-                  Abrir os clientes
+                  Carteira de clientes
                 </Link>
               }
             >
@@ -237,13 +237,13 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           {despesaPorCategoria.some((c) => c.valor > 0) ? (
             <Secao
               className="break-inside-avoid"
-              titulo={`Para onde foi o dinheiro em ${ano.ano}`}
+              titulo={`Despesas por categoria · ${ano.ano}`}
               acao={
                 <Link
                   href={`/interno/financeiro?mes=${mes}`}
                   className="font-medium text-gray-600 hover:underline"
                 >
-                  Abrir o financeiro
+                  Financeiro
                 </Link>
               }
             >
@@ -266,22 +266,22 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           lá. Antes mostrava dez e levava para uma lista filtrada do
           financeiro, que é só um pedaço do que pede ação. */}
       <Secao
-        titulo="Precisa de você"
+        titulo="Pendências"
         acao={
           <Link
             href="/interno/fila"
             className="font-medium text-gray-600 hover:underline"
           >
             {painel.compromissos.length > 5
-              ? `Abrir a fila (${painel.compromissos.length})`
-              : "Abrir a fila de trabalho"}
+              ? `Fila de trabalho (${painel.compromissos.length})`
+              : "Fila de trabalho"}
           </Link>
         }
       >
         {painel.compromissos.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center">
             <p className="font-medium text-gray-900">
-              Nada em aberto em {rotuloMes(mes)}
+              Nenhuma pendência em {rotuloMes(mes)}
             </p>
           </div>
         ) : (
