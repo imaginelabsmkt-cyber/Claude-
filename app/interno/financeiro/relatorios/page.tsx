@@ -46,14 +46,14 @@ export default function RelatoriosPage({ searchParams }: PageProps) {
 
   const RELATORIOS: Relatorio[] = [
     { titulo: "Fluxo de caixa mensal", href: `/interno/financeiro/fluxo-caixa?mes=${mes}` },
-    { titulo: "Quanto cada cliente rende", href: `/interno/financeiro/rentabilidade?mes=${mes}` },
-    { titulo: "Impostos e contabilidade", href: `/interno/financeiro/impostos?mes=${mes}` },
-    { titulo: "Fechamento do mês, para imprimir", href: `/interno/relatorio?mes=${mes}` },
+    { titulo: "Margem por cliente", href: `/interno/financeiro/rentabilidade?mes=${mes}` },
+    { titulo: "Tributos e obrigações", href: `/interno/financeiro/impostos?mes=${mes}` },
+    { titulo: "Fechamento do mês", href: `/interno/relatorio?mes=${mes}` },
   ];
 
   return (
     <>
-      <AreaHeader titulo="Financeiro" acao={<MonthNav mes={mes} />} />
+      <AreaHeader titulo="Relatórios" acao={<MonthNav mes={mes} />} />
 
       <FinanceTabs />
 

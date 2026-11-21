@@ -115,6 +115,14 @@ export function quandoEhAReuniao(iso: string, agora: Date): string {
   return `${p.dia}/${MES_CURTO[p.mes - 1]}`;
 }
 
+/** "28/out" — a data miúda, no fuso da agência. */
+export function dataCurta(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const p = partes(d);
+  return `${p.dia}/${MES_CURTO[p.mes - 1]}`;
+}
+
 /** A reunião já passou? Comparação de instantes: não depende de fuso. */
 export function reuniaoPassou(iso: string | null, agora: Date): boolean {
   if (!iso) return false;

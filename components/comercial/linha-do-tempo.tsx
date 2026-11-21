@@ -1,4 +1,4 @@
-import { quandoEhAReuniao } from "@/lib/comercial/reuniao";
+import { dataCurta } from "@/lib/comercial/reuniao";
 import type { PassoDaEtapa } from "@/lib/data/comercial";
 
 /**
@@ -63,13 +63,17 @@ export function LinhaDoTempo({
               <p className="text-sm font-medium text-gray-900">
                 {p.de ? `${p.de} → ${p.para}` : `Entrou em ${p.para}`}
               </p>
+              {/* A DATA, e não "foi há 24 dias": a linha do tempo é um
+                  registro, e registro tem data. O tempo que a
+                  oportunidade passou em cada etapa vem logo depois,
+                  que é a informação que o registro sozinho não dá. */}
               <p className="text-xs text-gray-500">
-                {quandoEhAReuniao(p.em, agora)}
+                {dataCurta(p.em)}
                 {dias > 0 ? (
                   <>
                     {" · "}
-                    {ultimo ? "há" : "ficou"} {dias} dia{dias > 1 ? "s" : ""}
-                    {ultimo ? " aqui" : ""}
+                    {dias} dia{dias > 1 ? "s" : ""}
+                    {ultimo ? " nesta etapa" : " até a mudança"}
                   </>
                 ) : null}
               </p>

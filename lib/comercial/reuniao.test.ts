@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dataCurta,
   instanteDaReuniao,
   paraCampoDeReuniao,
   quandoEhAReuniao,
@@ -86,5 +87,20 @@ describe("ida e volta do campo", () => {
 
   it("texto que não é data vira nada, e não data inválida", () => {
     expect(instanteDaReuniao("ontem de tarde")).toBeNull();
+  });
+});
+
+describe("dataCurta", () => {
+  it("escreve a data miúda no fuso da agência", () => {
+    expect(dataCurta(em(12, 16))).toBe("12/nov");
+  });
+
+  it("22h de Boa Vista não vira o dia seguinte", () => {
+    // Em UTC seria 02h de 13/nov. Aqui é 12.
+    expect(dataCurta(em(12, 22))).toBe("12/nov");
+  });
+
+  it("data inválida não quebra a tela", () => {
+    expect(dataCurta("qualquer coisa")).toBe("");
   });
 });

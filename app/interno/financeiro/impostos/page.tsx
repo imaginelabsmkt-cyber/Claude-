@@ -40,7 +40,7 @@ export default async function ContabilPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Impostos e contabilidade"
+        titulo="Tributos e obrigações"
         acao={<MonthNav mes={mes} />}
       />
 
