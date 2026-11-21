@@ -200,10 +200,10 @@ function Tela() {
   return (
     <>
       <Secao
-        titulo={`O ano de ${ano.ano}`}
+        titulo={`Desempenho anual · ${ano.ano}`}
         acao={
           <span className="font-medium text-gray-600">
-            Abrir o resumo do ano
+            Resumo anual
           </span>
         }
       >
@@ -213,29 +213,29 @@ function Tela() {
       <Secao titulo={rotuloMes(MES)}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Indicador
-            rotulo="Em caixa"
+            rotulo="Saldo em caixa"
             valor={formatarMoeda(12416.63)}
             detalhe="cobre até Maio/2027"
           />
           <Indicador
-            rotulo="Vencido a receber"
+            rotulo="A receber em atraso"
             valor={formatarMoeda(0)}
-            detalhe="nada vencido"
+            detalhe="nenhum em atraso"
           />
           <Indicador
-            rotulo="Vencido a pagar"
+            rotulo="A pagar em atraso"
             valor={formatarMoeda(0)}
-            detalhe="nada vencido"
+            detalhe="nenhum em atraso"
           />
           <Indicador
-            rotulo="No funil"
+            rotulo="Em negociação"
             valor={formatarMoeda(5400)}
             detalhe="3 oportunidades"
           />
           <Indicador
             rotulo="Contratos"
             valor="2"
-            detalhe="pedem conversa"
+            detalhe="a revisar"
             alerta
           />
         </div>
@@ -244,9 +244,9 @@ function Tela() {
       <div className="lg:columns-2 lg:gap-x-4">
         <Secao
           className="break-inside-avoid"
-          titulo="O funil, por etapa"
+          titulo="Funil por etapa"
           acao={
-            <span className="font-medium text-gray-600">Abrir o comercial</span>
+            <span className="font-medium text-gray-600">Funil</span>
           }
         >
           <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
@@ -276,9 +276,9 @@ function Tela() {
 
         <Secao
           className="break-inside-avoid"
-          titulo="Quem paga a conta em 2026"
+          titulo="Receita por cliente · 2026"
           acao={
-            <span className="font-medium text-gray-600">Abrir os clientes</span>
+            <span className="font-medium text-gray-600">Carteira de clientes</span>
           }
         >
           <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
@@ -288,10 +288,10 @@ function Tela() {
 
         <Secao
           className="break-inside-avoid"
-          titulo="Para onde foi o dinheiro em 2026"
+          titulo="Despesas por categoria · 2026"
           acao={
             <span className="font-medium text-gray-600">
-              Abrir o financeiro
+              Financeiro
             </span>
           }
         >
@@ -301,7 +301,7 @@ function Tela() {
         </Secao>
       </div>
 
-      <Secao titulo="Precisa de você">
+      <Secao titulo="Pendências">
         <OrigemLista>
           <OrigemItem
             origem="financeiro"

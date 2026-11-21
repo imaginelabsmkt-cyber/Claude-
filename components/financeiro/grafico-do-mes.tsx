@@ -134,7 +134,7 @@ export function GraficoDoMes({ entrou, saiu }: GraficoDoMesProps) {
           mostrar={entrou.aVencer + saiu.aVencer > 0}
         />
         <span className="text-gray-600">
-          {diferenca >= 0 ? "entrou" : "saiu"}{" "}
+          {diferenca >= 0 ? "superávit" : "déficit"}{" "}
           <strong
             className={
               "font-semibold tabular-nums " +
@@ -142,8 +142,7 @@ export function GraficoDoMes({ entrou, saiu }: GraficoDoMesProps) {
             }
           >
             {formatarMoeda(Math.abs(diferenca))}
-          </strong>{" "}
-          a mais
+          </strong>
         </span>
       </figcaption>
     </figure>

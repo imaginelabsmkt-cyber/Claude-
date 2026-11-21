@@ -74,7 +74,7 @@ export function CartaoDoMes({
               .{" "}
             </>
           ) : null}
-          {variacao ? <>Receita {variacao} sobre o mês anterior.</> : null}
+          {variacao ? <>Receita {variacao}.</> : null}
         </p>
       ) : null}
     </div>

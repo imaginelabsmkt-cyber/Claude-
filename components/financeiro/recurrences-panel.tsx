@@ -164,6 +164,30 @@ export function RecurrencesPanel({
     const acao =
       "rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900";
 
+    const acoes = (
+      <>
+        <button type="button" className={acao} onClick={() => setEditando(item.id)}>
+          Editar
+        </button>
+        <button
+          type="button"
+          className={acao}
+          onClick={() => alternarAtiva(r)}
+          disabled={processando}
+        >
+          {r.active ? "Pausar" : "Reativar"}
+        </button>
+        <button
+          type="button"
+          className={acao + " hover:bg-alerta-soft hover:text-alerta"}
+          onClick={() => setExcluindo(r)}
+          disabled={processando}
+        >
+          Excluir
+        </button>
+      </>
+    );
+
     return (
       <tr className={item.vigente ? "" : "opacity-60"}>
         <td className="px-3 py-2">
@@ -182,6 +206,9 @@ export function RecurrencesPanel({
                     : "fora deste mês"}
             </Badge>
           )}
+          <span className="mt-0.5 -ml-1.5 flex flex-wrap items-center gap-0.5 sm:hidden">
+            {acoes}
+          </span>
         </td>
 
         <td className="whitespace-nowrap px-3 py-2 text-right text-sm font-semibold tabular-nums text-gray-900">
@@ -192,31 +219,18 @@ export function RecurrencesPanel({
           {item.due_day ? `dia ${item.due_day}` : "—"}
         </td>
 
-        <td className="whitespace-nowrap px-3 py-2 text-right text-xs text-gray-500">
+        <td className="hidden whitespace-nowrap px-3 py-2 text-right text-xs text-gray-500 sm:table-cell">
           {item.end_month ? `até ${rotuloMesCurto(item.end_month)}` : "sem fim"}
         </td>
 
-        <td className="whitespace-nowrap px-3 py-2 text-right">
-          <span className="inline-flex items-center gap-0.5">
-            <button type="button" className={acao} onClick={() => setEditando(item.id)}>
-              Editar
-            </button>
-            <button
-              type="button"
-              className={acao}
-              onClick={() => alternarAtiva(r)}
-              disabled={processando}
-            >
-              {r.active ? "Pausar" : "Reativar"}
-            </button>
-            <button
-              type="button"
-              className={acao + " hover:bg-alerta-soft hover:text-alerta"}
-              onClick={() => setExcluindo(r)}
-              disabled={processando}
-            >
-              Excluir
-            </button>
+        {/* As três ações só têm coluna própria a partir do tablet.
+            No celular elas ficavam espremidas numa faixa de uns
+            quarenta pixels, empilhadas e cortadas no meio da palavra
+            ("Edita / Pausa / Exclui"). Abaixo disso elas vão para
+            baixo do nome, onde cabem inteiras. */}
+        <td className="hidden px-3 py-2 text-right sm:table-cell">
+          <span className="flex flex-wrap items-center justify-end gap-0.5">
+            {acoes}
           </span>
         </td>
       </tr>
@@ -240,7 +254,7 @@ export function RecurrencesPanel({
   function Tabela({ grupos }: { grupos: GrupoFixo[] }) {
     return (
       <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full text-sm sm:min-w-[640px]">
           <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-600">
             <tr>
               <th scope="col" className="px-3 py-2.5 text-left font-bold">
@@ -252,7 +266,14 @@ export function RecurrencesPanel({
               <th scope="col" className="px-3 py-2.5 text-right font-bold">
                 Vence
               </th>
-              <th scope="col" className="px-3 py-2.5 text-right font-bold">
+              {/* "Até quando" é a coluna que menos pesa na decisão
+                  do dia a dia, e é a primeira a sair no celular: com
+                  ela, a tabela passava dos 390px e o "dia 10" ficava
+                  cortado pela metade. */}
+              <th
+                scope="col"
+                className="hidden px-3 py-2.5 text-right font-bold sm:table-cell"
+              >
                 Até quando
               </th>
               <th scope="col" className="px-3 py-2.5" />
@@ -302,10 +323,10 @@ export function RecurrencesPanel({
       {criando ? null : (
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => setCriando(true)}>
-            Conta que se repete todo mês
+            Nova recorrência
           </Button>
           <Link href={`/interno/financeiro/lancamentos/novo?mes=${mes}`}>
-            <Button variante="secundaria">Conta avulsa, só deste mês</Button>
+            <Button variante="secundaria">Lançamento avulso</Button>
           </Link>
         </div>
       )}
@@ -313,22 +334,19 @@ export function RecurrencesPanel({
       <div className="grid gap-3 sm:grid-cols-3">
         {[
           {
-            r: "Receitas",
+            r: "Receita recorrente",
             v: formatarMoeda(plano.entra),
             d: "mensalidades em contrato",
           },
           {
-            r: "Despesas",
+            r: "Custo fixo",
             v: formatarMoeda(plano.sai),
-            d: "custo fixo por mês",
+            d: "despesas recorrentes",
           },
           {
-            r: plano.sobra >= 0 ? "Sobra" : "Falta",
+            r: plano.sobra >= 0 ? "Margem recorrente" : "Déficit recorrente",
             v: formatarMoeda(Math.abs(plano.sobra)),
-            d:
-              plano.sobra >= 0
-                ? "antes de qualquer gasto novo"
-                : "só do que se repete",
+            d: "receita menos custo fixo",
             alerta: plano.sobra < 0,
           },
         ].map((x) => (
