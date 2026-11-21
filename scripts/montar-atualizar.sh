@@ -49,8 +49,8 @@ ORDEM=(
 --      recorrência (é o que faz aparecer a caixinha de pago nos
 --      meses anteriores), o Softbox duplicado sai e a "segunda
 --      cobrança do Adobe" vira "Adobe Premiere".
---   7. vencimento_das_receitas — receita vence no próprio mês (menos
---      a Malukies, no seguinte, e o Studio Bambu, antecipado).
+--   7. vencimento_das_receitas — receita vence no próprio mês, menos
+--      a Malukies, que vence no seguinte.
 --   8. funil_da_reuniao — o funil ganha "Reunião marcada", a proposta
 --      passa a ser APRESENTADA (não enviada) e entra o canal
 --      "Tráfego pago".

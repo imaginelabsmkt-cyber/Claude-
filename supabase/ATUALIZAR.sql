@@ -23,8 +23,8 @@
 --      recorrência (é o que faz aparecer a caixinha de pago nos
 --      meses anteriores), o Softbox duplicado sai e a "segunda
 --      cobrança do Adobe" vira "Adobe Premiere".
---   7. vencimento_das_receitas — receita vence no próprio mês (menos
---      a Malukies, no seguinte, e o Studio Bambu, antecipado).
+--   7. vencimento_das_receitas — receita vence no próprio mês, menos
+--      a Malukies, que vence no seguinte.
 --   8. funil_da_reuniao — o funil ganha "Reunião marcada", a proposta
 --      passa a ser APRESENTADA (não enviada) e entra o canal
 --      "Tráfego pago".
@@ -1506,22 +1506,13 @@ update public.financial_recurrences r
  where c.id = r.category_id
    and c.kind = 'Receita'
    and r.vencimento_meses is distinct from 0
-   and r.description not in (
-     'Mensalidade Malukies Cookies & Co',
-     'Mensalidade Studio Bambu'
-   );
+   and r.description <> 'Mensalidade Malukies Cookies & Co';
 
 -- ...menos a Malukies, que paga no mês seguinte...
 update public.financial_recurrences
    set vencimento_meses = 1, updated_at = now()
  where description = 'Mensalidade Malukies Cookies & Co'
    and vencimento_meses is distinct from 1;
-
--- ...e o Studio Bambu, que paga antecipado.
-update public.financial_recurrences
-   set vencimento_meses = -1, updated_at = now()
- where description = 'Mensalidade Studio Bambu'
-   and vencimento_meses is distinct from -1;
 
 -- Reescreve o vencimento do que ainda está EM ABERTO, pela regra de
 -- cada recorrência. O que já foi recebido não é tocado.

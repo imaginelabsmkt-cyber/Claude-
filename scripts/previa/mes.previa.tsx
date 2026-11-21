@@ -48,7 +48,7 @@ function r(
     status,
     // A receita vence no PRÓPRIO mês: "as entradas dos clientes das
     // receitas de novembro vencem em novembro". Menos a Malukies, no
-    // mês seguinte, e o Studio Bambu, que paga antecipado.
+    // mês seguinte.
     due_date: vence || null,
     categoria: "Mensalidades / clientes recorrentes",
     cliente,
@@ -85,7 +85,7 @@ function d(
  * sem nome na coluna A (linhas 16, 17 e 18).
  */
 const MES: LancamentoFolha[] = [
-  r("Mensalidade Studio Bambu", 1300, "Pendente", "Studio Bambu", "2026-10-25"),
+  r("Mensalidade Studio Bambu", 1300, "Pendente", "Studio Bambu", "2026-11-25"),
   r("Mensalidade Dra. Hemilayne", 2000, "Pendente", "Dra. Hemilayne", "2026-11-10"),
   r("Mensalidade Kiku Sushi", 2200, "Pendente", "Kiku Sushi", "2026-11-10"),
   r("Mensalidade Laura Chioquetta", 1550, "Pago", "Laura Chioquetta", "2026-11-25"),
