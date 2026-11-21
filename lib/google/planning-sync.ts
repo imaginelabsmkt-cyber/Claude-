@@ -4,7 +4,7 @@
  * - Prazo de entrega (delivery_deadline) => TAREFA (com quadradinho).
  * Melhor esforço: falha no Google não quebra o salvamento do planejamento.
  */
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { rotuloResponsavel, emailPorPapel } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 import {
@@ -14,11 +14,11 @@ import {
   acharTarefaPorMarcador,
   contaAgencia,
 } from "@/lib/google/sync";
-import { PLANNING_ENTREGUE } from "@/types";
+import { PLANNING_ENTREGUE, type Database } from "@/types";
 
 const TZ = "America/Boa_Vista";
 const OFFSET_LOCAL = "-04:00"; // Boa Vista / Roraima (UTC-4)
-type SB = ReturnType<typeof createClient>;
+type SB = SupabaseClient<Database>;
 
 function diaSeguinte(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -91,10 +91,9 @@ export async function sincronizarPlanejamentoGoogle(
   planningId: string,
 ): Promise<void> {
   try {
-    const sb = createClient();
-    const conta = await contaAgencia(sb);
+    const conta = await contaAgencia();
     if (!conta) return;
-    const { userId, token } = conta;
+    const { sb, userId, token } = conta;
 
     const { data: p } = await sb
       .from("plannings")

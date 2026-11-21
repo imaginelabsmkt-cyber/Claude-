@@ -7,13 +7,14 @@
  * NÃO quebra, apenas não sincroniza (e loga no servidor).
  * Empurra para a conta do usuário que está fazendo a ação (se conectado).
  */
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { renovarAccessToken, GoogleRevogadoError } from "@/lib/google/oauth";
 import { marcarGoogleRevogado } from "@/lib/google/conta";
 import { rotuloResponsavel, ehArte } from "@/lib/google/responsavel";
 import { calendarioId } from "@/lib/google/calendars";
 import { prazoEntregaEfetivo } from "@/lib/rules/contents";
-import type { ContentStatus } from "@/types";
+import type { ContentStatus, Database } from "@/types";
 
 const TZ = "America/Boa_Vista";
 const STATUS_EDICAO: ContentStatus[] = [
@@ -35,7 +36,7 @@ const STATUS_EDICAO_CONCLUIDA: ContentStatus[] = [
   "Publicado",
 ];
 
-type SB = ReturnType<typeof createClient>;
+type SB = SupabaseClient<Database>;
 /**
  * Tipo de item sincronizado: evento de gravação (event), tarefa de edição
  * (task), evento de postagem (post) ou bloco da sessão de edição na agenda
@@ -69,9 +70,18 @@ export async function tokenDoUsuario(sb: SB, userId: string): Promise<string | n
  * Devolve o user_id (dono da conexão, usado nos vínculos) e um access_token.
  * Pega a conexão mais recente; numa agência costuma haver só uma.
  */
-export async function contaAgencia(
-  sb: SB,
-): Promise<{ userId: string; token: string } | null> {
+export async function contaAgencia(): Promise<{
+  sb: SB;
+  userId: string;
+  token: string;
+} | null> {
+  // Usa a SERVICE ROLE: a sincronização pode ter sido disparada por qualquer
+  // pessoa da equipe (ex.: a Vitória agendando), e só a service role enxerga a
+  // conta conectada da agência (que é de outra pessoa). Com o cliente normal, a
+  // Vitória não acha a conta e nada era criado. Também evita depender do
+  // contexto de requisição no trabalho em segundo plano.
+  const sb = createAdminClient();
+  if (!sb) return null;
   const { data } = await sb
     .from("google_accounts")
     .select("user_id, refresh_token, revoked_at, updated_at")
@@ -83,7 +93,7 @@ export async function contaAgencia(
   if (!conta?.refresh_token || !conta.user_id) return null;
   try {
     const token = await renovarAccessToken(conta.refresh_token);
-    return { userId: conta.user_id, token };
+    return { sb, userId: conta.user_id, token };
   } catch (e) {
     if (e instanceof GoogleRevogadoError) {
       await marcarGoogleRevogado(sb, conta.user_id);
@@ -97,8 +107,7 @@ export async function contaAgencia(
  * o token é válido). Vale pra qualquer pessoa da equipe, não só quem conectou.
  */
 export async function googleSincronizavel(): Promise<boolean> {
-  const sb = createClient();
-  const conta = await contaAgencia(sb);
+  const conta = await contaAgencia();
   return Boolean(conta);
 }
 
@@ -280,10 +289,9 @@ async function contarEventosSync(
 // -------------------------------------------------------------
 export async function sincronizarGravacao(contentId: string): Promise<void> {
   try {
-    const sb = createClient();
-    const conta = await contaAgencia(sb);
+    const conta = await contaAgencia();
     if (!conta) return; // a agência não conectou o Google
-    const { userId, token } = conta;
+    const { sb, userId, token } = conta;
 
     const { data: c } = await sb
       .from("contents")
@@ -464,10 +472,9 @@ export async function sincronizarGravacaoEmLote(
 ): Promise<void> {
   try {
     if (contentIds.length === 0) return;
-    const sb = createClient();
-    const conta = await contaAgencia(sb);
+    const conta = await contaAgencia();
     if (!conta) return;
-    const { userId, token } = conta;
+    const { sb, userId, token } = conta;
 
     const { data: cs } = await sb
       .from("contents")
@@ -575,10 +582,9 @@ export async function sincronizarEdicao(
   novoStatus: ContentStatus,
 ): Promise<void> {
   try {
-    const sb = createClient();
-    const conta = await contaAgencia(sb);
+    const conta = await contaAgencia();
     if (!conta) return;
-    const { userId, token } = conta;
+    const { sb, userId, token } = conta;
 
     let existente = await idSync(sb, contentId, userId, "task");
 
@@ -697,10 +703,9 @@ export async function sincronizarEdicao(
 // -------------------------------------------------------------
 export async function sincronizarPostagem(contentId: string): Promise<void> {
   try {
-    const sb = createClient();
-    const conta = await contaAgencia(sb);
+    const conta = await contaAgencia();
     if (!conta) return;
-    const { userId, token } = conta;
+    const { sb, userId, token } = conta;
 
     const { data: c } = await sb
       .from("contents")
@@ -795,10 +800,9 @@ export async function sincronizarPostagem(contentId: string): Promise<void> {
 // -------------------------------------------------------------
 export async function sincronizarSessaoEdicao(contentId: string): Promise<void> {
   try {
-    const sb = createClient();
-    const conta = await contaAgencia(sb);
+    const conta = await contaAgencia();
     if (!conta) return;
-    const { userId, token } = conta;
+    const { sb, userId, token } = conta;
 
     const { data: c } = await sb
       .from("contents")
@@ -908,10 +912,9 @@ export async function sincronizarSessaoEdicao(contentId: string): Promise<void> 
 // -------------------------------------------------------------
 export async function removerGoogleDoConteudo(contentId: string): Promise<void> {
   try {
-    const sb = createClient();
-    const conta = await contaAgencia(sb);
+    const conta = await contaAgencia();
     if (!conta) return;
-    const { userId, token } = conta;
+    const { sb, userId, token } = conta;
 
     const evento = await idSync(sb, contentId, userId, "event");
     if (evento) {
