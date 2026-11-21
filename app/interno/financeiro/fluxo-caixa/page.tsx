@@ -4,6 +4,7 @@ import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { GraficoCaixa } from "@/components/interno/grafico-caixa";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { Secao } from "@/components/interno/secao";
+import { TabelaDoCaixa } from "@/components/financeiro/tabela-do-caixa";
 import { obterSerieDeCaixa } from "@/lib/data/financeiro";
 import { mesAtual, mesValido, rotuloMes, rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
@@ -60,112 +61,29 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
 
       <FinanceTabs />
 
-      <Secao
-        titulo="Composição das despesas"
-      >
+      {/* Era "Para onde o caixa está indo", e na troca de linguagem eu
+          renomeei para "Composição das despesas" — que está errado: o
+          gráfico aqui é o SALDO encadeado mês a mês, não a divisão
+          das despesas. Nome errado é pior que nome coloquial. */}
+      <Secao titulo="Saldo acumulado">
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
           <GraficoCaixa pontos={pontos} meses={meses} />
         </div>
       </Secao>
 
-      <Secao
-        titulo="Mês a mês"
-      >
-        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-600">
-              <tr>
-                <th scope="col" className="px-4 py-2.5 text-left font-bold">
-                  Mês
-                </th>
-                <th scope="col" className="px-4 py-2.5 text-right font-bold">
-                  Começou com
-                </th>
-                <th scope="col" className="px-4 py-2.5 text-right font-bold">
-                  Entrou
-                </th>
-                <th scope="col" className="px-4 py-2.5 text-right font-bold">
-                  Saiu
-                </th>
-                <th scope="col" className="px-4 py-2.5 text-right font-bold">
-                  Resultado
-                </th>
-                <th scope="col" className="px-4 py-2.5 text-right font-bold">
-                  Terminou com
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {serie.meses.map((m) => {
-                const vazio = m.receitas === 0 && m.despesas === 0;
-                const emAberto = m.aReceber + m.aPagar;
-                return (
-                  <tr
-                    key={m.mes}
-                    className={
-                      (m.mes === mes ? "bg-gray-50 " : "") +
-                      (vazio ? "text-gray-400" : "")
-                    }
-                  >
-                    <th
-                      scope="row"
-                      className={
-                        "px-4 py-2.5 text-left font-medium " +
-                        (m.mes === mes ? "text-gray-900" : "text-gray-700")
-                      }
-                    >
-                      {rotuloMesCurto(m.mes)}
-                      {emAberto > 0 ? (
-                        <span className="ml-2 text-xs font-normal text-alerta">
-                          {formatarMoeda(emAberto)} em aberto
-                        </span>
-                      ) : null}
-                    </th>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-500">
-                      {formatarMoeda(m.saldoInicial)}
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
-                      {vazio ? "" : formatarMoeda(m.receitas)}
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
-                      {vazio ? "" : formatarMoeda(m.despesas)}
-                    </td>
-                    <td
-                      className={
-                        "px-4 py-2.5 text-right font-semibold tabular-nums " +
-                        (vazio
-                          ? ""
-                          : m.resultado < 0
-                            ? "text-alerta"
-                            : "text-gray-900")
-                      }
-                    >
-                      {vazio ? "" : formatarMoeda(m.resultado)}
-                    </td>
-                    <td
-                      className={
-                        "px-4 py-2.5 text-right font-bold tabular-nums " +
-                        (m.saldoFinal < 0 ? "text-alerta" : "text-gray-900")
-                      }
-                    >
-                      {formatarMoeda(m.saldoFinal)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {ultimo ? (
-          <p className="mt-3 text-sm text-gray-600">
-            O último mês da série é {rotuloMes(ultimo.mes)} e termina com{" "}
-            <strong className="font-semibold text-gray-900">
-              {formatarMoeda(ultimo.saldoFinal)}
-            </strong>
-            .
-          </p>
-        ) : null}
+      <Secao titulo="Movimentação mensal">
+        <TabelaDoCaixa
+          emFoco={mes}
+          meses={serie.meses.map((m) => ({
+            mes: m.mes,
+            saldoInicial: m.saldoInicial,
+            receitas: m.receitas,
+            despesas: m.despesas,
+            resultado: m.resultado,
+            saldoFinal: m.saldoFinal,
+            emAberto: m.aReceber + m.aPagar,
+          }))}
+        />
       </Secao>
 
       {melhor && pior && melhor.mes !== pior.mes ? (

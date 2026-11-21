@@ -4,14 +4,17 @@
  * Não é teste: não afirma nada. Desenha a série mês a mês com os
  * números reais de 2026 para a gente olhar se a tabela e a linha ficam
  * legíveis com o ano inteiro na tela.
+ *
+ * A TABELA É O COMPONENTE DE VERDADE (`TabelaDoCaixa`), não uma cópia
+ * do markup. A cópia que estava aqui envelheceu: mostrava os nomes
+ * antigos das colunas enquanto a página já tinha os novos.
  */
 import { describe, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync } from "node:fs";
 import { GraficoCaixa } from "@/components/interno/grafico-caixa";
+import { TabelaDoCaixa } from "@/components/financeiro/tabela-do-caixa";
 import { Secao } from "@/components/interno/secao";
-import { rotuloMes, rotuloMesCurto } from "@/lib/financeiro/meses";
-import { formatarMoeda } from "@/lib/utils";
 
 interface MesSerie {
   mes: string;
@@ -58,84 +61,19 @@ const MES_FOCO = "2026-11";
 function Tela() {
   const meses = SERIE.map((m) => m.mes);
   const pontos = SERIE.map((m) => ({ mes: m.mes, saldo: m.saldoFinal }));
-  const ultimo = SERIE[SERIE.length - 1];
 
   return (
     <>
       <Secao
-        titulo="Para onde o caixa está indo"
-        explicacao="Cada ponto é o que sobrou no fim do mês, encadeado desde Abril/2026."
+        titulo="Saldo acumulado"
       >
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
           <GraficoCaixa pontos={pontos} meses={meses} />
         </div>
       </Secao>
 
-      <Secao
-        titulo="Mês a mês"
-        explicacao="O saldo do fim de um mês é o saldo do começo do seguinte, como na planilha. Em vermelho, o mês que consumiu caixa."
-      >
-        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-600">
-              <tr>
-                <th className="px-4 py-2.5 text-left font-bold">Mês</th>
-                <th className="px-4 py-2.5 text-right font-bold">Começou com</th>
-                <th className="px-4 py-2.5 text-right font-bold">Entrou</th>
-                <th className="px-4 py-2.5 text-right font-bold">Saiu</th>
-                <th className="px-4 py-2.5 text-right font-bold">Sobrou</th>
-                <th className="px-4 py-2.5 text-right font-bold">Terminou com</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {SERIE.map((m) => (
-                <tr key={m.mes} className={m.mes === MES_FOCO ? "bg-gray-50" : ""}>
-                  <th
-                    scope="row"
-                    className={
-                      "px-4 py-2.5 text-left font-medium " +
-                      (m.mes === MES_FOCO ? "text-gray-900" : "text-gray-700")
-                    }
-                  >
-                    {rotuloMesCurto(m.mes)}
-                    {m.emAberto > 0 ? (
-                      <span className="ml-2 text-xs font-normal text-alerta">
-                        {formatarMoeda(m.emAberto)} em aberto
-                      </span>
-                    ) : null}
-                  </th>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-gray-500">
-                    {formatarMoeda(m.saldoInicial)}
-                  </td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
-                    {formatarMoeda(m.receitas)}
-                  </td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
-                    {formatarMoeda(m.despesas)}
-                  </td>
-                  <td
-                    className={
-                      "px-4 py-2.5 text-right font-semibold tabular-nums " +
-                      (m.resultado < 0 ? "text-alerta" : "text-gray-900")
-                    }
-                  >
-                    {formatarMoeda(m.resultado)}
-                  </td>
-                  <td className="px-4 py-2.5 text-right font-bold tabular-nums text-gray-900">
-                    {formatarMoeda(m.saldoFinal)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-sm text-gray-600">
-          O último mês da série é {rotuloMes(ultimo.mes)} e termina com{" "}
-          <strong className="font-semibold text-gray-900">
-            {formatarMoeda(ultimo.saldoFinal)}
-          </strong>
-          .
-        </p>
+      <Secao titulo="Movimentação mensal">
+        <TabelaDoCaixa meses={SERIE} emFoco={MES_FOCO} />
       </Secao>
     </>
   );

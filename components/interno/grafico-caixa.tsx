@@ -292,7 +292,7 @@ export function GraficoCaixa({ pontos, meses, modo = "caixa" }: GraficoCaixaProp
               {rotuloMes(lido.mes)}
             </span>
             <span className="text-sm text-gray-600">
-              {faturamento ? "faturou" : "terminou com"}{" "}
+              {faturamento ? "faturamento" : "saldo final"}{" "}
               <strong
                 className={
                   "font-semibold tabular-nums " +
@@ -304,13 +304,14 @@ export function GraficoCaixa({ pontos, meses, modo = "caixa" }: GraficoCaixaProp
             </span>
             {variacao !== null ? (
               <span className="text-sm text-gray-600">
-                {variacao >= 0 ? "subiu" : "caiu"}{" "}
+                variação{" "}
                 <strong
                   className={
                     "font-semibold tabular-nums " +
                     (variacao < 0 ? "text-alerta" : "text-gray-900")
                   }
                 >
+                  {variacao >= 0 ? "+" : "−"}
                   {formatarMoeda(Math.abs(variacao))}
                 </strong>{" "}
                 {faturamento ? "contra o mês anterior" : "no mês"}
