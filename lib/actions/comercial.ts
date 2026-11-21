@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dadosDoFechamento, propostaVigente } from "@/lib/comercial/funil";
+import { instanteDaReuniao } from "@/lib/comercial/reuniao";
 import { paraNumero } from "@/lib/financeiro/valores";
 import {
   fechamentoSchema,
@@ -72,13 +73,15 @@ function normalizarLead(values: LeadFormValues) {
 /**
  * Texto de data vira instante ISO, ou nada.
  *
- * O formulário já manda convertido (só o navegador sabe o fuso de
- * quem marcou); isto aqui é a rede de proteção para qualquer outro
- * caminho de entrada.
+ * Aceita os dois formatos que podem chegar: o instante que o
+ * formulário já converteu, e o "YYYY-MM-DDTHH:mm" cru do campo, que
+ * é lido no fuso da agência. Nunca o fuso do servidor.
  */
 function instante(valor: string | undefined | null): string | null {
   const t = (valor ?? "").trim();
   if (!t) return null;
+  const deBoaVista = instanteDaReuniao(t);
+  if (deBoaVista) return deBoaVista;
   const d = new Date(t);
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }

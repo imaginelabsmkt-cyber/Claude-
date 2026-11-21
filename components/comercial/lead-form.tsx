@@ -10,7 +10,10 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { atualizarLeadAction, criarLeadAction } from "@/lib/actions/comercial";
 import { paraCampo } from "@/lib/financeiro/valores";
-import { paraCampoDeReuniao } from "@/lib/comercial/reuniao";
+import {
+  instanteDaReuniao,
+  paraCampoDeReuniao,
+} from "@/lib/comercial/reuniao";
 import {
   LEAD_FORM_PADRAO,
   leadFormSchema,
@@ -89,14 +92,13 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
     }
     setErros({});
 
-    /* O campo devolve "2026-11-12T16:05", sem fuso. Quem converte
-       para instante é AQUI, no navegador, que é o único que sabe em
-       que fuso a pessoa está marcando — o servidor roda em UTC e
-       transformaria as 16h de Boa Vista em 12h. */
-    const local = parsed.data.meeting_at ?? "";
+    /* O campo devolve "2026-11-12T16:05", sem fuso. A conversão para
+       instante é a da agência — Boa Vista, UTC-4 o ano inteiro — e
+       não a do relógio da máquina: o servidor roda em UTC e
+       transformaria as 16h daqui em 12h. */
     const dados = {
       ...parsed.data,
-      meeting_at: local ? new Date(local).toISOString() : "",
+      meeting_at: instanteDaReuniao(parsed.data.meeting_at) ?? "",
     };
 
     iniciar(async () => {

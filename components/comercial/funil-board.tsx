@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -40,19 +40,16 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
   const proposta = propostaVigente(lead.proposals);
   const vencida = proposta ? propostaVencida(proposta) : false;
 
-  /* A reunião é escrita com o relógio de QUEM ESTÁ OLHANDO: "hoje
-     14h" só faz sentido no fuso de quem lê, e o servidor roda em UTC.
-     Por isso o `agora` só nasce depois de montar — se nascesse no
-     render, o HTML do servidor diria uma coisa e o do navegador
-     outra, e o React reclamaria de hidratação em toda oportunidade
-     com reunião marcada. O custo é o texto aparecer um quadro
-     depois; o benefício é ele estar certo. */
-  const [agora, setAgora] = useState<Date | null>(null);
-  useEffect(() => setAgora(new Date()), []);
-
-  const reuniao =
-    agora && lead.meeting_at ? quandoEhAReuniao(lead.meeting_at, agora) : "";
-  const reuniaoAtrasada = agora ? reuniaoPassou(lead.meeting_at, agora) : false;
+  /* As frases da reunião são escritas no fuso de Boa Vista (ver
+     lib/comercial/reuniao.ts), igual ao resto do sistema. Como não
+     dependem do relógio de quem lê, servidor e navegador escrevem a
+     mesma coisa e dá para calcular no render, sem esperar a tela
+     montar. */
+  const agora = new Date();
+  const reuniao = lead.meeting_at
+    ? quandoEhAReuniao(lead.meeting_at, agora)
+    : "";
+  const reuniaoAtrasada = reuniaoPassou(lead.meeting_at, agora);
 
   return (
     <div

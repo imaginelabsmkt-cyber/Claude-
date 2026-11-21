@@ -5,7 +5,9 @@ import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { Button } from "@/components/ui/button";
 import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
+import { BarraDoFunil } from "@/components/comercial/barra-do-funil";
 import { FunilBoard } from "@/components/comercial/funil-board";
+import { ListaOportunidades } from "@/components/comercial/lista-oportunidades";
 import { listarEncerrados, listarLeads, obterCarteira } from "@/lib/data/comercial";
 import {
   ETAPAS_ABERTAS,
@@ -16,6 +18,7 @@ import {
 import { mesAtual } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 import { LEAD_STAGES_ABERTAS } from "@/types";
+import type { LeadChannel, LeadStage } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -30,8 +33,15 @@ export const metadata = { title: "Funil" };
  * pergunta que o comercial existe para responder, e porque traduzida
  * em "mais ou menos tantos clientes do tamanho médio" ela vira meta.
  */
-export default async function FunilPage() {
+interface PageProps {
+  searchParams: { v?: string; etapa?: string; canal?: string };
+}
+
+export default async function FunilPage({ searchParams }: PageProps) {
   const mes = mesAtual();
+  /* Um instante só para a tela inteira: duas linhas da lista não podem
+     discordar sobre que horas são. */
+  const agora = new Date();
   const [leads, encerrados, carteira] = await Promise.all([
     listarLeads(LEAD_STAGES_ABERTAS),
     listarEncerrados(6),
@@ -39,6 +49,21 @@ export default async function FunilPage() {
   ]);
 
   const noFunil = valorDoFunil(leads);
+
+  /* O recorte da barra. Os números de cima (em aberto, se tudo fechar,
+     parados, falta para o fixo) continuam sobre o funil INTEIRO: eles
+     respondem "como está o comercial", e um filtro de tela não muda
+     isso. Quem o filtro recorta é a lista e o quadro. */
+  const etapa = LEAD_STAGES_ABERTAS.includes(searchParams.etapa as LeadStage)
+    ? (searchParams.etapa as LeadStage)
+    : null;
+  const canal = (searchParams.canal ?? "").trim() || null;
+  const recorte = leads.filter(
+    (l) =>
+      (!etapa || l.stage === etapa) &&
+      (!canal || l.channel === (canal as LeadChannel)),
+  );
+  const modo = searchParams.v === "quadro" ? "quadro" : "lista";
 
   // O funil desenhado: uma barra por etapa, do primeiro contato ao
   // fechamento. É o gráfico que a área comercial existe para ter.
@@ -122,7 +147,14 @@ export default async function FunilPage() {
           </Link>
         </div>
       ) : (
-        <FunilBoard leads={leads} />
+        <>
+          <BarraDoFunil quantos={recorte.length} />
+          {modo === "quadro" ? (
+            <FunilBoard leads={recorte} />
+          ) : (
+            <ListaOportunidades leads={recorte} agora={agora} />
+          )}
+        </>
       )}
 
       {encerrados.length > 0 ? (

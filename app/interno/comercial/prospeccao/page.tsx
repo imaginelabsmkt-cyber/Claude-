@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { ComercialTabs } from "@/components/comercial/comercial-tabs";
 import { Secao } from "@/components/interno/secao";
@@ -44,8 +45,20 @@ export default async function ProspeccaoPage() {
 
   return (
     <>
+      {/* "Os clientes que estão em prospecção não aparecem, só aparece
+          tipo quantitativo." Esta tela é de NÚMEROS de propósito — a
+          pergunta dela é "em qual canal vale gastar a próxima hora".
+          Quem são fica no funil, e agora o caminho está escrito. */}
       <AreaHeader
         contexto="De onde vêm os clientes, e qual canal fecha"
+        acao={
+          <Link
+            href="/interno/comercial/funil?v=lista"
+            className="text-sm font-medium text-gray-600 hover:underline"
+          >
+            Ver a lista de oportunidades
+          </Link>
+        }
       />
 
       <ComercialTabs />
@@ -132,9 +145,12 @@ export default async function ProspeccaoPage() {
               {comMovimento.map((c) => (
                 <li key={c.canal} className="px-4 py-3.5">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <span className="text-sm font-semibold text-gray-900">
+                    <Link
+                      href={`/interno/comercial/funil?v=lista&canal=${encodeURIComponent(c.canal)}`}
+                      className="text-sm font-semibold text-gray-900 hover:underline"
+                    >
                       {c.canal}
-                    </span>
+                    </Link>
                     <span className="text-sm tabular-nums text-gray-600">
                       {c.fechadas} de {c.total}
                       {c.fechadas + c.perdidas > 0 ? (
