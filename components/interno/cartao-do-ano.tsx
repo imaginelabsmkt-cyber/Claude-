@@ -48,8 +48,8 @@ export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
         {ano.mesesFaturados > 0 ? (
           <span>
             {ano.mesesFaturados}{" "}
-            {ano.mesesFaturados === 1 ? "mês faturado" : "meses faturados"},
-            média de{" "}
+            {ano.mesesFaturados === 1 ? "mês faturado" : "meses faturados"} ·
+            média{" "}
             <strong className="font-semibold text-gray-700">
               {formatarMoeda(ano.mediaMensal)}
             </strong>
@@ -60,8 +60,8 @@ export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
             melhor mês{" "}
             <strong className="font-semibold text-gray-700">
               {rotuloMesCurto(ano.melhorMes.mes)}
-            </strong>
-            , {formatarMoeda(ano.melhorMes.valor)}
+            </strong>{" "}
+            · {formatarMoeda(ano.melhorMes.valor)}
           </span>
         ) : null}
       </p>
@@ -83,7 +83,7 @@ export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
           zero" quando a verdade é "ainda não existia lançamento". */}
       <div className="mt-5 border-t border-gray-100 pt-4">
         <p className="mb-2 text-sm font-semibold text-gray-700">
-          Quanto a gente faturou em cada mês
+          Faturamento mensal
         </p>
         <GraficoCaixa
           modo="faturamento"

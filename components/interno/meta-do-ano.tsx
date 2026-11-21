@@ -46,13 +46,13 @@ export function MetaDoAnoCartao({ meta }: { meta: MetaDoAno }) {
           <strong className="font-semibold tabular-nums text-gray-900">
             {formatarMoeda(meta.recebido)}
           </strong>{" "}
-          até aqui
+          realizados
         </span>
         {bateu ? (
-          <span className="font-semibold text-green-800">Meta batida.</span>
+          <span className="font-semibold text-green-800">Meta atingida</span>
         ) : meta.mesesRestantes > 0 ? (
           <span>
-            faltam{" "}
+            necessário{" "}
             <strong
               className={
                 "font-semibold tabular-nums " +
@@ -61,16 +61,16 @@ export function MetaDoAnoCartao({ meta }: { meta: MetaDoAno }) {
             >
               {formatarMoeda(meta.porMes)}
             </strong>{" "}
-            por mês nos {meta.mesesRestantes} que restam
+            por mês nos {meta.mesesRestantes} meses restantes
           </span>
         ) : (
           <span className="font-semibold text-alerta">
-            Faltaram {formatarMoeda(meta.falta)}.
+            Meta não atingida · faltaram {formatarMoeda(meta.falta)}
           </span>
         )}
         {!bateu && meta.mesesRestantes > 0 ? (
           <span className={meta.noRitmo ? "text-gray-500" : "font-semibold text-alerta"}>
-            {meta.noRitmo ? "no ritmo" : "atrás do ritmo"}
+            {meta.noRitmo ? "dentro do ritmo" : "abaixo do ritmo"}
           </span>
         ) : null}
       </figcaption>
