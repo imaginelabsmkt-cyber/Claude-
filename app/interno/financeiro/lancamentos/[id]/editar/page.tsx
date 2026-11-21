@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AreaHeader } from "@/components/interno/area-header";
+import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { EntryForm } from "@/components/financeiro/entry-form";
 import { ExcluirLancamento } from "@/components/financeiro/excluir-lancamento";
@@ -34,6 +35,9 @@ export default async function EditarLancamentoPage({ params }: PageProps) {
         titulo="Editar lançamento"
         contexto={rotuloMes(lancamento.reference_month)}
       />
+
+      <FinanceTabs />
+
       <Card>
         <CardContent>
           <EntryForm

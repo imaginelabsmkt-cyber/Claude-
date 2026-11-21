@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import {
+  ABAS_FINANCEIRO,
+  ABA_CONFIGURACAO,
+  abaAtiva,
+} from "@/lib/financeiro/abas";
 
 /**
  * Abas do financeiro. QUATRO: o MÊS, o que se REPETE, o ANO e os
@@ -54,27 +59,8 @@ import { usePathname, useSearchParams } from "next/navigation";
  * lugar só: aqui em cima para ONDE IR, e a fila de botões do Mês
  * para O QUE FAZER.
  */
-const ABAS = [
-  { href: "/interno/financeiro", label: "Mês" },
-  { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
-  { href: "/interno/financeiro/resumo-anual", label: "Ano" },
-  { href: "/interno/financeiro/relatorios", label: "Relatórios" },
-];
 
-const CONFIGURACAO = "/interno/financeiro/categorias";
 
-/**
- * As telas que saíram do topo continuam acendendo a aba de onde
- * vieram, senão a pessoa abre uma delas e a barra inteira fica apagada,
- * como se ela tivesse saído do financeiro.
- */
-const PERTENCE_A: Record<string, string> = {
-  "/interno/financeiro/lancamentos": "/interno/financeiro",
-  "/interno/relatorio": "/interno/financeiro/relatorios",
-  "/interno/financeiro/impostos": "/interno/financeiro/relatorios",
-  "/interno/financeiro/fluxo-caixa": "/interno/financeiro/relatorios",
-  "/interno/financeiro/rentabilidade": "/interno/financeiro/relatorios",
-};
 
 /**
  * Navegação interna do financeiro. Cada aba é uma responsabilidade só —
@@ -84,17 +70,13 @@ export function FinanceTabs() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const mes = searchParams.get("mes");
-  const naConfiguracao = pathname.startsWith(CONFIGURACAO);
+  const naConfiguracao = pathname.startsWith(ABA_CONFIGURACAO);
+  const acesa = abaAtiva(pathname);
 
   return (
     <div className="mb-6 flex items-center gap-5 overflow-x-auto border-b border-gray-200">
-      {ABAS.map((aba) => {
-        const herdada = PERTENCE_A[pathname];
-        const ativa = herdada
-          ? herdada === aba.href
-          : aba.href === "/interno/financeiro"
-            ? pathname === "/interno/financeiro"
-            : pathname.startsWith(aba.href);
+      {ABAS_FINANCEIRO.map((aba) => {
+        const ativa = acesa === aba.href;
         const href = mes ? `${aba.href}?mes=${mes}` : aba.href;
         return (
           <Link
@@ -113,7 +95,7 @@ export function FinanceTabs() {
       })}
 
       <Link
-        href={CONFIGURACAO}
+        href={ABA_CONFIGURACAO}
         className={
           "-mb-px ml-auto shrink-0 border-b-2 px-1 pb-2 text-xs transition-colors " +
           (naConfiguracao

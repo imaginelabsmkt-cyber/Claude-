@@ -1,4 +1,5 @@
 import { AreaHeader } from "@/components/interno/area-header";
+import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { EntryForm } from "@/components/financeiro/entry-form";
 import { listarCategorias, listarClientesFinanceiro } from "@/lib/data/financeiro";
@@ -25,6 +26,9 @@ export default async function NovoLancamentoPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader titulo="Novo lançamento" contexto={rotuloMes(mes)} />
+
+      <FinanceTabs />
+
       <Card>
         <CardContent>
           <EntryForm
