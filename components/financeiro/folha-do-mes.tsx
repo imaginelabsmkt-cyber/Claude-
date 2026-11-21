@@ -8,11 +8,11 @@ import {
 import { BaixaRapida } from "@/components/financeiro/baixa-rapida";
 import { ValorEditavel } from "@/components/financeiro/valor-editavel";
 import { Situacao } from "@/components/financeiro/situacao";
-import { situacaoDoLancamento, textoDoPrazo } from "@/lib/financeiro/vencimento";
 import {
-  clienteSeFizerFalta,
-  semRepetirOGrupo,
-} from "@/lib/financeiro/nomes";
+  situacaoDoLancamento,
+  textoDoPrazo,
+} from "@/lib/financeiro/vencimento";
+import { clienteSeFizerFalta, semRepetirOGrupo } from "@/lib/financeiro/nomes";
 import { formatarData, formatarMoeda } from "@/lib/utils";
 import type { FinancialKind } from "@/types";
 
@@ -24,8 +24,18 @@ import type { FinancialKind } from "@/types";
  * cada linha ocupar duas. O dia e o mês bastam para agir.
  */
 const MES_CURTO = [
-  "jan", "fev", "mar", "abr", "mai", "jun",
-  "jul", "ago", "set", "out", "nov", "dez",
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
 ];
 
 function prazoCurto(due: string | null): string {
@@ -60,102 +70,95 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
         <div className="divide-y divide-gray-200">
           {grupos.map((g) => (
             <div key={g.categoria}>
-              {/* Subtítulo de categoria só quando há mais de uma
-                  categoria na coluna E mais de uma linha nela. Com uma
-                  só, o subtítulo repetia o total da coluna duas vezes,
-                  um embaixo do outro — e com uma linha só viraria
-                  "DAS - Simples Nacional" com "DAS do Simples
-                  Nacional" logo embaixo. */}
-              {grupos.length > 1 && g.linhas.length > 1 ? (
-                <div className="flex items-baseline justify-between gap-3 bg-gray-50 px-4 py-1.5">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-                    {g.categoria}
-                  </h4>
-                  <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
-                    {formatarMoeda(g.total)}
-                  </span>
-                </div>
-              ) : null}
+              {/* TODA categoria escreve seu nome e seu total, mesmo
+                  com um lançamento só.
+                  Antes o subtítulo sumia quando o grupo tinha uma
+                  linha, e aí essa linha solta ficava embaixo do grupo
+                  anterior parecendo parte dele: o DAS aparecia debaixo
+                  de "ASSINATURAS E FERRAMENTAS" como se fosse mais uma
+                  assinatura. Separar grupo é a função desta barra; ela
+                  não pode faltar justo onde a linha está mais sozinha. */}
+              <div className="flex items-baseline justify-between gap-3 bg-gray-50 px-4 py-1.5">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+                  {g.categoria}
+                </h4>
+                <span className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
+                  {formatarMoeda(g.total)}
+                </span>
+              </div>
               <ul className="divide-y divide-gray-100">
-                {g.linhas.map((x) => (
-                  <li
-                    key={x.id}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-4 py-2"
-                  >
-                    <BaixaRapida
-                      id={x.id}
-                      pago={x.pago}
-                      descricao={x.description}
-                    />
+                {g.linhas.map((x) => {
+                  /* O nome perde a palavra que o cabeçalho do grupo
+                     acabou de dizer: "Mensalidade Kiku Sushi" debaixo
+                     de MENSALIDADES vira "Kiku Sushi". Vale para toda
+                     linha, inclusive a única do grupo, porque agora o
+                     cabeçalho também aparece lá. `semRepetirOGrupo` só
+                     corta quando tem certeza e nunca devolve vazio. */
+                  const nome = semRepetirOGrupo(x.description, g.categoria);
+                  const cliente = clienteSeFizerFalta(nome, x.cliente);
 
-                    {/* O nome perde a palavra que a categoria já diz
-                        SEMPRE que o grupo tem mais de uma linha —
-                        "Mensalidade Kiku Sushi" vira "Kiku Sushi".
-                        Isto NÃO depende de o subtítulo da categoria
-                        estar na tela: quando eu amarrei as duas
-                        coisas na mesma condição, a coluna "Entrou",
-                        que tem uma categoria só, voltou a repetir
-                        "Mensalidade" em todas as oito linhas. Era
-                        o primeiro pedido dela sobre esta lista. */}
-                    <span className="min-w-0 flex-1 text-sm text-gray-900">
-                      {g.linhas.length > 1
-                        ? semRepetirOGrupo(x.description, g.categoria)
-                        : x.description}
-                      {clienteSeFizerFalta(
-                        semRepetirOGrupo(x.description, g.categoria),
-                        x.cliente,
-                      ) ? (
-                        <span className="text-gray-500">
-                          {" "}
-                          ·{" "}
-                          {clienteSeFizerFalta(
-                            semRepetirOGrupo(x.description, g.categoria),
-                            x.cliente,
-                          )}
-                        </span>
-                      ) : null}
-                    </span>
-                    {/* O valor se edita aqui mesmo: as ferramentas
+                  return (
+                    <li
+                      key={x.id}
+                      className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-4 py-2"
+                    >
+                      <BaixaRapida
+                        id={x.id}
+                        pago={x.pago}
+                        descricao={x.description}
+                      />
+
+                      <span className="min-w-0 flex-1 text-sm text-gray-900">
+                        {nome}
+                        {cliente ? (
+                          <span className="text-gray-500"> · {cliente}</span>
+                        ) : null}
+                      </span>
+                      {/* O valor se edita aqui mesmo: as ferramentas
                         mudam de preço todo mês com o dólar, e abrir o
                         formulário inteiro para trocar um número eram
                         quatro cliques por item. */}
-                    <span className="shrink-0">
-                      <ValorEditavel
-                        id={x.id}
-                        valor={x.amount}
-                        descricao={x.description}
-                      />
-                    </span>
-                    {/* Etiqueta é alarme, e alarme que toca em toda
+                      <span className="shrink-0">
+                        <ValorEditavel
+                          id={x.id}
+                          valor={x.amount}
+                          descricao={x.description}
+                        />
+                      </span>
+                      {/* Etiqueta é alarme, e alarme que toca em toda
                         linha ninguém escuta: antes havia uma em cada
                         uma das vinte, dezessete delas dizendo a mesma
                         coisa. Fica só no que venceu. Pago se vê na
                         caixinha marcada, e o prazo do resto é uma
                         data miúda. */}
-                    <span className="min-w-[3.25rem] shrink-0 text-right">
-                      {!x.pago && situacaoDoLancamento(x, hoje) === "Vencido" ? (
-                        <Situacao estado="Vencido" texto={textoDoPrazo(x, hoje)} />
-                      ) : x.pago ? null : (
-                        <span className="text-xs tabular-nums text-gray-500">
-                          {prazoCurto(x.due_date)}
-                        </span>
-                      )}
-                    </span>
+                      <span className="min-w-[3.25rem] shrink-0 text-right">
+                        {!x.pago &&
+                        situacaoDoLancamento(x, hoje) === "Vencido" ? (
+                          <Situacao
+                            estado="Vencido"
+                            texto={textoDoPrazo(x, hoje)}
+                          />
+                        ) : x.pago ? null : (
+                          <span className="text-xs tabular-nums text-gray-500">
+                            {prazoCurto(x.due_date)}
+                          </span>
+                        )}
+                      </span>
 
-                    {/* "Não tem onde eu clicar e ajustar." Tinha: o
+                      {/* "Não tem onde eu clicar e ajustar." Tinha: o
                         nome era link. Mas link que só se revela ao
                         passar o mouse não existe para quem está no
                         celular, e não existia para ela. Agora a
                         palavra está escrita. */}
-                    <Link
-                      href={`/interno/financeiro/lancamentos/${x.id}/editar`}
-                      className="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-                    >
-                      Editar
-                    </Link>
-
-                  </li>
-                ))}
+                      <Link
+                        href={`/interno/financeiro/lancamentos/${x.id}/editar`}
+                        className="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                      >
+                        Editar
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

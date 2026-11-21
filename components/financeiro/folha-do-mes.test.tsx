@@ -8,9 +8,14 @@
  *   "nao precisa repetir mensalidade"  →  "busque coisas que se repitam"
  *
  * A regra morreu uma vez porque eu amarrei o encurtamento do nome à
- * mesma condição que mostra o subtítulo da categoria. Com uma
- * categoria só na coluna, o subtítulo some (certo) e o nome deixava
- * de encurtar (errado), e "Mensalidade" voltou nas oito linhas.
+ * mesma condição que mostrava o subtítulo da categoria: sem subtítulo
+ * na tela o nome deixava de encurtar, e "Mensalidade" voltou nas oito
+ * linhas.
+ *
+ * Hoje o cabeçalho da categoria aparece em TODO grupo — era o outro
+ * pedido: "o item parece fazer parte da categoria de cima". Como o
+ * grupo está sempre escrito, o corte também vale sempre, e as duas
+ * regras pararam de brigar.
  */
 import { describe, expect, it, vi } from "vitest";
 
@@ -88,20 +93,49 @@ describe("folha do mês: o que está escrito", () => {
   });
 
   it("encurta mesmo quando a coluna tem UMA categoria só", () => {
-    // Foi exatamente este caso que quebrou: sem subtítulo de
-    // categoria na tela, o nome voltava inteiro.
+    // Foi exatamente este caso que quebrou uma vez: o nome voltava
+    // inteiro nas oito linhas. A palavra pode (e deve) aparecer no
+    // cabeçalho do grupo; o que não pode é grudada em cada cliente.
     const html = desenhar([receita("Kiku Sushi", 2200), receita("Salte", 1300)]);
-    expect(html).not.toContain("Mensalidade");
+    expect(html).not.toContain("Mensalidade Kiku Sushi");
+    expect(html).not.toContain("Mensalidade Salte");
   });
 
-  it("deixa o nome inteiro quando o grupo tem uma linha só", () => {
-    // Com uma linha só não há repetição para cortar, e cortar
-    // deixaria a linha sem nome ("DAS - Simples Nacional" viraria
-    // vazio).
+  it("não corta palavra curta nem com o grupo escrito em cima", () => {
+    // "DAS" tem três letras: cortar deixaria "do Simples Nacional",
+    // que é pior do que repetir. O corte é conservador de propósito.
     const html = desenhar([
       despesa("DAS do Simples Nacional", 86.05, "DAS - Simples Nacional"),
     ]);
     expect(html).toContain("DAS do Simples Nacional");
+  });
+
+  it("escreve nome e total de TODA categoria, inclusive a de um lançamento só", () => {
+    // O pedido: "o título da categoria não aparece quando ela tem só
+    // um lançamento, e o item parece fazer parte da categoria de
+    // cima". Aqui o DAS é o grupo de uma linha, depois de um grupo
+    // maior — e tem que ter cabeçalho próprio.
+    const html = desenhar([
+      despesa("Canva", 35, FERRAMENTAS),
+      despesa("Claude Max", 572, FERRAMENTAS),
+      despesa("DAS do Simples Nacional", 86.05, "DAS - Simples Nacional"),
+    ]);
+
+    expect(html).toContain("DAS - Simples Nacional");
+    expect(html).toContain("86,05");
+    expect(html).toContain(FERRAMENTAS);
+    expect(html).toContain("607,00");
+  });
+
+  it("escreve o cabeçalho mesmo quando a coluna tem uma categoria só", () => {
+    const html = desenhar([receita("Kiku Sushi", 2200)]);
+    expect(html).toContain(MENSALIDADES);
+  });
+
+  it("encurta o nome do grupo de uma linha só, porque o grupo está escrito em cima", () => {
+    const html = desenhar([receita("Kiku Sushi", 2200)]);
+    expect(html).toContain("Kiku Sushi");
+    expect(html).not.toContain("Mensalidade Kiku Sushi");
   });
 
   it("escreve o total no fim de cada coluna", () => {
