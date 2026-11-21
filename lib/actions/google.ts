@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usuarioAtualId } from "@/lib/auth";
-import { renovarAccessToken } from "@/lib/google/oauth";
 import {
   sincronizarGravacao,
   sincronizarGravacaoEmLote,
   sincronizarPostagem,
   sincronizarEdicao,
+  contaAgencia,
 } from "@/lib/google/sync";
 import { sincronizarPlanejamentoGoogle } from "@/lib/google/planning-sync";
 import { sincronizarResultadoSheets } from "@/lib/google/sheets";
@@ -70,20 +70,13 @@ export async function reenviarTudoGoogleAction(): Promise<
   const userId = await usuarioAtualId();
   if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
 
-  const supabase = createClient();
-  const { data: acc } = await supabase
-    .from("google_accounts")
-    .select("refresh_token")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (!acc?.refresh_token) {
+  // Usa a conta da AGÊNCIA (service role), não a de quem está logado. Assim a
+  // Vitória também consegue reenviar, mesmo que quem conectou tenha sido a Fran.
+  const conta = await contaAgencia();
+  if (!conta) {
     return { ok: false, error: "Conecte o Google primeiro (Configurações)." };
   }
-  try {
-    await renovarAccessToken(acc.refresh_token);
-  } catch {
-    return { ok: false, error: "Reconecte o Google e tente de novo." };
-  }
+  const supabase = conta.sb; // cliente admin: lê tudo e não depende de quem está logado
 
   // O reenvio faz muitas chamadas ao Google (uma por item). Rodar isso preso na
   // tela trava a interface. Então valida rápido acima e empurra o trabalho pesado

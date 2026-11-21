@@ -68,15 +68,34 @@ export async function obterConexaoGoogle(
 export async function obterConexaoAgencia(): Promise<{
   conectado: boolean;
   revogado: boolean;
+  email: string | null;
+  temPlanilhas: boolean;
+  temDrive: boolean;
 }> {
+  const vazio = {
+    conectado: false,
+    revogado: false,
+    email: null,
+    temPlanilhas: false,
+    temDrive: false,
+  };
   const admin = createAdminClient();
-  if (!admin) return { conectado: false, revogado: false };
+  if (!admin) return vazio;
   const { data } = await admin
     .from("google_accounts")
-    .select("revoked_at")
-    .not("refresh_token", "is", null);
+    .select("email, revoked_at, scope, refresh_token, updated_at")
+    .not("refresh_token", "is", null)
+    .order("updated_at", { ascending: false });
   const linhas = data ?? [];
-  const conectado = linhas.some((l) => !l.revoked_at);
+  const ativa = linhas.find((l) => !l.revoked_at);
+  const conectado = !!ativa;
   const revogado = !conectado && linhas.some((l) => !!l.revoked_at);
-  return { conectado, revogado };
+  const scope = ativa?.scope ?? "";
+  return {
+    conectado,
+    revogado,
+    email: ativa?.email ?? null,
+    temPlanilhas: scope.includes("/auth/spreadsheets"),
+    temDrive: scope.includes("/auth/drive"),
+  };
 }

@@ -15,6 +15,13 @@ interface Props {
   aviso?: string;
   temPlanilhas?: boolean;
   temDrive?: boolean;
+  /** Conexão da AGÊNCIA (pode ter sido feita por outra pessoa da equipe). */
+  agencia?: {
+    conectado: boolean;
+    email: string | null;
+    temPlanilhas: boolean;
+    temDrive: boolean;
+  };
 }
 
 const AVISOS: Record<string, { tipo: "ok" | "erro"; texto: string }> = {
@@ -38,6 +45,7 @@ export function GoogleConnection({
   aviso,
   temPlanilhas,
   temDrive,
+  agencia,
 }: Props) {
   const router = useRouter();
   const [processando, iniciar] = useTransition();
@@ -166,10 +174,48 @@ export function GoogleConnection({
             Use se algo não apareceu na agenda.
           </p>
         </>
+      ) : agencia?.conectado ? (
+        // A agência já conectou o Google (por outra pessoa, ex.: a Fran). Quem
+        // está logada agora não precisa reconectar: a agenda já funciona pra
+        // todo mundo. Mostra isso e libera o "Reenviar tudo".
+        <>
+          <p className="text-sm text-gray-700">
+            A agenda da agência já está conectada
+            {agencia.email ? (
+              <>
+                {" "}(conta <strong>{agencia.email}</strong>)
+              </>
+            ) : null}
+            . Você já pode usar normalmente: o que você agendar vai pra agenda da
+            agência. Não precisa reconectar.
+          </p>
+
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+            <p className="mb-1 font-semibold text-gray-600">Permissões ativas</p>
+            <ul className="space-y-0.5">
+              <li>✓ Agenda e Tarefas</li>
+              <li className={agencia.temPlanilhas ? "" : "text-red-600 font-medium"}>
+                {agencia.temPlanilhas ? "✓" : "✗"} Planilhas
+              </li>
+              <li className={agencia.temDrive ? "" : "text-red-600 font-medium"}>
+                {agencia.temDrive ? "✓" : "✗"} Drive
+              </li>
+            </ul>
+          </div>
+
+          <Button type="button" onClick={reenviar} disabled={processando}>
+            {processando ? "Reenviando..." : "Reenviar tudo ao Google"}
+          </Button>
+          <p className="text-xs text-gray-500">
+            Use “Reenviar tudo” se algo que você agendou não apareceu na agenda.
+            Atualiza (ou cria o que faltar) reuniões, postagens, gravações e
+            edições, sem apagar o que foi criado à mão.
+          </p>
+        </>
       ) : (
         <>
           <p className="text-sm text-gray-600">
-            Conecte sua conta Google para que as gravações apareçam na sua
+            Conecte a conta Google da agência para que as gravações apareçam na
             Agenda (eventos) e as edições virem tarefas com o quadradinho de
             concluir.
           </p>

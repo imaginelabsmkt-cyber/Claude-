@@ -5,7 +5,7 @@ import { ProfileForm } from "@/components/config/profile-form";
 import { GoogleConnection } from "@/components/config/google-connection";
 import { PushToggle } from "@/components/notificacoes/push-toggle";
 import { getAuthContext, displayName } from "@/lib/auth";
-import { obterConexaoGoogle } from "@/lib/data/google";
+import { obterConexaoGoogle, obterConexaoAgencia } from "@/lib/data/google";
 import { signOutAction } from "@/lib/actions/auth";
 import { ROLE_LABELS } from "@/types";
 
@@ -21,7 +21,10 @@ export default async function ConfiguracoesPage({ searchParams }: PageProps) {
   const nome = displayName(ctx);
   const email = ctx.user?.email ?? "·";
   const papel = ctx.profile ? ROLE_LABELS[ctx.profile.role] : "·";
-  const google = await obterConexaoGoogle();
+  const [google, agencia] = await Promise.all([
+    obterConexaoGoogle(),
+    obterConexaoAgencia(),
+  ]);
 
   return (
     <>
@@ -49,6 +52,7 @@ export default async function ConfiguracoesPage({ searchParams }: PageProps) {
                 aviso={searchParams.google}
                 temPlanilhas={google.temPlanilhas}
                 temDrive={google.temDrive}
+                agencia={agencia}
               />
             </CardContent>
           </Card>
