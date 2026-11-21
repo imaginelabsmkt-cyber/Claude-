@@ -45,10 +45,13 @@ export default async function ClientesPage() {
 
   const conversas = contratosQuePedemConversa(contratos, hoje);
   const contratado = receitaContratada(contratos);
+  /* Quem não tem contrato NENHUM, e não "nenhum ativo": com a segunda
+     regra, um cliente cujo contrato acabou aparecia duas vezes na
+     mesma tela — uma na lista de contratos e outra aqui embaixo, com
+     a etiqueta de "sem contrato". Nome repetido na mesma tela foi
+     exatamente a reclamação. */
   const semContrato = carteira.ativos
-    .filter(
-      (c) => !contratos.some((k) => k.client_id === c.id && k.status === "Ativo"),
-    )
+    .filter((c) => !contratos.some((k) => k.client_id === c.id))
     .map((c) => ({ id: c.id, name: c.nome }));
 
   const naRelacao = carteira.ativos.length;

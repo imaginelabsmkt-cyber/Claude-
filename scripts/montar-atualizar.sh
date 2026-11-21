@@ -20,6 +20,7 @@ ORDEM=(
   vencimento_das_receitas
   funil_da_reuniao
   comercial_historico_e_atividades
+  salte_e_clientes_repetidos
 )
 
 {
@@ -57,6 +58,8 @@ ORDEM=(
 --   9. comercial_historico_e_atividades — o comercial passa a guardar
 --      cada mudança de etapa (com data) e ganha as atividades:
 --      tarefa, reunião, ligação e WhatsApp presas ao cliente.
+--  10. salte_e_clientes_repetidos — apaga a cópia órfã de cliente
+--      repetido por nome e registra a Salte no funil como ganha.
 --
 -- COMO RODAR
 --

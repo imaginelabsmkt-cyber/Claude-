@@ -31,6 +31,8 @@
 --   9. comercial_historico_e_atividades — o comercial passa a guardar
 --      cada mudança de etapa (com data) e ganha as atividades:
 --      tarefa, reunião, ligação e WhatsApp presas ao cliente.
+--  10. salte_e_clientes_repetidos — apaga a cópia órfã de cliente
+--      repetido por nome e registra a Salte no funil como ganha.
 --
 -- COMO RODAR
 --
@@ -1740,3 +1742,45 @@ drop policy if exists "atividades_all_authenticated" on public.commercial_activi
 create policy "atividades_all_authenticated"
   on public.commercial_activities for all
   to authenticated using (true) with check (true);
+
+-- =============================================================
+-- salte_e_clientes_repetidos
+-- =============================================================
+delete from public.clients c
+ where exists (
+   select 1 from public.clients outro
+    where outro.name = c.name
+      and outro.created_at < c.created_at
+ )
+   and not exists (select 1 from public.financial_entries      x where x.client_id = c.id)
+   and not exists (select 1 from public.financial_recurrences  x where x.client_id = c.id)
+   and not exists (select 1 from public.client_contracts       x where x.client_id = c.id)
+   and not exists (select 1 from public.client_files           x where x.client_id = c.id)
+   and not exists (select 1 from public.client_reports         x where x.client_id = c.id)
+   and not exists (select 1 from public.client_diagnostics     x where x.client_id = c.id)
+   and not exists (select 1 from public.client_onboarding      x where x.client_id = c.id)
+   and not exists (select 1 from public.contents               x where x.client_id = c.id)
+   and not exists (select 1 from public.plannings              x where x.client_id = c.id)
+   and not exists (select 1 from public.commercial_leads       x where x.client_id = c.id)
+   and not exists (select 1 from public.commercial_activities  x where x.client_id = c.id);
+
+-- 2. A oportunidade da Salte, já ganha, ligada ao cliente.
+do $$
+declare
+  id_salte uuid;
+begin
+  select id into id_salte from public.clients where name = 'Salte' limit 1;
+  if id_salte is null then
+    return;  -- sem cliente Salte, não há o que registrar
+  end if;
+
+  if exists (select 1 from public.commercial_leads where client_id = id_salte) then
+    return;  -- já tem a oportunidade dela
+  end if;
+
+  insert into public.commercial_leads
+    (name, channel, stage, max_stage, estimated_monthly, client_id, created_at)
+  values
+    ('Salte', 'Indicação', 'Fechado', 'Fechado', 1300.00, id_salte, '2026-11-01');
+end
+$$;
