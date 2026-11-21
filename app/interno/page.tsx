@@ -89,6 +89,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
     vencido,
     funilPorEtapa,
     receitaPorCliente,
+    despesaPorCategoria,
   } = painel;
   const caixa = financeiro.resumo.saldoFinal;
   const sobra = carteira.recorrente - custoFixo;
@@ -177,11 +178,18 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           "Não parece um sistema de gestão de uma empresa, onde tem
           administrativo, onde tem comercial." O painel mostrava o
           dinheiro e mais nada. */}
+      {/* Colunas de jornal, não grade: os três cartões têm alturas bem
+          diferentes (o funil tem 3 barras, as categorias têm 8) e numa
+          grade de duas colunas o cartão curto deixava um buraco do
+          tamanho do vizinho. `columns` equilibra sozinho; o
+          `break-inside-avoid` impede que um cartão parta no meio. */}
       {funilPorEtapa.some((e) => e.valor > 0) ||
-      receitaPorCliente.some((c) => c.valor > 0) ? (
-        <div className="grid gap-x-4 lg:grid-cols-2">
+      receitaPorCliente.some((c) => c.valor > 0) ||
+      despesaPorCategoria.some((c) => c.valor > 0) ? (
+        <div className="lg:columns-2 lg:gap-x-4">
           {funilPorEtapa.some((e) => e.valor > 0) ? (
             <Secao
+              className="break-inside-avoid"
               titulo="O funil, por etapa"
               acao={
                 <Link
@@ -200,6 +208,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
 
           {receitaPorCliente.some((c) => c.valor > 0) ? (
             <Secao
+              className="break-inside-avoid"
               titulo={`Quem paga a conta em ${ano.ano}`}
               acao={
                 <Link
@@ -215,6 +224,34 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
                   itens={receitaPorCliente}
                   cor="#1d5a9e"
                   limite={6}
+                />
+              </div>
+            </Secao>
+          ) : null}
+
+          {/* "Quero que apareça de cada categoria o valor que a gente
+              paga: categoria pró-labore, tanto; categoria tal, tanto."
+              A folha do mês já responde isso dentro do mês; aqui é a
+              conta do ANO, que é onde se vê que as assinaturas pesam
+              mais do que parecia. */}
+          {despesaPorCategoria.some((c) => c.valor > 0) ? (
+            <Secao
+              className="break-inside-avoid"
+              titulo={`Para onde foi o dinheiro em ${ano.ano}`}
+              acao={
+                <Link
+                  href={`/interno/financeiro?mes=${mes}`}
+                  className="font-medium text-gray-600 hover:underline"
+                >
+                  Abrir o financeiro
+                </Link>
+              }
+            >
+              <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+                <BarrasRanqueadas
+                  itens={despesaPorCategoria}
+                  cor="#8a5a1e"
+                  limite={8}
                 />
               </div>
             </Secao>

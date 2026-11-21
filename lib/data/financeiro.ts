@@ -498,6 +498,34 @@ export async function receitaPorClienteNoAno(
   return total;
 }
 
+/**
+ * Quanto saiu em cada categoria no ano, por id de categoria.
+ *
+ * "Quero que apareça de cada categoria o valor que a gente paga:
+ * categoria pró-labore, tanto; categoria tal, tanto." A folha do mês
+ * já diz isso dentro do mês; o que faltava era a conta do ANO, que é
+ * onde se enxerga que as assinaturas custam mais que a contabilidade.
+ *
+ * Conta tudo que foi LANÇADO, pago ou não, pela mesma régua do resto
+ * do sistema (o mês é o que foi lançado, como na planilha).
+ */
+export async function despesaPorCategoriaNoAno(
+  ano: number,
+): Promise<Record<string, { valor: number; quantos: number }>> {
+  const meses = mesesDoAno(ano);
+  const lancamentos = await lancamentosDoIntervalo(meses[0], meses[11]);
+  const total: Record<string, { valor: number; quantos: number }> = {};
+  for (const l of lancamentos) {
+    if (l.kind !== "Despesa" || !l.category_id) continue;
+    const atual = total[l.category_id] ?? { valor: 0, quantos: 0 };
+    total[l.category_id] = {
+      valor: arredondar(atual.valor + Number(l.amount)),
+      quantos: atual.quantos + 1,
+    };
+  }
+  return total;
+}
+
 /** Lista as recorrências cadastradas, com categoria e cliente resolvidos. */
 export async function listarRecorrencias(): Promise<
   FinancialRecurrenceWithRelations[]

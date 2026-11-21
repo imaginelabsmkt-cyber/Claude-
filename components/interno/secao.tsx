@@ -10,6 +10,8 @@ interface SecaoProps {
   explicacao?: string;
   /** Canto direito: um link para a tela que detalha o bloco. */
   acao?: ReactNode;
+  /** Classes extras no <section> (ex.: não partir em layout de colunas). */
+  className?: string;
   children: ReactNode;
 }
 
@@ -20,9 +22,15 @@ interface SecaoProps {
  * no mesmo lugar e no mesmo tamanho. É o que responde "o que é isso?"
  * antes de a pessoa precisar clicar para descobrir.
  */
-export function Secao({ titulo, explicacao, acao, children }: SecaoProps) {
+export function Secao({
+  titulo,
+  explicacao,
+  acao,
+  className,
+  children,
+}: SecaoProps) {
   return (
-    <section className="mb-7">
+    <section className={"mb-7" + (className ? " " + className : "")}>
       <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <div>
           <h2 className="text-base font-bold text-gray-900">{titulo}</h2>

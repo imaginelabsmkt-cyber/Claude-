@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { BuscaComando } from "@/components/interno/busca-comando";
@@ -10,6 +11,8 @@ import { areaDaRota } from "@/lib/interno/areas";
 interface InternoShellProps {
   children: ReactNode;
   nomeUsuario?: string;
+  /** Quantos clientes ativos a agência tem agora. */
+  clientesAtivos?: number;
 }
 
 /**
@@ -23,7 +26,11 @@ interface InternoShellProps {
  * área aberta — todo componente que usa as classes `area`/`area-soft`
  * acompanha sem precisar receber a cor por props.
  */
-export function InternoShell({ children, nomeUsuario }: InternoShellProps) {
+export function InternoShell({
+  children,
+  nomeUsuario,
+  clientesAtivos,
+}: InternoShellProps) {
   const [menuAberto, setMenuAberto] = useState(false);
   const pathname = usePathname();
   const ativa = areaDaRota(pathname);
@@ -63,6 +70,40 @@ export function InternoShell({ children, nomeUsuario }: InternoShellProps) {
           <BuscaComando />
 
           <div className="ml-auto flex items-center gap-3">
+            {/* O quantitativo de clientes, em toda tela do interno.
+                Fica aqui e não num cartão de painel porque o pedido foi
+                "quero que SEMPRE apareça": a barra do topo é o único
+                lugar que acompanha a pessoa pelo sistema inteiro. É
+                link, então o número também é o caminho para a lista. */}
+            {typeof clientesAtivos === "number" ? (
+              <Link
+                href="/interno/administrativo/clientes"
+                className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-100"
+                title={`${clientesAtivos} ${clientesAtivos === 1 ? "cliente ativo" : "clientes ativos"}`}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 shrink-0 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 8.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM22 20v-2a4 4 0 0 0-3-3.87M16 1.13a4 4 0 0 1 0 7.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="font-semibold tabular-nums">
+                  {clientesAtivos}
+                </span>
+                <span className="hidden sm:inline">
+                  {clientesAtivos === 1 ? "cliente" : "clientes"}
+                </span>
+              </Link>
+            ) : null}
+
             <span className="hidden text-sm text-gray-600 sm:inline">
               {nomeUsuario ?? "Usuário"}
             </span>

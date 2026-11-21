@@ -41,14 +41,116 @@ const MES = "2026-11";
  * (Laura, Izabela, Natural Concept) e nenhuma despesa paga.
  */
 const REAIS: MesFaturamento[] = [
-  { mes: "2026-04", receitas: 15271, despesas: 11548.03, recebido: 15271, pago: 11548.03, saldoFinal: 3722.97 },
-  { mes: "2026-05", receitas: 20958, despesas: 16224.11, recebido: 20958, pago: 16224.11, saldoFinal: 8456.86 },
-  { mes: "2026-06", receitas: 20418, despesas: 14767.16, recebido: 20418, pago: 14767.16, saldoFinal: 14107.7 },
-  { mes: "2026-07", receitas: 18747, despesas: 15567.02, recebido: 18747, pago: 15567.02, saldoFinal: 17287.68 },
-  { mes: "2026-08", receitas: 15500, despesas: 15900.22, recebido: 15500, pago: 15900.22, saldoFinal: 16887.46 },
-  { mes: "2026-09", receitas: 15650, despesas: 17813.92, recebido: 15650, pago: 17813.92, saldoFinal: 14723.54 },
-  { mes: "2026-10", receitas: 14150, despesas: 16950.16, recebido: 11550, pago: 16950.16, saldoFinal: 11923.38 },
-  { mes: "2026-11", receitas: 14450, despesas: 13956.75, recebido: 5050, pago: 0, saldoFinal: 12416.63 },
+  {
+    mes: "2026-04",
+    receitas: 15271,
+    despesas: 11548.03,
+    recebido: 15271,
+    pago: 11548.03,
+    saldoFinal: 3722.97,
+  },
+  {
+    mes: "2026-05",
+    receitas: 20958,
+    despesas: 16224.11,
+    recebido: 20958,
+    pago: 16224.11,
+    saldoFinal: 8456.86,
+  },
+  {
+    mes: "2026-06",
+    receitas: 20418,
+    despesas: 14767.16,
+    recebido: 20418,
+    pago: 14767.16,
+    saldoFinal: 14107.7,
+  },
+  {
+    mes: "2026-07",
+    receitas: 18747,
+    despesas: 15567.02,
+    recebido: 18747,
+    pago: 15567.02,
+    saldoFinal: 17287.68,
+  },
+  {
+    mes: "2026-08",
+    receitas: 15500,
+    despesas: 15900.22,
+    recebido: 15500,
+    pago: 15900.22,
+    saldoFinal: 16887.46,
+  },
+  {
+    mes: "2026-09",
+    receitas: 15650,
+    despesas: 17813.92,
+    recebido: 15650,
+    pago: 17813.92,
+    saldoFinal: 14723.54,
+  },
+  {
+    mes: "2026-10",
+    receitas: 14150,
+    despesas: 16950.16,
+    recebido: 11550,
+    pago: 16950.16,
+    saldoFinal: 11923.38,
+  },
+  {
+    mes: "2026-11",
+    receitas: 14450,
+    despesas: 13956.75,
+    recebido: 5050,
+    pago: 0,
+    saldoFinal: 12416.63,
+  },
+];
+
+/**
+ * Receita por cliente e despesa por categoria em 2026.
+ *
+ * MEDIDOS, não estimados: schema + seed + ATUALIZAR carregados num
+ * Postgres 16 e consultados com a mesma soma que a página faz. É a
+ * regra 1 deste arquivo, e foi ela que eu quebrei uma vez.
+ */
+const POR_CLIENTE = [
+  { rotulo: "Kiku Sushi", valor: 15200 },
+  { rotulo: "Osteo&Fit", valor: 12400 },
+  { rotulo: "Natural Concept", valor: 11900 },
+  { rotulo: "Malukies Cookies & Co", valor: 11600 },
+  { rotulo: "Laura Chioquetta", valor: 10300 },
+  { rotulo: "Dra. Hemilayne", valor: 9691 },
+  { rotulo: "Julia Brito", valor: 8750 },
+  { rotulo: "Briller", valor: 6200 },
+  { rotulo: "Beatriz Cristina", valor: 5800 },
+  { rotulo: "Vieira Franco Advogados", valor: 5600 },
+  { rotulo: "Laysa Rocha", valor: 5463 },
+  { rotulo: "Izabela Schipitoski", valor: 5400 },
+  { rotulo: "Studio Bambu", valor: 2600 },
+];
+
+const POR_CATEGORIA = [
+  { rotulo: "Pró-labore (sócias)", valor: 89000, detalhe: "14 lançamentos" },
+  { rotulo: "Equipamentos", valor: 9177.43, detalhe: "14 lançamentos" },
+  {
+    rotulo: "Assinaturas e ferramentas digitais",
+    valor: 6993.48,
+    detalhe: "56 lançamentos",
+  },
+  {
+    rotulo: "Outros custos operacionais",
+    valor: 2011.57,
+    detalhe: "6 lançamentos",
+  },
+  {
+    rotulo: "Transporte / deslocamento",
+    valor: 845.95,
+    detalhe: "5 lançamentos",
+  },
+  { rotulo: "Tráfego pago (gestão)", valor: 554.76, detalhe: "2 lançamentos" },
+  { rotulo: "DAS - Simples Nacional", valor: 430.25, detalhe: "5 lançamentos" },
+  { rotulo: "Contabilidade / MEI", valor: 319.8, detalhe: "2 lançamentos" },
 ];
 
 /** Exemplo: a meta de verdade é a Fran que define nas Configurações. */
@@ -99,7 +201,11 @@ function Tela() {
     <>
       <Secao
         titulo={`O ano de ${ano.ano}`}
-        acao={<span className="font-medium text-gray-600">Abrir o resumo do ano</span>}
+        acao={
+          <span className="font-medium text-gray-600">
+            Abrir o resumo do ano
+          </span>
+        }
       >
         <CartaoDoAno ano={ano} meta={meta} />
       </Secao>
@@ -126,21 +232,41 @@ function Tela() {
             valor={formatarMoeda(5400)}
             detalhe="3 oportunidades"
           />
-          <Indicador rotulo="Contratos" valor="2" detalhe="pedem conversa" alerta />
+          <Indicador
+            rotulo="Contratos"
+            valor="2"
+            detalhe="pedem conversa"
+            alerta
+          />
         </div>
       </Secao>
 
-      <div className="grid gap-x-4 lg:grid-cols-2">
+      <div className="lg:columns-2 lg:gap-x-4">
         <Secao
+          className="break-inside-avoid"
           titulo="O funil, por etapa"
-          acao={<span className="font-medium text-gray-600">Abrir o comercial</span>}
+          acao={
+            <span className="font-medium text-gray-600">Abrir o comercial</span>
+          }
         >
           <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
             <BarrasRanqueadas
               itens={[
-                { rotulo: "Contato feito", valor: 1800, detalhe: "2 oportunidades" },
-                { rotulo: "Diagnóstico", valor: 2200, detalhe: "1 oportunidade" },
-                { rotulo: "Proposta enviada", valor: 1400, detalhe: "1 oportunidade" },
+                {
+                  rotulo: "Contato feito",
+                  valor: 1800,
+                  detalhe: "2 oportunidades",
+                },
+                {
+                  rotulo: "Diagnóstico",
+                  valor: 2200,
+                  detalhe: "1 oportunidade",
+                },
+                {
+                  rotulo: "Proposta enviada",
+                  valor: 1400,
+                  detalhe: "1 oportunidade",
+                },
               ]}
               cor="#7a2740"
               ordenar={false}
@@ -149,23 +275,28 @@ function Tela() {
         </Secao>
 
         <Secao
+          className="break-inside-avoid"
           titulo="Quem paga a conta em 2026"
-          acao={<span className="font-medium text-gray-600">Abrir os clientes</span>}
+          acao={
+            <span className="font-medium text-gray-600">Abrir os clientes</span>
+          }
         >
           <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-            <BarrasRanqueadas
-              itens={[
-                { rotulo: "Kiku Sushi", valor: 17600 },
-                { rotulo: "Malukies Cookies & Co", valor: 15400 },
-                { rotulo: "Laura Chioquetta", valor: 12400 },
-                { rotulo: "Natural Concept", valor: 11900 },
-                { rotulo: "Dra. Hemilayne", valor: 9794 },
-                { rotulo: "Izabela Schipitoski", valor: 7200 },
-                { rotulo: "Studio Bambu", valor: 3900 },
-              ]}
-              cor="#1d5a9e"
-              limite={6}
-            />
+            <BarrasRanqueadas itens={POR_CLIENTE} cor="#1d5a9e" limite={6} />
+          </div>
+        </Secao>
+
+        <Secao
+          className="break-inside-avoid"
+          titulo="Para onde foi o dinheiro em 2026"
+          acao={
+            <span className="font-medium text-gray-600">
+              Abrir o financeiro
+            </span>
+          }
+        >
+          <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+            <BarrasRanqueadas itens={POR_CATEGORIA} cor="#8a5a1e" limite={8} />
           </div>
         </Secao>
       </div>

@@ -4,6 +4,8 @@ import {
   listarClientesFinanceiro,
   listarLancamentos,
   obterConfiguracaoFinanceira,
+  despesaPorCategoriaNoAno,
+  indexarCategorias,
   receitaPorClienteNoAno,
   obterPainelMes,
   obterResumoAnual,
@@ -148,8 +150,29 @@ export interface PainelInterno {
   funilPorEtapa: { rotulo: string; valor: number; detalhe: string }[];
   /** Quanto cada cliente rendeu no ano. */
   receitaPorCliente: { rotulo: string; valor: number }[];
+  /** Quanto saiu em cada categoria de despesa no ano. */
+  despesaPorCategoria: { rotulo: string; valor: number; detalhe: string }[];
   /** O administrativo em uma linha. */
   administrativo: { contratosQuePedemConversa: number };
+}
+
+/**
+ * Quantos clientes ativos a agência tem agora.
+ *
+ * "Quero que apareça o quantitativo de clientes que a gente tem, não
+ * sei se no administrativo, no financeiro, mas eu quero que SEMPRE
+ * apareça." O número existia só dentro da tela de Clientes. Esta
+ * função alimenta a barra do topo, que está em toda tela do interno.
+ *
+ * Consulta de contagem: traz o número, não as linhas.
+ */
+export async function contarClientesAtivos(): Promise<number> {
+  const supabase = createClient();
+  const { count } = await supabase
+    .from("clients")
+    .select("id", { count: "exact", head: true })
+    .eq("active", true);
+  return count ?? 0;
 }
 
 /**
@@ -169,6 +192,8 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
     leadsAbertos,
     configuracao,
     receitaCliente,
+    despesaCategoria,
+    categorias,
     clientesDoFinanceiro,
     { data: recorrencias },
     { count: ativos },
@@ -181,6 +206,8 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       listarLeads(LEAD_STAGES_ABERTAS),
       obterConfiguracaoFinanceira(),
       receitaPorClienteNoAno(anoDoMes(mes)),
+      despesaPorCategoriaNoAno(anoDoMes(mes)),
+      listarCategorias(),
       listarClientesFinanceiro(),
       supabase
         .from("financial_recurrences")
@@ -196,6 +223,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
   const nomesDeCliente = new Map(
     clientesDoFinanceiro.map((c) => [c.id, c.name]),
   );
+  const nomesDeCategoria = indexarCategorias(categorias);
 
   const vigentes = (recorrencias ?? []).filter(
     (r) => r.start_month <= mes && (!r.end_month || r.end_month >= mes),
@@ -316,6 +344,13 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
       rotulo: nomesDeCliente.get(id) ?? "Cliente",
       valor,
     })),
+    despesaPorCategoria: Object.entries(despesaCategoria).map(
+      ([id, { valor, quantos }]) => ({
+        rotulo: nomesDeCategoria.get(id)?.nome ?? "Sem categoria",
+        valor,
+        detalhe: quantos === 1 ? "1 lançamento" : `${quantos} lançamentos`,
+      }),
+    ),
     administrativo: {
       contratosQuePedemConversa: contratosQuePedemConversa(
         contratosDeCliente,
