@@ -48,7 +48,7 @@ export default async function ContabilPage({ searchParams }: PageProps) {
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2">
         <Stat
-          rotulo="Vai sair em impostos e contabilidade"
+          rotulo="Total de tributos"
           valor={formatarMoeda(recorte.realizado + recorte.pendente)}
           detalhe={rotuloMes(mes)}
         />

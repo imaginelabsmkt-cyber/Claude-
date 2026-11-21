@@ -53,7 +53,7 @@ export default async function DocumentosPage() {
       <AdministrativoTabs />
 
       <Secao
-        titulo="Prazos do administrativo"
+        titulo="Obrigações e prazos"
       >
         <ObrigacoesPanel obrigacoes={obrigacoes} area="administrativo" />
       </Secao>

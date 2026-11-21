@@ -109,10 +109,8 @@ export default async function RentabilidadePage({ searchParams }: PageProps) {
       >
       {r.clientes.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
-          <p className="font-medium text-gray-900">Nada pago neste período</p>
-          <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">
-            A rentabilidade só conta o que foi efetivamente pago. Receita prometida
-            não paga cliente nenhum.
+          <p className="font-medium text-gray-900">
+            Nenhum pagamento no período
           </p>
         </div>
       ) : (

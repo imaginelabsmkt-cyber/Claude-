@@ -50,7 +50,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
-          rotulo="Custo com pessoas"
+          rotulo="Custo com equipe"
           valor={formatarMoeda(total)}
           origem="financeiro"
           detalhe={
@@ -60,7 +60,7 @@ export default async function PessoasPage({ searchParams }: PageProps) {
           }
         />
         <Stat
-          rotulo="Na equipe"
+          rotulo="Pessoas"
           valor={String(ativas.length)}
           detalhe={(() => {
             const socias = ativas.filter((p) => p.kind === "Sócia").length;

@@ -149,8 +149,7 @@ export function PessoasPanel({ pessoas }: { pessoas: PessoaComCusto[] }) {
 
       {pessoas.length === 0 && editando !== "nova" ? (
         <p className="text-sm text-gray-500">
-          Ninguém cadastrado ainda. Cadastre as sócias e os freelancers para que os
-          pagamentos do financeiro tenham dono.
+          Nenhuma pessoa cadastrada.
         </p>
       ) : null}
     </div>
@@ -278,7 +277,7 @@ function PessoaForm({
             aria-invalid={Boolean(erros.default_rate)}
           />
           {erro("default_rate") ?? (
-            <p className="mt-1 text-xs text-gray-500">Só referência; o valor real vem do lançamento.</p>
+            <p className="mt-1 text-xs text-gray-500">Referência; o valor real vem do lançamento.</p>
           )}
         </div>
         <div>

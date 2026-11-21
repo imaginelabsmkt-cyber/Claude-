@@ -159,7 +159,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
             href={`/interno/financeiro/rentabilidade?mes=${mesFoco}`}
             className="font-medium text-brand-700 hover:underline"
           >
-            Quanto cada cliente rende
+            Margem por cliente
           </Link>
         </p>
       </div>
@@ -170,7 +170,7 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
           onde a pessoa vem procurar detalhe. */}
       <div className="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
         <p className="mb-2 text-sm font-semibold text-gray-700">
-          Entrou e saiu, mês a mês
+          Receitas e despesas por mês
         </p>
         <GraficoAno barras={faturamentoAnual(ano, resumo.serie).barras} mesFoco={mesFoco} />
       </div>
