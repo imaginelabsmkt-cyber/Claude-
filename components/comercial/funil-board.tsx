@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -20,6 +20,7 @@ import {
   propostaVencida,
   propostaVigente,
 } from "@/lib/comercial/funil";
+import { quandoEhAReuniao, reuniaoPassou } from "@/lib/comercial/reuniao";
 import { toast } from "@/lib/ui/toast";
 import { cn, formatarMoeda } from "@/lib/utils";
 import { LEAD_STAGES_ABERTAS } from "@/types";
@@ -39,6 +40,20 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
   const proposta = propostaVigente(lead.proposals);
   const vencida = proposta ? propostaVencida(proposta) : false;
 
+  /* A reunião é escrita com o relógio de QUEM ESTÁ OLHANDO: "hoje
+     14h" só faz sentido no fuso de quem lê, e o servidor roda em UTC.
+     Por isso o `agora` só nasce depois de montar — se nascesse no
+     render, o HTML do servidor diria uma coisa e o do navegador
+     outra, e o React reclamaria de hidratação em toda oportunidade
+     com reunião marcada. O custo é o texto aparecer um quadro
+     depois; o benefício é ele estar certo. */
+  const [agora, setAgora] = useState<Date | null>(null);
+  useEffect(() => setAgora(new Date()), []);
+
+  const reuniao =
+    agora && lead.meeting_at ? quandoEhAReuniao(lead.meeting_at, agora) : "";
+  const reuniaoAtrasada = agora ? reuniaoPassou(lead.meeting_at, agora) : false;
+
   return (
     <div
       ref={setNodeRef}
@@ -48,7 +63,9 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
       }}
       className={cn(
         "rounded-lg border border-gray-200 border-l-4 bg-white p-2.5 shadow-sm",
-        parado || vencida ? "border-l-alerta" : "border-l-area",
+        parado || vencida || reuniaoAtrasada
+          ? "border-l-alerta"
+          : "border-l-area",
       )}
       {...listeners}
       {...attributes}
@@ -70,6 +87,17 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
         {lead.source ? `${lead.source} · ` : ""}
         {dias === 0 ? "entrou hoje" : `${dias} dia${dias > 1 ? "s" : ""} aqui`}
       </p>
+
+      {reuniao ? (
+        <p
+          className={cn(
+            "mt-1 text-[11px] font-semibold",
+            reuniaoAtrasada ? "text-alerta" : "text-area",
+          )}
+        >
+          Reunião {reuniao}
+        </p>
+      ) : null}
 
       {vencida ? (
         <p className="mt-1 text-[11px] font-semibold text-alerta">

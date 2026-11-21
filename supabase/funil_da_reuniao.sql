@@ -81,3 +81,14 @@ as $$
     else 0                                  -- Perdido: não é degrau
   end;
 $$;
+
+-- 6. A data da reunião.
+--
+--    "Reunião marcada" sem data é só uma palavra: não dá para saber
+--    quem tem reunião esta semana nem quem tem reunião que já passou
+--    e ninguém mexeu.
+alter table public.commercial_leads
+  add column if not exists meeting_at timestamptz;
+
+comment on column public.commercial_leads.meeting_at is
+  'Quando é a reunião de apresentação. Usado na etapa "Reunião marcada".';

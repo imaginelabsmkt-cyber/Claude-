@@ -1216,13 +1216,15 @@ create table if not exists public.commercial_leads (
   client_id          uuid references public.clients(id) on delete set null,
   -- Preenchido quando é perdido.
   lost_reason        text,
+  -- Quando é a reunião de apresentação (etapa "Reunião marcada").
+  meeting_at         timestamptz,
   -- Quando entrou na etapa atual — alimenta o "X dias parado".
   stage_changed_at   timestamptz not null default now(),
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
 
--- 2.2 Propostas enviadas a uma oportunidade.
+-- 2.2 Propostas apresentadas a uma oportunidade.
 --     Mais de uma por lead é normal (a segunda versão depois da
 --     negociação), por isso é tabela e não campo.
 create table if not exists public.commercial_proposals (

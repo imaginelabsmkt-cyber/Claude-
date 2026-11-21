@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { atualizarLeadAction, criarLeadAction } from "@/lib/actions/comercial";
 import { paraCampo } from "@/lib/financeiro/valores";
+import { paraCampoDeReuniao } from "@/lib/comercial/reuniao";
 import {
   LEAD_FORM_PADRAO,
   leadFormSchema,
@@ -23,7 +24,26 @@ interface LeadFormProps {
   aoConcluir?: () => void;
 }
 
-/** Formulário de oportunidade (criação e edição). */
+/**
+ * Formulário de oportunidade (criação e edição).
+ *
+ * TRÊS CAMPOS À VISTA, o resto guardado.
+ *
+ * A Fran: "o cadastro está bem confuso, não é usual". Eram nove
+ * campos de uma vez — nome, valor, etapa, canal, detalhe, contato,
+ * e-mail, telefone e anotações — para anotar uma conversa que acabou
+ * de acontecer no WhatsApp. Quem lança uma oportunidade na hora sabe
+ * três coisas: quem é, quanto mais ou menos, e de onde veio.
+ *
+ * O resto não sumiu: está em "Mais detalhes", que abre sozinho quando
+ * algum desses campos já tem conteúdo (que é sempre o caso na
+ * edição) ou quando algum deles deu erro — senão o erro ficaria
+ * escondido atrás de um bloco fechado.
+ *
+ * A ETAPA entrou no bloco de baixo porque etapa não se digita: se
+ * arrasta no quadro. Oportunidade nova nasce em "Contato feito", que
+ * é onde ela está mesmo quando você acabou de falar com a pessoa.
+ */
 export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
   const router = useRouter();
   const edicao = Boolean(lead);
@@ -39,6 +59,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
           channel: lead.channel,
           stage: lead.stage,
           estimated_monthly: paraCampo(Number(lead.estimated_monthly)),
+          meeting_at: paraCampoDeReuniao(lead.meeting_at),
           notes: lead.notes ?? "",
         }
       : LEAD_FORM_PADRAO,
@@ -68,10 +89,20 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
     }
     setErros({});
 
+    /* O campo devolve "2026-11-12T16:05", sem fuso. Quem converte
+       para instante é AQUI, no navegador, que é o único que sabe em
+       que fuso a pessoa está marcando — o servidor roda em UTC e
+       transformaria as 16h de Boa Vista em 12h. */
+    const local = parsed.data.meeting_at ?? "";
+    const dados = {
+      ...parsed.data,
+      meeting_at: local ? new Date(local).toISOString() : "",
+    };
+
     iniciar(async () => {
       const r = edicao
-        ? await atualizarLeadAction(lead!.id, parsed.data)
-        : await criarLeadAction(parsed.data);
+        ? await atualizarLeadAction(lead!.id, dados)
+        : await criarLeadAction(dados);
 
       if (!r.ok) {
         setErros(r.fieldErrors ?? {});
@@ -88,12 +119,29 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
   const erro = (campo: string) =>
     erros[campo] ? <p className="mt-1 text-xs text-alerta">{erros[campo]}</p> : null;
 
+  /**
+   * "Mais detalhes" começa aberto se já tem o que ver lá dentro, ou se
+   * algum campo de lá deu erro — senão o erro ficava escondido atrás
+   * de um bloco fechado e o formulário não salvava sem dizer por quê.
+   */
+  const GUARDADOS = [
+    "contact_name",
+    "contact_email",
+    "contact_phone",
+    "source",
+    "notes",
+  ] as const;
+  const detalhesAbertos =
+    GUARDADOS.some((c) => (values[c] ?? "").trim().length > 0) ||
+    GUARDADOS.some((c) => Boolean(erros[c])) ||
+    values.stage !== "Contato feito";
+
   return (
     <form onSubmit={aoEnviar} className="space-y-4" noValidate>
       {mensagem ? <Alert variante="erro">{mensagem}</Alert> : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="sm:col-span-2">
           <Label htmlFor="l-name">Nome da oportunidade *</Label>
           <Input
             id="l-name"
@@ -118,98 +166,124 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div>
-          <Label htmlFor="l-stage">Etapa *</Label>
-          <Select
-            id="l-stage"
-            value={values.stage}
-            onChange={(e) =>
-              atualizar("stage", e.target.value as LeadFormValues["stage"])
-            }
-          >
-            {LEAD_STAGES_ABERTAS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
-          <p className="mt-1 text-xs text-gray-500">
-            Ganhar e perder ficam na ficha.
-          </p>
-        </div>
-        <div>
-          <Label htmlFor="l-channel">Canal de prospecção</Label>
-          <Select
-            id="l-channel"
-            value={values.channel}
-            onChange={(e) =>
-              atualizar("channel", e.target.value as LeadFormValues["channel"])
-            }
-          >
-            {LEAD_CHANNEL_OPTIONS.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </Select>
-          <p className="mt-1 text-xs text-gray-500">
-            É por aqui que a Prospecção mostra qual canal vira cliente.
-          </p>
-        </div>
-        <div>
-          <Label htmlFor="l-source">Detalhe (opcional)</Label>
-          <Input
-            id="l-source"
-            value={values.source ?? ""}
-            onChange={(e) => atualizar("source", e.target.value)}
-            placeholder="quem indicou, qual evento, qual parceiro"
-          />
-        </div>
-        <div>
-          <Label htmlFor="l-contact">Contato</Label>
-          <Input
-            id="l-contact"
-            value={values.contact_name ?? ""}
-            onChange={(e) => atualizar("contact_name", e.target.value)}
-            placeholder="Nome de quem fala"
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="l-email">E-mail</Label>
-          <Input
-            id="l-email"
-            type="email"
-            value={values.contact_email ?? ""}
-            onChange={(e) => atualizar("contact_email", e.target.value)}
-            aria-invalid={Boolean(erros.contact_email)}
-          />
-          {erro("contact_email")}
-        </div>
-        <div>
-          <Label htmlFor="l-phone">Telefone</Label>
-          <Input
-            id="l-phone"
-            value={values.contact_phone ?? ""}
-            onChange={(e) => atualizar("contact_phone", e.target.value)}
-            placeholder="(46) 90000-0000"
-          />
-        </div>
-      </div>
-
       <div>
-        <Label htmlFor="l-notes">Anotações</Label>
-        <Textarea
-          id="l-notes"
-          rows={3}
-          value={values.notes ?? ""}
-          onChange={(e) => atualizar("notes", e.target.value)}
-          placeholder="O que essa pessoa precisa, o que foi combinado..."
-        />
+        <Label htmlFor="l-channel">De onde veio</Label>
+        <Select
+          id="l-channel"
+          value={values.channel}
+          onChange={(e) =>
+            atualizar("channel", e.target.value as LeadFormValues["channel"])
+          }
+        >
+          {LEAD_CHANNEL_OPTIONS.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </Select>
       </div>
+
+      {/* A data só aparece quando a etapa é a da reunião — ou quando
+          já existe uma marcada, para não sumir com o que foi
+          preenchido ao voltar a oportunidade para trás. Campo que não
+          serve para a etapa atual é campo a mais, e campo a mais foi
+          exatamente a reclamação. */}
+      {values.stage === "Reunião marcada" || (values.meeting_at ?? "") !== "" ? (
+        <div>
+          <Label htmlFor="l-reuniao">Quando é a reunião</Label>
+          <Input
+            id="l-reuniao"
+            type="datetime-local"
+            value={values.meeting_at ?? ""}
+            onChange={(e) => atualizar("meeting_at", e.target.value)}
+            aria-invalid={Boolean(erros.meeting_at)}
+          />
+          {erro("meeting_at")}
+        </div>
+      ) : null}
+
+      <details open={detalhesAbertos} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+        <summary className="cursor-pointer select-none text-sm font-semibold text-gray-700">
+          Mais detalhes
+        </summary>
+
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="l-stage">Etapa</Label>
+              <Select
+                id="l-stage"
+                value={values.stage}
+                onChange={(e) =>
+                  atualizar("stage", e.target.value as LeadFormValues["stage"])
+                }
+              >
+                {LEAD_STAGES_ABERTAS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </Select>
+              <p className="mt-1 text-xs text-gray-500">
+                No dia a dia é só arrastar no quadro. Ganhar e perder ficam na
+                ficha.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="l-source">Detalhe de onde veio</Label>
+              <Input
+                id="l-source"
+                value={values.source ?? ""}
+                onChange={(e) => atualizar("source", e.target.value)}
+                placeholder="quem indicou, qual evento, qual parceiro"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <Label htmlFor="l-contact">Contato</Label>
+              <Input
+                id="l-contact"
+                value={values.contact_name ?? ""}
+                onChange={(e) => atualizar("contact_name", e.target.value)}
+                placeholder="Nome de quem fala"
+              />
+            </div>
+            <div>
+              <Label htmlFor="l-email">E-mail</Label>
+              <Input
+                id="l-email"
+                type="email"
+                value={values.contact_email ?? ""}
+                onChange={(e) => atualizar("contact_email", e.target.value)}
+                aria-invalid={Boolean(erros.contact_email)}
+              />
+              {erro("contact_email")}
+            </div>
+            <div>
+              <Label htmlFor="l-phone">Telefone</Label>
+              <Input
+                id="l-phone"
+                value={values.contact_phone ?? ""}
+                onChange={(e) => atualizar("contact_phone", e.target.value)}
+                placeholder="(46) 90000-0000"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="l-notes">Anotações</Label>
+            <Textarea
+              id="l-notes"
+              rows={3}
+              value={values.notes ?? ""}
+              onChange={(e) => atualizar("notes", e.target.value)}
+              placeholder="O que essa pessoa precisa, o que foi combinado..."
+            />
+          </div>
+        </div>
+      </details>
 
       <div className="flex gap-3">
         <Button type="submit" disabled={salvando}>

@@ -200,6 +200,49 @@ export async function listarEncerrados(
   }));
 }
 
+/** Uma oportunidade que acabou, do jeito que a tela de encerradas lê. */
+export interface LeadEncerrada {
+  id: string;
+  name: string;
+  stage: "Fechado" | "Perdido";
+  channel: LeadChannel;
+  estimated_monthly: number;
+  lost_reason: string | null;
+  client_id: string | null;
+  /** Quando foi encerrada (a mudança de etapa). */
+  encerrada_em: string;
+}
+
+/**
+ * TODAS as oportunidades que acabaram, ganhas e perdidas.
+ *
+ * Diferente de `listarEncerrados`, que traz só as últimas para o pé do
+ * funil: esta é a base de dados inteira, que é o que a Fran pediu —
+ * "a pessoa que a gente não fechou, e a gente vai tentar entender essa
+ * métrica depois".
+ */
+export async function listarTodasEncerradas(): Promise<LeadEncerrada[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("commercial_leads")
+    .select(
+      "id, name, stage, channel, estimated_monthly, lost_reason, client_id, stage_changed_at",
+    )
+    .in("stage", ["Fechado", "Perdido"])
+    .order("stage_changed_at", { ascending: false });
+
+  return (data ?? []).map((l) => ({
+    id: l.id as string,
+    name: l.name as string,
+    stage: l.stage as "Fechado" | "Perdido",
+    channel: l.channel as LeadChannel,
+    estimated_monthly: Number(l.estimated_monthly),
+    lost_reason: (l.lost_reason as string | null) ?? null,
+    client_id: (l.client_id as string | null) ?? null,
+    encerrada_em: l.stage_changed_at as string,
+  }));
+}
+
 // -------------------------------------------------------------
 // Prospecção
 // -------------------------------------------------------------

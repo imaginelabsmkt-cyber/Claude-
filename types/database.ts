@@ -515,6 +515,8 @@ export type Lead = {
   /** Preenchido quando o lead é ganho: o cliente que nasceu dele. */
   client_id: UUID | null;
   lost_reason: string | null;
+  /** Quando é a reunião de apresentação (etapa "Reunião marcada"). */
+  meeting_at: string | null;
   /** Quando entrou na etapa atual — alimenta o "parado há N dias". */
   stage_changed_at: ISODateString;
   created_at: ISODateString;
@@ -611,6 +613,7 @@ export type LeadInsert = Omit<
   | "notes"
   | "client_id"
   | "lost_reason"
+  | "meeting_at"
 > & {
   id?: UUID;
   stage?: LeadStage;
@@ -624,6 +627,7 @@ export type LeadInsert = Omit<
   notes?: string | null;
   client_id?: UUID | null;
   lost_reason?: string | null;
+  meeting_at?: string | null;
 };
 
 export type ProposalInsert = Omit<

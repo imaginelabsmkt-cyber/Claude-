@@ -50,6 +50,21 @@ export const leadFormSchema = z.object({
     "Perdido",
   ]),
   estimated_monthly: VALOR_OPCIONAL,
+  /**
+   * Quando é a reunião, já como INSTANTE (ISO com fuso).
+   *
+   * O `<input type="datetime-local">` devolve "2026-11-12T16:05", sem
+   * fuso nenhum — e o servidor roda em UTC. Se essa string chegasse
+   * crua lá, a reunião das 16h de Boa Vista viraria 16h UTC, ou seja
+   * 12h aqui. Por isso quem converte é o navegador, que é o único que
+   * sabe o fuso de quem está marcando, e o que viaja é o instante.
+   */
+  meeting_at: z
+    .string()
+    .trim()
+    .refine((v) => !Number.isNaN(new Date(v).getTime()), "Data da reunião inválida")
+    .or(z.literal(""))
+    .optional(),
   notes: z.string().trim().max(2000).or(z.literal("")).optional(),
 });
 
@@ -64,6 +79,7 @@ export const LEAD_FORM_PADRAO: LeadFormValues = {
   channel: "Social selling",
   stage: "Contato feito",
   estimated_monthly: "",
+  meeting_at: "",
   notes: "",
 };
 

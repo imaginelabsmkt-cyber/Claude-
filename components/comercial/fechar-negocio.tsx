@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
@@ -21,6 +22,18 @@ import type { LeadWithRelations } from "@/types";
 export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
   const router = useRouter();
   const [aba, setAba] = useState<"nada" | "ganhar" | "perder">("nada");
+  /**
+   * O que nasceu do fechamento, para escrever na tela em vez de só
+   * passar num aviso que some em três segundos.
+   *
+   * A Fran: "quando a gente fecha o cliente no comercial, ele já tem
+   * que ir para o administrativo automaticamente". Ia — desde sempre.
+   * O que faltava era a tela DIZER que foi, e dar o caminho.
+   */
+  const [feito, setFeito] = useState<{
+    cliente: string;
+    mensal: number;
+  } | null>(null);
   const [values, setValues] = useState<FechamentoValues>({
     mesInicio: proximoMes(new Date().toISOString().slice(0, 7)),
     meses: "12",
@@ -58,6 +71,10 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
         setMensagem(r.error ?? "Não foi possível fechar.");
         return;
       }
+      setFeito({
+        cliente: r.criou?.cliente ?? lead.name,
+        mensal: r.criou?.mensal ?? mensal,
+      });
       toast.sucesso(
         `${r.criou?.cliente} virou cliente, com mensalidade de ${formatarMoeda(r.criou?.mensal ?? 0)}.`,
       );
@@ -77,13 +94,52 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
     });
   }
 
+  if (feito) {
+    return (
+      <div className="rounded-xl border border-area bg-area-soft p-4">
+        <p className="text-sm font-semibold text-area">
+          {feito.cliente} já é cliente.
+        </p>
+        <p className="mt-1 text-sm text-gray-700">
+          Entrou no Administrativo e a mensalidade de{" "}
+          {formatarMoeda(feito.mensal)} está no financeiro. Não precisa
+          cadastrar de novo em lugar nenhum.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
+          <Link
+            href="/interno/administrativo/clientes"
+            className="text-area underline"
+          >
+            Ver na relação de clientes
+          </Link>
+          <Link
+            href="/interno/financeiro/recorrencias"
+            className="text-area underline"
+          >
+            Ver a mensalidade
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (aba === "nada") {
     return (
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={() => setAba("ganhar")}>Ganhamos</Button>
-        <Button variante="secundaria" onClick={() => setAba("perder")}>
-          Perdemos
-        </Button>
+      <div>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setAba("ganhar")}>Ganhamos</Button>
+          <Button variante="secundaria" onClick={() => setAba("perder")}>
+            Perdemos
+          </Button>
+        </div>
+        {/* A frase existe porque a Fran não sabia que isso acontecia:
+            "quando a gente fecha, ele já tem que ir para o
+            administrativo automaticamente, a gente não precisa
+            cadastrar de novo". Ia. Só não estava escrito. */}
+        <p className="mt-2 text-xs text-gray-500">
+          Ganhando, o cliente entra sozinho no Administrativo e a mensalidade no
+          financeiro. Perdendo, fica guardado com o motivo.
+        </p>
       </div>
     );
   }

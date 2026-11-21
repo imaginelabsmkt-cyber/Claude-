@@ -64,8 +64,23 @@ function normalizarLead(values: LeadFormValues) {
     channel: values.channel,
     stage: values.stage,
     estimated_monthly: paraNumero(values.estimated_monthly ?? "") ?? 0,
+    meeting_at: instante(values.meeting_at),
     notes: limpar(values.notes),
   };
+}
+
+/**
+ * Texto de data vira instante ISO, ou nada.
+ *
+ * O formulário já manda convertido (só o navegador sabe o fuso de
+ * quem marcou); isto aqui é a rede de proteção para qualquer outro
+ * caminho de entrada.
+ */
+function instante(valor: string | undefined | null): string | null {
+  const t = (valor ?? "").trim();
+  if (!t) return null;
+  const d = new Date(t);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 /** Cria uma oportunidade no funil. */
