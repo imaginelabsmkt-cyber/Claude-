@@ -6,15 +6,26 @@ import {
   type Encerrada,
 } from "./encerrados";
 
+/** Perda com motivo escrito à mão (o formato antigo). */
 const perdida = (motivo: string | null, valor = 1000): Encerrada => ({
   stage: "Perdido",
   estimated_monthly: valor,
+  lost_reason_kind: null,
   lost_reason: motivo,
+});
+
+/** Perda com motivo da lista (o formato de hoje). */
+const daLista = (motivo: string, valor = 1000): Encerrada => ({
+  stage: "Perdido",
+  estimated_monthly: valor,
+  lost_reason_kind: motivo,
+  lost_reason: null,
 });
 
 const ganha = (valor = 1000): Encerrada => ({
   stage: "Fechado",
   estimated_monthly: valor,
+  lost_reason_kind: null,
   lost_reason: null,
 });
 
@@ -55,6 +66,13 @@ describe("motivosDaPerda", () => {
     const m = motivosDaPerda([perdida(null), perdida("   ")]);
     expect(m).toHaveLength(1);
     expect(m[0].motivo).toBe(SEM_MOTIVO);
+    expect(m[0].quantas).toBe(2);
+  });
+
+  it("o motivo da lista manda, e junta com o que foi escrito antes", () => {
+    // A mesma perda, gravada nos dois formatos, é um motivo só.
+    const m = motivosDaPerda([daLista("Achou caro"), perdida("achou caro")]);
+    expect(m).toHaveLength(1);
     expect(m[0].quantas).toBe(2);
   });
 

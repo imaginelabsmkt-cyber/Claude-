@@ -17,7 +17,8 @@ import {
   type LeadFormValues,
   type PropostaFormValues,
 } from "@/lib/validation/comercial";
-import type { LeadStage, Proposal } from "@/types";
+import { LOST_REASON_OPTIONS } from "@/types";
+import type { LeadStage, LostReasonKind, Proposal } from "@/types";
 
 export interface ActionResult {
   ok: boolean;
@@ -87,6 +88,13 @@ function normalizarLead(values: LeadFormValues) {
  * formulário já converteu, e o "YYYY-MM-DDTHH:mm" cru do campo, que
  * é lido no fuso da agência. Nunca o fuso do servidor.
  */
+/** A data de daqui a N dias, no fuso da agência, como "YYYY-MM-DD". */
+function emDias(n: number): string {
+  const d = new Date(`${hojeISO()}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 function instante(valor: string | undefined | null): string | null {
   const t = (valor ?? "").trim();
   if (!t) return null;
@@ -195,12 +203,24 @@ export async function moverEtapaAction(
 /** Marca a oportunidade como perdida, com o motivo. */
 export async function perderNegocioAction(
   id: string,
-  motivo: string,
+  motivo: LostReasonKind,
+  observacao?: string,
 ): Promise<ActionResult> {
+  if (!LOST_REASON_OPTIONS.includes(motivo)) {
+    return { ok: false, error: "Escolha o motivo da perda." };
+  }
+
   const supabase = createClient();
   const { error } = await supabase
     .from("commercial_leads")
-    .update({ stage: "Perdido", lost_reason: limpar(motivo) })
+    .update({
+      stage: "Perdido",
+      lost_reason_kind: motivo,
+      lost_reason: limpar(observacao),
+      /* O perdido volta para a fila em 90 dias, como no protótipo:
+         "lead perdido volta pro Hoje 90 dias depois". */
+      next_contact_on: emDias(90),
+    })
     .eq("id", id);
 
   if (error) return { ok: false, error: "Não foi possível encerrar." };
@@ -214,7 +234,7 @@ export async function reabrirLeadAction(id: string): Promise<ActionResult> {
   const supabase = createClient();
   const { error } = await supabase
     .from("commercial_leads")
-    .update({ stage: "Negociação", lost_reason: null })
+    .update({ stage: "Negociação", lost_reason: null, lost_reason_kind: null })
     .eq("id", id);
 
   if (error) return { ok: false, error: "Não foi possível reabrir." };

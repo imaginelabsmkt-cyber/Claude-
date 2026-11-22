@@ -96,7 +96,11 @@ export default async function OportunidadePage({ params }: PageProps) {
           <p className="text-sm font-semibold text-gray-900">
             {lead.stage === "Fechado"
               ? "Ganho registrado"
-              : `Perda registrada${lead.lost_reason ? ` · ${lead.lost_reason}` : ""}`}
+              : `Perda registrada${
+                  lead.lost_reason_kind ?? lead.lost_reason
+                    ? ` · ${lead.lost_reason_kind ?? lead.lost_reason}`
+                    : ""
+                }`}
           </p>
           <div className="mt-3">
             <ReabrirLead id={lead.id} />

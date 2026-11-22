@@ -32,6 +32,7 @@ function lead(over: Partial<Lead> = {}): Lead {
     notes: null,
     client_id: null,
     lost_reason: null,
+    lost_reason_kind: null,
     meeting_at: null,
     temperature: null,
     next_contact_on: null,

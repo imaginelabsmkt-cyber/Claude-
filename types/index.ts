@@ -28,6 +28,7 @@ import type {
   LeadChannel,
   LeadStage,
   LeadTemperature,
+  LostReasonKind,
   Proposal,
   ProposalStatus,
   Profile,
@@ -244,6 +245,23 @@ export const LEAD_CHANNEL_DETAIL: Record<LeadChannel, string> = {
   "Visita presencial": "Onde",
   Outro: "Detalhe",
 };
+
+/**
+ * Os motivos de perda, em lista.
+ *
+ * Era texto livre, e eu normalizava na hora de somar — tirando
+ * acento, ponto final e maiúscula. Funciona até alguém escrever
+ * "preço alto" em vez de "achou caro", e aí a conta mente. Com lista,
+ * a pergunta "por que a gente perde" tem resposta de verdade.
+ */
+export const LOST_REASON_OPTIONS: LostReasonKind[] = [
+  "Sem resposta",
+  "Achou caro",
+  "Fechou com outra agência",
+  "Não é o momento",
+  "Fora do perfil",
+  "Outro",
+];
 
 export const LEAD_TEMPERATURE_OPTIONS: LeadTemperature[] = [
   "Quente",

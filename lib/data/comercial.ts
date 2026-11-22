@@ -187,11 +187,24 @@ export async function obterLead(id: string): Promise<LeadWithRelations | null> {
 /** Últimos negócios ganhos e perdidos, para o histórico do funil. */
 export async function listarEncerrados(
   limite = 8,
-): Promise<Pick<Lead, "id" | "name" | "stage" | "estimated_monthly" | "lost_reason" | "updated_at">[]> {
+): Promise<
+  Pick<
+    Lead,
+    | "id"
+    | "name"
+    | "stage"
+    | "estimated_monthly"
+    | "lost_reason"
+    | "lost_reason_kind"
+    | "updated_at"
+  >[]
+> {
   const supabase = createClient();
   const { data } = await supabase
     .from("commercial_leads")
-    .select("id, name, stage, estimated_monthly, lost_reason, updated_at")
+    .select(
+      "id, name, stage, estimated_monthly, lost_reason, lost_reason_kind, updated_at",
+    )
     .in("stage", ["Fechado", "Perdido"])
     .order("updated_at", { ascending: false })
     .limit(limite);
@@ -208,6 +221,7 @@ export interface LeadEncerrada {
   stage: "Fechado" | "Perdido";
   channel: LeadChannel;
   estimated_monthly: number;
+  lost_reason_kind: string | null;
   lost_reason: string | null;
   client_id: string | null;
   /** Quando foi encerrada (a mudança de etapa). */
@@ -227,7 +241,7 @@ export async function listarTodasEncerradas(): Promise<LeadEncerrada[]> {
   const { data } = await supabase
     .from("commercial_leads")
     .select(
-      "id, name, stage, channel, estimated_monthly, lost_reason, client_id, stage_changed_at",
+      "id, name, stage, channel, estimated_monthly, lost_reason_kind, lost_reason, client_id, stage_changed_at",
     )
     .in("stage", ["Fechado", "Perdido"])
     .order("stage_changed_at", { ascending: false });
@@ -238,6 +252,7 @@ export async function listarTodasEncerradas(): Promise<LeadEncerrada[]> {
     stage: l.stage as "Fechado" | "Perdido",
     channel: l.channel as LeadChannel,
     estimated_monthly: Number(l.estimated_monthly),
+    lost_reason_kind: (l.lost_reason_kind as string | null) ?? null,
     lost_reason: (l.lost_reason as string | null) ?? null,
     client_id: (l.client_id as string | null) ?? null,
     encerrada_em: l.stage_changed_at as string,

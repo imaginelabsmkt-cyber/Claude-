@@ -16,6 +16,9 @@ import { arredondar, somar } from "@/lib/financeiro/calculo";
 export interface Encerrada {
   stage: "Fechado" | "Perdido";
   estimated_monthly: number;
+  /** O motivo da lista. */
+  lost_reason_kind: string | null;
+  /** O que foi escrito à mão, de quando o motivo era texto livre. */
   lost_reason: string | null;
 }
 
@@ -32,19 +35,23 @@ export const SEM_MOTIVO = "Sem motivo anotado";
 /**
  * Agrupa as perdas por motivo, do que mais acontece para o que menos.
  *
- * O motivo é texto livre — é assim que ela escreve, e obrigar a
- * escolher de uma lista faria ela escolher "Outro" sempre. Então o
- * agrupamento normaliza o que dá: tira espaço sobrando, ponto final e
- * a diferença entre maiúscula e minúscula, de modo que "Achou caro",
- * "achou caro" e "achou caro." sejam o mesmo motivo. O nome que
- * aparece é a primeira forma que ela escreveu.
+ * O motivo hoje vem de uma LISTA, e aí não há o que normalizar. A
+ * normalização continua aqui para o que foi gravado antes, quando era
+ * texto livre: tira espaço sobrando, ponto final e a diferença entre
+ * maiúscula e minúscula, de modo que "Achou caro", "achou caro" e
+ * "achou caro." sejam o mesmo motivo. Era remendo, e remendo em cima
+ * de texto livre só vai até certo ponto — "preço alto" nunca ia
+ * encontrar "achou caro". Por isso a lista.
  */
 export function motivosDaPerda(encerradas: Encerrada[]): MotivoDaPerda[] {
   const mapa = new Map<string, MotivoDaPerda>();
 
   for (const e of encerradas) {
     if (e.stage !== "Perdido") continue;
-    const escrito = (e.lost_reason ?? "").trim().replace(/[.;]+$/, "").trim();
+    const escrito = (e.lost_reason_kind ?? e.lost_reason ?? "")
+      .trim()
+      .replace(/[.;]+$/, "")
+      .trim();
     const nome = escrito.length > 0 ? escrito : SEM_MOTIVO;
     const chave = nome
       .toLowerCase()

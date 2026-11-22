@@ -1189,6 +1189,16 @@ begin
   if not exists (select 1 from pg_type where typname = 'lead_temperature') then
     create type lead_temperature as enum ('Quente', 'Morno', 'Frio');
   end if;
+  if not exists (select 1 from pg_type where typname = 'lost_reason_kind') then
+    create type lost_reason_kind as enum (
+      'Sem resposta',
+      'Achou caro',
+      'Fechou com outra agência',
+      'Não é o momento',
+      'Fora do perfil',
+      'Outro'
+    );
+  end if;
 end
 $$;
 
@@ -1224,7 +1234,8 @@ create table if not exists public.commercial_leads (
   notes              text,
   -- Preenchido quando o lead é ganho: aponta para o cliente criado.
   client_id          uuid references public.clients(id) on delete set null,
-  -- Preenchido quando é perdido.
+  -- Preenchido quando é perdido: o motivo da lista, e o texto livre.
+  lost_reason_kind   lost_reason_kind,
   lost_reason        text,
   -- Quando é a reunião de apresentação (etapa "Reunião marcada").
   meeting_at         timestamptz,

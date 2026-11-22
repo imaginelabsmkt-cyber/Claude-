@@ -7,13 +7,15 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { fecharNegocioAction, perderNegocioAction } from "@/lib/actions/comercial";
 import { propostaVigente } from "@/lib/comercial/funil";
 import { proximoMes, rotuloMes } from "@/lib/financeiro/meses";
 import { toast } from "@/lib/ui/toast";
 import { formatarMoeda } from "@/lib/utils";
 import { fechamentoSchema, type FechamentoValues } from "@/lib/validation/comercial";
-import type { LeadWithRelations } from "@/types";
+import { LOST_REASON_OPTIONS } from "@/types";
+import type { LeadWithRelations, LostReasonKind } from "@/types";
 
 /**
  * O fechamento do negócio. Ganhar pede os dados do contrato porque é
@@ -39,7 +41,8 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
     meses: "12",
     diaVencimento: "10",
   });
-  const [motivo, setMotivo] = useState("");
+  const [motivo, setMotivo] = useState<LostReasonKind>("Sem resposta");
+  const [observacao, setObservacao] = useState("");
   const [erros, setErros] = useState<Record<string, string>>({});
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [processando, iniciar] = useTransition();
@@ -84,7 +87,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
 
   function perder() {
     iniciar(async () => {
-      const r = await perderNegocioAction(lead.id, motivo);
+      const r = await perderNegocioAction(lead.id, motivo, observacao);
       if (!r.ok) {
         toast.erro(r.error ?? "Não foi possível encerrar.");
         return;
@@ -139,12 +142,29 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
         <h3 className="text-sm font-semibold text-gray-900">
           Motivo da perda
         </h3>
-        <Input
+        {/* Lista, e não texto livre: era eu quem normalizava "achou
+            caro", "Achou caro" e "achou caro." na hora de somar, e
+            isso para de funcionar quando alguém escreve "preço alto".
+            Com lista, "por que a gente perde" tem resposta. */}
+        <Select
           className="mt-3"
           value={motivo}
-          onChange={(e) => setMotivo(e.target.value)}
-          placeholder="Ex.: preço, concorrência, sem retorno"
+          onChange={(e) => setMotivo(e.target.value as LostReasonKind)}
           aria-label="Motivo da perda"
+        >
+          {LOST_REASON_OPTIONS.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </Select>
+
+        <Input
+          className="mt-2"
+          value={observacao}
+          onChange={(e) => setObservacao(e.target.value)}
+          placeholder="Observação (opcional)"
+          aria-label="Observação sobre a perda"
         />
         <div className="mt-3 flex gap-2">
           <Button variante="perigo" onClick={perder} disabled={processando}>

@@ -152,9 +152,12 @@ export default async function EncerradosPage() {
                         {formatarMoeda(l.estimated_monthly)}
                       </span>
                     </div>
-                    {l.lost_reason ? (
+                    {l.lost_reason_kind || l.lost_reason ? (
                       <p className="mt-0.5 text-xs text-gray-600">
-                        {l.lost_reason}
+                        {l.lost_reason_kind ?? l.lost_reason}
+                        {l.lost_reason_kind && l.lost_reason
+                          ? ` · ${l.lost_reason}`
+                          : ""}
                       </p>
                     ) : null}
                   </li>

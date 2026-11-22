@@ -1923,3 +1923,51 @@ update public.commercial_leads
 -- teste, e é o mesmo erro que já quebrou uma vez. O padrão só vale
 -- para quem insere direto no banco; o sistema sempre manda a etapa, e
 -- a instalação do zero já nasce com o padrão certo.
+
+-- 5. MOTIVO DA PERDA EM LISTA --------------------------------------
+--
+--    Era texto livre, e eu normalizava na hora de somar — tirando
+--    acento, ponto final e maiúscula — para "Achou caro", "achou
+--    caro" e "achou caro." virarem o mesmo motivo. Funciona até
+--    alguém escrever "preço alto", e aí a conta mente.
+--
+--    A lista é a do protótipo. Continua existindo o texto livre, na
+--    observação, para o caso que não cabe em nenhuma delas.
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lost_reason_kind') then
+    create type lost_reason_kind as enum (
+      'Sem resposta',
+      'Achou caro',
+      'Fechou com outra agência',
+      'Não é o momento',
+      'Fora do perfil',
+      'Outro'
+    );
+  end if;
+end
+$$;
+
+alter table public.commercial_leads
+  add column if not exists lost_reason_kind lost_reason_kind;
+
+comment on column public.commercial_leads.lost_reason_kind is
+  'O motivo da perda, da lista. O texto livre fica em lost_reason.';
+
+-- O que já estava escrito à mão entra na lista onde dá para ter
+-- certeza. O que não casar fica sem categoria e com o texto
+-- preservado — chutar a categoria de uma perda é pior do que não ter.
+update public.commercial_leads
+   set lost_reason_kind = case
+         when lost_reason ilike '%sem resposta%'  then 'Sem resposta'
+         when lost_reason ilike '%sumiu%'         then 'Sem resposta'
+         when lost_reason ilike '%caro%'          then 'Achou caro'
+         when lost_reason ilike '%preç%'          then 'Achou caro'
+         when lost_reason ilike '%concorren%'     then 'Fechou com outra agência'
+         when lost_reason ilike '%outra agência%' then 'Fechou com outra agência'
+         when lost_reason ilike '%momento%'       then 'Não é o momento'
+         when lost_reason ilike '%perfil%'        then 'Fora do perfil'
+       end::lost_reason_kind
+ where stage = 'Perdido'
+   and lost_reason_kind is null
+   and lost_reason is not null;

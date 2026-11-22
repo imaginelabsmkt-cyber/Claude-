@@ -489,6 +489,15 @@ export type LeadStage =
  * continua existindo ao lado, em texto livre, para o detalhe — quem
  * indicou, qual evento, qual parceiro.
  */
+/** O motivo da perda, da lista fechada. */
+export type LostReasonKind =
+  | "Sem resposta"
+  | "Achou caro"
+  | "Fechou com outra agência"
+  | "Não é o momento"
+  | "Fora do perfil"
+  | "Outro";
+
 /** Quanto o lead quer. Ver LEAD_TEMPERATURE_OPTIONS para as definições. */
 export type LeadTemperature = "Quente" | "Morno" | "Frio";
 
@@ -522,6 +531,9 @@ export type Lead = {
   notes: string | null;
   /** Preenchido quando o lead é ganho: o cliente que nasceu dele. */
   client_id: UUID | null;
+  /** O motivo da perda, da lista. */
+  lost_reason_kind: LostReasonKind | null;
+  /** O que foi escrito à mão sobre a perda. */
   lost_reason: string | null;
   /** Quando é a reunião de apresentação (etapa "Reunião marcada"). */
   meeting_at: string | null;
@@ -625,6 +637,7 @@ export type LeadInsert = Omit<
   | "notes"
   | "client_id"
   | "lost_reason"
+  | "lost_reason_kind"
   | "meeting_at"
   | "temperature"
   | "next_contact_on"
@@ -641,6 +654,7 @@ export type LeadInsert = Omit<
   notes?: string | null;
   client_id?: UUID | null;
   lost_reason?: string | null;
+  lost_reason_kind?: LostReasonKind | null;
   meeting_at?: string | null;
   temperature?: LeadTemperature | null;
   next_contact_on?: string | null;
