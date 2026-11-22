@@ -1,7 +1,7 @@
 import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
-import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
+import { ResumoDoMes } from "@/components/financeiro/resumo-do-mes";
 import { FechamentoDoMes } from "@/components/financeiro/fechamento-do-mes";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
@@ -47,8 +47,6 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
       ? `${painel.variacaoReceita >= 0 ? "+" : ""}${formatarPercentual(painel.variacaoReceita)} contra o mês anterior`
       : null;
 
-  const emAberto = resumo.aReceber + resumo.aPagar;
-
   const lancamentos = painel.lancamentos.map((l) => ({
     id: l.id,
     description: l.description,
@@ -78,11 +76,10 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
       </div>
 
       <div className="mb-6">
-        <CartaoDoMes
+        <ResumoDoMes
           saldoInicial={resumo.saldoInicial}
           resultado={resumo.resultado}
           saldoFinal={resumo.saldoFinal}
-          emAberto={emAberto}
           variacao={variacao}
           entrou={partes.entrou}
           saiu={partes.saiu}

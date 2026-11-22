@@ -22,7 +22,7 @@ import { AreaHeader } from "@/components/interno/area-header";
 import { FinanceTabs } from "@/components/financeiro/finance-tabs";
 import { MonthActions } from "@/components/financeiro/month-actions";
 import { MonthNav } from "@/components/financeiro/month-nav";
-import { CartaoDoMes } from "@/components/financeiro/cartao-do-mes";
+import { ResumoDoMes } from "@/components/financeiro/resumo-do-mes";
 import { FechamentoDoMes } from "@/components/financeiro/fechamento-do-mes";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
@@ -120,11 +120,6 @@ function Tela() {
 
   // Como a planilha soma: o mês inteiro, caído ou não.
   const resultado = partes.entrou.total - partes.saiu.total;
-  const emAberto =
-    partes.entrou.total -
-    partes.entrou.pago +
-    (partes.saiu.total - partes.saiu.pago);
-
   return (
     <>
       <AreaHeader titulo="Financeiro" acao={<MonthNav mes="2026-11" />} />
@@ -136,11 +131,10 @@ function Tela() {
       </div>
 
       <div className="mb-6">
-        <CartaoDoMes
+        <ResumoDoMes
           saldoInicial={SALDO_INICIAL}
           resultado={resultado}
           saldoFinal={SALDO_INICIAL + resultado}
-          emAberto={emAberto}
           variacao="+2,1% contra o mês anterior"
           entrou={partes.entrou}
           saiu={partes.saiu}
