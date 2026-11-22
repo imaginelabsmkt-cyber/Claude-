@@ -25,6 +25,7 @@ import { MonthNav } from "@/components/financeiro/month-nav";
 import { ResumoDoMes } from "@/components/financeiro/resumo-do-mes";
 import { FechamentoDoMes } from "@/components/financeiro/fechamento-do-mes";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
+import { ConferirPlanoFixo } from "@/components/financeiro/conferir-plano-fixo";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
 import type { LancamentoFolha } from "@/lib/financeiro/folha";
@@ -133,8 +134,6 @@ function Tela() {
       <div className="mb-6">
         <ResumoDoMes
           saldoInicial={SALDO_INICIAL}
-          resultado={resultado}
-          saldoFinal={SALDO_INICIAL + resultado}
           variacao="+2,1% contra o mês anterior"
           entrou={partes.entrou}
           saiu={partes.saiu}
@@ -144,6 +143,23 @@ function Tela() {
       <div className="mb-6">
         <FolhaDoMes mes="2026-11" hoje={HOJE} lancamentos={MES} />
       </div>
+
+      {/* A conferência do plano fixo, aberta, para olhar o desenho.
+          Na tela de verdade ela só aparece ao clicar no botão. */}
+      <ConferirPlanoFixo
+        mes="2026-11"
+        processando={false}
+        aoGerar={() => {}}
+        aoCancelar={() => {}}
+        itens={[
+          { id: "a", description: "Pró-labore Fran", categoria: "Pró-labore (sócias)", kind: "Despesa", amount: 6500, categoryId: "c1", marcado: true, jaLancado: null },
+          { id: "b", description: "Pró-labore Vitória", categoria: "Pró-labore (sócias)", kind: "Despesa", amount: 6500, categoryId: "c1", marcado: true, jaLancado: null },
+          { id: "c", description: "Claude Max", categoria: FERRAMENTAS, kind: "Despesa", amount: 454.1, categoryId: "c2", marcado: false, jaLancado: "gerado" },
+          { id: "d", description: "Canva", categoria: FERRAMENTAS, kind: "Despesa", amount: 35, categoryId: "c2", marcado: false, jaLancado: "mesma descrição" },
+          { id: "e", description: "ElevenLabs", categoria: FERRAMENTAS, kind: "Despesa", amount: 33.57, categoryId: "c2", marcado: true, jaLancado: null },
+          { id: "f", description: "DAS do Simples Nacional", categoria: "DAS - Simples Nacional", kind: "Despesa", amount: 86.05, categoryId: "c3", marcado: true, jaLancado: null },
+        ]}
+      />
 
       <FechamentoDoMes
         mes="2026-11"

@@ -1,32 +1,21 @@
 import { formatarMoeda } from "@/lib/utils";
+import { saldoDoMes } from "@/lib/financeiro/saldo";
 import type { ParteDaFolha } from "@/lib/financeiro/folha";
 
 /**
- * O cabeçalho do mês.
+ * O cabeçalho do mês: saldo de verdade e previsão, separados.
  *
- * A Fran, três vezes: "acho tudo confuso ainda". Fui olhar a tela
- * inteira, impressa, como ela recebe — e o problema não era nenhum
- * bloco: era que O MESMO NÚMERO APARECIA QUATRO VEZES, com um nome
- * diferente em cada lugar. R$ 14.450,00 estava como RECEITAS na conta
- * de cima, como TOTAL na tabela de situações, como TOTAL RECEITAS no
- * pé da lista e de novo no rodapé do fechamento. Quem lê quatro vezes
- * o mesmo valor com quatro rótulos diferentes procura a diferença
- * entre eles — e não existe diferença.
+ * Do documento da Favie: "o topo mistura o que já aconteceu com o que
+ * ainda vai acontecer". Misturava mesmo — o "saldo final" somava a
+ * mensalidade que ninguém pagou e o pró-labore que só sai dia 10 do
+ * mês que vem, e saía com cara de extrato.
  *
- * Então aqui ficou só a conta, que é a única coisa que esta parte da
- * tela tem para dizer:
- *
- *   SALDO INICIAL + RECEITAS − DESPESAS = SALDO FINAL
- *
- * O que venceu já está marcado em vermelho na linha do cliente, lá
- * embaixo, com nome e tudo — melhor que um total. E quanto falta cair
- * está no rodapé do mês. Nada disso precisa estar aqui também.
+ * Agora: SALDO HOJE (só o que tem baixa) ao lado de PREVISÃO FIM DO
+ * MÊS (se tudo for pago), e embaixo o que falta dos dois lados.
  */
 
 interface ResumoDoMesProps {
   saldoInicial: number;
-  resultado: number;
-  saldoFinal: number;
   /** Frase pronta da variação contra o mês anterior, se houver. */
   variacao: string | null;
   entrou: ParteDaFolha;
@@ -36,77 +25,86 @@ interface ResumoDoMesProps {
 function Numero({
   rotulo,
   valor,
-  sinal,
-  alerta,
-  destaque,
+  detalhe,
+  forte,
 }: {
   rotulo: string;
   valor: number;
-  sinal?: string;
-  alerta?: boolean;
-  destaque?: boolean;
+  detalhe: string;
+  forte?: boolean;
 }) {
   return (
-    <div className="flex items-end gap-3">
-      {sinal ? (
-        <span aria-hidden className="pb-1 text-lg font-bold text-gray-400">
-          {sinal}
-        </span>
-      ) : null}
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-          {rotulo}
-        </p>
-        <p
-          className={
-            "tabular-nums font-bold " +
-            (destaque ? "text-xl sm:text-2xl " : "text-lg ") +
-            (alerta ? "text-alerta" : "text-gray-900")
-          }
-        >
-          {formatarMoeda(valor)}
-        </p>
-      </div>
+    <div className="min-w-0">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+        {rotulo}
+      </p>
+      <p
+        className={
+          "tabular-nums font-bold " +
+          (forte ? "text-2xl " : "text-2xl ") +
+          (valor < 0 ? "text-alerta" : "text-gray-900")
+        }
+      >
+        {formatarMoeda(valor)}
+      </p>
+      <p className="text-xs text-gray-500">{detalhe}</p>
     </div>
   );
 }
 
 export function ResumoDoMes({
   saldoInicial,
-  resultado,
-  saldoFinal,
   variacao,
   entrou,
   saiu,
 }: ResumoDoMesProps) {
+  const s = saldoDoMes(saldoInicial, entrou, saiu);
+  const faltaAlgo = s.faltaReceber > 0 || s.faltaPagar > 0;
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:flex sm:flex-wrap sm:items-end">
-        <Numero rotulo="Saldo inicial" valor={saldoInicial} />
-        <Numero rotulo="Receitas" valor={entrou.total} sinal="+" />
-        <Numero rotulo="Despesas" valor={saiu.total} sinal="−" />
+      <div className="grid gap-4 sm:grid-cols-2">
         <Numero
-          rotulo="Saldo final"
-          valor={saldoFinal}
-          sinal="="
-          alerta={saldoFinal < 0}
-          destaque
+          rotulo="Saldo hoje"
+          valor={s.hoje}
+          detalhe="o que já entrou e já saiu de verdade"
+          forte
         />
+        {/* A previsão fica do lado, não embaixo: são a mesma pergunta
+            em dois tempos, e separar por linha faria uma parecer
+            consequência da outra. */}
+        <div className="border-t border-gray-100 pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+          <Numero
+            rotulo="Previsão fim do mês"
+            valor={s.previsao}
+            detalhe="se tudo for pago"
+          />
+        </div>
       </div>
 
-      <p className="mt-2 text-sm text-gray-600">
-        Resultado do mês{" "}
-        <strong
-          className={
-            "font-semibold tabular-nums " +
-            (resultado < 0 ? "text-alerta" : "text-gray-900")
-          }
-        >
-          {resultado < 0 ? "−" : ""}
-          {formatarMoeda(Math.abs(resultado))}
-        </strong>
-        {variacao ? <> · receita {variacao}</> : null}
-      </p>
+      {faltaAlgo || variacao ? (
+        <p className="mt-4 border-t border-gray-100 pt-3 text-sm text-gray-600">
+          {s.faltaReceber > 0 ? (
+            <>
+              Falta receber{" "}
+              <strong className="font-semibold tabular-nums text-gray-900">
+                {formatarMoeda(s.faltaReceber)}
+              </strong>
+            </>
+          ) : null}
+          {s.faltaReceber > 0 && s.faltaPagar > 0 ? " · " : null}
+          {s.faltaPagar > 0 ? (
+            <>
+              Falta pagar{" "}
+              <strong className="font-semibold tabular-nums text-gray-900">
+                {formatarMoeda(s.faltaPagar)}
+              </strong>
+            </>
+          ) : null}
+          {faltaAlgo && variacao ? " · " : null}
+          {variacao ? <>receita {variacao}</> : null}
+        </p>
+      ) : null}
     </div>
   );
 }

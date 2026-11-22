@@ -78,8 +78,6 @@ export default async function FinanceiroPage({ searchParams }: PageProps) {
       <div className="mb-6">
         <ResumoDoMes
           saldoInicial={resumo.saldoInicial}
-          resultado={resumo.resultado}
-          saldoFinal={resumo.saldoFinal}
           variacao={variacao}
           entrou={partes.entrou}
           saiu={partes.saiu}

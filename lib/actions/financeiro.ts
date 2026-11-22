@@ -15,6 +15,15 @@ import {
   type RecorrenciaFormValues,
 } from "@/lib/validation/financeiro";
 import type { FinancialEntryInsert, FinancialStatus } from "@/types";
+import {
+  conferirPlano,
+  type ItemConferido,
+} from "@/lib/financeiro/plano-fixo";
+
+/** Um item do plano já conferido, com o nome da categoria para a tela. */
+export interface ItemConferidoNaTela extends ItemConferido {
+  categoria: string | null;
+}
 
 export interface ActionResult {
   ok: boolean;
@@ -314,8 +323,87 @@ export async function excluirRecorrenciaAction(id: string): Promise<ActionResult
  * e custos fixos. É seguro clicar mais de uma vez: o par
  * (recurrence_id, reference_month) é único no banco, então nada duplica.
  */
+/**
+ * A lista de conferência do plano fixo.
+ *
+ * Do documento da Favie: "antes de criar os lançamentos, mostrar a
+ * lista para vocês conferirem". Esta função só LÊ — quem grava é a
+ * `gerarLancamentosDoMesAction`, com o que a pessoa deixou marcado.
+ */
+export async function previaDoPlanoFixoAction(mes: string): Promise<
+  ActionResult & { itens?: ItemConferidoNaTela[] }
+> {
+  const supabase = createClient();
+
+  const { data: recorrencias, error } = await supabase
+    .from("financial_recurrences")
+    .select("*, category:financial_categories(id, name)")
+    .eq("active", true)
+    .lte("start_month", mes);
+
+  if (error) return { ok: false, error: "Não foi possível ler o plano fixo." };
+
+  const vigentes = (recorrencias ?? []).filter(
+    (r) => !r.end_month || r.end_month >= mes,
+  );
+  if (vigentes.length === 0) {
+    return { ok: false, error: "Nenhum item no plano fixo para este mês." };
+  }
+
+  const { data: existentes } = await supabase
+    .from("financial_entries")
+    .select("description, category_id, kind, amount, recurrence_id")
+    .eq("reference_month", mes);
+
+  const conferidos = conferirPlano(
+    vigentes.map((r) => ({
+      id: r.id as string,
+      description: r.description as string,
+      categoryId: (r.category_id as string | null) ?? null,
+      kind: r.kind as string,
+      amount: Number(r.amount),
+    })),
+    (existentes ?? []).map((l) => ({
+      description: (l.description as string) ?? "",
+      categoryId: (l.category_id as string | null) ?? null,
+      kind: l.kind as string,
+      amount: Number(l.amount),
+      recurrenceId: (l.recurrence_id as string | null) ?? null,
+    })),
+  );
+
+  const nomeDaCategoria = new Map(
+    vigentes.map((r) => [
+      r.id as string,
+      ((r.category as { name?: string } | null)?.name ?? null) as string | null,
+    ]),
+  );
+
+  return {
+    ok: true,
+    itens: conferidos.map((c) => ({
+      ...c,
+      categoria: nomeDaCategoria.get(c.id) ?? null,
+    })),
+  };
+}
+
+/**
+ * Gera os lançamentos do plano fixo que a pessoa deixou marcados.
+ *
+ * Antes isto gerava TUDO que faltava, sem perguntar. Agora recebe a
+ * escolha da tela: quais itens e com que valor. O valor vem de lá
+ * porque ferramenta muda de preço com o dólar, e corrigir depois,
+ * um por um, eram quatro cliques por item.
+ *
+ * Mesmo com a conferência na tela, a trava do banco continua: uma
+ * recorrência gera no máximo um lançamento por mês. Se a pessoa
+ * marcar um item que já gerou, o banco recusa — e é isso que a gente
+ * quer, porque a tela pode estar velha se as duas mexerem juntas.
+ */
 export async function gerarLancamentosDoMesAction(
   mes: string,
+  escolha?: { id: string; amount: number }[],
 ): Promise<ActionResult & { criados?: number; jaExistiam?: number }> {
   const supabase = createClient();
 
@@ -325,13 +413,13 @@ export async function gerarLancamentosDoMesAction(
     .eq("active", true)
     .lte("start_month", mes);
 
-  if (error) return { ok: false, error: "Não foi possível ler as recorrências." };
+  if (error) return { ok: false, error: "Não foi possível ler o plano fixo." };
 
   const vigentes = (recorrencias ?? []).filter(
     (r) => !r.end_month || r.end_month >= mes,
   );
   if (vigentes.length === 0) {
-    return { ok: false, error: "Nenhuma recorrência ativa para este mês." };
+    return { ok: false, error: "Nenhum item no plano fixo para este mês." };
   }
 
   const { data: existentes } = await supabase
@@ -341,14 +429,19 @@ export async function gerarLancamentosDoMesAction(
     .not("recurrence_id", "is", null);
 
   const jaGeradas = new Set((existentes ?? []).map((l) => l.recurrence_id));
-  const pendentes = vigentes.filter((r) => !jaGeradas.has(r.id));
+
+  /* Sem escolha explícita, vale a regra antiga: gera o que falta.
+     É o caminho de quem chamou a action de outro lugar. */
+  const pedidos = escolha
+    ? new Map(escolha.map((e) => [e.id, Number(e.amount)]))
+    : new Map(vigentes.filter((r) => !jaGeradas.has(r.id)).map((r) => [r.id as string, Number(r.amount)]));
+
+  const pendentes = vigentes.filter(
+    (r) => pedidos.has(r.id) && !jaGeradas.has(r.id),
+  );
 
   if (pendentes.length === 0) {
-    return {
-      ok: true,
-      criados: 0,
-      jaExistiam: vigentes.length,
-    };
+    return { ok: true, criados: 0, jaExistiam: vigentes.length };
   }
 
   const novos: FinancialEntryInsert[] = pendentes.map((r) => ({
@@ -357,7 +450,12 @@ export async function gerarLancamentosDoMesAction(
     category_id: r.category_id,
     client_id: r.client_id,
     description: r.description,
-    amount: Number(r.amount),
+    /* O valor da TELA, não o do plano: é onde a pessoa acabou de
+       corrigir o preço da ferramenta. Um valor inválido cai no do
+       plano, para não gravar zero por engano de digitação. */
+    amount: Number.isFinite(pedidos.get(r.id)!) && pedidos.get(r.id)! > 0
+      ? pedidos.get(r.id)!
+      : Number(r.amount),
     status: "Pendente" as const,
     due_date: dataVencimento(mes, r.due_day, r.vencimento_meses ?? 1),
     paid_date: null,

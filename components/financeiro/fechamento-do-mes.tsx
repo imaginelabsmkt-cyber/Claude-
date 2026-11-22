@@ -38,8 +38,6 @@ export function FechamentoDoMes({
   resultado,
   saldoFinal,
 }: FechamentoDoMesProps) {
-  const faltaReceber = entrou.total - entrou.pago;
-  const faltaPagar = saiu.total - saiu.pago;
   const fechado = emAberto === 0 && entrou.total + saiu.total > 0;
 
   if (entrou.total + saiu.total === 0) return null;
@@ -92,23 +90,12 @@ export function FechamentoDoMes({
         {emAberto === 1 ? "lançamento pendente" : "lançamentos pendentes"} de
         baixa.
       </p>
+      {/* "a receber" e "a pagar" saíram daqui: subiram para o topo da
+          tela, como "Falta receber / Falta pagar". Os mesmos dois
+          valores em dois lugares da mesma página eram justamente o
+          que confundia. Aqui fica o que o topo não diz: QUANTOS
+          lançamentos faltam, e o caminho para eles. */}
       <p className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-600">
-        {faltaReceber > 0 ? (
-          <span>
-            a receber{" "}
-            <strong className="font-semibold tabular-nums text-gray-900">
-              {formatarMoeda(faltaReceber)}
-            </strong>
-          </span>
-        ) : null}
-        {faltaPagar > 0 ? (
-          <span>
-            a pagar{" "}
-            <strong className="font-semibold tabular-nums text-gray-900">
-              {formatarMoeda(faltaPagar)}
-            </strong>
-          </span>
-        ) : null}
         <Link
           href={`/interno/financeiro/lancamentos?mes=${mes}&situacao=aberto`}
           className="font-medium text-brand-700 hover:underline"
