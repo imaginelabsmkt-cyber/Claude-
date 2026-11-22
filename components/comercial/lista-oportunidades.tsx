@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { diasParado, estaParado } from "@/lib/comercial/funil";
 import { quandoEhAReuniao, reuniaoPassou } from "@/lib/comercial/reuniao";
+import { Badge } from "@/components/ui/badge";
+import { LEAD_TEMPERATURE_TONE } from "@/types";
 import { cn, formatarMoeda } from "@/lib/utils";
 import type { LeadWithRelations } from "@/types";
 
@@ -102,8 +104,15 @@ export function ListaOportunidades({
                 {formatarMoeda(Number(l.estimated_monthly))}
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-gray-500">
-              {l.stage} · {l.channel}
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
+              {l.temperature ? (
+                <Badge tom={LEAD_TEMPERATURE_TONE[l.temperature]}>
+                  {l.temperature}
+                </Badge>
+              ) : null}
+              <span>
+                {l.stage} · {l.channel}
+              </span>
             </p>
             <div className="mt-0.5">
               <Proxima lead={l} agora={agora} />
@@ -116,6 +125,7 @@ export function ListaOportunidades({
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50 text-[11px] uppercase tracking-wider text-gray-600">
             <th className="px-4 py-2 text-left font-bold">Oportunidade</th>
+            <th className="px-4 py-2 text-left font-bold">Temp.</th>
             <th className="px-4 py-2 text-left font-bold">Etapa</th>
             <th className="px-4 py-2 text-left font-bold">Origem</th>
             <th className="px-4 py-2 text-right font-bold">Valor mensal</th>
@@ -132,6 +142,13 @@ export function ListaOportunidades({
                 >
                   {l.name}
                 </Link>
+              </td>
+              <td className="px-4 py-2.5">
+                {l.temperature ? (
+                  <Badge tom={LEAD_TEMPERATURE_TONE[l.temperature]}>
+                    {l.temperature}
+                  </Badge>
+                ) : null}
               </td>
               <td className="px-4 py-2.5 text-gray-600">{l.stage}</td>
               <td className="px-4 py-2.5 text-gray-600">{l.channel}</td>

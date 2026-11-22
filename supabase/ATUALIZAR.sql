@@ -33,6 +33,8 @@
 --      tarefa, reunião, ligação e WhatsApp presas ao cliente.
 --  10. salte_e_clientes_repetidos — apaga a cópia órfã de cliente
 --      repetido por nome e registra a Salte no funil como ganha.
+--  11. comercial_do_prototipo — temperatura do lead e as origens que
+--      faltavam, vindas do protótipo que a Vitória montou.
 --
 -- COMO RODAR
 --
@@ -1784,3 +1786,30 @@ begin
     ('Salte', 'Indicação', 'Fechado', 'Fechado', 1300.00, id_salte, '2026-11-01');
 end
 $$;
+
+-- =============================================================
+-- comercial_do_prototipo
+-- =============================================================
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lead_temperature') then
+    create type lead_temperature as enum ('Quente', 'Morno', 'Frio');
+  end if;
+end
+$$;
+
+alter table public.commercial_leads
+  add column if not exists temperature lead_temperature;
+
+comment on column public.commercial_leads.temperature is
+  'Quente: veio pedindo ajuda. Morno: interesse sem urgência. Frio: a agência foi atrás.';
+
+-- 2. AS ORIGENS QUE FALTAVAM ---------------------------------------
+--
+--    O protótipo tem nove; o nosso tinha seis. Instagram orgânico,
+--    grupos de WhatsApp e visita presencial são três jeitos de
+--    chegar cliente que ficavam todos em "Outro" — e "Outro" não
+--    responde em que canal vale gastar a próxima hora.
+alter type lead_channel add value if not exists 'Instagram orgânico' after 'Tráfego pago';
+alter type lead_channel add value if not exists 'Grupos e WhatsApp'  after 'Evento';
+alter type lead_channel add value if not exists 'Visita presencial'  after 'Parceria';

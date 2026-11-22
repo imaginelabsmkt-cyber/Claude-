@@ -33,6 +33,7 @@ function lead(over: Partial<Lead> = {}): Lead {
     client_id: null,
     lost_reason: null,
     meeting_at: null,
+    temperature: null,
     stage_changed_at: "2026-09-20T12:00:00Z",
     created_at: "2026-09-01T12:00:00Z",
     updated_at: "2026-09-20T12:00:00Z",

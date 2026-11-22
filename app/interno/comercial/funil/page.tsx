@@ -18,7 +18,7 @@ import {
 import { mesAtual } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 import { LEAD_STAGES_ABERTAS } from "@/types";
-import type { LeadChannel, LeadStage } from "@/types";
+import type { LeadChannel, LeadStage, LeadTemperature } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,7 @@ export const metadata = { title: "Funil" };
  * em "mais ou menos tantos clientes do tamanho médio" ela vira meta.
  */
 interface PageProps {
-  searchParams: { v?: string; etapa?: string; canal?: string };
+  searchParams: { v?: string; etapa?: string; canal?: string; temp?: string };
 }
 
 export default async function FunilPage({ searchParams }: PageProps) {
@@ -58,10 +58,12 @@ export default async function FunilPage({ searchParams }: PageProps) {
     ? (searchParams.etapa as LeadStage)
     : null;
   const canal = (searchParams.canal ?? "").trim() || null;
+  const temp = (searchParams.temp ?? "").trim() || null;
   const recorte = leads.filter(
     (l) =>
       (!etapa || l.stage === etapa) &&
-      (!canal || l.channel === (canal as LeadChannel)),
+      (!canal || l.channel === (canal as LeadChannel)) &&
+      (!temp || l.temperature === (temp as LeadTemperature)),
   );
   const modo = searchParams.v === "quadro" ? "quadro" : "lista";
 

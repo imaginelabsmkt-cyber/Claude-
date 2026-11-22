@@ -57,6 +57,7 @@ function op(
     client_id: null,
     lost_reason: null,
     meeting_at: null,
+    temperature: null,
     stage_changed_at: atras(1),
     created_at: atras(30),
     updated_at: atras(1),
@@ -70,21 +71,27 @@ function op(
 const EXEMPLO: LeadWithRelations[] = [
   op("Exemplo 1 (clínica)", "Negociação", "Indicação", 2400, {
     stage_changed_at: atras(9),
+    temperature: "Quente",
   }),
   op("Exemplo 2 (restaurante)", "Reunião marcada", "Tráfego pago", 1800, {
     meeting_at: daqui(0, 14),
+    temperature: "Frio",
   }),
-  op("Exemplo 3 (loja)", "Reunião marcada", "Social selling", 1500, {
+  op("Exemplo 3 (loja)", "Reunião marcada", "Instagram orgânico", 1500, {
     meeting_at: daqui(2, 16),
+    temperature: "Morno",
   }),
   op("Exemplo 4 (advocacia)", "Proposta apresentada", "Indicação", 1300, {
     stage_changed_at: atras(2),
+    temperature: "Quente",
   }),
-  op("Exemplo 5 (estúdio)", "Diagnóstico", "Evento", 900, {
+  op("Exemplo 5 (estúdio)", "Diagnóstico", "Grupos e WhatsApp", 900, {
     stage_changed_at: atras(0),
+    temperature: "Morno",
   }),
-  op("Exemplo 6 (contador)", "Contato feito", "Parceria", 700, {
+  op("Exemplo 6 (contador)", "Contato feito", "Visita presencial", 700, {
     meeting_at: atras(2),
+    temperature: "Frio",
   }),
 ];
 

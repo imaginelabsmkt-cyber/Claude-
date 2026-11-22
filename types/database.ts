@@ -487,12 +487,18 @@ export type LeadStage =
  * continua existindo ao lado, em texto livre, para o detalhe — quem
  * indicou, qual evento, qual parceiro.
  */
+/** Quanto o lead quer. Ver LEAD_TEMPERATURE_OPTIONS para as definições. */
+export type LeadTemperature = "Quente" | "Morno" | "Frio";
+
 export type LeadChannel =
   | "Social selling"
   | "Tráfego pago"
+  | "Instagram orgânico"
   | "Indicação"
   | "Evento"
+  | "Grupos e WhatsApp"
   | "Parceria"
+  | "Visita presencial"
   | "Outro";
 
 export type ProposalStatus = "Rascunho" | "Apresentada" | "Aceita" | "Recusada";
@@ -517,6 +523,8 @@ export type Lead = {
   lost_reason: string | null;
   /** Quando é a reunião de apresentação (etapa "Reunião marcada"). */
   meeting_at: string | null;
+  /** Quanto o lead quer: quente, morno ou frio. */
+  temperature: LeadTemperature | null;
   /** Quando entrou na etapa atual — alimenta o "parado há N dias". */
   stage_changed_at: ISODateString;
   created_at: ISODateString;
@@ -614,6 +622,7 @@ export type LeadInsert = Omit<
   | "client_id"
   | "lost_reason"
   | "meeting_at"
+  | "temperature"
 > & {
   id?: UUID;
   stage?: LeadStage;
@@ -628,6 +637,7 @@ export type LeadInsert = Omit<
   client_id?: UUID | null;
   lost_reason?: string | null;
   meeting_at?: string | null;
+  temperature?: LeadTemperature | null;
 };
 
 /** Uma mudança de etapa de uma oportunidade, com data. */

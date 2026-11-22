@@ -27,6 +27,7 @@ import type {
   TeamKind,
   LeadChannel,
   LeadStage,
+  LeadTemperature,
   Proposal,
   ProposalStatus,
   Profile,
@@ -215,11 +216,61 @@ export const PAYMENT_METHOD_OPTIONS: string[] = [
 export const LEAD_CHANNEL_OPTIONS: LeadChannel[] = [
   "Social selling",
   "Tráfego pago",
+  "Instagram orgânico",
   "Indicação",
   "Evento",
+  "Grupos e WhatsApp",
   "Parceria",
+  "Visita presencial",
   "Outro",
 ];
+
+/**
+ * O que perguntar no "detalhe" de cada origem.
+ *
+ * Do protótipo da Vitória: o campo não se chama "detalhe da origem"
+ * em lugar nenhum — ele pergunta a coisa certa para cada canal. Quem
+ * veio de indicação tem QUEM indicou; quem veio de tráfego tem QUAL
+ * campanha. Com um rótulo genérico, o campo ficava vazio.
+ */
+export const LEAD_CHANNEL_DETAIL: Record<LeadChannel, string> = {
+  "Social selling": "Lista ou busca de onde saiu",
+  "Tráfego pago": "Qual campanha",
+  "Instagram orgânico": "Qual post ou story",
+  Indicação: "Quem indicou",
+  Evento: "Qual evento",
+  "Grupos e WhatsApp": "Qual grupo",
+  Parceria: "Qual parceiro",
+  "Visita presencial": "Onde",
+  Outro: "Detalhe",
+};
+
+export const LEAD_TEMPERATURE_OPTIONS: LeadTemperature[] = [
+  "Quente",
+  "Morno",
+  "Frio",
+];
+
+/**
+ * O que cada temperatura quer dizer, nas palavras da Vitória.
+ *
+ * Está escrito na tela, embaixo do campo, porque a diferença entre
+ * morno e frio não é óbvia e duas pessoas classificando diferente
+ * destroem a única coisa que o campo serve para fazer: ordenar a fila.
+ */
+export const LEAD_TEMPERATURE_DESC: Record<LeadTemperature, string> = {
+  Quente:
+    "Veio pedindo ajuda: indicação, procurou a agência, pediu valores ou respondeu rápido querendo reunião.",
+  Morno:
+    "Tem interesse, conversa, mas ainda não tem urgência ou está comparando.",
+  Frio: "A agência foi atrás: social selling, lista, evento sem conversa longa.",
+};
+
+export const LEAD_TEMPERATURE_TONE: Record<LeadTemperature, BadgeTone> = {
+  Quente: "vermelho",
+  Morno: "amarelo",
+  Frio: "azul",
+};
 
 export const LEAD_STAGE_OPTIONS: LeadStage[] = [
   "Contato feito",

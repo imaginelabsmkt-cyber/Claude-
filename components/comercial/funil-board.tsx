@@ -23,7 +23,8 @@ import {
 import { quandoEhAReuniao, reuniaoPassou } from "@/lib/comercial/reuniao";
 import { toast } from "@/lib/ui/toast";
 import { cn, formatarMoeda } from "@/lib/utils";
-import { LEAD_STAGES_ABERTAS } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { LEAD_STAGES_ABERTAS, LEAD_TEMPERATURE_TONE } from "@/types";
 import type { LeadStage, LeadWithRelations } from "@/types";
 
 interface FunilBoardProps {
@@ -74,6 +75,14 @@ function CardLead({ lead }: { lead: LeadWithRelations }) {
       >
         {lead.name}
       </Link>
+
+      {lead.temperature ? (
+        <p className="mt-1">
+          <Badge tom={LEAD_TEMPERATURE_TONE[lead.temperature]}>
+            {lead.temperature}
+          </Badge>
+        </p>
+      ) : null}
 
       <p className="mt-0.5 text-base font-bold tabular-nums text-gray-900">
         {formatarMoeda(Number(lead.estimated_monthly))}

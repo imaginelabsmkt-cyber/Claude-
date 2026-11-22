@@ -69,6 +69,7 @@ function normalizarLead(values: LeadFormValues) {
     contact_phone: limpar(values.contact_phone),
     source: limpar(values.source),
     channel: values.channel,
+    temperature: values.temperature,
     stage: values.stage,
     estimated_monthly: paraNumero(values.estimated_monthly ?? "") ?? 0,
     meeting_at: instante(values.meeting_at),

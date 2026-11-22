@@ -35,11 +35,22 @@ export const leadFormSchema = z.object({
   channel: z.enum([
     "Social selling",
     "Tráfego pago",
+    "Instagram orgânico",
     "Indicação",
     "Evento",
+    "Grupos e WhatsApp",
     "Parceria",
+    "Visita presencial",
     "Outro",
   ]),
+  /**
+   * Obrigatória, como no protótipo da Vitória. Uma temperatura em
+   * branco não ordena fila nenhuma, e um campo que pode ficar em
+   * branco fica em branco.
+   */
+  temperature: z.enum(["Quente", "Morno", "Frio"], {
+    errorMap: () => ({ message: "Escolha a temperatura" }),
+  }),
   stage: z.enum([
     "Contato feito",
     "Diagnóstico",
@@ -77,6 +88,7 @@ export const LEAD_FORM_PADRAO: LeadFormValues = {
   contact_phone: "",
   source: "",
   channel: "Social selling",
+  temperature: "Morno",
   stage: "Contato feito",
   estimated_monthly: "",
   meeting_at: "",

@@ -1184,6 +1184,14 @@ $$;
 
 do $$
 begin
+  if not exists (select 1 from pg_type where typname = 'lead_temperature') then
+    create type lead_temperature as enum ('Quente', 'Morno', 'Frio');
+  end if;
+end
+$$;
+
+do $$
+begin
   if not exists (select 1 from pg_type where typname = 'proposal_status') then
     create type proposal_status as enum (
       'Rascunho',
@@ -1218,6 +1226,9 @@ create table if not exists public.commercial_leads (
   lost_reason        text,
   -- Quando é a reunião de apresentação (etapa "Reunião marcada").
   meeting_at         timestamptz,
+  -- Quente: veio pedindo ajuda. Morno: interesse sem urgência.
+  -- Frio: a agência foi atrás.
+  temperature        lead_temperature,
   -- Quando entrou na etapa atual — alimenta o "X dias parado".
   stage_changed_at   timestamptz not null default now(),
   created_at         timestamptz not null default now(),
@@ -2184,9 +2195,12 @@ begin
     create type lead_channel as enum (
       'Social selling',
       'Tráfego pago',
+      'Instagram orgânico',
       'Indicação',
       'Evento',
+      'Grupos e WhatsApp',
       'Parceria',
+      'Visita presencial',
       'Outro'
     );
   end if;

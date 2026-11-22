@@ -3,7 +3,11 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { LEAD_CHANNEL_OPTIONS, LEAD_STAGES_ABERTAS } from "@/types";
+import {
+  LEAD_CHANNEL_OPTIONS,
+  LEAD_STAGES_ABERTAS,
+  LEAD_TEMPERATURE_OPTIONS,
+} from "@/types";
 
 /**
  * Modo de exibição e filtros do funil.
@@ -68,6 +72,20 @@ export function BarraDoFunil({ quantos }: { quantos: number }) {
         {LEAD_STAGES_ABERTAS.map((s) => (
           <option key={s} value={s}>
             {s}
+          </option>
+        ))}
+      </Select>
+
+      <Select
+        aria-label="Filtrar por temperatura"
+        className="w-auto"
+        value={searchParams.get("temp") ?? "todos"}
+        onChange={(e) => aplicar("temp", e.target.value)}
+      >
+        <option value="todos">Qualquer temperatura</option>
+        {LEAD_TEMPERATURE_OPTIONS.map((t) => (
+          <option key={t} value={t}>
+            {t}
           </option>
         ))}
       </Select>

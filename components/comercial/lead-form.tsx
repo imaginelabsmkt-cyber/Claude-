@@ -19,7 +19,13 @@ import {
   leadFormSchema,
   type LeadFormValues,
 } from "@/lib/validation/comercial";
-import { LEAD_CHANNEL_OPTIONS, LEAD_STAGES_ABERTAS } from "@/types";
+import {
+  LEAD_CHANNEL_DETAIL,
+  LEAD_CHANNEL_OPTIONS,
+  LEAD_STAGES_ABERTAS,
+  LEAD_TEMPERATURE_DESC,
+  LEAD_TEMPERATURE_OPTIONS,
+} from "@/types";
 import type { Lead } from "@/types";
 
 interface LeadFormProps {
@@ -62,6 +68,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
           channel: lead.channel,
           stage: lead.stage,
           estimated_monthly: paraCampo(Number(lead.estimated_monthly)),
+          temperature: lead.temperature ?? "Morno",
           meeting_at: paraCampoDeReuniao(lead.meeting_at),
           notes: lead.notes ?? "",
         }
@@ -168,21 +175,55 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="l-channel">Origem</Label>
-        <Select
-          id="l-channel"
-          value={values.channel}
-          onChange={(e) =>
-            atualizar("channel", e.target.value as LeadFormValues["channel"])
-          }
-        >
-          {LEAD_CHANNEL_OPTIONS.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </Select>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="l-channel">Origem</Label>
+          <Select
+            id="l-channel"
+            value={values.channel}
+            onChange={(e) =>
+              atualizar("channel", e.target.value as LeadFormValues["channel"])
+            }
+          >
+            {LEAD_CHANNEL_OPTIONS.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        {/* A temperatura fica à vista, ao lado da origem, e não
+            escondida em "Mais detalhes": é ela que diz onde gastar a
+            próxima hora. Sem ela, dois leads de R$ 2.500 parecem
+            iguais. A definição aparece embaixo porque a diferença
+            entre morno e frio não é óbvia, e duas pessoas
+            classificando diferente destroem a fila. */}
+        <div>
+          <Label htmlFor="l-temp">Temperatura *</Label>
+          <Select
+            id="l-temp"
+            value={values.temperature}
+            onChange={(e) =>
+              atualizar(
+                "temperature",
+                e.target.value as LeadFormValues["temperature"],
+              )
+            }
+            aria-invalid={Boolean(erros.temperature)}
+          >
+            {LEAD_TEMPERATURE_OPTIONS.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </Select>
+          {erro("temperature") ?? (
+            <p className="mt-1 text-xs text-gray-500">
+              {LEAD_TEMPERATURE_DESC[values.temperature]}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* A data só aparece quando a etapa é a da reunião — ou quando
@@ -229,12 +270,13 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
 
             </div>
             <div>
-              <Label htmlFor="l-source">Detalhe da origem</Label>
+              <Label htmlFor="l-source">
+                {LEAD_CHANNEL_DETAIL[values.channel]}
+              </Label>
               <Input
                 id="l-source"
                 value={values.source ?? ""}
                 onChange={(e) => atualizar("source", e.target.value)}
-                placeholder="quem indicou, qual evento, qual parceiro"
               />
             </div>
           </div>
