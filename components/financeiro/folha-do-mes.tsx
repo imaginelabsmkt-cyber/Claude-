@@ -108,12 +108,17 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
                         descricao={x.description}
                       />
 
-                      <span className="min-w-0 flex-1 text-sm text-gray-900">
+                      <span className="min-w-0 flex-1 basis-40 text-sm text-gray-900">
                         {nome}
                         {cliente ? (
                           <span className="text-gray-500"> · {cliente}</span>
                         ) : null}
                       </span>
+                      {/* Valor, prazo e Editar andam juntos: no
+                        celular eles descem para a segunda linha de uma
+                        vez, em vez de espremer o nome do cliente em
+                        três linhas de duas palavras. */}
+                      <span className="ml-auto flex shrink-0 items-center gap-x-3">
                       {/* O valor se edita aqui mesmo: as ferramentas
                         mudam de preço todo mês com o dólar, e abrir o
                         formulário inteiro para trocar um número eram
@@ -156,6 +161,7 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
                       >
                         Editar
                       </Link>
+                      </span>
                     </li>
                   );
                 })}
@@ -166,16 +172,20 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
       )}
 
       {/* O total no FIM da lista, como a linha "TOTAL RECEITAS" da
-          planilha. Estava em cima, no cabeçalho, e aí aparecia duas
-          vezes seguidas quando a coluna tinha uma categoria só. */}
-      <footer className="flex items-baseline justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-2.5">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-          Total {titulo.toLowerCase()}
-        </span>
-        <span className="text-lg font-bold tabular-nums text-gray-900">
-          {formatarMoeda(total)}
-        </span>
-      </footer>
+          planilha — só quando a coluna tem MAIS DE UMA categoria.
+          Com uma só, o total do grupo e o total da coluna são o mesmo
+          número em duas linhas coladas, e a Fran lia duas vezes
+          procurando a diferença entre eles. */}
+      {grupos.length > 1 ? (
+        <footer className="flex items-baseline justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-2.5">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+            Total {titulo.toLowerCase()}
+          </span>
+          <span className="text-lg font-bold tabular-nums text-gray-900">
+            {formatarMoeda(total)}
+          </span>
+        </footer>
+      ) : null}
     </section>
   );
 }

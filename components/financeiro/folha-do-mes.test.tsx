@@ -138,16 +138,26 @@ describe("folha do mês: o que está escrito", () => {
     expect(html).not.toContain("Mensalidade Kiku Sushi");
   });
 
-  it("escreve o total no fim de cada coluna", () => {
+  it("escreve o total da coluna quando há mais de uma categoria", () => {
+    const html = desenhar([
+      despesa("Canva", 35, FERRAMENTAS),
+      despesa("DAS", 86.05, "DAS - Simples Nacional"),
+    ]);
+    // Escrito em minúscula; quem deixa em caixa alta é o CSS.
+    expect(html).toContain("Total despesas");
+    expect(html).toContain("121,05");
+  });
+
+  it("não repete o total quando a coluna tem uma categoria só", () => {
+    /* O total do grupo e o total da coluna seriam o MESMO número em
+       duas linhas coladas. A Fran lia as duas procurando a diferença
+       entre elas: "acho tudo confuso ainda". */
     const html = desenhar([
       receita("Kiku Sushi", 2200),
       receita("Salte", 1300),
-      despesa("Canva", 35, FERRAMENTAS),
     ]);
-    // Escrito em minúscula; quem deixa em caixa alta é o CSS.
-    expect(html).toContain("Total receitas");
-    expect(html).toContain("Total despesas");
     expect(html).toContain("3.500,00");
+    expect(html).not.toContain("Total receitas");
   });
 
   it("põe Editar em toda linha", () => {
