@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { diasParado, estaParado } from "@/lib/comercial/funil";
-import { quandoEhAReuniao, reuniaoPassou } from "@/lib/comercial/reuniao";
+import {
+  diasAte,
+  quandoEhAReuniao,
+  reuniaoPassou,
+} from "@/lib/comercial/reuniao";
 import { Badge } from "@/components/ui/badge";
 import { LEAD_TEMPERATURE_TONE } from "@/types";
 import { cn, formatarMoeda } from "@/lib/utils";
@@ -21,6 +25,11 @@ import type { LeadWithRelations } from "@/types";
  * dias, proposta vencida.
  */
 
+/** Dias entre hoje e a data combinada, no fuso da agência. */
+function diasAteOContato(data: string, agora: Date): number {
+  return diasAte(new Date(`${data}T12:00:00-04:00`), agora);
+}
+
 /**
  * A etiqueta da próxima coisa: o que essa oportunidade está pedindo.
  *
@@ -38,6 +47,28 @@ function Proxima({
   lead: LeadWithRelations;
   agora: Date;
 }) {
+  /* O COMPROMISSO vem antes do alarme. Se existe data marcada para
+     falar de novo, é isso que a pessoa precisa ver; "parado há 9
+     dias" é o que o sistema deduz quando ninguém marcou nada. */
+  if (lead.next_contact_on) {
+    const dias = diasAteOContato(lead.next_contact_on, agora);
+    const atrasado = dias < 0;
+    return (
+      <span
+        className={cn(
+          "text-xs font-semibold",
+          atrasado ? "text-alerta" : dias === 0 ? "text-area" : "text-gray-600",
+        )}
+      >
+        {atrasado
+          ? `Contato venceu há ${Math.abs(dias)} dia${Math.abs(dias) > 1 ? "s" : ""}`
+          : dias === 0
+            ? "Falar hoje"
+            : `Falar ${quandoEhAReuniao(`${lead.next_contact_on}T12:00:00-04:00`, agora)}`}
+      </span>
+    );
+  }
+
   if (lead.meeting_at) {
     const atrasada = reuniaoPassou(lead.meeting_at, agora);
     return (

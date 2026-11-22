@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dadosDoFechamento, propostaVigente } from "@/lib/comercial/funil";
+import { ETAPAS_ABERTAS, proximoContatoSugerido } from "@/lib/comercial/etapas";
 import { instanteDaReuniao } from "@/lib/comercial/reuniao";
 import { paraNumero } from "@/lib/financeiro/valores";
+import { hojeISO } from "@/lib/financeiro/meses";
 import {
   atividadeFormSchema,
   fechamentoSchema,
@@ -73,6 +75,7 @@ function normalizarLead(values: LeadFormValues) {
     stage: values.stage,
     estimated_monthly: paraNumero(values.estimated_monthly ?? "") ?? 0,
     meeting_at: instante(values.meeting_at),
+    next_contact_on: limpar(values.next_contact_on),
     notes: limpar(values.notes),
   };
 }
@@ -160,14 +163,27 @@ export async function moverEtapaAction(
   if (etapa === "Fechado" || etapa === "Perdido") {
     return {
       ok: false,
-      error: "Para encerrar, use Ganhar ou Perder — o fechamento pede mais dados.",
+      error:
+        "Para encerrar, use Registrar ganho ou Registrar perda — o fechamento pede mais dados.",
     };
   }
 
   const supabase = createClient();
+
+  /* Mover de etapa remarca o próximo contato pela regra da etapa.
+     É o que faz a fila de trabalho existir: sem isso, a pessoa move
+     o cartão e o compromisso some. "Reunião marcada" é a exceção —
+     ali a data é a da reunião, e sobrescrevê-la apagaria o
+     compromisso de verdade por um prazo genérico. */
+  const sugerido = proximoContatoSugerido(etapa, hojeISO());
+
   const { error } = await supabase
     .from("commercial_leads")
-    .update({ stage: etapa })
+    .update(
+      sugerido === null
+        ? { stage: etapa }
+        : { stage: etapa, next_contact_on: sugerido },
+    )
     .eq("id", id);
 
   if (error) return { ok: false, error: "Não foi possível mover a oportunidade." };
@@ -268,10 +284,13 @@ export async function criarPropostaAction(
       .eq("id", leadId)
       .maybeSingle();
 
+    /* Marcar a proposta como apresentada empurra a oportunidade para
+       a etapa, se ela ainda estiver atrás. A lista são as etapas
+       ANTES de "Proposta apresentada" no funil. */
     if (
-      lead?.stage === "Contato feito" ||
-      lead?.stage === "Diagnóstico" ||
-      lead?.stage === "Reunião marcada"
+      lead?.stage &&
+      ETAPAS_ABERTAS.indexOf(lead.stage) <
+        ETAPAS_ABERTAS.indexOf("Proposta apresentada")
     ) {
       await supabase
         .from("commercial_leads")

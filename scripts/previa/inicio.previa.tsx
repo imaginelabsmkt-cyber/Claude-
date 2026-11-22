@@ -253,7 +253,7 @@ function Tela() {
             <BarrasRanqueadas
               itens={[
                 {
-                  rotulo: "Contato feito",
+                  rotulo: "Primeiro contato",
                   valor: 1800,
                   detalhe: "2 oportunidades",
                 },

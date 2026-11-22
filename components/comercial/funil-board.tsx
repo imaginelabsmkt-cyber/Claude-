@@ -24,6 +24,7 @@ import { quandoEhAReuniao, reuniaoPassou } from "@/lib/comercial/reuniao";
 import { toast } from "@/lib/ui/toast";
 import { cn, formatarMoeda } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { etapa as metaDaEtapa } from "@/lib/comercial/etapas";
 import { LEAD_STAGES_ABERTAS, LEAD_TEMPERATURE_TONE } from "@/types";
 import type { LeadStage, LeadWithRelations } from "@/types";
 
@@ -142,6 +143,14 @@ function Coluna({
           {formatarMoeda(total)}
         </span>
       </div>
+
+      {/* O que a etapa É, embaixo do nome. Com sete colunas, a
+          diferença entre "Primeiro contato" e "Em conversa" não é
+          óbvia, e quem arrasta o cartão para a coluna errada
+          desalinha o funil inteiro. */}
+      <p className="mb-2 px-1 text-[11px] leading-snug text-gray-500">
+        {metaDaEtapa(etapa).descricao}
+      </p>
 
       <div
         ref={setNodeRef}

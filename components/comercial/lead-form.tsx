@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { atualizarLeadAction, criarLeadAction } from "@/lib/actions/comercial";
 import { paraCampo } from "@/lib/financeiro/valores";
+import { etapa } from "@/lib/comercial/etapas";
 import {
   instanteDaReuniao,
   paraCampoDeReuniao,
@@ -69,6 +70,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
           stage: lead.stage,
           estimated_monthly: paraCampo(Number(lead.estimated_monthly)),
           temperature: lead.temperature ?? "Morno",
+          next_contact_on: lead.next_contact_on ?? "",
           meeting_at: paraCampoDeReuniao(lead.meeting_at),
           notes: lead.notes ?? "",
         }
@@ -143,7 +145,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
   const detalhesAbertos =
     GUARDADOS.some((c) => (values[c] ?? "").trim().length > 0) ||
     GUARDADOS.some((c) => Boolean(erros[c])) ||
-    values.stage !== "Contato feito";
+    values.stage !== "Novo lead";
 
   return (
     <form onSubmit={aoEnviar} className="space-y-4" noValidate>
@@ -231,19 +233,41 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
           preenchido ao voltar a oportunidade para trás. Campo que não
           serve para a etapa atual é campo a mais, e campo a mais foi
           exatamente a reclamação. */}
-      {values.stage === "Reunião marcada" || (values.meeting_at ?? "") !== "" ? (
+      <div className="grid gap-4 sm:grid-cols-2">
+        {values.stage === "Reunião marcada" ||
+        (values.meeting_at ?? "") !== "" ? (
+          <div>
+            <Label htmlFor="l-reuniao">Data da reunião</Label>
+            <Input
+              id="l-reuniao"
+              type="datetime-local"
+              value={values.meeting_at ?? ""}
+              onChange={(e) => atualizar("meeting_at", e.target.value)}
+              aria-invalid={Boolean(erros.meeting_at)}
+            />
+            {erro("meeting_at")}
+          </div>
+        ) : null}
+
+        {/* O compromisso, e não o alarme. Sugerido pela etapa ao
+            mover o cartão; aqui dá para mudar quando a pessoa
+            combinou outra coisa com o cliente. */}
         <div>
-          <Label htmlFor="l-reuniao">Data da reunião</Label>
+          <Label htmlFor="l-prox">Próximo contato</Label>
           <Input
-            id="l-reuniao"
-            type="datetime-local"
-            value={values.meeting_at ?? ""}
-            onChange={(e) => atualizar("meeting_at", e.target.value)}
-            aria-invalid={Boolean(erros.meeting_at)}
+            id="l-prox"
+            type="date"
+            value={values.next_contact_on ?? ""}
+            onChange={(e) => atualizar("next_contact_on", e.target.value)}
+            aria-invalid={Boolean(erros.next_contact_on)}
           />
-          {erro("meeting_at")}
+          {erro("next_contact_on") ?? (
+            <p className="mt-1 text-xs text-gray-500">
+              {etapa(values.stage).oQueFazer}
+            </p>
+          )}
         </div>
-      ) : null}
+      </div>
 
       <details open={detalhesAbertos} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
         <summary className="cursor-pointer select-none text-sm font-semibold text-gray-700">

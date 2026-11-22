@@ -9,31 +9,22 @@
 
 import { arredondar, somar } from "@/lib/financeiro/calculo";
 import { deslocarMes, partesMes } from "@/lib/financeiro/meses";
+import { ETAPAS_ABERTAS, etapa } from "@/lib/comercial/etapas";
 import type { Lead, LeadStage, Proposal } from "@/types";
 
-/**
- * Quantos dias uma oportunidade pode ficar parada em cada etapa antes
- * de merecer uma cutucada. São os prazos de uma agência pequena, onde
- * follow-up lento é a principal causa de proposta que esfria.
- */
-export const LIMITE_PARADO: Record<LeadStage, number> = {
-  "Contato feito": 3,
-  Diagnóstico: 5,
-  "Reunião marcada": 7,
-  "Proposta apresentada": 5,
-  Negociação: 7,
-  Fechado: Infinity,
-  Perdido: Infinity,
-};
+export { ETAPAS_ABERTAS };
 
-/** Etapas que ainda estão em jogo (não encerradas). */
-export const ETAPAS_ABERTAS: LeadStage[] = [
-  "Contato feito",
-  "Diagnóstico",
-  "Reunião marcada",
-  "Proposta apresentada",
-  "Negociação",
-];
+/**
+ * Quantos dias uma oportunidade pode ficar parada numa etapa antes de
+ * merecer uma cutucada. Sai do prazo de follow-up de cada etapa (ver
+ * lib/comercial/etapas.ts): se a regra manda falar em 2 dias, passar
+ * de 2 é estar parado. Era uma tabela separada, que envelheceu assim
+ * que o funil mudou.
+ */
+export const LIMITE_PARADO = (id: LeadStage): number =>
+  etapa(id).diasAteOProximoContato ?? Infinity;
+
+
 
 /** A oportunidade ainda está em jogo? */
 export function estaAberta(lead: Pick<Lead, "stage">): boolean {
@@ -64,7 +55,7 @@ export function estaParado(
   hoje: Date = new Date(),
 ): boolean {
   if (!estaAberta(lead)) return false;
-  return diasParado(lead, hoje) > LIMITE_PARADO[lead.stage];
+  return diasParado(lead, hoje) > LIMITE_PARADO(lead.stage);
 }
 
 /**

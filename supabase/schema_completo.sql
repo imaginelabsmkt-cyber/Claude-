@@ -1170,7 +1170,9 @@ do $$
 begin
   if not exists (select 1 from pg_type where typname = 'lead_stage') then
     create type lead_stage as enum (
-      'Contato feito',
+      'Novo lead',
+      'Primeiro contato',
+      'Em conversa',
       'Diagnóstico',
       'Reunião marcada',
       'Proposta apresentada',
@@ -1216,7 +1218,7 @@ create table if not exists public.commercial_leads (
   contact_phone      text,
   -- Como chegou até a agência (indicação, Instagram, etc).
   source             text,
-  stage              lead_stage not null default 'Contato feito',
+  stage              lead_stage not null default 'Novo lead',
   -- Quanto se espera faturar por mês com este cliente.
   estimated_monthly  numeric(12, 2) not null default 0 check (estimated_monthly >= 0),
   notes              text,
@@ -1229,6 +1231,8 @@ create table if not exists public.commercial_leads (
   -- Quente: veio pedindo ajuda. Morno: interesse sem urgência.
   -- Frio: a agência foi atrás.
   temperature        lead_temperature,
+  -- Quando falar com este lead de novo. Sugerido pela etapa ao mover.
+  next_contact_on    date,
   -- Quando entrou na etapa atual — alimenta o "X dias parado".
   stage_changed_at   timestamptz not null default now(),
   created_at         timestamptz not null default now(),
@@ -2235,7 +2239,7 @@ create index if not exists idx_commercial_leads_channel
 -- funil); Perdido não mexe, preservando o último degrau real.
 -- -------------------------------------------------------------
 alter table public.commercial_leads
-  add column if not exists max_stage lead_stage not null default 'Contato feito';
+  add column if not exists max_stage lead_stage not null default 'Novo lead';
 
 comment on column public.commercial_leads.max_stage is
   'Etapa mais avançada já alcançada. Só avança. Alimenta o funil acumulado.';
@@ -2246,12 +2250,14 @@ language sql
 immutable
 as $$
   select case e::text
-    when 'Contato feito'        then 1
-    when 'Diagnóstico'          then 2
-    when 'Reunião marcada'      then 3
-    when 'Proposta apresentada' then 4
-    when 'Negociação'           then 5
-    when 'Fechado'              then 6
+    when 'Novo lead'            then 1
+    when 'Primeiro contato'     then 2
+    when 'Em conversa'          then 3
+    when 'Diagnóstico'          then 4
+    when 'Reunião marcada'      then 5
+    when 'Proposta apresentada' then 6
+    when 'Negociação'           then 7
+    when 'Fechado'              then 8
     else 0                                  -- Perdido: não é degrau
   end;
 $$;

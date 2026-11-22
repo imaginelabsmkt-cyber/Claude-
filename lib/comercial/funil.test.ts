@@ -34,6 +34,7 @@ function lead(over: Partial<Lead> = {}): Lead {
     lost_reason: null,
     meeting_at: null,
     temperature: null,
+    next_contact_on: null,
     stage_changed_at: "2026-09-20T12:00:00Z",
     created_at: "2026-09-01T12:00:00Z",
     updated_at: "2026-09-20T12:00:00Z",
@@ -77,11 +78,27 @@ describe("parado há quanto tempo", () => {
     expect(diasParado(lead({ stage_changed_at: "2026-09-25T09:00:00" }), HOJE)).toBe(0);
   });
 
-  it("aplica o limite de cada etapa", () => {
-    // "Contato feito" tolera 3 dias; "Negociação" tolera 7.
+  it("aplica o prazo de follow-up de cada etapa", () => {
+    /* O limite sai do prazo da etapa (lib/comercial/etapas.ts): se a
+       regra manda falar em 1 dia, passar de 1 é estar parado.
+       "Primeiro contato" fala em 1 dia; "Negociação", em 3. */
+    const parado2 = { stage_changed_at: "2026-09-19T09:00:00" };
+    expect(estaParado({ stage: "Primeiro contato", ...parado2 }, HOJE)).toBe(
+      true,
+    );
+    expect(estaParado({ stage: "Negociação", ...parado2 }, HOJE)).toBe(false);
+
     const parado4 = { stage_changed_at: "2026-09-17T09:00:00" };
-    expect(estaParado({ stage: "Contato feito", ...parado4 }, HOJE)).toBe(true);
-    expect(estaParado({ stage: "Negociação", ...parado4 }, HOJE)).toBe(false);
+    expect(estaParado({ stage: "Negociação", ...parado4 }, HOJE)).toBe(true);
+  });
+
+  it("a reunião marcada não fica parada pelo relógio da etapa", () => {
+    // Ela tem data própria: cobrar "parado há 9 dias" de quem tem
+    // reunião marcada para a semana que vem é alarme falso.
+    const antigo = { stage_changed_at: "2026-09-01T09:00:00" };
+    expect(estaParado({ stage: "Reunião marcada", ...antigo }, HOJE)).toBe(
+      false,
+    );
   });
 
   it("oportunidade encerrada nunca está parada", () => {
@@ -94,7 +111,7 @@ describe("parado há quanto tempo", () => {
 describe("valorDoFunil", () => {
   it("soma só o que está aberto", () => {
     const total = valorDoFunil([
-      lead({ stage: "Contato feito", estimated_monthly: 1200 }),
+      lead({ stage: "Primeiro contato", estimated_monthly: 1200 }),
       lead({ stage: "Negociação", estimated_monthly: 1500 }),
       lead({ stage: "Fechado", estimated_monthly: 9999 }),
       lead({ stage: "Perdido", estimated_monthly: 8888 }),

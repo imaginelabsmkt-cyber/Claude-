@@ -273,7 +273,9 @@ export const LEAD_TEMPERATURE_TONE: Record<LeadTemperature, BadgeTone> = {
 };
 
 export const LEAD_STAGE_OPTIONS: LeadStage[] = [
-  "Contato feito",
+  "Novo lead",
+  "Primeiro contato",
+  "Em conversa",
   "Diagnóstico",
   "Reunião marcada",
   "Proposta apresentada",
@@ -284,7 +286,9 @@ export const LEAD_STAGE_OPTIONS: LeadStage[] = [
 
 /** Etapas que aparecem como coluna no quadro do funil. */
 export const LEAD_STAGES_ABERTAS: LeadStage[] = [
-  "Contato feito",
+  "Novo lead",
+  "Primeiro contato",
+  "Em conversa",
   "Diagnóstico",
   "Reunião marcada",
   "Proposta apresentada",

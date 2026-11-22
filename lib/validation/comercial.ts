@@ -52,7 +52,9 @@ export const leadFormSchema = z.object({
     errorMap: () => ({ message: "Escolha a temperatura" }),
   }),
   stage: z.enum([
-    "Contato feito",
+    "Novo lead",
+    "Primeiro contato",
+    "Em conversa",
     "Diagnóstico",
     "Reunião marcada",
     "Proposta apresentada",
@@ -76,6 +78,13 @@ export const leadFormSchema = z.object({
     .refine((v) => !Number.isNaN(new Date(v).getTime()), "Data da reunião inválida")
     .or(z.literal(""))
     .optional(),
+  /** "YYYY-MM-DD", ou vazio. Sugerido pela etapa ao mover. */
+  next_contact_on: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida")
+    .or(z.literal(""))
+    .optional(),
   notes: z.string().trim().max(2000).or(z.literal("")).optional(),
 });
 
@@ -89,7 +98,8 @@ export const LEAD_FORM_PADRAO: LeadFormValues = {
   source: "",
   channel: "Social selling",
   temperature: "Morno",
-  stage: "Contato feito",
+  next_contact_on: "",
+  stage: "Novo lead",
   estimated_monthly: "",
   meeting_at: "",
   notes: "",
@@ -174,6 +184,13 @@ export const atividadeFormSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Prazo inválido")
+    .or(z.literal(""))
+    .optional(),
+  /** "YYYY-MM-DD", ou vazio. Sugerido pela etapa ao mover. */
+  next_contact_on: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida")
     .or(z.literal(""))
     .optional(),
   notes: z.string().trim().max(2000).or(z.literal("")).optional(),

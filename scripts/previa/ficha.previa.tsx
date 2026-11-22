@@ -30,8 +30,8 @@ const dias = (n: number, h = 10) => {
 };
 
 const PASSOS: PassoDaEtapa[] = [
-  { id: "1", de: null, para: "Contato feito", em: dias(-24) },
-  { id: "2", de: "Contato feito", para: "Diagnóstico", em: dias(-19) },
+  { id: "1", de: null, para: "Primeiro contato", em: dias(-24) },
+  { id: "2", de: "Primeiro contato", para: "Diagnóstico", em: dias(-19) },
   { id: "3", de: "Diagnóstico", para: "Reunião marcada", em: dias(-12) },
   { id: "4", de: "Reunião marcada", para: "Proposta apresentada", em: dias(-5) },
 ];

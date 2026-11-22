@@ -473,7 +473,9 @@ export type FinancialEntryInsert = Omit<
 
 /** Etapas do funil. "Fechado" e "Perdido" encerram a oportunidade. */
 export type LeadStage =
-  | "Contato feito"
+  | "Novo lead"
+  | "Primeiro contato"
+  | "Em conversa"
   | "Diagnóstico"
   | "Reunião marcada"
   | "Proposta apresentada"
@@ -525,6 +527,8 @@ export type Lead = {
   meeting_at: string | null;
   /** Quanto o lead quer: quente, morno ou frio. */
   temperature: LeadTemperature | null;
+  /** Quando falar com este lead de novo ("YYYY-MM-DD"). */
+  next_contact_on: string | null;
   /** Quando entrou na etapa atual — alimenta o "parado há N dias". */
   stage_changed_at: ISODateString;
   created_at: ISODateString;
@@ -623,6 +627,7 @@ export type LeadInsert = Omit<
   | "lost_reason"
   | "meeting_at"
   | "temperature"
+  | "next_contact_on"
 > & {
   id?: UUID;
   stage?: LeadStage;
@@ -638,6 +643,7 @@ export type LeadInsert = Omit<
   lost_reason?: string | null;
   meeting_at?: string | null;
   temperature?: LeadTemperature | null;
+  next_contact_on?: string | null;
 };
 
 /** Uma mudança de etapa de uma oportunidade, com data. */

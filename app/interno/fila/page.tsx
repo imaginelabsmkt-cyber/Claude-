@@ -59,8 +59,19 @@ export default async function FilaPage() {
     reuniaoPassou(l.meeting_at, agora),
   );
 
-  /* Oportunidades paradas além do prazo da etapa. */
-  const parados = leads.filter((l) => estaParado(l, agora));
+  /* O COMPROMISSO MARCADO: com quem falar hoje, e quem já venceu.
+     É o motor da tela "Hoje" do protótipo da Vitória — antes esta
+     fila só sabia do alarme ("parado há N dias"), que é o que o
+     sistema deduz quando ninguém marcou nada. */
+  const comContato = leads
+    .filter((l) => l.next_contact_on)
+    .sort((a, b) => (a.next_contact_on ?? "").localeCompare(b.next_contact_on ?? ""));
+  const contatoVencido = comContato.filter((l) => (l.next_contact_on ?? "") < hoje);
+  const contatoHoje = comContato.filter((l) => l.next_contact_on === hoje);
+
+  /* Oportunidades paradas além do prazo da etapa, SEM contato
+     marcado: com data combinada, o alarme genérico só repetiria. */
+  const parados = leads.filter((l) => !l.next_contact_on && estaParado(l, agora));
 
   /* Contas em atraso, dos dois lados. */
   const vencidos = lancamentos.filter(
@@ -68,6 +79,8 @@ export default async function FilaPage() {
   );
 
   const nada =
+    contatoVencido.length === 0 &&
+    contatoHoje.length === 0 &&
     agora_pedem === 0 &&
     reunioes.length === 0 &&
     parados.length === 0 &&
@@ -99,9 +112,9 @@ export default async function FilaPage() {
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
           rotulo="Pendentes"
-          valor={String(agora_pedem)}
-          alerta={agora_pedem > 0}
-          detalhe="atividades em atraso ou de hoje"
+          valor={String(agora_pedem + contatoVencido.length + contatoHoje.length)}
+          alerta={agora_pedem + contatoVencido.length + contatoHoje.length > 0}
+          detalhe="atividades e contatos de hoje ou em atraso"
         />
         <Stat
           rotulo="Reuniões marcadas"
@@ -133,6 +146,50 @@ export default async function FilaPage() {
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
           <p className="font-medium text-gray-900">Nenhuma pendência</p>
         </div>
+      ) : null}
+
+      {contatoVencido.length > 0 ? (
+        <Secao titulo={`Contato em atraso (${contatoVencido.length})`}>
+          <OrigemLista>
+            {contatoVencido.map((l) => {
+              const d = Math.abs(
+                Math.round(
+                  (new Date(`${l.next_contact_on}T12:00:00-04:00`).getTime() -
+                    agora.getTime()) /
+                    86_400_000,
+                ),
+              );
+              return (
+                <OrigemItem
+                  key={l.id}
+                  origem="comercial"
+                  titulo={l.name}
+                  descricao={`${l.stage}${l.temperature ? ` · ${l.temperature}` : ""}`}
+                  valor={formatarMoeda(Number(l.estimated_monthly))}
+                  prazo={`venceu há ${d} dia${d > 1 ? "s" : ""}`}
+                  atrasado
+                />
+              );
+            })}
+          </OrigemLista>
+        </Secao>
+      ) : null}
+
+      {contatoHoje.length > 0 ? (
+        <Secao titulo={`Falar hoje (${contatoHoje.length})`}>
+          <OrigemLista>
+            {contatoHoje.map((l) => (
+              <OrigemItem
+                key={l.id}
+                origem="comercial"
+                titulo={l.name}
+                descricao={`${l.stage}${l.temperature ? ` · ${l.temperature}` : ""}`}
+                valor={formatarMoeda(Number(l.estimated_monthly))}
+                prazo="hoje"
+              />
+            ))}
+          </OrigemLista>
+        </Secao>
       ) : null}
 
       {fila.atrasadas.length > 0 ? (

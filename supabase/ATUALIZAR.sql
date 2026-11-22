@@ -1813,3 +1813,113 @@ comment on column public.commercial_leads.temperature is
 alter type lead_channel add value if not exists 'Instagram orgânico' after 'Tráfego pago';
 alter type lead_channel add value if not exists 'Grupos e WhatsApp'  after 'Evento';
 alter type lead_channel add value if not exists 'Visita presencial'  after 'Parceria';
+
+-- 3. AS ETAPAS DO PROTÓTIPO ----------------------------------------
+--
+--    O protótipo da Vitória tem sete etapas abertas; o nosso tinha
+--    cinco. A diferença que importa é o começo: "Novo lead" (chegou e
+--    ninguém falou com ele), "Primeiro contato" (mensagem enviada,
+--    esperando resposta) e "Em conversa" (respondeu, mas ainda não
+--    marcou reunião) eram tudo uma coisa só aqui — e são três
+--    situações com ações completamente diferentes.
+--
+--    MAS NÃO É CÓPIA. Copiar ao pé da letra desfaria duas correções
+--    que a Fran deu em voz alta:
+--
+--      "A gente não envia a proposta, a gente já apresenta na
+--       primeira reunião."     -> continua "Proposta apresentada",
+--                                 e não "Proposta enviada" como no
+--                                 protótipo.
+--
+--      "O diagnóstico a gente faz justamente antes de encontrar o
+--       cliente."              -> "Diagnóstico" fica, embora o
+--                                 protótipo não tenha a etapa.
+--
+--    E "Reunião feita" do protótipo não entra: na reunião a proposta
+--    é apresentada, então as duas são o mesmo momento. Ficam sete
+--    etapas abertas, o mesmo número do protótipo.
+--
+--        Novo lead -> Primeiro contato -> Em conversa -> Diagnóstico
+--        -> Reunião marcada -> Proposta apresentada -> Negociação
+--        -> Fechado / Perdido
+
+-- "Contato feito" vira "Primeiro contato": é a mesma coisa, com o
+-- nome que diz o que está acontecendo (esperando resposta).
+do $$
+begin
+  if exists (
+    select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+     where t.typname = 'lead_stage' and e.enumlabel = 'Contato feito'
+  ) then
+    alter type lead_stage rename value 'Contato feito' to 'Primeiro contato';
+  end if;
+end
+$$;
+
+alter type lead_stage add value if not exists 'Novo lead'   before 'Primeiro contato';
+alter type lead_stage add value if not exists 'Em conversa' after  'Primeiro contato';
+
+-- A posição de cada etapa, de novo. Compara `e::text` pelo mesmo
+-- motivo de sempre: valor recém-criado não pode ser resolvido como
+-- literal na mesma transação, e o SQL Editor roda tudo numa só.
+create or replace function public.posicao_da_etapa(e lead_stage)
+returns int
+language sql
+immutable
+as $$
+  select case e::text
+    when 'Novo lead'            then 1
+    when 'Primeiro contato'     then 2
+    when 'Em conversa'          then 3
+    when 'Diagnóstico'          then 4
+    when 'Reunião marcada'      then 5
+    when 'Proposta apresentada' then 6
+    when 'Negociação'           then 7
+    when 'Fechado'              then 8
+    else 0                                  -- Perdido: não é degrau
+  end;
+$$;
+
+-- 4. PRÓXIMO CONTATO -----------------------------------------------
+--
+--    É o motor da tela "Hoje" do protótipo: toda etapa aberta tem uma
+--    data de próximo contato, e quem passou da data aparece em
+--    vermelho. O nosso tinha só o "parado há N dias", que é alarme
+--    DEPOIS do fato — não existia o compromisso marcado.
+alter table public.commercial_leads
+  add column if not exists next_contact_on date;
+
+comment on column public.commercial_leads.next_contact_on is
+  'Quando falar com este lead de novo. Sugerido pela etapa ao mover.';
+
+create index if not exists idx_leads_proximo_contato
+  on public.commercial_leads (next_contact_on)
+  where stage not in ('Fechado', 'Perdido');
+
+-- Quem já está no funil e nunca teve data ganha uma, pela etapa:
+-- sem isso a fila nasce vazia e a tela não prova que funciona.
+update public.commercial_leads
+   set next_contact_on = (current_date + case stage::text
+         when 'Novo lead'            then 0
+         when 'Primeiro contato'     then 1
+         when 'Em conversa'          then 2
+         when 'Diagnóstico'          then 3
+         when 'Reunião marcada'      then 0
+         when 'Proposta apresentada' then 2
+         when 'Negociação'           then 3
+         else 0 end)
+ where next_contact_on is null
+   and stage not in ('Fechado', 'Perdido');
+
+-- O PADRÃO DA COLUNA NÃO MUDA AQUI, de propósito.
+--
+-- `alter column stage set default 'Novo lead'` usa o valor recém
+-- criado como literal, e o Postgres recusa isso na mesma transação:
+--
+--     ERROR: unsafe use of new value "Novo lead" of enum type
+--
+-- O SQL Editor do Supabase roda o arquivo inteiro numa transação só,
+-- então o arquivo quebraria na cara dela — foi o que aconteceu no meu
+-- teste, e é o mesmo erro que já quebrou uma vez. O padrão só vale
+-- para quem insere direto no banco; o sistema sempre manda a etapa, e
+-- a instalação do zero já nasce com o padrão certo.

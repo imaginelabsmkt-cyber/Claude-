@@ -34,6 +34,11 @@ const atras = (dias: number) => {
   d.setDate(d.getDate() - dias);
   return d.toISOString();
 };
+const diaISO = (dias: number) => {
+  const d = new Date(HOJE);
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+};
 
 function op(
   nome: string,
@@ -58,6 +63,7 @@ function op(
     lost_reason: null,
     meeting_at: null,
     temperature: null,
+    next_contact_on: null,
     stage_changed_at: atras(1),
     created_at: atras(30),
     updated_at: atras(1),
@@ -72,6 +78,7 @@ const EXEMPLO: LeadWithRelations[] = [
   op("Exemplo 1 (clínica)", "Negociação", "Indicação", 2400, {
     stage_changed_at: atras(9),
     temperature: "Quente",
+    next_contact_on: diaISO(-2),
   }),
   op("Exemplo 2 (restaurante)", "Reunião marcada", "Tráfego pago", 1800, {
     meeting_at: daqui(0, 14),
@@ -80,16 +87,18 @@ const EXEMPLO: LeadWithRelations[] = [
   op("Exemplo 3 (loja)", "Reunião marcada", "Instagram orgânico", 1500, {
     meeting_at: daqui(2, 16),
     temperature: "Morno",
+    next_contact_on: diaISO(2),
   }),
   op("Exemplo 4 (advocacia)", "Proposta apresentada", "Indicação", 1300, {
     stage_changed_at: atras(2),
     temperature: "Quente",
+    next_contact_on: diaISO(0),
   }),
-  op("Exemplo 5 (estúdio)", "Diagnóstico", "Grupos e WhatsApp", 900, {
+  op("Exemplo 5 (estúdio)", "Em conversa", "Grupos e WhatsApp", 900, {
     stage_changed_at: atras(0),
     temperature: "Morno",
   }),
-  op("Exemplo 6 (contador)", "Contato feito", "Visita presencial", 700, {
+  op("Exemplo 6 (contador)", "Novo lead", "Visita presencial", 700, {
     meeting_at: atras(2),
     temperature: "Frio",
   }),

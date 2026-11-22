@@ -16,6 +16,7 @@
  */
 
 import { arredondar, dividirSeguro, somar } from "@/lib/financeiro/calculo";
+import { ETAPAS_ABERTAS } from "@/lib/comercial/etapas";
 import type { LeadChannel, LeadStage } from "@/types";
 
 /** O mínimo que uma oportunidade precisa ter para entrar na conta. */
@@ -27,11 +28,7 @@ export interface OportunidadeProspeccao {
 
 /** As etapas do funil na ordem, da primeira conversa ao fechamento. */
 export const ETAPAS_DO_FUNIL: LeadStage[] = [
-  "Contato feito",
-  "Diagnóstico",
-  "Reunião marcada",
-  "Proposta apresentada",
-  "Negociação",
+  ...ETAPAS_ABERTAS,
   "Fechado",
 ];
 

@@ -41,15 +41,15 @@ const degrau = (f: ReturnType<typeof montarFunil>, etapa: LeadStage) => {
 describe("montarFunil", () => {
   it("conta quem CHEGOU na etapa, não só quem está nela", () => {
     const ops = [
-      op("Indicação", "Contato feito"),
+      op("Indicação", "Primeiro contato"),
       op("Indicação", "Proposta apresentada"),
       op("Indicação", "Fechado"),
     ];
     const f = montarFunil(ops, (o) => o.stage);
 
-    // Os três passaram por "Contato feito".
-    expect(degrau(f, "Contato feito").chegaram).toBe(3);
-    expect(degrau(f, "Contato feito").agora).toBe(1);
+    // Os três passaram por "Primeiro contato".
+    expect(degrau(f, "Primeiro contato").chegaram).toBe(3);
+    expect(degrau(f, "Primeiro contato").agora).toBe(1);
     // Dois chegaram à proposta; só um está parado lá.
     expect(degrau(f, "Proposta apresentada").chegaram).toBe(2);
     expect(degrau(f, "Proposta apresentada").agora).toBe(1);
@@ -61,7 +61,7 @@ describe("montarFunil", () => {
     const mapa = new Map([[perdido, "Negociação" as LeadStage]]);
     const f = montarFunil([perdido], ateOndeChegou(mapa));
 
-    expect(degrau(f, "Contato feito").chegaram).toBe(1);
+    expect(degrau(f, "Primeiro contato").chegaram).toBe(1);
     expect(degrau(f, "Negociação").chegaram).toBe(1); // chegou à negociação
     expect(degrau(f, "Fechado").chegaram).toBe(0); // mas não fechou
     expect(degrau(f, "Negociação").agora).toBe(0); // e não está mais lá
@@ -69,13 +69,13 @@ describe("montarFunil", () => {
 
   it("a fração do topo cai ao longo do funil", () => {
     const ops = [
-      op("Indicação", "Contato feito"),
-      op("Indicação", "Contato feito"),
-      op("Indicação", "Contato feito"),
+      op("Indicação", "Primeiro contato"),
+      op("Indicação", "Primeiro contato"),
+      op("Indicação", "Primeiro contato"),
       op("Indicação", "Fechado"),
     ];
     const f = montarFunil(ops, (o) => o.stage);
-    expect(degrau(f, "Contato feito").doTopo).toBe(1);
+    expect(degrau(f, "Primeiro contato").doTopo).toBe(1);
     expect(degrau(f, "Fechado").doTopo).toBeCloseTo(0.25, 10);
   });
 
@@ -159,13 +159,13 @@ describe("contatosPorCliente", () => {
     const mapa = new Map(
       ops
         .filter((o) => o.stage === "Perdido")
-        .map((o) => [o, "Contato feito" as LeadStage]),
+        .map((o) => [o, "Primeiro contato" as LeadStage]),
     );
     expect(contatosPorCliente(montarFunil(ops, ateOndeChegou(mapa)))).toBe(10);
   });
 
   it("devolve null enquanto ninguém fechou — não inventa média", () => {
-    const f = montarFunil([op("Evento", "Contato feito")], (o) => o.stage);
+    const f = montarFunil([op("Evento", "Primeiro contato")], (o) => o.stage);
     expect(contatosPorCliente(f)).toBeNull();
   });
 
