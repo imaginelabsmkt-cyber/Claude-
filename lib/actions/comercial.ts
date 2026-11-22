@@ -9,10 +9,12 @@ import { paraNumero } from "@/lib/financeiro/valores";
 import { hojeISO } from "@/lib/financeiro/meses";
 import {
   atividadeFormSchema,
+  investimentoFormSchema,
   fechamentoSchema,
   leadFormSchema,
   propostaFormSchema,
   type AtividadeFormValues,
+  type InvestimentoFormValues,
   type FechamentoValues,
   type LeadFormValues,
   type PropostaFormValues,
@@ -604,6 +606,57 @@ export async function excluirAtividadeAction(
   const supabase = createClient();
   const { error } = await supabase
     .from("commercial_activities")
+    .delete()
+    .eq("id", id);
+  if (error) return { ok: false, error: "Não foi possível excluir." };
+  revalidarComercial();
+  return { ok: true };
+}
+
+// -------------------------------------------------------------
+// Investimento por canal
+// -------------------------------------------------------------
+
+/** Lança quanto foi gasto num canal, num mês. */
+export async function criarInvestimentoAction(
+  input: InvestimentoFormValues,
+): Promise<ActionResult> {
+  const parsed = investimentoFormSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: "Verifique os campos destacados.",
+      fieldErrors: primeirosErros(parsed.error.flatten().fieldErrors),
+    };
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("commercial_investments")
+    .insert({
+      mes: parsed.data.mes,
+      channel: parsed.data.channel,
+      amount: paraNumero(parsed.data.amount) ?? 0,
+      notes: limpar(parsed.data.notes),
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    return { ok: false, error: "Não foi possível lançar o investimento." };
+  }
+
+  revalidarComercial();
+  return { ok: true, id: data.id };
+}
+
+/** Remove um lançamento de investimento. */
+export async function excluirInvestimentoAction(
+  id: string,
+): Promise<ActionResult> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("commercial_investments")
     .delete()
     .eq("id", id);
   if (error) return { ok: false, error: "Não foi possível excluir." };

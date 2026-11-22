@@ -3,7 +3,11 @@ import { AreaHeader } from "@/components/interno/area-header";
 import { ComercialTabs } from "@/components/comercial/comercial-tabs";
 import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
-import { listarProspeccao } from "@/lib/data/comercial";
+import { listarInvestimentos, listarProspeccao } from "@/lib/data/comercial";
+import { resultadoDosCanais } from "@/lib/comercial/canais";
+import { InvestimentosPanel } from "@/components/comercial/investimentos-panel";
+import { TabelaDeCanais } from "@/components/comercial/tabela-de-canais";
+import { mesAtual } from "@/lib/financeiro/meses";
 import {
   contatosPorCliente,
   montarFunil,
@@ -31,7 +35,25 @@ export const metadata = { title: "Prospecção" };
  * um jeito diferente.
  */
 export default async function ProspeccaoPage() {
-  const oportunidades = await listarProspeccao();
+  const [oportunidades, investimentos] = await Promise.all([
+    listarProspeccao(),
+    listarInvestimentos(),
+  ]);
+
+  /* O comparativo que faltava: o que cada canal trouxe CONTRA o que
+     cada canal custou. Sem o custo, "indicação converte 50%" e
+     "tráfego converte 8%" parecem a mesma informação, quando um é de
+     graça e o outro consome R$ 500 por mês. */
+  const porCanal = resultadoDosCanais(
+    oportunidades.map((o) => ({
+      channel: o.channel,
+      ganha: o.stage === "Fechado",
+      estimated_monthly: o.estimated_monthly,
+    })),
+    investimentos,
+    LEAD_CHANNEL_OPTIONS,
+  );
+  const investido = investimentos.reduce((t, i) => t + Number(i.amount), 0);
 
   const funil = montarFunil(oportunidades, (o) => o.max_stage);
   const canais = resultadoPorCanal(oportunidades, LEAD_CHANNEL_OPTIONS);
@@ -90,7 +112,12 @@ export default async function ProspeccaoPage() {
               rotulo="Receita contratada"
               valor={formatarMoeda(receitaFechada)}
             />
+            <Stat rotulo="Investido" valor={formatarMoeda(investido)} />
           </div>
+
+          <Secao titulo="Canais: o que trouxe contra o que custou">
+            <TabelaDeCanais linhas={porCanal} />
+          </Secao>
 
           <Secao
             titulo="Conversão por etapa"
@@ -195,6 +222,13 @@ export default async function ProspeccaoPage() {
           </Secao>
         </>
       )}
+
+      {/* FORA do "se houver oportunidade": o gasto costuma vir antes
+          do primeiro lead — paga-se a campanha e espera-se. Dentro do
+          condicional, a tela nova não deixava lançar nada. */}
+      <Secao titulo="Lançar investimento">
+        <InvestimentosPanel investimentos={investimentos} mes={mesAtual()} />
+      </Secao>
     </>
   );
 }

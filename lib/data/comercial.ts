@@ -3,6 +3,7 @@ import { somar } from "@/lib/financeiro/calculo";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import type {
   Activity,
+  Investment,
   FinancialEntry,
   Lead,
   LeadChannel,
@@ -328,6 +329,20 @@ export async function listarAtividades(
     ...a,
     leadNome: lead?.name ?? null,
     clienteNome: client?.name ?? null,
+  }));
+}
+
+/** Os investimentos lançados, do mais recente para o mais antigo. */
+export async function listarInvestimentos(): Promise<Investment[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("commercial_investments")
+    .select("*")
+    .order("mes", { ascending: false })
+    .order("created_at", { ascending: false });
+  return ((data ?? []) as Investment[]).map((i) => ({
+    ...i,
+    amount: Number(i.amount),
   }));
 }
 

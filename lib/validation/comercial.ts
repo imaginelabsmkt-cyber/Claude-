@@ -204,3 +204,36 @@ export const ATIVIDADE_FORM_PADRAO: AtividadeFormValues = {
   due_at: "",
   notes: "",
 };
+
+/**
+ * Um lançamento de investimento num canal.
+ *
+ * Sem isto o Painel de canais não consegue dizer qual canal compensa:
+ * ele sabe quantos fecharam, e não quanto custou.
+ */
+export const investimentoFormSchema = z.object({
+  mes: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Mês inválido"),
+  channel: z.enum([
+    "Social selling",
+    "Tráfego pago",
+    "Instagram orgânico",
+    "Indicação",
+    "Evento",
+    "Grupos e WhatsApp",
+    "Parceria",
+    "Visita presencial",
+    "Outro",
+  ]),
+  amount: z
+    .string()
+    .trim()
+    .min(1, "Informe o valor")
+    .refine((v) => paraNumero(v) !== null, "Valor inválido")
+    .refine((v) => (paraNumero(v) ?? -1) >= 0, "O valor não pode ser negativo"),
+  notes: z.string().trim().max(200).or(z.literal("")).optional(),
+});
+
+export type InvestimentoFormValues = z.infer<typeof investimentoFormSchema>;

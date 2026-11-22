@@ -706,6 +706,23 @@ export type ActivityInsert = Omit<
   notes?: string | null;
 };
 
+/** commercial_investments — o que foi gasto em cada canal, por mês. */
+export type Investment = {
+  id: UUID;
+  /** Competência "YYYY-MM". */
+  mes: string;
+  channel: LeadChannel;
+  amount: number;
+  notes: string | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+
+export type InvestmentInsert = Omit<
+  Investment,
+  "id" | "created_at" | "updated_at" | "notes"
+> & { id?: UUID; notes?: string | null };
+
 export type ProposalInsert = Omit<
   Proposal,
   | "id"
@@ -1193,6 +1210,12 @@ export interface Database {
         Row: Activity;
         Insert: ActivityInsert;
         Update: Partial<ActivityInsert>;
+        Relationships: [];
+      };
+      commercial_investments: {
+        Row: Investment;
+        Insert: InvestmentInsert;
+        Update: Partial<InvestmentInsert>;
         Relationships: [];
       };
       company_files: {

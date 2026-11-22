@@ -1413,6 +1413,7 @@ create policy "atividades_all_authenticated"
   to authenticated using (true) with check (true);
 
 
+
 -- =============================================================
 -- [19/24] 20260922120000_empresa.sql
 -- =============================================================
@@ -2224,6 +2225,36 @@ $$;
 
 alter table public.commercial_leads
   add column if not exists channel lead_channel not null default 'Outro';
+
+-- Investimento por canal: quanto cada origem custou, por mês. Fica
+-- AQUI, e não lá em cima com as outras tabelas do comercial, porque
+-- depende do enum `lead_channel`, que só nasce nesta altura do
+-- arquivo — posta antes, a instalação do zero quebra com
+-- "type lead_channel does not exist".
+create table if not exists public.commercial_investments (
+  id          uuid primary key default gen_random_uuid(),
+  mes         text not null check (mes ~ '^\d{4}-(0[1-9]|1[0-2])$'),
+  channel     lead_channel not null,
+  amount      numeric(12, 2) not null check (amount >= 0),
+  notes       text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists idx_investimentos_mes
+  on public.commercial_investments (mes, channel);
+
+drop trigger if exists trg_investimentos_updated on public.commercial_investments;
+create trigger trg_investimentos_updated
+  before update on public.commercial_investments
+  for each row execute function public.set_updated_at();
+
+alter table public.commercial_investments enable row level security;
+
+drop policy if exists "investimentos_all_authenticated" on public.commercial_investments;
+create policy "investimentos_all_authenticated"
+  on public.commercial_investments for all
+  to authenticated using (true) with check (true);
 
 comment on column public.commercial_leads.channel is
   'Canal de prospecção de onde a oportunidade veio.';

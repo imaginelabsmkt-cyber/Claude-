@@ -1971,3 +1971,43 @@ update public.commercial_leads
  where stage = 'Perdido'
    and lost_reason_kind is null
    and lost_reason is not null;
+
+-- 6. INVESTIMENTO POR CANAL ----------------------------------------
+--
+--    A maior falta do nosso Painel de canais: ele dizia quantos
+--    fecharam por canal, e NÃO quanto cada canal custou. Sem o custo,
+--    "indicação converte 50%" e "tráfego converte 8%" parecem a
+--    mesma informação — quando um é de graça e o outro consome
+--    R$ 500 por mês.
+--
+--    O protótipo da Vitória lança o gasto por mês e por origem, e
+--    calcula custo por cliente (investido ÷ fechados) e retorno em
+--    12 meses (receita mensal × 12 ÷ investido).
+create table if not exists public.commercial_investments (
+  id          uuid primary key default gen_random_uuid(),
+  -- Competência, "YYYY-MM", como no resto do sistema.
+  mes         text not null check (mes ~ '^\d{4}-(0[1-9]|1[0-2])$'),
+  channel     lead_channel not null,
+  amount      numeric(12, 2) not null check (amount >= 0),
+  notes       text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table public.commercial_investments is
+  'Quanto foi investido em cada canal, por mês: tráfego, ingresso de evento, comissão de parceiro, bônus de indicação.';
+
+create index if not exists idx_investimentos_mes
+  on public.commercial_investments (mes, channel);
+
+drop trigger if exists trg_investimentos_updated on public.commercial_investments;
+create trigger trg_investimentos_updated
+  before update on public.commercial_investments
+  for each row execute function public.set_updated_at();
+
+alter table public.commercial_investments enable row level security;
+
+drop policy if exists "investimentos_all_authenticated" on public.commercial_investments;
+create policy "investimentos_all_authenticated"
+  on public.commercial_investments for all
+  to authenticated using (true) with check (true);
