@@ -79,7 +79,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
         mensal: r.criou?.mensal ?? mensal,
       });
       toast.sucesso(
-        `Ganho registrado: ${r.criou?.cliente}, ${formatarMoeda(r.criou?.mensal ?? 0)}/mês.`,
+        `Contrato fechado: ${r.criou?.cliente}, ${formatarMoeda(r.criou?.mensal ?? 0)}/mês.`,
       );
       router.refresh();
     });
@@ -92,7 +92,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
         toast.erro(r.error ?? "Não foi possível encerrar.");
         return;
       }
-      toast.sucesso("Perda registrada.");
+      toast.sucesso("Oportunidade encerrada.");
       router.refresh();
     });
   }
@@ -101,7 +101,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
     return (
       <div className="rounded-xl border border-area bg-area-soft p-4">
         <p className="text-sm font-semibold text-area">
-          Ganho registrado · {feito.cliente} · {formatarMoeda(feito.mensal)}/mês
+          Contrato fechado · {feito.cliente} · {formatarMoeda(feito.mensal)}/mês
         </p>
         <div className="mt-2 flex flex-wrap gap-3 text-sm font-semibold">
           <Link
@@ -128,9 +128,9 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
        clique, já mostra o que foi criado e leva até lá. */
     return (
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => setAba("ganhar")}>Registrar ganho</Button>
+        <Button onClick={() => setAba("ganhar")}>Registrar contrato</Button>
         <Button variante="secundaria" onClick={() => setAba("perder")}>
-          Registrar perda
+          Encerrar sem contrato
         </Button>
       </div>
     );
@@ -140,7 +140,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-4">
         <h3 className="text-sm font-semibold text-gray-900">
-          Motivo da perda
+          Por que não fechou
         </h3>
         {/* Lista, e não texto livre: era eu quem normalizava "achou
             caro", "Achou caro" e "achou caro." na hora de somar, e
@@ -150,7 +150,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
           className="mt-3"
           value={motivo}
           onChange={(e) => setMotivo(e.target.value as LostReasonKind)}
-          aria-label="Motivo da perda"
+          aria-label="Por que não fechou"
         >
           {LOST_REASON_OPTIONS.map((m) => (
             <option key={m} value={m}>
@@ -164,11 +164,11 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
           value={observacao}
           onChange={(e) => setObservacao(e.target.value)}
           placeholder="Observação (opcional)"
-          aria-label="Observação sobre a perda"
+          aria-label="Observação sobre o encerramento"
         />
         <div className="mt-3 flex gap-2">
           <Button variante="perigo" onClick={perder} disabled={processando}>
-            {processando ? "Registrando..." : "Registrar perda"}
+            {processando ? "Registrando..." : "Encerrar sem contrato"}
           </Button>
           <Button variante="secundaria" onClick={() => setAba("nada")} disabled={processando}>
             Voltar

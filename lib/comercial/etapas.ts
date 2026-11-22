@@ -123,3 +123,21 @@ export function proximoContatoSugerido(
   d.setUTCDate(d.getUTCDate() + dias);
   return d.toISOString().slice(0, 10);
 }
+
+/**
+ * Como a etapa aparece NA TELA.
+ *
+ * O banco guarda "Perdido" — é um valor de enum, e trocar valor de
+ * enum é migração. Mas a Fran: "ganhamos, perdemos, essas coisas
+ * assim, num sistema de uma empresa institucional ninguém faz isso".
+ * Então o nome guardado continua "Perdido" e o nome escrito é "Não
+ * fechou". Quem lê vê a língua certa; quem consulta o banco acha o
+ * registro.
+ */
+const ROTULO: Partial<Record<LeadStage, string>> = {
+  Perdido: "Não fechou",
+};
+
+export function rotuloDaEtapa(id: LeadStage): string {
+  return ROTULO[id] ?? id;
+}

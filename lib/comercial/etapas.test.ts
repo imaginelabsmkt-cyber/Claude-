@@ -4,6 +4,7 @@ import {
   ETAPAS_ABERTAS,
   etapa,
   proximoContatoSugerido,
+  rotuloDaEtapa,
 } from "./etapas";
 import { LEAD_STAGE_OPTIONS } from "@/types";
 
@@ -74,5 +75,18 @@ describe("etapa", () => {
       expect(etapa(e.id).descricao.length, e.id).toBeGreaterThan(10);
       expect(etapa(e.id).oQueFazer.length, e.id).toBeGreaterThan(10);
     }
+  });
+});
+
+describe("rótulo da etapa", () => {
+  it('"Perdido" é escrito "Não fechou"', () => {
+    // O banco guarda "Perdido" (valor de enum). A tela não diz isso.
+    expect(rotuloDaEtapa("Perdido")).toBe("Não fechou");
+  });
+
+  it("as outras etapas aparecem como são", () => {
+    expect(rotuloDaEtapa("Novo lead")).toBe("Novo lead");
+    expect(rotuloDaEtapa("Fechado")).toBe("Fechado");
+    expect(rotuloDaEtapa("Proposta apresentada")).toBe("Proposta apresentada");
   });
 });

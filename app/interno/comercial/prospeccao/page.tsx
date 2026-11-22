@@ -3,7 +3,13 @@ import { AreaHeader } from "@/components/interno/area-header";
 import { ComercialTabs } from "@/components/comercial/comercial-tabs";
 import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
-import { listarInvestimentos, listarProspeccao } from "@/lib/data/comercial";
+import {
+  listarInvestimentos,
+  listarProspeccao,
+  listarTodasEncerradas,
+} from "@/lib/data/comercial";
+import { motivosDaPerda } from "@/lib/comercial/encerrados";
+import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
 import { resultadoDosCanais } from "@/lib/comercial/canais";
 import { InvestimentosPanel } from "@/components/comercial/investimentos-panel";
 import { TabelaDeCanais } from "@/components/comercial/tabela-de-canais";
@@ -18,7 +24,7 @@ import { formatarMoeda, formatarPercentual } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Prospecção" };
+export const metadata = { title: "Painel de canais" };
 
 /**
  * Prospecção: de onde vêm os clientes.
@@ -35,10 +41,16 @@ export const metadata = { title: "Prospecção" };
  * um jeito diferente.
  */
 export default async function ProspeccaoPage() {
-  const [oportunidades, investimentos] = await Promise.all([
+  const [oportunidades, investimentos, encerradas] = await Promise.all([
     listarProspeccao(),
     listarInvestimentos(),
+    listarTodasEncerradas(),
   ]);
+
+  /* "Por que não fechou" vinha na tela de Encerradas, que deixou de
+     existir. O lugar dele é aqui: é a mesma pergunta das outras
+     barras desta tela — o que o comercial está perdendo e onde. */
+  const motivos = motivosDaPerda(encerradas);
 
   /* O comparativo que faltava: o que cada canal trouxe CONTRA o que
      cada canal custou. Sem o custo, "indicação converte 50%" e
@@ -72,7 +84,7 @@ export default async function ProspeccaoPage() {
           pergunta dela é "em qual canal vale gastar a próxima hora".
           Quem são fica no funil, e agora o caminho está escrito. */}
       <AreaHeader
-        contexto="Origem e conversão"
+        contexto="Painel de canais"
         acao={
           <Link
             href="/interno/comercial/funil?v=lista"
@@ -105,7 +117,7 @@ export default async function ProspeccaoPage() {
               <Stat
                 rotulo="Contatos por conversão"
                 valor={String(custoEmContatos)}
-                detalhe="média até o ganho"
+                detalhe="média até fechar"
               />
             ) : null}
             <Stat
@@ -159,6 +171,25 @@ export default async function ProspeccaoPage() {
             </ul>
           </div>
           </Secao>
+
+          {motivos.length > 0 ? (
+            <Secao titulo="Por que não fechou">
+              <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+                {/* Ranqueado por QUANTAS vezes, não por dinheiro: a
+                    pergunta aqui é o padrão que se repete, e um
+                    contrato grande perdido uma vez não é padrão. */}
+                <BarrasRanqueadas
+                  itens={motivos.map((m) => ({
+                    rotulo: m.motivo,
+                    valor: m.quantas,
+                    detalhe: `${formatarMoeda(m.valor)} em receita recorrente`,
+                  }))}
+                  cor="#b8301f"
+                  formatar={(v) => (v === 1 ? "1 vez" : `${v} vezes`)}
+                />
+              </div>
+            </Secao>
+          ) : null}
 
           <Secao
             titulo="Desempenho por canal"

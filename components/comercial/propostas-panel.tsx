@@ -124,7 +124,7 @@ export function PropostasPanel({
       {lista.length === 0 && editando !== "nova" ? (
         <p className="text-sm text-gray-500">
           Nenhuma proposta ainda. O valor da proposta é o que vira a mensalidade
-          quando o negócio é ganho.
+          quando o contrato é fechado.
         </p>
       ) : null}
     </div>

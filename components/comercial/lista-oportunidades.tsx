@@ -5,6 +5,7 @@ import {
   quandoEhAReuniao,
   reuniaoPassou,
 } from "@/lib/comercial/reuniao";
+import { rotuloDaEtapa } from "@/lib/comercial/etapas";
 import { Badge } from "@/components/ui/badge";
 import { LEAD_TEMPERATURE_TONE } from "@/types";
 import { cn, formatarMoeda } from "@/lib/utils";
@@ -142,7 +143,7 @@ export function ListaOportunidades({
                 </Badge>
               ) : null}
               <span>
-                {l.stage} · {l.channel}
+                {rotuloDaEtapa(l.stage)} · {l.channel}
               </span>
             </p>
             <div className="mt-0.5">
@@ -181,7 +182,7 @@ export function ListaOportunidades({
                   </Badge>
                 ) : null}
               </td>
-              <td className="px-4 py-2.5 text-gray-600">{l.stage}</td>
+              <td className="px-4 py-2.5 text-gray-600">{rotuloDaEtapa(l.stage)}</td>
               <td className="px-4 py-2.5 text-gray-600">{l.channel}</td>
               <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-gray-900">
                 {formatarMoeda(Number(l.estimated_monthly))}

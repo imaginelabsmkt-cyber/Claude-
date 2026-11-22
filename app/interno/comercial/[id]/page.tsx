@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { rotuloDaEtapa } from "@/lib/comercial/etapas";
 import { AreaHeader } from "@/components/interno/area-header";
 import { Badge } from "@/components/ui/badge";
 import { AtividadesPanel } from "@/components/comercial/atividades-panel";
@@ -47,7 +48,7 @@ export default async function OportunidadePage({ params }: PageProps) {
     <>
       <AreaHeader
         titulo={lead.name}
-        contexto={lead.stage}
+        contexto={rotuloDaEtapa(lead.stage)}
         acao={
           <Link
             href="/interno/comercial/funil"
@@ -95,8 +96,8 @@ export default async function OportunidadePage({ params }: PageProps) {
         <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
           <p className="text-sm font-semibold text-gray-900">
             {lead.stage === "Fechado"
-              ? "Ganho registrado"
-              : `Perda registrada${
+              ? "Contrato fechado"
+              : `Encerrada sem contrato${
                   lead.lost_reason_kind ?? lead.lost_reason
                     ? ` · ${lead.lost_reason_kind ?? lead.lost_reason}`
                     : ""
