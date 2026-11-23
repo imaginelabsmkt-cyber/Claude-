@@ -5,7 +5,7 @@ import {
   quantosMarcados,
   type ItemDoPlano,
   type JaNoMes,
-} from "@/lib/financeiro/plano-fixo";
+} from "@/lib/financeiro/contas-fixas";
 
 const FERRAMENTAS = "cat-ferramentas";
 const PROLABORE = "cat-prolabore";
@@ -32,7 +32,7 @@ function noMes(over: Partial<JaNoMes> = {}): JaNoMes {
   };
 }
 
-describe("conferir o plano fixo", () => {
+describe("conferir as contas fixas", () => {
   it("mês vazio: tudo vem marcado", () => {
     const r = conferirPlano([item(), item({ id: "r2", description: "Canva", amount: 35 })], []);
     expect(r.every((x) => x.marcado)).toBe(true);

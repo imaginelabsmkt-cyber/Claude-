@@ -180,7 +180,7 @@ export default async function PessoalPage({ searchParams }: PageProps) {
 
       <details className="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white">
         <summary className="cursor-pointer px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
-          <span className="font-semibold text-gray-900">Plano fixo</span>: o que
+          <span className="font-semibold text-gray-900">Contas fixas</span>: o que
           repete todo mês ({painel.fixos.length} cadastrado
           {painel.fixos.length === 1 ? "" : "s"}
           {painel.fixosPendentes > 0

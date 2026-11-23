@@ -253,7 +253,7 @@ export async function gerarFixosDoMesAction(
       .not("recurrence_id", "is", null),
   ]);
 
-  if (error) return { ok: false, error: "Não foi possível ler o plano fixo." };
+  if (error) return { ok: false, error: "Não foi possível ler as contas fixas." };
 
   const faltam = fixosAGerar(fixos ?? [], existentes ?? [], mes);
   if (faltam.length === 0) {

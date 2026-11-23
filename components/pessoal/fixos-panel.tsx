@@ -75,7 +75,7 @@ export function FixosPanel({ mes, fixos, pendentes }: FixosPanelProps) {
         return;
       }
       setExcluindo(null);
-      toast.sucesso("Item do plano fixo excluído.");
+      toast.sucesso("Conta fixa excluída.");
       router.refresh();
     });
   }
@@ -168,7 +168,7 @@ export function FixosPanel({ mes, fixos, pendentes }: FixosPanelProps) {
 
       <ConfirmDialog
         aberto={excluindo !== null}
-        titulo="Excluir do plano fixo?"
+        titulo="Excluir das contas fixas?"
         descricao={
           excluindo
             ? `"${excluindo.description}" para de ser oferecido todo mês. Os lançamentos que já foram criados continuam onde estão.`

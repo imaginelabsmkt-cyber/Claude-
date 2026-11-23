@@ -131,7 +131,7 @@ export function GastosPanel({ mes, lancamentos, categoriasUsadas }: GastosPanelP
                   <span className="block text-xs text-gray-500">
                     {l.category}
                     {l.entry_date ? ` · ${formatarData(l.entry_date)}` : ""}
-                    {l.recurrence_id ? " · do plano fixo" : ""}
+                    {l.recurrence_id ? " · conta fixa" : ""}
                     {l.paid ? "" : " · ainda não pago"}
                   </span>
                 </span>

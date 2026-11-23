@@ -1,76 +1,15 @@
-import Link from "next/link";
-import { AreaHeader } from "@/components/interno/area-header";
-import { FinanceTabs } from "@/components/financeiro/finance-tabs";
-import { MonthNav } from "@/components/financeiro/month-nav";
-import { mesAtual, mesValido } from "@/lib/financeiro/meses";
-
-export const dynamic = "force-dynamic";
-
-export const metadata = { title: "Relatórios" };
-
-interface PageProps {
-  searchParams: { mes?: string };
-}
+import { redirect } from "next/navigation";
 
 /**
- * A estante dos relatórios.
+ * "Relatórios" deixou de ser aba.
  *
- * Esta tela existe por causa de uma frase da Fran: "por isso que eu
- * pedi para você buscar outros sistemas, por isso que eu te mostrei
- * outros sistemas de como funcionam".
+ * Era uma tela com quatro links dentro, disputando espaço no topo com
+ * as três que a Fran e a Vitória abrem todo dia. Virou uma seção do
+ * Resumo, que é onde se olha o ano.
  *
- * Fui ver. Conta Azul, Nibo, Granatum, QuickBooks e Xero são
- * diferentes em quase tudo, menos em três lugares: um PAINEL de
- * abertura, uma tela de MOVIMENTO (o dinheiro entrando e saindo) e uma
- * estante de RELATÓRIOS. Ninguém tem uma aba chamada "Ano"; todo mundo
- * tem uma chamada "Relatórios", e o resumo do ano é o primeiro item
- * dentro dela.
- *
- * Antes dela, essas telas não estavam em lugar nenhum: existiam, mas
- * só se chegava por um link escondido no pé de outra tela.
- *
- * Sem frase embaixo do nome. A primeira versão tinha uma linha
- * explicando cada relatório, e a Fran: "ele precisa daquelas frases
- * que tu colocou, sendo que é um sistema, não é pra ter essas
- * frases". Se o nome precisa de legenda, o nome está errado — então
- * o trabalho é no nome.
+ * O endereço continua respondendo porque pode estar salvo no
+ * navegador de alguma das duas.
  */
-interface Relatorio {
-  titulo: string;
-  href: string;
-}
-
-export default function RelatoriosPage({ searchParams }: PageProps) {
-  const mes =
-    searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
-
-  const RELATORIOS: Relatorio[] = [
-    { titulo: "Fluxo de caixa mensal", href: `/interno/financeiro/fluxo-caixa?mes=${mes}` },
-    { titulo: "Margem por cliente", href: `/interno/financeiro/rentabilidade?mes=${mes}` },
-    { titulo: "Tributos e obrigações", href: `/interno/financeiro/impostos?mes=${mes}` },
-    { titulo: "Fechamento do mês", href: `/interno/relatorio?mes=${mes}` },
-  ];
-
-  return (
-    <>
-      <AreaHeader titulo="Relatórios" acao={<MonthNav mes={mes} />} />
-
-      <FinanceTabs />
-
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {RELATORIOS.map((r) => (
-          <li key={r.href}>
-            <Link
-              href={r.href}
-              className="block h-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 shadow-sm transition-colors hover:bg-gray-50"
-            >
-              <span className="block text-sm font-bold text-gray-900">
-                {r.titulo}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
+export default function RelatoriosPage() {
+  redirect("/interno/financeiro/resumo-anual");
 }

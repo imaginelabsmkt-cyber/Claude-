@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { Conta } from "@/components/interno/conta";
+import { Secao } from "@/components/interno/secao";
 import { GraficoAno } from "@/components/interno/grafico-ano";
 import { faturamentoAnual } from "@/lib/interno/ano";
 import { Card } from "@/components/ui/card";
@@ -279,6 +280,44 @@ export default async function ResumoAnualPage({ searchParams }: PageProps) {
         </div>
       </Card>
 
+      {/* Os RELATÓRIOS. Eram uma aba só para isto: uma lista de
+          quatro links. Aba é lugar onde se trabalha; isto é uma
+          estante, e estante mora dentro da sala, não na porta. */}
+      <div className="mt-6">
+        <Secao titulo="Relatórios">
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {[
+              {
+                titulo: "Fluxo de caixa mensal",
+                href: `/interno/financeiro/fluxo-caixa?mes=${ano}-01`,
+              },
+              {
+                titulo: "Margem por cliente",
+                href: `/interno/financeiro/rentabilidade?mes=${ano}-01`,
+              },
+              {
+                titulo: "Tributos e obrigações",
+                href: `/interno/financeiro/impostos?mes=${ano}-01`,
+              },
+              {
+                titulo: "Fechamento do mês",
+                href: `/interno/relatorio?mes=${ano}-01`,
+              },
+            ].map((r) => (
+              <li key={r.href}>
+                <Link
+                  href={r.href}
+                  className="block h-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 shadow-sm transition-colors hover:bg-gray-50"
+                >
+                  <span className="block text-sm font-bold text-gray-900">
+                    {r.titulo}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Secao>
+      </div>
     </>
   );
 }

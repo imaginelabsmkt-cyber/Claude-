@@ -17,7 +17,6 @@ SAIDA_FIXOS="$SAIDA_DIR/fixos.html" \
 SAIDA_FLUXO="$SAIDA_DIR/fluxo.html" \
 SAIDA_LANCAMENTOS="$SAIDA_DIR/lancamentos.html" \
 SAIDA_COMPONENTES="$SAIDA_DIR/componentes.html" \
-SAIDA_RELATORIOS="$SAIDA_DIR/relatorios.html" \
 npx vitest run -c vitest.render.config.ts
 
 # 3. abrir o arquivo no navegador, em tela larga e em tela de celular

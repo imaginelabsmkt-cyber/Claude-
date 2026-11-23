@@ -18,7 +18,7 @@ import type { FinancialEntryInsert, FinancialStatus } from "@/types";
 import {
   conferirPlano,
   type ItemConferido,
-} from "@/lib/financeiro/plano-fixo";
+} from "@/lib/financeiro/contas-fixas";
 
 /** Um item do plano já conferido, com o nome da categoria para a tela. */
 export interface ItemConferidoNaTela extends ItemConferido {
@@ -330,7 +330,7 @@ export async function excluirRecorrenciaAction(id: string): Promise<ActionResult
  * lista para vocês conferirem". Esta função só LÊ — quem grava é a
  * `gerarLancamentosDoMesAction`, com o que a pessoa deixou marcado.
  */
-export async function previaDoPlanoFixoAction(mes: string): Promise<
+export async function previaDasContasFixasAction(mes: string): Promise<
   ActionResult & { itens?: ItemConferidoNaTela[] }
 > {
   const supabase = createClient();
@@ -341,13 +341,13 @@ export async function previaDoPlanoFixoAction(mes: string): Promise<
     .eq("active", true)
     .lte("start_month", mes);
 
-  if (error) return { ok: false, error: "Não foi possível ler o plano fixo." };
+  if (error) return { ok: false, error: "Não foi possível ler as contas fixas." };
 
   const vigentes = (recorrencias ?? []).filter(
     (r) => !r.end_month || r.end_month >= mes,
   );
   if (vigentes.length === 0) {
-    return { ok: false, error: "Nenhum item no plano fixo para este mês." };
+    return { ok: false, error: "Nenhuma conta fixa para este mês." };
   }
 
   const { data: existentes } = await supabase
@@ -413,13 +413,13 @@ export async function gerarLancamentosDoMesAction(
     .eq("active", true)
     .lte("start_month", mes);
 
-  if (error) return { ok: false, error: "Não foi possível ler o plano fixo." };
+  if (error) return { ok: false, error: "Não foi possível ler as contas fixas." };
 
   const vigentes = (recorrencias ?? []).filter(
     (r) => !r.end_month || r.end_month >= mes,
   );
   if (vigentes.length === 0) {
-    return { ok: false, error: "Nenhum item no plano fixo para este mês." };
+    return { ok: false, error: "Nenhuma conta fixa para este mês." };
   }
 
   const { data: existentes } = await supabase

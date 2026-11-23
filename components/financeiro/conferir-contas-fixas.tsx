@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { avisoDoItem } from "@/lib/financeiro/plano-fixo";
+import { avisoDoItem } from "@/lib/financeiro/contas-fixas";
 import { paraNumero } from "@/lib/financeiro/valores";
 import type { ItemConferidoNaTela } from "@/lib/actions/financeiro";
 import { rotuloMes } from "@/lib/financeiro/meses";
@@ -36,7 +36,7 @@ interface Props {
   aoCancelar: () => void;
 }
 
-export function ConferirPlanoFixo({
+export function ConferirContasFixas({
   mes,
   itens,
   processando,
@@ -84,7 +84,7 @@ export function ConferirPlanoFixo({
       onClick={() => !processando && aoCancelar()}
       role="dialog"
       aria-modal="true"
-      aria-label="Conferir o plano fixo"
+      aria-label="Conferir as contas fixas"
     >
       <div
         className="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-lg"
@@ -92,7 +92,7 @@ export function ConferirPlanoFixo({
       >
         <header className="border-b border-gray-200 px-5 py-4">
           <h2 className="text-base font-semibold text-gray-900">
-            Gerar o plano fixo de {rotuloMes(mes)}
+            Contas fixas de {rotuloMes(mes)}
           </h2>
           <p className="mt-0.5 text-sm text-gray-500">
             Confira os valores e desmarque o que não quiser lançar.

@@ -53,14 +53,24 @@ describe("abaAtiva", () => {
   });
 
   it("as telas que viraram link acendem a aba de onde vieram", () => {
+    // Todas penduradas no Resumo, que absorveu os Relatórios.
     for (const tela of [
       "/interno/financeiro/fluxo-caixa",
       "/interno/financeiro/impostos",
       "/interno/financeiro/rentabilidade",
       "/interno/relatorio",
+      "/interno/financeiro/relatorios",
     ]) {
-      expect(abaAtiva(tela), tela).toBe("/interno/financeiro/relatorios");
+      expect(abaAtiva(tela), tela).toBe("/interno/financeiro/resumo-anual");
     }
+  });
+
+  it("são três abas, com os nomes que a Favie pediu", () => {
+    expect(ABAS_FINANCEIRO.map((a) => a.label)).toEqual([
+      "Este mês",
+      "Contas fixas",
+      "Resumo",
+    ]);
   });
 
   it("a Configuração não acende aba nenhuma: tem o canto dela", () => {

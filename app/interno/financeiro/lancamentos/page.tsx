@@ -134,7 +134,7 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
           descricao={
             temFiltro
               ? "Ajuste os filtros para ver outros resultados."
-              : "Comece gerando os lançamentos do plano fixo ou criando um lançamento novo."
+              : "Comece lançando as contas fixas ou criando um lançamento novo."
           }
         />
       ) : (

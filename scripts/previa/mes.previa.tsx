@@ -25,7 +25,7 @@ import { MonthNav } from "@/components/financeiro/month-nav";
 import { ResumoDoMes } from "@/components/financeiro/resumo-do-mes";
 import { FechamentoDoMes } from "@/components/financeiro/fechamento-do-mes";
 import { FolhaDoMes } from "@/components/financeiro/folha-do-mes";
-import { ConferirPlanoFixo } from "@/components/financeiro/conferir-plano-fixo";
+import { ConferirContasFixas } from "@/components/financeiro/conferir-contas-fixas";
 import { montarFolha, partirPorSituacao } from "@/lib/financeiro/folha";
 import { situacaoDoLancamento } from "@/lib/financeiro/vencimento";
 import type { LancamentoFolha } from "@/lib/financeiro/folha";
@@ -146,7 +146,7 @@ function Tela() {
 
       {/* A conferência do plano fixo, aberta, para olhar o desenho.
           Na tela de verdade ela só aparece ao clicar no botão. */}
-      <ConferirPlanoFixo
+      <ConferirContasFixas
         mes="2026-11"
         processando={false}
         aoGerar={() => {}}

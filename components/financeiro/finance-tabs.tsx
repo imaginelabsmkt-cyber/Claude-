@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { Icon } from "@/components/ui/icon";
 import {
   ABAS_FINANCEIRO,
   ABA_CONFIGURACAO,
@@ -94,16 +95,22 @@ export function FinanceTabs() {
         );
       })}
 
+      {/* A palavra "Configuração" virava uma quarta aba de mentira:
+          mesmo tamanho, mesma linha, e competia com as três que a
+          pessoa usa todo dia. Engrenagem é o símbolo que todo mundo
+          já conhece, e ocupa o canto sem disputar atenção. */}
       <Link
         href={ABA_CONFIGURACAO}
+        title="Configuração"
+        aria-label="Configuração"
         className={
-          "-mb-px ml-auto shrink-0 border-b-2 px-1 pb-2 text-xs transition-colors " +
+          "-mb-px ml-auto shrink-0 border-b-2 px-1 pb-2 transition-colors " +
           (naConfiguracao
-            ? "border-brand-600 font-semibold text-brand-700"
+            ? "border-brand-600 text-brand-700"
             : "border-transparent text-gray-400 hover:text-gray-700")
         }
       >
-        Configuração
+        <Icon nome="settings" className="h-[18px] w-[18px]" />
       </Link>
     </div>
   );

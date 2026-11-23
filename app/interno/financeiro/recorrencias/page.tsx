@@ -12,7 +12,7 @@ import { mesAtual, mesValido } from "@/lib/financeiro/meses";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Fixos e ferramentas" };
+export const metadata = { title: "Contas fixas" };
 
 interface PageProps {
   searchParams: { mes?: string };
@@ -42,7 +42,7 @@ export default async function RecorrenciasPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader
-        titulo="Fixos e ferramentas"
+        titulo="Contas fixas"
         acao={<MonthNav mes={mes} />}
       />
 

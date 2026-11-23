@@ -10,12 +10,20 @@
  * financeiro sem ter ido a lugar nenhum.
  */
 
-/** As quatro abas, na ordem em que aparecem. */
+/**
+ * As TRÊS abas, na ordem em que aparecem.
+ *
+ * Eram quatro. "Ano" e "Relatórios" viraram uma só, "Resumo": as
+ * duas respondiam a mesma pergunta em dois lugares — o ano inteiro e
+ * os recortes do ano — e Relatórios era só uma lista de quatro links.
+ *
+ * "Fixos e ferramentas" virou "Contas fixas". O nome velho dizia o
+ * que tem dentro; o novo diz o que é.
+ */
 export const ABAS_FINANCEIRO = [
-  { href: "/interno/financeiro", label: "Mês" },
-  { href: "/interno/financeiro/recorrencias", label: "Fixos e ferramentas" },
-  { href: "/interno/financeiro/resumo-anual", label: "Ano" },
-  { href: "/interno/financeiro/relatorios", label: "Relatórios" },
+  { href: "/interno/financeiro", label: "Este mês" },
+  { href: "/interno/financeiro/recorrencias", label: "Contas fixas" },
+  { href: "/interno/financeiro/resumo-anual", label: "Resumo" },
 ] as const;
 
 export const ABA_CONFIGURACAO = "/interno/financeiro/categorias";
@@ -28,10 +36,14 @@ export const ABA_CONFIGURACAO = "/interno/financeiro/categorias";
  */
 const PERTENCE_A: Record<string, string> = {
   "/interno/financeiro/lancamentos": "/interno/financeiro",
-  "/interno/relatorio": "/interno/financeiro/relatorios",
-  "/interno/financeiro/impostos": "/interno/financeiro/relatorios",
-  "/interno/financeiro/fluxo-caixa": "/interno/financeiro/relatorios",
-  "/interno/financeiro/rentabilidade": "/interno/financeiro/relatorios",
+  "/interno/relatorio": "/interno/financeiro/resumo-anual",
+  "/interno/financeiro/impostos": "/interno/financeiro/resumo-anual",
+  "/interno/financeiro/fluxo-caixa": "/interno/financeiro/resumo-anual",
+  "/interno/financeiro/rentabilidade": "/interno/financeiro/resumo-anual",
+  /* "Relatórios" deixou de ser aba e virou uma seção do Resumo. O
+     endereço continua respondendo (redireciona) porque pode estar
+     salvo no navegador de alguma das duas. */
+  "/interno/financeiro/relatorios": "/interno/financeiro/resumo-anual",
 };
 
 /**

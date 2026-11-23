@@ -388,8 +388,8 @@ export function RecurrencesPanel({
 
       {recorrencias.length === 0 ? (
         <EmptyState
-          titulo="Nenhuma recorrência cadastrada"
-          descricao="Cadastre as mensalidades dos clientes e os custos fixos. Depois, em cada mês, um clique em 'Gerar do plano fixo' cria todos os lançamentos."
+          titulo="Nenhuma conta fixa cadastrada"
+          descricao="Cadastre as mensalidades dos clientes e os custos fixos. Depois, em cada mês, o aviso “Preparar o mês” cria todos os lançamentos."
         />
       ) : (
         <div className="space-y-6">
