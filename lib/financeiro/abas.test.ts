@@ -13,6 +13,7 @@ const TELAS = [
   "/interno/financeiro/lancamentos/0d0f6a6e-1111-2222-3333-444455556666/editar",
   "/interno/financeiro/recorrencias",
   "/interno/financeiro/resumo-anual",
+  "/interno/financeiro/estimativa",
   "/interno/financeiro/relatorios",
   "/interno/financeiro/fluxo-caixa",
   "/interno/financeiro/impostos",
@@ -65,10 +66,11 @@ describe("abaAtiva", () => {
     }
   });
 
-  it("são três abas, com os nomes que a Favie pediu", () => {
+  it("as abas têm os nomes que a Favie pediu", () => {
     expect(ABAS_FINANCEIRO.map((a) => a.label)).toEqual([
       "Este mês",
       "Contas fixas",
+      "Estimativa",
       "Resumo",
     ]);
   });

@@ -11,7 +11,7 @@
  */
 
 /**
- * As TRÊS abas, na ordem em que aparecem.
+ * As abas, na ordem em que aparecem.
  *
  * Eram quatro. "Ano" e "Relatórios" viraram uma só, "Resumo": as
  * duas respondiam a mesma pergunta em dois lugares — o ano inteiro e
@@ -19,10 +19,16 @@
  *
  * "Fixos e ferramentas" virou "Contas fixas". O nome velho dizia o
  * que tem dentro; o novo diz o que é.
+ *
+ * "Estimativa" entrou depois, a pedido da Fran: é a única que não
+ * mostra o que aconteceu, e sim o que aconteceria. Fica entre as
+ * contas fixas e o resumo porque é a ponte entre as duas — o que sai
+ * todo mês de um lado, quanto precisa entrar do outro.
  */
 export const ABAS_FINANCEIRO = [
   { href: "/interno/financeiro", label: "Este mês" },
   { href: "/interno/financeiro/recorrencias", label: "Contas fixas" },
+  { href: "/interno/financeiro/estimativa", label: "Estimativa" },
   { href: "/interno/financeiro/resumo-anual", label: "Resumo" },
 ] as const;
 

@@ -16,7 +16,11 @@ SAIDA_MES="$SAIDA_DIR/mes.html" \
 SAIDA_FIXOS="$SAIDA_DIR/fixos.html" \
 SAIDA_FLUXO="$SAIDA_DIR/fluxo.html" \
 SAIDA_LANCAMENTOS="$SAIDA_DIR/lancamentos.html" \
+SAIDA_ESTIMATIVA="$SAIDA_DIR/estimativa.html" \
 SAIDA_COMPONENTES="$SAIDA_DIR/componentes.html" \
+SAIDA_FICHA="$SAIDA_DIR/ficha.html" \
+SAIDA_COMERCIAL="$SAIDA_DIR/comercial.html" \
+SAIDA_COMERCIAL_TELAS="$SAIDA_DIR/comercial-telas.html" \
 npx vitest run -c vitest.render.config.ts
 
 # 3. abrir o arquivo no navegador, em tela larga e em tela de celular
