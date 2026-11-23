@@ -57,7 +57,6 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
       .select("content_id, external_id")
       .eq("user_id", userId)
       .eq("kind", "task");
-    if (!syncs || syncs.length === 0) return;
 
     const resp = await fetch(
       "https://www.googleapis.com/tasks/v1/lists/@default/tasks?showCompleted=true&showHidden=true&maxResults=100",
@@ -71,7 +70,7 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
       (json.items ?? []).map((t) => [t.id, t.status]),
     );
 
-    for (const s of syncs) {
+    for (const s of syncs ?? []) {
       if (statusPorId.get(s.external_id) !== "completed") continue;
 
       const { data: c } = await sb
@@ -112,6 +111,30 @@ export async function reconciliarTarefasGoogle(): Promise<void> {
         .eq("content_id", s.content_id)
         .eq("user_id", userId)
         .eq("kind", "task");
+    }
+
+    // DEMANDAS: se a pessoa deu CHECK na tarefa da demanda direto no Google, a
+    // demanda vira "Feita" no sistema também (mão Google -> sistema). Casa pela
+    // google_task_id guardada na demanda.
+    const idsConcluidas = [...statusPorId.entries()]
+      .filter(([, st]) => st === "completed")
+      .map(([id]) => id);
+    if (idsConcluidas.length > 0) {
+      const { data: dems } = await sb
+        .from("demands")
+        .select("id, status")
+        .neq("status", "Feita")
+        .in("google_task_id", idsConcluidas);
+      for (const dm of dems ?? []) {
+        await sb
+          .from("demands")
+          .update({
+            status: "Feita",
+            google_task_id: null, // concluída: solta o vínculo
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", dm.id);
+      }
     }
 
     // O app é a FONTE DA VERDADE das datas: não puxamos mais a data do evento

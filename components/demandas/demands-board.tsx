@@ -255,13 +255,22 @@ export function DemandsBoard({
     }
     const entries = [...mapa.entries()];
     if (agrupar === "mes") {
-      entries.sort((a, b) => a[0].localeCompare(b[0]));
+      // Mês atual e os futuros primeiro (em ordem crescente); os meses que já
+      // passaram vão pro FIM (do mais recente pro mais antigo). Assim o mês
+      // passado todo concluído não fica mais em cima.
+      const mesAtual = hoje.slice(0, 7); // "2026-11"
+      entries.sort((a, b) => {
+        const pa = a[0] < mesAtual ? 1 : 0; // passado vai pro fim
+        const pb = b[0] < mesAtual ? 1 : 0;
+        if (pa !== pb) return pa - pb;
+        return pa === 1 ? b[0].localeCompare(a[0]) : a[0].localeCompare(b[0]);
+      });
     } else {
       const ordem = [...DEMAND_CATEGORIES, "Sem área"];
       entries.sort((a, b) => ordem.indexOf(a[0]) - ordem.indexOf(b[0]));
     }
     return entries;
-  }, [clienteFixo, visiveis, agrupar]);
+  }, [clienteFixo, visiveis, agrupar, hoje]);
 
   // Agrupa por ÁREA só quando estamos dentro de um cliente (acompanhamento).
   const grupos = useMemo(() => {
