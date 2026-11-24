@@ -17,6 +17,7 @@ SAIDA_FIXOS="$SAIDA_DIR/fixos.html" \
 SAIDA_FLUXO="$SAIDA_DIR/fluxo.html" \
 SAIDA_LANCAMENTOS="$SAIDA_DIR/lancamentos.html" \
 SAIDA_ESTIMATIVA="$SAIDA_DIR/estimativa.html" \
+SAIDA_CLIENTES="$SAIDA_DIR/clientes.html" \
 SAIDA_COMPONENTES="$SAIDA_DIR/componentes.html" \
 SAIDA_FICHA="$SAIDA_DIR/ficha.html" \
 SAIDA_COMERCIAL="$SAIDA_DIR/comercial.html" \

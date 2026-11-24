@@ -14,6 +14,7 @@ import {
   atualizarContratoAction,
   criarContratoAction,
   excluirContratoAction,
+  inativarClienteAction,
   registrarReajusteAction,
 } from "@/lib/actions/contratos";
 import { hojeISO } from "@/lib/financeiro/meses";
@@ -94,6 +95,7 @@ export function ContratosPanel({
   /** Cliente já escolhido ao abrir o formulário a partir da linha dele. */
   const [clienteNovo, setClienteNovo] = useState<string | undefined>(undefined);
   const [excluindo, setExcluindo] = useState<ContratoComCliente | null>(null);
+  const [inativando, setInativando] = useState<ClienteEscolhivel | null>(null);
   const [processando, iniciar] = useTransition();
 
   function excluir() {
@@ -107,6 +109,21 @@ export function ContratosPanel({
       }
       setExcluindo(null);
       toast.sucesso("Contrato excluído.");
+      router.refresh();
+    });
+  }
+
+  function inativar() {
+    if (!inativando) return;
+    const alvo = inativando;
+    iniciar(async () => {
+      const r = await inativarClienteAction(alvo.id);
+      if (!r.ok) {
+        toast.erro(r.error ?? "Não foi possível inativar.");
+        return;
+      }
+      setInativando(null);
+      toast.sucesso(`${alvo.name} saiu da relação de clientes.`);
       router.refresh();
     });
   }
@@ -136,9 +153,13 @@ export function ContratosPanel({
           {semContrato.map((c) => (
             <li
               key={c.id}
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-alerta bg-white px-4 py-3"
+              id={`cliente-${c.id}`}
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 scroll-mt-24 rounded-xl border border-alerta bg-white px-4 py-3"
             >
-              <span className="min-w-0 flex-1">
+              {/* No celular o nome fica numa linha só e os dois
+                  botões descem — com `flex-1` sozinho, "Studio Salte"
+                  quebrava em duas linhas para caber ao lado deles. */}
+              <span className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold text-gray-900">
                     {c.name}
@@ -146,16 +167,28 @@ export function ContratosPanel({
                   <Badge tom="vermelho">Sem contrato</Badge>
                 </span>
               </span>
-              <Button
-                variante="secundaria"
-                tamanho="sm"
-                onClick={() => {
-                  setClienteNovo(c.id);
-                  setEditando("novo");
-                }}
-              >
-                Cadastrar contrato
-              </Button>
+              <span className="flex shrink-0 flex-wrap gap-2">
+                <Button
+                  variante="secundaria"
+                  tamanho="sm"
+                  onClick={() => {
+                    setClienteNovo(c.id);
+                    setEditando("novo");
+                  }}
+                >
+                  Cadastrar contrato
+                </Button>
+                {/* "Para isso não precisar de código da próxima vez."
+                    Inativar não apaga: o histórico fica inteiro, o
+                    cliente só sai da carteira de hoje. */}
+                <Button
+                  variante="secundaria"
+                  tamanho="sm"
+                  onClick={() => setInativando(c)}
+                >
+                  Inativar
+                </Button>
+              </span>
             </li>
           ))}
         </ul>
@@ -189,6 +222,18 @@ export function ContratosPanel({
           )}
         </ul>
       )}
+
+      <ConfirmDialog
+        aberto={inativando !== null}
+        titulo={
+          inativando ? `Inativar ${inativando.name}?` : "Inativar cliente?"
+        }
+        descricao="Ele sai da relação de clientes ativos e vai para a lista de inativos. O histórico fica inteiro — o que já foi pago continua nas contas do ano. As mensalidades dele param de ser lançadas."
+        textoConfirmar="Inativar"
+        carregando={processando}
+        aoConfirmar={inativar}
+        aoCancelar={() => setInativando(null)}
+      />
 
       <ConfirmDialog
         aberto={excluindo !== null}
@@ -247,8 +292,12 @@ function Linha({
 
   return (
     <li
+      /* A âncora do cliente. O link "Abrir <cliente>" da ficha da
+         oportunidade aponta para cá, e sem isto ele largaria a pessoa
+         no topo de uma lista de dez nomes. */
+      id={contrato.client_id ? `cliente-${contrato.client_id}` : undefined}
       className={cn(
-        "rounded-xl border bg-white px-4 py-3",
+        "scroll-mt-24 rounded-xl border bg-white px-4 py-3",
         situacao === "Vencido" ? "border-alerta" : "border-gray-200",
         contrato.status === "Encerrado" ? "opacity-60" : "",
       )}

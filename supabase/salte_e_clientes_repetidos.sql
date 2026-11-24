@@ -51,7 +51,12 @@ do $$
 declare
   id_salte uuid;
 begin
-  select id into id_salte from public.clients where name = 'Salte' limit 1;
+  -- Pelos dois nomes: "Salte" e "Studio Salte" são o mesmo estúdio.
+  select id into id_salte
+    from public.clients
+   where lower(btrim(name)) in ('salte', 'studio salte')
+   order by (lower(btrim(name)) = 'studio salte') desc, created_at
+   limit 1;
   if id_salte is null then
     return;  -- sem cliente Salte, não há o que registrar
   end if;

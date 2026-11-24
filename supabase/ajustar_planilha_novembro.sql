@@ -113,10 +113,23 @@ begin
   end if;
 
   -- O cliente, se ainda não existir.
-  select id into cliente_salte from public.clients where name = 'Salte';
+  --
+  -- Procura pelos DOIS nomes. A Fran: "o cliente Salte está
+  -- duplicado com o Studio Salte (é o mesmo estúdio)". Este bloco
+  -- procurava só por "Salte" e, depois que a duplicata foi apagada,
+  -- criava ela de novo na rodada seguinte — a duplicata voltava
+  -- sozinha, toda vez que o arquivo rodasse.
+  --
+  -- Se não existir nenhum dos dois, nasce com o nome certo.
+  select id into cliente_salte
+    from public.clients
+   where lower(btrim(name)) in ('salte', 'studio salte')
+   order by (lower(btrim(name)) = 'studio salte') desc, created_at
+   limit 1;
+
   if cliente_salte is null then
     insert into public.clients (name, active)
-         values ('Salte', true)
+         values ('Studio Salte', true)
       returning id into cliente_salte;
   end if;
 

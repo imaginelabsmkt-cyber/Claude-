@@ -22,6 +22,7 @@ ORDEM=(
   comercial_historico_e_atividades
   salte_e_clientes_repetidos
   comercial_do_prototipo
+  juntar_salte
 )
 
 {
@@ -61,8 +62,10 @@ ORDEM=(
 --      tarefa, reunião, ligação e WhatsApp presas ao cliente.
 --  10. salte_e_clientes_repetidos — apaga a cópia órfã de cliente
 --      repetido por nome e registra a Salte no funil como ganha.
---  11. comercial_do_prototipo — temperatura do lead e as origens que
+-- 11. comercial_do_prototipo — temperatura do lead e as origens que
 --      faltavam, vindas do protótipo que a Vitória montou.
+--  12. juntar_salte — a "Salte" e o "Studio Salte" são o mesmo
+--      estúdio. Passa tudo para um e apaga a duplicata.
 --
 -- COMO RODAR
 --

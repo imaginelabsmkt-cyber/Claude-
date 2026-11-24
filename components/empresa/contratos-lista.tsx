@@ -34,8 +34,9 @@ export function ContratosLista({ contratos }: { contratos: ContratoCliente[] }) 
     return (
       <div className="rounded-xl border border-dashed border-gray-300 bg-white px-5 py-8 text-center">
         <p className="text-sm text-gray-600">Nenhum contrato anexado.</p>
+        {/* Apontava para /clientes, que não existe. */}
         <Link
-          href="/clientes"
+          href="/interno/administrativo/clientes"
           className="mt-3 inline-block text-sm font-medium text-area hover:underline"
         >
           Ir para os clientes →
@@ -62,8 +63,10 @@ export function ContratosLista({ contratos }: { contratos: ContratoCliente[] }) 
               {formatarData(c.created_at.slice(0, 10))}
             </span>
           </span>
+          {/* Idem: /clientes/<id> dava 404. A âncora leva à linha
+              do cliente na carteira. */}
           <Link
-            href={`/clientes/${c.client_id}`}
+            href={`/interno/administrativo/clientes#cliente-${c.client_id}`}
             className="shrink-0 text-xs font-medium text-gray-500 hover:text-area hover:underline"
           >
             ver cliente

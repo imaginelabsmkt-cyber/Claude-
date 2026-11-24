@@ -79,8 +79,12 @@ export default async function OportunidadePage({ params }: PageProps) {
           </span>
         ) : null}
         {lead.client ? (
+          /* Apontava para /clientes/<id>, que não existe: dava 404.
+             Não há ficha de cliente no sistema — quem é cliente mora
+             na carteira do Administrativo. A âncora leva direto à
+             linha dele, em vez de largar a pessoa no topo da lista. */
           <Link
-            href={`/clientes/${lead.client.id}`}
+            href={`/interno/administrativo/clientes#cliente-${lead.client.id}`}
             className="ml-auto text-sm font-medium text-area hover:underline"
           >
             Abrir {lead.client.name} →

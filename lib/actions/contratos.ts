@@ -180,3 +180,88 @@ export async function registrarReajusteAction(
   revalidar();
   return { ok: true, id };
 }
+
+/**
+ * Tira um cliente da relação, sem apagar nada.
+ *
+ * A Fran: "criar um botão 'Inativar cliente' em Administrativo >
+ * Clientes, para os clientes sem contrato, para isso não precisar de
+ * código da próxima vez."
+ *
+ * Inativar é diferente de excluir, e é de propósito: o histórico do
+ * cliente — o que ele pagou, o que a gente produziu, por onde ele
+ * chegou — continua inteiro. Ele só sai da carteira de hoje e passa
+ * para "Clientes inativos". A conta do ano não muda.
+ *
+ * Só vale para quem NÃO tem contrato ativo. Inativar alguém com
+ * contrato em pé seria desligar a cobrança por um caminho de
+ * desvio: quem tem contrato se encerra pelo contrato.
+ */
+export async function inativarClienteAction(
+  id: string,
+): Promise<ActionResult> {
+  const supabase = createClient();
+
+  const { data: cliente } = await supabase
+    .from("clients")
+    .select("id, name, active")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!cliente) return { ok: false, error: "Cliente não encontrado." };
+  if (!cliente.active) return { ok: true, id };
+
+  const { count } = await supabase
+    .from("client_contracts")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", id);
+
+  if ((count ?? 0) > 0) {
+    return {
+      ok: false,
+      error:
+        "Este cliente tem contrato cadastrado. Encerre o contrato primeiro.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("clients")
+    .update({ active: false })
+    .eq("id", id);
+
+  if (error) return { ok: false, error: "Não foi possível inativar." };
+
+  /* As mensalidades dele param de gerar lançamento. Sem isso, o
+     cliente sai da relação e a cobrança continua nascendo todo mês,
+     que é pior do que não ter inativado. */
+  await supabase
+    .from("financial_recurrences")
+    .update({ active: false })
+    .eq("client_id", id)
+    .eq("active", true);
+
+  revalidar();
+  revalidatePath("/interno/financeiro/recorrencias");
+  revalidatePath("/interno/financeiro");
+  return { ok: true, id };
+}
+
+/** Traz o cliente de volta para a relação. */
+export async function reativarClienteAction(
+  id: string,
+): Promise<ActionResult> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("clients")
+    .update({ active: true })
+    .eq("id", id);
+
+  if (error) return { ok: false, error: "Não foi possível reativar." };
+
+  /* As mensalidades NÃO voltam sozinhas: quem volta pode voltar com
+     outro valor, e religar a cobrança antiga em silêncio seria
+     cobrar errado. A recorrência se reativa em Contas fixas. */
+  revalidar();
+  return { ok: true, id };
+}
