@@ -8,9 +8,18 @@
  * gente faz a estimativa, e aí daria o total, e a gente tem uma
  * previsão."
  *
- * Então: a carteira de hoje, linha por linha, mais as linhas que ela
- * inventa, e o total embaixo. Aqui mora só a CONTA; a tela é de quem
- * desenha, e o que ela inventar fica guardado no navegador dela.
+ * E depois, vendo a primeira versão: "QUERO QUE SEJA DE ACORDO COM O
+ * QUE ESTAMOS PROSPECTANDO NO COMERCIAL."
+ *
+ * Isso muda a origem das linhas. Eu tinha posto um "+ Cliente novo"
+ * que nascia do nada, com o ticket médio — um boneco. Mas a agência
+ * não prospecta bonecos: tem nome, etapa e valor estimado no funil,
+ * tudo já cadastrado. Então as linhas que ela acrescenta são AS
+ * OPORTUNIDADES DE VERDADE, e marcar uma quer dizer "supondo que
+ * esta feche".
+ *
+ * Aqui mora só a CONTA; a tela é de quem desenha, e o que ela marcar
+ * fica guardado no navegador dela.
  *
  * Nada disso toca o banco. É rascunho: serve para responder "e se",
  * não para registrar o que aconteceu.
@@ -22,9 +31,22 @@ export interface LinhaDaEstimativa {
   mensal: number;
   /** Entra na conta. Desmarcar simula perder o cliente. */
   dentro: boolean;
-  /** `true` quando é um cliente imaginado, não um da carteira. */
-  imaginado?: boolean;
+  /** De onde a linha veio. */
+  origem: Origem;
+  /** Etapa do funil, só para quem está em prospecção. */
+  etapa?: string | null;
+  /** Temperatura do lead, só para quem está em prospecção. */
+  temperatura?: string | null;
 }
+
+/**
+ * De onde cada linha vem.
+ *
+ *   carteira    cliente de hoje, com mensalidade no sistema
+ *   prospeccao  oportunidade aberta no funil comercial
+ *   imaginado   linha que a pessoa escreveu à mão
+ */
+export type Origem = "carteira" | "prospeccao" | "imaginado";
 
 export interface Estimativa {
   /** Quantos clientes entram na conta. */
@@ -47,6 +69,10 @@ export interface Estimativa {
   faltamClientes: number | null;
   /** Quanto a receita cresce contra a carteira de hoje, em fração. */
   variacao: number | null;
+  /** Quanto vem de oportunidade do funil, e não de cliente de hoje. */
+  dePropeccao: number;
+  /** Quantas oportunidades do funil entram na conta. */
+  quantasEmProspeccao: number;
 }
 
 /**
@@ -65,12 +91,16 @@ export function calcularEstimativa(
   const ticketMedio = dentro.length ? receita / dentro.length : 0;
   const sobra = receita - custoFixo;
 
+  const prospeccao = dentro.filter((l) => l.origem === "prospeccao");
+
   return {
     quantos: dentro.length,
     receita,
     custoFixo,
     sobra,
     ticketMedio,
+    dePropeccao: prospeccao.reduce((t, l) => t + l.mensal, 0),
+    quantasEmProspeccao: prospeccao.length,
     faltamClientes:
       sobra >= 0 ? 0 : ticketMedio > 0 ? Math.ceil(-sobra / ticketMedio) : null,
     variacao:
@@ -79,10 +109,12 @@ export function calcularEstimativa(
 }
 
 /**
- * Uma linha nova, já com o ticket médio preenchido.
+ * Uma linha escrita à mão, já com o ticket médio preenchido.
  *
- * O valor vem do ticket médio porque é o palpite menos ruim: a
- * pergunta dela é "mais tantos clientes", não "um cliente de quanto".
+ * Continua existindo para o caso de "e se a gente pegar mais dois,
+ * além do que está no funil". É a exceção; a regra é marcar
+ * oportunidade de verdade.
+ *
  * Arredonda para a dezena para não nascer com centavo de divisão.
  */
 export function clienteImaginado(
@@ -94,6 +126,6 @@ export function clienteImaginado(
     nome: `Cliente novo ${numero}`,
     mensal: ticketMedio > 0 ? Math.round(ticketMedio / 10) * 10 : 0,
     dentro: true,
-    imaginado: true,
+    origem: "imaginado",
   };
 }

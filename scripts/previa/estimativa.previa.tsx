@@ -3,7 +3,11 @@
  *
  * Renderiza o COMPONENTE DE VERDADE com a carteira real de
  * novembro/2026 — os oito clientes e o custo fixo que estão no
- * sistema. Sem cópia de markup e sem número inventado.
+ * sistema. Sem cópia de markup.
+ *
+ * O funil é exemplo, e está escrito na tela: as oportunidades da
+ * Favie não estão no seed, e eu não invento nome de cliente numa
+ * imagem que ela vai olhar.
  */
 import { describe, it, vi } from "vitest";
 
@@ -30,6 +34,15 @@ const CARTEIRA = [
   { id: "7", nome: "Studio Bambu", mensal: 1300 },
   { id: "8", nome: "Salte", mensal: 1300 },
 ];
+/* O funil é EXEMPLO: as oportunidades da Favie não estão no seed, e
+   inventar nome de cliente de verdade numa imagem já me fez mostrar
+   uma tela que não existia. Aqui está marcado. */
+const PROSPECCAO = [
+  { id: "p1", nome: "Exemplo 1 (clínica)", mensal: 2400, etapa: "Negociação", temperatura: "Quente" },
+  { id: "p2", nome: "Exemplo 2 (restaurante)", mensal: 1800, etapa: "Proposta apresentada", temperatura: "Morno" },
+  { id: "p3", nome: "Exemplo 3 (loja)", mensal: 1500, etapa: "Reunião marcada", temperatura: "Frio" },
+  { id: "p4", nome: "Exemplo 4 (advocacia)", mensal: 1300, etapa: "Diagnóstico", temperatura: "Morno" },
+];
 const CUSTO_FIXO = 14055.32;
 const TICKET = CARTEIRA.reduce((t, c) => t + c.mensal, 0) / CARTEIRA.length;
 
@@ -46,6 +59,7 @@ describe("prévia", () => {
           <FinanceTabs />
           <PainelDaEstimativa
             carteira={CARTEIRA}
+            prospeccao={PROSPECCAO}
             custoFixo={CUSTO_FIXO}
             ticketMedio={TICKET}
           />

@@ -10,7 +10,7 @@ function l(
   mensal: number,
   over: Partial<LinhaDaEstimativa> = {},
 ): LinhaDaEstimativa {
-  return { id: nome, nome, mensal, dentro: true, ...over };
+  return { id: nome, nome, mensal, dentro: true, origem: "carteira", ...over };
 }
 
 /* A carteira de verdade da Favie em novembro/2026. */
@@ -38,7 +38,7 @@ describe("a conta da estimativa", () => {
 
   it("dois clientes a mais mudam o total e a variação", () => {
     const e = calcularEstimativa(
-      [...CARTEIRA, l("Novo 1", 1800, { imaginado: true }), l("Novo 2", 1800, { imaginado: true })],
+      [...CARTEIRA, l("Novo 1", 1800, { origem: "prospeccao" }), l("Novo 2", 1800, { origem: "prospeccao" })],
       FIXO,
       HOJE,
     );
@@ -97,7 +97,7 @@ describe("cliente imaginado", () => {
     const c = clienteImaginado(1806.25, 1);
     expect(c.mensal).toBe(1810);
     expect(c.dentro).toBe(true);
-    expect(c.imaginado).toBe(true);
+    expect(c.origem).toBe("imaginado");
     expect(c.nome).toBe("Cliente novo 1");
   });
 
