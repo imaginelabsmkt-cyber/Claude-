@@ -1,7 +1,7 @@
 -- =============================================================
 -- FAVIE, SCHEMA COMPLETO (arquivo único)
 --
--- Junta as 25 migrations na ordem correta, para você colar UMA VEZ
+-- Junta as 32 migrations na ordem correta, para você colar UMA VEZ
 -- no SQL Editor do Supabase em vez de rodar uma a uma.
 --
 -- É seguro rodar mais de uma vez: todas as partes são idempotentes.
@@ -14,7 +14,7 @@
 
 
 -- =============================================================
--- [01/25] 20260714120000_initial_schema.sql
+-- [01/32] 20260714120000_initial_schema.sql
 -- =============================================================
 
 -- =============================================================
@@ -353,7 +353,7 @@ create policy "comments_all_authenticated"
 
 
 -- =============================================================
--- [02/25] 20260715120000_client_niche_monthly_goal.sql
+-- [02/32] 20260715120000_client_niche_monthly_goal.sql
 -- =============================================================
 
 -- =============================================================
@@ -370,7 +370,7 @@ alter table public.clients drop column if exists posting_frequency;
 
 
 -- =============================================================
--- [03/25] 20260715130000_content_script_caption.sql
+-- [03/32] 20260715130000_content_script_caption.sql
 -- =============================================================
 
 -- =============================================================
@@ -385,7 +385,7 @@ alter table public.contents add column if not exists caption text;
 
 
 -- =============================================================
--- [04/25] 20260715140000_content_reference_url.sql
+-- [04/32] 20260715140000_content_reference_url.sql
 -- =============================================================
 
 -- =============================================================
@@ -399,7 +399,7 @@ alter table public.contents add column if not exists reference_url text;
 
 
 -- =============================================================
--- [05/25] 20260716120000_hardening_rls.sql
+-- [05/32] 20260716120000_hardening_rls.sql
 -- =============================================================
 
 -- =============================================================
@@ -527,7 +527,7 @@ $$;
 
 
 -- =============================================================
--- [06/25] 20260717120000_content_recording_time.sql
+-- [06/32] 20260717120000_content_recording_time.sql
 -- =============================================================
 
 -- =============================================================
@@ -541,7 +541,7 @@ alter table public.contents add column if not exists recording_time text;
 
 
 -- =============================================================
--- [07/25] 20260718120000_google_integration.sql
+-- [07/32] 20260718120000_google_integration.sql
 -- =============================================================
 
 -- =============================================================
@@ -596,7 +596,7 @@ create policy "google_sync_own"
 
 
 -- =============================================================
--- [08/25] 20260719120000_plannings.sql
+-- [08/32] 20260719120000_plannings.sql
 -- =============================================================
 
 -- =============================================================
@@ -639,7 +639,7 @@ create trigger trg_plannings_updated_at
 
 
 -- =============================================================
--- [09/25] 20260720120000_planning_google_sync.sql
+-- [09/32] 20260720120000_planning_google_sync.sql
 -- =============================================================
 
 -- =============================================================
@@ -671,7 +671,7 @@ create policy "planning_google_sync_own"
 
 
 -- =============================================================
--- [10/25] 20260721120000_planning_situation.sql
+-- [10/32] 20260721120000_planning_situation.sql
 -- =============================================================
 
 -- Situação MANUAL do planejamento (marcada pela planejadora, não automática).
@@ -681,7 +681,7 @@ alter table public.plannings
 
 
 -- =============================================================
--- [11/25] 20260722120000_google_calendars.sql
+-- [11/32] 20260722120000_google_calendars.sql
 -- =============================================================
 
 -- Calendários próprios da agência dentro da conta Google de cada usuário.
@@ -694,7 +694,7 @@ alter table public.google_accounts
 
 
 -- =============================================================
--- [12/25] 20260723120000_content_cover_source.sql
+-- [12/32] 20260723120000_content_cover_source.sql
 -- =============================================================
 
 -- Vincula uma CAPA (arte) ao vídeo de origem, para gerar a demanda de capa
@@ -707,7 +707,7 @@ create index if not exists idx_contents_cover_source
 
 
 -- =============================================================
--- [13/25] 20260724120000_client_files.sql
+-- [13/32] 20260724120000_client_files.sql
 -- =============================================================
 
 -- =============================================================
@@ -788,7 +788,7 @@ create policy "client_files_objects_delete"
 
 
 -- =============================================================
--- [14/25] 20260725120000_client_onboarding_reports.sql
+-- [14/32] 20260725120000_client_onboarding_reports.sql
 -- =============================================================
 
 -- =============================================================
@@ -870,7 +870,7 @@ on conflict (id) do nothing;
 
 
 -- =============================================================
--- [15/25] 20260726120000_client_diagnostics.sql
+-- [15/32] 20260726120000_client_diagnostics.sql
 -- =============================================================
 
 -- =============================================================
@@ -910,7 +910,7 @@ create policy "client_diagnostics_all_authenticated"
 
 
 -- =============================================================
--- [16/25] 20260727120000_report_analysis.sql
+-- [16/32] 20260727120000_report_analysis.sql
 -- =============================================================
 
 -- =============================================================
@@ -925,7 +925,7 @@ alter table public.client_reports
 
 
 -- =============================================================
--- [17/25] 20260908120000_financeiro.sql
+-- [17/32] 20260908120000_financeiro.sql
 -- =============================================================
 
 -- =============================================================
@@ -1129,7 +1129,7 @@ on conflict (kind, name) do nothing;
 
 
 -- =============================================================
--- [18/25] 20260921120000_comercial.sql
+-- [18/32] 20260921120000_comercial.sql
 -- =============================================================
 
 -- =============================================================
@@ -1296,7 +1296,7 @@ create policy "commercial_proposals_all_authenticated"
 
 
 -- =============================================================
--- [19/25] 20260922120000_empresa.sql
+-- [19/32] 20260922120000_empresa.sql
 -- =============================================================
 
 -- =============================================================
@@ -1501,7 +1501,7 @@ where not exists (select 1 from public.company_obligations);
 
 
 -- =============================================================
--- [20/25] 20260923120000_pessoas.sql
+-- [20/32] 20260923120000_pessoas.sql
 -- =============================================================
 
 -- =============================================================
@@ -1626,7 +1626,7 @@ update public.financial_recurrences r
 
 
 -- =============================================================
--- [21/25] 20260924120000_seguranca.sql
+-- [21/32] 20260924120000_seguranca.sql
 -- =============================================================
 
 -- =============================================================
@@ -1874,7 +1874,7 @@ drop policy if exists "company_files_objects_delete" on storage.objects;
 
 
 -- =============================================================
--- [22/25] 20261011120000_pessoal.sql
+-- [22/32] 20261011120000_pessoal.sql
 -- =============================================================
 
 -- =============================================================
@@ -2068,7 +2068,7 @@ grant execute on function public.vincular_me_a_pessoa(uuid) to authenticated;
 
 
 -- =============================================================
--- [23/25] 20261109120000_prospeccao.sql
+-- [23/32] 20261109120000_prospeccao.sql
 -- =============================================================
 
 -- =============================================================
@@ -2138,7 +2138,12 @@ returns int
 language sql
 immutable
 as $$
-  select case e
+  /* Compara e::text, e não o enum direto, de propósito.
+     Rótulo de enum some quando uma migration posterior renomeia a
+     etapa, e aí recompilar esta função num banco já migrado quebra
+     com "invalid input value for enum lead_stage". Texto é texto em
+     qualquer versão do enum. */
+  select case e::text
     when 'Contato feito'    then 1
     when 'Diagnóstico'      then 2
     when 'Proposta enviada' then 3
@@ -2218,7 +2223,7 @@ update public.commercial_leads
 
 
 -- =============================================================
--- [24/25] 20261109130000_contratos.sql
+-- [24/32] 20261109130000_contratos.sql
 -- =============================================================
 
 -- =============================================================
@@ -2338,7 +2343,314 @@ select r.client_id,
 
 
 -- =============================================================
--- [25/25] 20261126120000_demandas_internas.sql
+-- [25/32] 20261126100000_colunas_novas.sql
+-- =============================================================
+
+-- =============================================================
+-- AS COLUNAS NOVAS, isto roda ANTES de tudo
+--
+-- Por que existe este arquivo: o ATUALIZAR.sql quebrou na máquina da
+-- Fran com "column r.vencimento_meses does not exist". A coluna era
+-- criada no quinto bloco e usada no segundo.
+--
+-- Aqui ficam todas as colunas que o sistema passou a precisar, no
+-- começo da fila. `add column if not exists` é seguro de repetir e
+-- não mexe em nada que já exista.
+-- =============================================================
+
+-- Quantos meses depois da competência a conta vence. +1 é o normal
+-- ("as contas de outubro eu fecho em novembro"); -1 é quem paga
+-- antecipado (o Studio Bambu paga novembro no dia 25 de outubro).
+alter table public.financial_recurrences
+  add column if not exists vencimento_meses smallint not null default 1;
+
+comment on column public.financial_recurrences.vencimento_meses is
+  'Quantos meses depois da competência a conta vence. +1 é o normal; -1 é quem paga antecipado (Studio Bambu).';
+
+-- Meta de faturamento do ano, em reais. Null = sem meta.
+alter table public.financial_settings
+  add column if not exists annual_revenue_goal numeric(14, 2);
+
+comment on column public.financial_settings.annual_revenue_goal is
+  'Meta de faturamento do ano, em reais. Null = sem meta.';
+
+
+-- =============================================================
+-- [26/32] 20261126101000_meta_de_faturamento.sql
+-- =============================================================
+
+-- =============================================================
+-- META DE FATURAMENTO DO ANO
+--
+-- Guarda quanto a Favie quer faturar no ano. Fica em branco até
+-- alguém preencher em Financeiro > Configurações, e então aparece
+-- no Dashboard: quanto já veio, quanto falta e quanto por mês.
+--
+--   Supabase > SQL Editor > New query > colar > Run.
+--
+-- Pode rodar quantas vezes quiser.
+-- =============================================================
+
+alter table public.financial_settings
+  add column if not exists annual_revenue_goal numeric(14, 2);
+
+comment on column public.financial_settings.annual_revenue_goal is
+  'Meta de faturamento do ano, em reais. Null = sem meta.';
+
+
+-- =============================================================
+-- [27/32] 20261126102000_funil_da_reuniao.sql
+-- =============================================================
+
+-- -------------------------------------------------------------
+-- O funil como a agência vende de verdade
+--
+-- A Fran: "não faz sentido a gente ter um diagnóstico e proposta e
+-- não ter a reunião marcada, porque a gente não envia a proposta, a
+-- gente já apresenta a proposta na primeira reunião. O diagnóstico a
+-- gente faz justamente antes de encontrar o cliente."
+--
+-- Então o funil era este, e estava errado no meio:
+--
+--   Contato feito -> Diagnóstico -> Proposta ENVIADA -> Negociação
+--
+-- e passa a ser:
+--
+--   Contato feito -> Diagnóstico -> Reunião marcada
+--                 -> Proposta APRESENTADA -> Negociação -> Fechado
+--
+-- "Reunião marcada" é o degrau que faltava: dá para ver quem tem
+-- reunião combinada que ainda não aconteceu, separado de quem já viu
+-- a proposta. E "enviada" sai do vocabulário: a proposta é
+-- apresentada na reunião, não mandada depois.
+--
+-- Também entra "Tráfego pago" na lista de canais, faltava, e é por
+-- onde parte dos clientes chega.
+--
+-- NADA SE PERDE: as oportunidades que estavam em "Proposta enviada"
+-- continuam onde estavam, com o nome novo (é renomear o valor do
+-- enum, não trocar de valor).
+-- -------------------------------------------------------------
+
+-- 1. O degrau novo, no lugar certo da ordem.
+alter type lead_stage add value if not exists 'Reunião marcada'
+  before 'Proposta enviada';
+
+-- 2. "Proposta enviada" vira "Proposta apresentada".
+--    `rename value` não é idempotente, então pergunta antes.
+do $$
+begin
+  if exists (
+    select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+     where t.typname = 'lead_stage' and e.enumlabel = 'Proposta enviada'
+  ) then
+    alter type lead_stage rename value 'Proposta enviada' to 'Proposta apresentada';
+  end if;
+end
+$$;
+
+-- 3. A proposta também não é mais "Enviada": é "Apresentada".
+do $$
+begin
+  if exists (
+    select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+     where t.typname = 'proposal_status' and e.enumlabel = 'Enviada'
+  ) then
+    alter type proposal_status rename value 'Enviada' to 'Apresentada';
+  end if;
+end
+$$;
+
+-- 4. O canal que faltava.
+alter type lead_channel add value if not exists 'Tráfego pago' after 'Social selling';
+
+-- 5. A posição de cada etapa, com o degrau novo.
+--
+--    Compara `e::text`, e não o literal do enum, de propósito: um
+--    valor recém-criado por `add value` não pode ser resolvido como
+--    literal na mesma transação, e o SQL Editor do Supabase roda
+--    tudo numa transação só. Em texto, funciona na primeira passada.
+create or replace function public.posicao_da_etapa(e lead_stage)
+returns int
+language sql
+immutable
+as $$
+  select case e::text
+    when 'Contato feito'        then 1
+    when 'Diagnóstico'          then 2
+    when 'Reunião marcada'      then 3
+    when 'Proposta apresentada' then 4
+    when 'Negociação'           then 5
+    when 'Fechado'              then 6
+    else 0                                  -- Perdido: não é degrau
+  end;
+$$;
+
+-- 6. A data da reunião.
+--
+--    "Reunião marcada" sem data é só uma palavra: não dá para saber
+--    quem tem reunião esta semana nem quem tem reunião que já passou
+--    e ninguém mexeu.
+alter table public.commercial_leads
+  add column if not exists meeting_at timestamptz;
+
+comment on column public.commercial_leads.meeting_at is
+  'Quando é a reunião de apresentação. Usado na etapa "Reunião marcada".';
+
+
+-- =============================================================
+-- [28/32] 20261126103000_comercial_historico_e_atividades.sql
+-- =============================================================
+
+-- -------------------------------------------------------------
+-- O comercial ganha MEMÓRIA e AGENDA
+--
+-- Vem do raio-X do Zoho CRM que a Vitória fez. Duas lições de lá:
+--
+--   "Datas gravadas desde o primeiro dia. Data de criação, data de
+--    cada mudança de etapa e última atividade são o que permite
+--    calcular tempo de ciclo e conversão depois."
+--
+--   "Atividade é tudo o que alguém precisa fazer com um cliente, e
+--    toda atividade fica presa a um registro. O que não pode faltar é
+--    o vínculo com o cliente e o alerta de atraso."
+--
+-- O sistema guardava só `stage_changed_at`: QUANDO entrou na etapa de
+-- agora. Tudo antes disso era jogado fora a cada movimento, então não
+-- havia como responder "quanto tempo leva do primeiro contato ao
+-- sim?", que é a conta que diz se o comercial está melhorando.
+-- -------------------------------------------------------------
+
+-- 1. HISTÓRICO DE ETAPAS -------------------------------------------
+create table if not exists public.commercial_stage_history (
+  id          uuid primary key default gen_random_uuid(),
+  lead_id     uuid not null references public.commercial_leads(id) on delete cascade,
+  -- Nula na primeira linha: a oportunidade nasceu nesta etapa.
+  de          lead_stage,
+  para        lead_stage not null,
+  em          timestamptz not null default now(),
+  created_at  timestamptz not null default now()
+);
+
+comment on table public.commercial_stage_history is
+  'Cada mudança de etapa de uma oportunidade, com data. É o que permite medir tempo de ciclo.';
+
+create index if not exists idx_stage_history_lead
+  on public.commercial_stage_history (lead_id, em);
+
+-- O gatilho que já marcava `stage_changed_at` passa a gravar a linha.
+create or replace function public.marcar_mudanca_etapa()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.stage is distinct from old.stage then
+    new.stage_changed_at = now();
+    insert into public.commercial_stage_history (lead_id, de, para, em)
+    values (new.id, old.stage, new.stage, now());
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_leads_stage_changed on public.commercial_leads;
+create trigger trg_leads_stage_changed
+  before update on public.commercial_leads
+  for each row execute function public.marcar_mudanca_etapa();
+
+-- E a primeira linha, de quando a oportunidade nasce.
+create or replace function public.nascer_na_etapa()
+returns trigger
+language plpgsql
+as $$
+begin
+  insert into public.commercial_stage_history (lead_id, de, para, em)
+  values (new.id, null, new.stage, coalesce(new.created_at, now()));
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_leads_nasceu on public.commercial_leads;
+create trigger trg_leads_nasceu
+  after insert on public.commercial_leads
+  for each row execute function public.nascer_na_etapa();
+
+-- As oportunidades que já existiam ganham a linha de nascimento, para
+-- a linha do tempo não começar no vazio. Só quem ainda não tem.
+insert into public.commercial_stage_history (lead_id, de, para, em)
+select l.id, null, l.stage, coalesce(l.created_at, now())
+  from public.commercial_leads l
+ where not exists (
+   select 1 from public.commercial_stage_history h where h.lead_id = l.id
+ );
+
+-- 2. ATIVIDADES ----------------------------------------------------
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'activity_kind') then
+    create type activity_kind as enum (
+      'Tarefa',
+      'Reunião',
+      'Ligação',
+      'WhatsApp'
+    );
+  end if;
+end
+$$;
+
+create table if not exists public.commercial_activities (
+  id           uuid primary key default gen_random_uuid(),
+  kind         activity_kind not null default 'Tarefa',
+  subject      text not null,
+  -- A atividade se prende a uma oportunidade OU a um cliente. Uma das
+  -- duas, nunca nenhuma: atividade solta não aparece em ficha nenhuma
+  -- e vira lista de recado sem dono.
+  lead_id      uuid references public.commercial_leads(id) on delete cascade,
+  client_id    uuid references public.clients(id) on delete cascade,
+  due_at       timestamptz,
+  done_at      timestamptz,
+  notes        text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  constraint commercial_activities_tem_dono
+    check (lead_id is not null or client_id is not null)
+);
+
+comment on table public.commercial_activities is
+  'Tarefas, reuniões, ligações e WhatsApp presos a uma oportunidade ou a um cliente.';
+
+create index if not exists idx_atividades_abertas
+  on public.commercial_activities (due_at)
+  where done_at is null;
+
+create index if not exists idx_atividades_lead
+  on public.commercial_activities (lead_id);
+
+create index if not exists idx_atividades_cliente
+  on public.commercial_activities (client_id);
+
+drop trigger if exists trg_atividades_updated on public.commercial_activities;
+create trigger trg_atividades_updated
+  before update on public.commercial_activities
+  for each row execute function public.set_updated_at();
+
+-- 3. RLS, igual ao resto ------------------------------------------
+alter table public.commercial_stage_history enable row level security;
+alter table public.commercial_activities    enable row level security;
+
+drop policy if exists "stage_history_all_authenticated" on public.commercial_stage_history;
+create policy "stage_history_all_authenticated"
+  on public.commercial_stage_history for all
+  to authenticated using (true) with check (true);
+
+drop policy if exists "atividades_all_authenticated" on public.commercial_activities;
+create policy "atividades_all_authenticated"
+  on public.commercial_activities for all
+  to authenticated using (true) with check (true);
+
+
+-- =============================================================
+-- [29/32] 20261126120000_demandas_internas.sql
 -- =============================================================
 
 -- =============================================================
@@ -2468,3 +2780,577 @@ where not exists (
   select 1 from public.company_tasks
    where lower(btrim(title)) = lower('Refazer os contratos de todos os clientes, com vigência de 1 ano')
 );
+
+
+-- =============================================================
+-- [30/32] 20261126130000_comercial_do_prototipo.sql
+-- =============================================================
+
+-- -------------------------------------------------------------
+-- O comercial do protótipo da Vitória
+--
+-- Ela montou um comercial inteiro funcionando (telas Hoje, Funil,
+-- Leads e clientes, Painel de canais e Como funciona) e a Fran mandou
+-- o link. O que entra aqui é o que o nosso não tinha e não briga com
+-- o que já existe.
+--
+-- O FUNIL NÃO MUDA. O protótipo tem sete etapas abertas; o nosso tem
+-- cinco, escolhidas pela Fran anteontem. Mexer nisso pela terceira vez
+-- em três dias, sem ela pedir, é o que ela já me chamou atenção:
+-- "mudou um negócio que eu nem falei pra tu mudar".
+-- -------------------------------------------------------------
+
+-- 1. TEMPERATURA ---------------------------------------------------
+--
+--    Direto das definições que ela escreveu:
+--      Quente, veio pedindo ajuda: indicação, procurou a FAVIE,
+--               pediu valores ou respondeu rápido querendo reunião.
+--      Morno, tem interesse, conversa, mas ainda não tem urgência
+--               ou está comparando.
+--      Frio , a FAVIE foi atrás: social selling, lista, evento sem
+--               conversa longa. Ainda não demonstrou interesse.
+--
+--    É a informação que diz ONDE GASTAR A PRÓXIMA HORA, e o sistema
+--    não tinha nada parecido: dois leads de R$ 2.500 pareciam iguais.
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lead_temperature') then
+    create type lead_temperature as enum ('Quente', 'Morno', 'Frio');
+  end if;
+end
+$$;
+
+alter table public.commercial_leads
+  add column if not exists temperature lead_temperature;
+
+comment on column public.commercial_leads.temperature is
+  'Quente: veio pedindo ajuda. Morno: interesse sem urgência. Frio: a agência foi atrás.';
+
+-- 2. AS ORIGENS QUE FALTAVAM ---------------------------------------
+--
+--    O protótipo tem nove; o nosso tinha seis. Instagram orgânico,
+--    grupos de WhatsApp e visita presencial são três jeitos de
+--    chegar cliente que ficavam todos em "Outro", e "Outro" não
+--    responde em que canal vale gastar a próxima hora.
+alter type lead_channel add value if not exists 'Instagram orgânico' after 'Tráfego pago';
+alter type lead_channel add value if not exists 'Grupos e WhatsApp'  after 'Evento';
+alter type lead_channel add value if not exists 'Visita presencial'  after 'Parceria';
+
+-- 3. AS ETAPAS DO PROTÓTIPO ----------------------------------------
+--
+--    O protótipo da Vitória tem sete etapas abertas; o nosso tinha
+--    cinco. A diferença que importa é o começo: "Novo lead" (chegou e
+--    ninguém falou com ele), "Primeiro contato" (mensagem enviada,
+--    esperando resposta) e "Em conversa" (respondeu, mas ainda não
+--    marcou reunião) eram tudo uma coisa só aqui, e são três
+--    situações com ações completamente diferentes.
+--
+--    MAS NÃO É CÓPIA. Copiar ao pé da letra desfaria duas correções
+--    que a Fran deu em voz alta:
+--
+--      "A gente não envia a proposta, a gente já apresenta na
+--       primeira reunião."     -> continua "Proposta apresentada",
+--                                 e não "Proposta enviada" como no
+--                                 protótipo.
+--
+--      "O diagnóstico a gente faz justamente antes de encontrar o
+--       cliente."              -> "Diagnóstico" fica, embora o
+--                                 protótipo não tenha a etapa.
+--
+--    E "Reunião feita" do protótipo não entra: na reunião a proposta
+--    é apresentada, então as duas são o mesmo momento. Ficam sete
+--    etapas abertas, o mesmo número do protótipo.
+--
+--        Novo lead -> Primeiro contato -> Em conversa -> Diagnóstico
+--        -> Reunião marcada -> Proposta apresentada -> Negociação
+--        -> Fechado / Perdido
+
+-- "Contato feito" vira "Primeiro contato": é a mesma coisa, com o
+-- nome que diz o que está acontecendo (esperando resposta).
+do $$
+begin
+  if exists (
+    select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+     where t.typname = 'lead_stage' and e.enumlabel = 'Contato feito'
+  ) then
+    alter type lead_stage rename value 'Contato feito' to 'Primeiro contato';
+  end if;
+end
+$$;
+
+alter type lead_stage add value if not exists 'Novo lead'   before 'Primeiro contato';
+alter type lead_stage add value if not exists 'Em conversa' after  'Primeiro contato';
+
+-- A posição de cada etapa, de novo. Compara `e::text` pelo mesmo
+-- motivo de sempre: valor recém-criado não pode ser resolvido como
+-- literal na mesma transação, e o SQL Editor roda tudo numa só.
+create or replace function public.posicao_da_etapa(e lead_stage)
+returns int
+language sql
+immutable
+as $$
+  select case e::text
+    when 'Novo lead'            then 1
+    when 'Primeiro contato'     then 2
+    when 'Em conversa'          then 3
+    when 'Diagnóstico'          then 4
+    when 'Reunião marcada'      then 5
+    when 'Proposta apresentada' then 6
+    when 'Negociação'           then 7
+    when 'Fechado'              then 8
+    else 0                                  -- Perdido: não é degrau
+  end;
+$$;
+
+-- 4. PRÓXIMO CONTATO -----------------------------------------------
+--
+--    É o motor da tela "Hoje" do protótipo: toda etapa aberta tem uma
+--    data de próximo contato, e quem passou da data aparece em
+--    vermelho. O nosso tinha só o "parado há N dias", que é alarme
+--    DEPOIS do fato, não existia o compromisso marcado.
+alter table public.commercial_leads
+  add column if not exists next_contact_on date;
+
+comment on column public.commercial_leads.next_contact_on is
+  'Quando falar com este lead de novo. Sugerido pela etapa ao mover.';
+
+create index if not exists idx_leads_proximo_contato
+  on public.commercial_leads (next_contact_on)
+  where stage not in ('Fechado', 'Perdido');
+
+-- Quem já está no funil e nunca teve data ganha uma, pela etapa:
+-- sem isso a fila nasce vazia e a tela não prova que funciona.
+update public.commercial_leads
+   set next_contact_on = (current_date + case stage::text
+         when 'Novo lead'            then 0
+         when 'Primeiro contato'     then 1
+         when 'Em conversa'          then 2
+         when 'Diagnóstico'          then 3
+         when 'Reunião marcada'      then 0
+         when 'Proposta apresentada' then 2
+         when 'Negociação'           then 3
+         else 0 end)
+ where next_contact_on is null
+   and stage not in ('Fechado', 'Perdido');
+
+-- O PADRÃO DA COLUNA NÃO MUDA AQUI, de propósito.
+--
+-- `alter column stage set default 'Novo lead'` usa o valor recém
+-- criado como literal, e o Postgres recusa isso na mesma transação:
+--
+--     ERROR: unsafe use of new value "Novo lead" of enum type
+--
+-- O SQL Editor do Supabase roda o arquivo inteiro numa transação só,
+-- então o arquivo quebraria na cara dela, foi o que aconteceu no meu
+-- teste, e é o mesmo erro que já quebrou uma vez. O padrão só vale
+-- para quem insere direto no banco; o sistema sempre manda a etapa, e
+-- a instalação do zero já nasce com o padrão certo.
+
+-- 5. MOTIVO DA PERDA EM LISTA --------------------------------------
+--
+--    Era texto livre, e eu normalizava na hora de somar, tirando
+--    acento, ponto final e maiúscula, para "Achou caro", "achou
+--    caro" e "achou caro." virarem o mesmo motivo. Funciona até
+--    alguém escrever "preço alto", e aí a conta mente.
+--
+--    A lista é a do protótipo. Continua existindo o texto livre, na
+--    observação, para o caso que não cabe em nenhuma delas.
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lost_reason_kind') then
+    create type lost_reason_kind as enum (
+      'Sem resposta',
+      'Achou caro',
+      'Fechou com outra agência',
+      'Não é o momento',
+      'Fora do perfil',
+      'Outro'
+    );
+  end if;
+end
+$$;
+
+alter table public.commercial_leads
+  add column if not exists lost_reason_kind lost_reason_kind;
+
+comment on column public.commercial_leads.lost_reason_kind is
+  'O motivo da perda, da lista. O texto livre fica em lost_reason.';
+
+-- O que já estava escrito à mão entra na lista onde dá para ter
+-- certeza. O que não casar fica sem categoria e com o texto
+-- preservado, chutar a categoria de uma perda é pior do que não ter.
+update public.commercial_leads
+   set lost_reason_kind = case
+         when lost_reason ilike '%sem resposta%'  then 'Sem resposta'
+         when lost_reason ilike '%sumiu%'         then 'Sem resposta'
+         when lost_reason ilike '%caro%'          then 'Achou caro'
+         when lost_reason ilike '%preç%'          then 'Achou caro'
+         when lost_reason ilike '%concorren%'     then 'Fechou com outra agência'
+         when lost_reason ilike '%outra agência%' then 'Fechou com outra agência'
+         when lost_reason ilike '%momento%'       then 'Não é o momento'
+         when lost_reason ilike '%perfil%'        then 'Fora do perfil'
+       end::lost_reason_kind
+ where stage = 'Perdido'
+   and lost_reason_kind is null
+   and lost_reason is not null;
+
+-- 6. INVESTIMENTO POR CANAL ----------------------------------------
+--
+--    A maior falta do nosso Painel de canais: ele dizia quantos
+--    fecharam por canal, e NÃO quanto cada canal custou. Sem o custo,
+--    "indicação converte 50%" e "tráfego converte 8%" parecem a
+--    mesma informação, quando um é de graça e o outro consome
+--    R$ 500 por mês.
+--
+--    O protótipo da Vitória lança o gasto por mês e por origem, e
+--    calcula custo por cliente (investido ÷ fechados) e retorno em
+--    12 meses (receita mensal × 12 ÷ investido).
+create table if not exists public.commercial_investments (
+  id          uuid primary key default gen_random_uuid(),
+  -- Competência, "YYYY-MM", como no resto do sistema.
+  mes         text not null check (mes ~ '^\d{4}-(0[1-9]|1[0-2])$'),
+  channel     lead_channel not null,
+  amount      numeric(12, 2) not null check (amount >= 0),
+  notes       text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table public.commercial_investments is
+  'Quanto foi investido em cada canal, por mês: tráfego, ingresso de evento, comissão de parceiro, bônus de indicação.';
+
+create index if not exists idx_investimentos_mes
+  on public.commercial_investments (mes, channel);
+
+drop trigger if exists trg_investimentos_updated on public.commercial_investments;
+create trigger trg_investimentos_updated
+  before update on public.commercial_investments
+  for each row execute function public.set_updated_at();
+
+alter table public.commercial_investments enable row level security;
+
+drop policy if exists "investimentos_all_authenticated" on public.commercial_investments;
+create policy "investimentos_all_authenticated"
+  on public.commercial_investments for all
+  to authenticated using (true) with check (true);
+
+
+-- =============================================================
+-- [31/32] 20261126140000_metas.sql
+-- =============================================================
+
+-- =============================================================
+-- METAS: as premissas e as contratações da projeção
+--
+-- A Fran: "eu quero adicionar uma aba de metas no nosso sistema (...)
+-- e eu quero que tudo se integre, o financeiro, o administrativo,
+-- tudo se integre para a gente conseguir ficar sempre analisando
+-- essas projeções."
+--
+-- O QUE NÃO ENTRA AQUI, DE PROPÓSITO:
+--
+--   clientes de hoje e faturamento recorrente  -> da carteira
+--   custo fixo                                 -> das contas fixas
+--   oportunidades em negociação                -> do funil
+--
+-- Isso tudo o sistema já sabe, e a planilha tinha que digitar à mão.
+-- É o "se integre" do pedido: a projeção lê o que já existe e guarda
+-- só o que é PALPITE, quanto vai custar um editor, quando entra a
+-- CS, quanto se quer guardar por mês.
+--
+-- Pode rodar quantas vezes quiser.
+-- =============================================================
+
+-- -------------------------------------------------------------
+-- 1. Premissas: linha única, como o financial_settings
+-- -------------------------------------------------------------
+create table if not exists public.growth_assumptions (
+  id boolean primary key default true check (id),
+  -- Quanto vale um cliente novo, e quanto trabalho ele dá.
+  ticket_novo        numeric(14, 2) not null default 2000,
+  videos_por_cliente numeric(6, 2)  not null default 4,
+  -- O editor é pago por vídeo, não por mês: tem teto de produção.
+  --
+  -- Estes dois ficaram por compatibilidade: o valor e o teto de cada
+  -- pessoa agora moram na contratação dela, onde dá para saber de
+  -- quem são.
+  videos_do_editor   integer        not null default 50,
+  preco_por_video    numeric(14, 2) not null default 50,
+  -- Imposto. `imposto_fixo` é o palpite de vocês; `imposto_percentual`
+  -- é a 1ª faixa do Anexo III do Simples, para comparar.
+  imposto_fixo       numeric(14, 2) not null default 600,
+  contador_mensal    numeric(14, 2) not null default 0,
+  das_do_mei         numeric(14, 2) not null default 86.05,
+  imposto_percentual numeric(6, 4)  not null default 0.06,
+  -- A saída do MEI custa uma vez e muda o imposto daí para a frente.
+  custo_saida_do_mei numeric(14, 2) not null default 2000,
+  mes_saida_do_mei   text           not null default '2027-01',
+  -- Encargos sobre salário CLT: 13º, férias com 1/3, FGTS. Em PJ, 0.
+  encargos_clt       numeric(6, 4)  not null default 0.40,
+  -- A meta.
+  guardar_por_mes    numeric(14, 2) not null default 8500,
+  meta_guardada      numeric(14, 2) not null default 50000,
+  mes_da_meta        text           not null default '2027-06',
+  clientes_na_projecao integer      not null default 20,
+
+  updated_at timestamptz not null default now()
+);
+
+insert into public.growth_assumptions (id) values (true)
+on conflict (id) do nothing;
+
+comment on table public.growth_assumptions is
+  'Os palpites da projeção. O que o sistema já sabe (carteira, custo fixo, funil) NÃO mora aqui.';
+
+-- -------------------------------------------------------------
+-- 2. Contratações
+-- -------------------------------------------------------------
+-- -------------------------------------------------------------
+-- 2. Contratações
+--
+-- CINCO FORMAS DE PAGAR, e elas mudam a conta de jeitos diferentes:
+--
+--   mensal              salário igual todo mês (a CS, única CLT)
+--   por_video_editado   o editor: valor por vídeo, com teto
+--   por_video_gravado   o videomaker: valor por vídeo GRAVADO
+--   por_cliente         a social media: valor por cliente atendido
+--   uma_vez             o advogado: custo único, num mês só
+--
+-- GRAVADO E EDITADO SÃO CONTAS SEPARADAS. Videomaker grava, editor
+-- edita, e o mesmo vídeo passa pelos dois. Na primeira versão eu
+-- tinha os dois como "por vídeo" e a conta pagaria duas vezes pela
+-- mesma coisa.
+--
+-- O VALOR E O TETO MORAM NA CONTRATAÇÃO, não nas premissas. O editor
+-- edita 50 a R$ 50; o videomaker grava 45 a R$ 60; a social media
+-- atende 10 a R$ 200. São três pares de números, e cada um pertence
+-- a uma pessoa: nas premissas viravam seis campos soltos que ninguém
+-- sabe de quem são.
+--
+-- `pay_kind` é TEXTO com lista fechada, e não enum, de propósito: o
+-- Postgres não deixa usar um valor de enum recém-criado como literal
+-- na mesma transação, e esta lista ainda vai crescer. Com texto e
+-- check, acrescentar uma forma nova é uma linha.
+-- -------------------------------------------------------------
+create table if not exists public.growth_hires (
+  id         uuid primary key default gen_random_uuid(),
+  role       text not null,
+  pay_kind   text not null default 'mensal',
+
+  -- Para 'mensal' e 'uma_vez': o valor. Nas outras, fica em branco e
+  -- a conta usa `unit_rate` vezes as unidades do mês.
+  monthly_cost numeric(14, 2),
+
+  -- Para as formas por unidade: quanto vale cada uma e quantas no
+  -- máximo por mês. O que passar do teto continua com as sócias.
+  unit_rate  numeric(14, 2),
+  unit_cap   numeric(10, 2),
+
+  -- 'YYYY-MM' do primeiro mês em que a pessoa custa dinheiro.
+  -- Para 'uma_vez', é o único mês em que ela custa.
+  start_month text not null,
+
+  -- Entra na conta? Desmarcar simula adiar a contratação sem apagar.
+  active     boolean not null default true,
+
+  -- Encargos CLT por cima do salário. Por demanda: false.
+  clt        boolean not null default true,
+
+  notes      text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Quem já tinha a tabela com o enum antigo: converte para texto.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'growth_hires'
+       and column_name = 'pay_kind' and udt_name = 'hire_pay_kind'
+  ) then
+    alter table public.growth_hires
+      alter column pay_kind drop default,
+      alter column pay_kind type text using pay_kind::text,
+      alter column pay_kind set default 'mensal';
+    update public.growth_hires set pay_kind = 'por_video_editado'
+     where pay_kind = 'por_video';
+  end if;
+end $$;
+
+alter table public.growth_hires
+  add column if not exists unit_rate numeric(14, 2),
+  add column if not exists unit_cap  numeric(10, 2);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'growth_hires_pay_kind_ok'
+  ) then
+    alter table public.growth_hires
+      add constraint growth_hires_pay_kind_ok check (pay_kind in (
+        'mensal', 'por_video_editado', 'por_video_gravado',
+        'por_cliente', 'uma_vez'
+      ));
+  end if;
+end $$;
+
+create index if not exists idx_growth_hires_start
+  on public.growth_hires (start_month);
+
+-- -------------------------------------------------------------
+-- 3. Quantos clientes novos entram em cada mês
+-- -------------------------------------------------------------
+create table if not exists public.growth_months (
+  reference_month text primary key,     -- 'YYYY-MM'
+  novos_clientes  integer not null default 0,
+  updated_at      timestamptz not null default now()
+);
+
+comment on table public.growth_months is
+  'O ritmo de entrada da projeção: quantos clientes novos em cada mês.';
+
+-- -------------------------------------------------------------
+-- 4. RLS, no mesmo padrão do resto
+-- -------------------------------------------------------------
+alter table public.growth_assumptions enable row level security;
+alter table public.growth_hires       enable row level security;
+alter table public.growth_months      enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies
+                  where tablename = 'growth_assumptions'
+                    and policyname = 'growth_assumptions_all_authenticated') then
+    create policy "growth_assumptions_all_authenticated"
+      on public.growth_assumptions for all to authenticated
+      using (true) with check (true);
+  end if;
+
+  if not exists (select 1 from pg_policies
+                  where tablename = 'growth_hires'
+                    and policyname = 'growth_hires_all_authenticated') then
+    create policy "growth_hires_all_authenticated"
+      on public.growth_hires for all to authenticated
+      using (true) with check (true);
+  end if;
+
+  if not exists (select 1 from pg_policies
+                  where tablename = 'growth_months'
+                    and policyname = 'growth_months_all_authenticated') then
+    create policy "growth_months_all_authenticated"
+      on public.growth_months for all to authenticated
+      using (true) with check (true);
+  end if;
+end $$;
+
+-- -------------------------------------------------------------
+-- 5. As contratações que já estão decididas
+--
+-- A Fran: "uma projeção que a gente já tem que adicionar aí para
+-- março do ano que vem é a contratação de uma pessoa, um videomaker,
+-- para a gente já ter uma pessoa que acompanha as gravações, para a
+-- gente conseguir já fazer uma transição."
+--
+-- O videomaker entra em março/27. As outras três vêm da planilha da
+-- Vitória, e as datas saem do mês a mês que ela montou.
+--
+-- Entram só se a tabela estiver vazia: depois disso, quem manda é o
+-- que as duas mexeram na tela.
+-- -------------------------------------------------------------
+insert into public.growth_hires
+  (role, pay_kind, monthly_cost, unit_rate, unit_cap, start_month, clt, notes)
+select * from (values
+  ('Editor', 'por_video_editado', null::numeric, 50::numeric, 50::numeric,
+   '2027-03', false,
+   'Por demanda. Edita até 50 vídeos por mês; o que passar fica com a Fran.'),
+
+  -- "Uma pessoa que acompanha as gravações, para a gente conseguir
+  -- fazer uma transição." Grava, não edita: o mesmo vídeo passa
+  -- pelos dois, e somar os dois na mesma conta pagaria duas vezes.
+  ('Videomaker', 'por_video_gravado', null::numeric, 60::numeric, 45::numeric,
+   '2027-03', false,
+   'Por demanda. Grava até 45 vídeos por mês; o resto a Fran grava. Cerca de 1h por vídeo.'),
+
+  ('Social media', 'por_cliente', null::numeric, 200::numeric, 10::numeric,
+   '2027-05', false,
+   'Por demanda. Planejamento, roteiros, legendas e carrosséis de até 10 clientes.'),
+
+  ('CS', 'mensal', 2000::numeric, null::numeric, null::numeric,
+   '2027-04', true,
+   'Única contratação CLT. Atendimento, aprovações e relatórios.'),
+
+  -- Custo de uma vez, num mês só. Um mês antes das contratações de
+  -- março, para os contratos estarem prontos quando a equipe entrar.
+  ('Advogado', 'uma_vez', 3000::numeric, null::numeric, null::numeric,
+   '2027-02', false,
+   'Revisão de 3 contratos a R$ 1.000: modelo PJ por demanda, contrato CLT da CS e modelo dos clientes. Não é custo mensal.')
+) as t(role, pay_kind, monthly_cost, unit_rate, unit_cap, start_month, clt, notes)
+where not exists (select 1 from public.growth_hires);
+
+-- O ritmo de entrada da planilha da Vitória: 12 clientes até maio.
+insert into public.growth_months (reference_month, novos_clientes)
+select * from (values
+  ('2027-01', 4), ('2027-02', 2), ('2027-03', 2),
+  ('2027-04', 2), ('2027-05', 2), ('2027-06', 0)
+) as t(mes, novos)
+where not exists (select 1 from public.growth_months);
+
+
+-- =============================================================
+-- [32/32] 20261126150000_videos_por_cliente.sql
+-- =============================================================
+
+-- =============================================================
+-- Quantos vídeos cada cliente tem no contrato
+--
+-- A projeção precisa saber quantos vídeos saem por mês hoje, para
+-- somar os dos clientes novos em cima. Na planilha da Vitória isso
+-- era uma coluna digitada à mão ("Vídeos no contrato"), com uma
+-- observação do lado em quase todas as linhas.
+--
+-- NÃO É O `monthly_goal` QUE JÁ EXISTE. Aquele é meta de CONTEÚDOS,
+-- e os dois não são a mesma coisa: o contrato do Kiku Sushi fala em
+-- "até 16 conteúdos (vídeo, foto e carrossel)" sem dizer quantos
+-- vídeos; o do Studio Bambu fala em "4 Reels e 1 sessão de fotos".
+-- Somar conteúdo com vídeo daria um número que não serve para
+-- dimensionar editor nem videomaker, que é para o que ele existe.
+--
+-- Fica em branco onde o contrato não diz. Em branco quer dizer "não
+-- sei", e a tela escreve isso, diferente de zero, que quer dizer
+-- "nenhum".
+-- =============================================================
+
+alter table public.clients
+  add column if not exists monthly_videos integer;
+
+comment on column public.clients.monthly_videos is
+  'Vídeos por mês no contrato. Null = o contrato não diz. Diferente de monthly_goal, que é meta de conteúdos.';
+
+-- Os contratos que a Vitória leu no Drive, em 26/11/2026.
+-- Só preenche quem ainda está em branco: depois disso quem manda é
+-- o que as duas ajustarem na tela.
+do $$
+declare
+  r record;
+begin
+  for r in
+    select * from (values
+      ('Dra. Hemilayne',        6),
+      ('Izabela Schipitoski',   5),
+      ('Laura Chioquetta',      4),
+      ('Malukies Cookies & Co', 4),
+      ('Studio Bambu',          4),
+      ('Studio Salte',          4)
+    ) as t(nome, videos)
+  loop
+    update public.clients
+       set monthly_videos = r.videos
+     where lower(btrim(name)) = lower(r.nome)
+       and monthly_videos is null;
+  end loop;
+end $$;
+
+-- Kiku Sushi e Natural Concept ficam em branco de propósito: o
+-- contrato do Kiku não separa vídeo de carrossel, e o da Natural
+-- Concept está sem quantidade nenhuma. A tela cobra os dois.

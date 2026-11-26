@@ -65,7 +65,12 @@ returns int
 language sql
 immutable
 as $$
-  select case e
+  /* Compara e::text, e não o enum direto, de propósito.
+     Rótulo de enum some quando uma migration posterior renomeia a
+     etapa, e aí recompilar esta função num banco já migrado quebra
+     com "invalid input value for enum lead_stage". Texto é texto em
+     qualquer versão do enum. */
+  select case e::text
     when 'Contato feito'    then 1
     when 'Diagnóstico'      then 2
     when 'Proposta enviada' then 3

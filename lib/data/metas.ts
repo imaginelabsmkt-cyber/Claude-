@@ -91,6 +91,8 @@ export async function listarContratacoes(): Promise<ContratacaoComNota[]> {
     cargo: h.role as string,
     forma: h.pay_kind as Contratacao["forma"],
     custoMensal: h.monthly_cost == null ? null : Number(h.monthly_cost),
+    valorPorUnidade: h.unit_rate == null ? null : Number(h.unit_rate),
+    tetoDeUnidades: h.unit_cap == null ? null : Number(h.unit_cap),
     mesDeInicio: h.start_month as string,
     ativa: Boolean(h.active),
     clt: Boolean(h.clt),

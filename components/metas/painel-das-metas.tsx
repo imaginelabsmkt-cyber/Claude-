@@ -29,16 +29,29 @@ import type { Premissas } from "@/lib/metas/projecao";
  * perde a conta.
  */
 
+import type { FormaDePagamento } from "@/lib/metas/projecao";
+
 export interface ContratacaoNaTela {
   id: string;
   cargo: string;
-  forma: "mensal" | "por_video";
+  forma: FormaDePagamento;
   custoMensal: number | null;
+  valorPorUnidade: number | null;
+  tetoDeUnidades: number | null;
   mesDeInicio: string;
   ativa: boolean;
   clt: boolean;
   nota: string | null;
 }
+
+/** Como escrever cada forma de pagamento na tela. */
+export const COMO_PAGA: Record<FormaDePagamento, string> = {
+  mensal: "por mês",
+  por_video_editado: "por vídeo editado",
+  por_video_gravado: "por vídeo gravado",
+  por_cliente: "por cliente atendido",
+  uma_vez: "uma vez só",
+};
 
 function emReais(v: number): string {
   return v.toLocaleString("pt-BR", {
@@ -201,9 +214,14 @@ export function PainelDasMetas({
                   />
                 </label>
 
-                {c.forma === "por_video" ? (
+                {c.forma !== "mensal" && c.forma !== "uma_vez" ? (
                   <span className="text-sm text-gray-600">
-                    pago por vídeo
+                    {c.valorPorUnidade != null
+                      ? `${formatarMoeda(c.valorPorUnidade)} ${COMO_PAGA[c.forma]}`
+                      : COMO_PAGA[c.forma]}
+                    {c.tetoDeUnidades != null
+                      ? `, até ${c.tetoDeUnidades}`
+                      : ""}
                   </span>
                 ) : (
                   <>
@@ -233,7 +251,8 @@ export function PainelDasMetas({
                   </>
                 )}
 
-                {c.forma === "mensal" && c.custoMensal == null ? (
+                {(c.forma === "mensal" || c.forma === "uma_vez") &&
+                c.custoMensal == null ? (
                   <span className="text-xs font-semibold text-alerta">
                     falta o valor
                   </span>

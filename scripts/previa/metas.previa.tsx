@@ -43,10 +43,21 @@ const PREMISSAS = {
 };
 
 const EQUIPE: Contratacao[] = [
-  { id: "videomaker", cargo: "Videomaker", forma: "mensal", custoMensal: null, mesDeInicio: "2027-03", ativa: true, clt: false },
-  { id: "editor", cargo: "Editor", forma: "por_video", custoMensal: null, mesDeInicio: "2027-03", ativa: true, clt: false },
-  { id: "cs", cargo: "CS", forma: "mensal", custoMensal: 2000, mesDeInicio: "2027-04", ativa: true, clt: true },
-  { id: "social", cargo: "Social media", forma: "mensal", custoMensal: 2000, mesDeInicio: "2027-05", ativa: true, clt: true },
+  { id: "advogado", cargo: "Advogado", forma: "uma_vez", custoMensal: 3000,
+    valorPorUnidade: null, tetoDeUnidades: null, mesDeInicio: "2027-02",
+    ativa: true, clt: false },
+  { id: "editor", cargo: "Editor", forma: "por_video_editado", custoMensal: null,
+    valorPorUnidade: 50, tetoDeUnidades: 50, mesDeInicio: "2027-03",
+    ativa: true, clt: false },
+  { id: "videomaker", cargo: "Videomaker", forma: "por_video_gravado", custoMensal: null,
+    valorPorUnidade: 60, tetoDeUnidades: 45, mesDeInicio: "2027-03",
+    ativa: true, clt: false },
+  { id: "cs", cargo: "CS", forma: "mensal", custoMensal: 2000,
+    valorPorUnidade: null, tetoDeUnidades: null, mesDeInicio: "2027-04",
+    ativa: true, clt: true },
+  { id: "social", cargo: "Social media", forma: "por_cliente", custoMensal: null,
+    valorPorUnidade: 200, tetoDeUnidades: 10, mesDeInicio: "2027-05",
+    ativa: true, clt: false },
 ];
 
 /* As contas fixas de verdade da Favie, com a mentoria acabando em

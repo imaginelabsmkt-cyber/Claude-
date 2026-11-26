@@ -39,19 +39,58 @@ export interface Premissas {
   clientesNaProjecao: number;
 }
 
-export type FormaDePagamento = "mensal" | "por_video";
+/**
+ * Como cada pessoa é paga. Cinco formas, e elas mudam a conta de
+ * jeitos diferentes.
+ *
+ * GRAVADO E EDITADO SÃO CONTAS SEPARADAS: videomaker grava, editor
+ * edita, e o mesmo vídeo passa pelos dois. Na primeira versão eu
+ * tinha os dois como "por vídeo" e a conta pagaria duas vezes pela
+ * mesma coisa.
+ */
+export type FormaDePagamento =
+  | "mensal"
+  | "por_video_editado"
+  | "por_video_gravado"
+  | "por_cliente"
+  | "uma_vez";
 
 export interface Contratacao {
   id: string;
   cargo: string;
   forma: FormaDePagamento;
-  /** Para "mensal": o salário. `null` quer dizer "falta definir". */
+  /**
+   * Para "mensal" e "uma_vez": o valor.
+   * `null` quer dizer "falta definir", e a projeção avisa.
+   */
   custoMensal: number | null;
-  /** "YYYY-MM" do primeiro mês em que custa dinheiro. */
+  /** Para as formas por unidade: quanto vale cada uma. */
+  valorPorUnidade: number | null;
+  /** Teto de unidades por mês. O que passar fica com as sócias. */
+  tetoDeUnidades: number | null;
+  /**
+   * "YYYY-MM" do primeiro mês em que custa dinheiro.
+   * Para "uma_vez", é o ÚNICO mês em que custa.
+   */
   mesDeInicio: string;
   ativa: boolean;
-  /** Encargos CLT por cima do salário. PJ: false. */
+  /** Encargos CLT por cima do salário. Por demanda: false. */
   clt: boolean;
+}
+
+/** Quantas unidades a pessoa cobra neste mês, pela forma dela. */
+export function unidadesDoMes(
+  c: Contratacao,
+  videosNoMes: number,
+  clientesNoMes: number,
+): number {
+  const bruto =
+    c.forma === "por_cliente"
+      ? clientesNoMes
+      : c.forma === "por_video_editado" || c.forma === "por_video_gravado"
+        ? videosNoMes
+        : 0;
+  return c.tetoDeUnidades != null ? Math.min(bruto, c.tetoDeUnidades) : bruto;
 }
 
 /** O que o sistema já sabe, e que a projeção não digita. */
@@ -98,8 +137,14 @@ export interface MesDaProjecao {
   sobra: number;
   guardadoAcumulado: number;
   videos: number;
+  /** Vídeos que o editor edita neste mês. */
   videosComOEditor: number;
+  /** Vídeos que o videomaker grava neste mês. */
+  videosComOVideomaker: number;
+  /** O que sobra para a Fran EDITAR. */
   videosComAFran: number;
+  /** O que sobra para a Fran GRAVAR. */
+  videosParaAFranGravar: number;
   /**
    * O imposto se fosse 6% do faturamento, em vez do valor fixo.
    *
@@ -158,19 +203,28 @@ export function custoDaPessoa(
   mes: string,
   p: Premissas,
   videosNoMes: number,
+  clientesNoMes: number,
 ): number {
   if (!c.ativa) return 0;
-  if (mesesEntre(c.mesDeInicio, mes) < 0) return 0;
 
-  if (c.forma === "por_video") {
-    /* O editor tem TETO: ele edita até `videosDoEditor` por mês, e o
-       que passa disso continua com a Fran. Sem o teto, a conta diria
-       que a agência pode crescer para sempre com um editor só. */
-    return Math.min(videosNoMes, p.videosDoEditor) * p.precoPorVideo;
+  /* "uma_vez" custa num mês SÓ, e não de lá em diante: o advogado
+     revisa os contratos uma vez e acabou. Somar todo mês inflaria o
+     custo da projeção inteira. */
+  if (c.forma === "uma_vez") {
+    return mes === c.mesDeInicio ? (c.custoMensal ?? 0) : 0;
   }
 
-  if (c.custoMensal == null) return 0;
-  return c.custoMensal * (c.clt ? 1 + p.encargosClt : 1);
+  if (mesesEntre(c.mesDeInicio, mes) < 0) return 0;
+
+  if (c.forma === "mensal") {
+    if (c.custoMensal == null) return 0;
+    return c.custoMensal * (c.clt ? 1 + p.encargosClt : 1);
+  }
+
+  /* Por unidade, com TETO. Sem o teto, a conta diria que a agência
+     pode crescer para sempre com um editor só. */
+  if (c.valorPorUnidade == null) return 0;
+  return unidadesDoMes(c, videosNoMes, clientesNoMes) * c.valorPorUnidade;
 }
 
 /**
@@ -219,20 +273,25 @@ export function montarProjecao(
     const custoDasPessoas: Record<string, number> = {};
     let totalDasPessoas = 0;
     for (const c of contratacoes) {
-      const v = custoDaPessoa(c, mes, premissas, videos);
+      const v = custoDaPessoa(c, mes, premissas, videos, clientesNoTotal);
       custoDasPessoas[c.id] = v;
       totalDasPessoas += v;
     }
 
-    /* Quantos vídeos sobram para a Fran: o editor leva até o teto
-       dele, e só a partir do mês em que ele entra. */
-    const temEditor = contratacoes.some(
-      (c) =>
-        c.ativa && c.forma === "por_video" && mesesEntre(c.mesDeInicio, mes) >= 0,
-    );
-    const videosComOEditor = temEditor
-      ? Math.min(videos, premissas.videosDoEditor)
-      : 0;
+    /* Quantos vídeos sobram para a Fran EDITAR: o editor leva até o
+       teto dele, e só a partir do mês em que ele entra. O teto sai da
+       contratação, não das premissas: é um número que pertence a uma
+       pessoa. */
+    const emAtividade = (c: Contratacao) =>
+      c.ativa && mesesEntre(c.mesDeInicio, mes) >= 0;
+
+    const videosComOEditor = contratacoes
+      .filter((c) => c.forma === "por_video_editado" && emAtividade(c))
+      .reduce((t, c) => t + unidadesDoMes(c, videos, clientesNoTotal), 0);
+
+    const videosComOVideomaker = contratacoes
+      .filter((c) => c.forma === "por_video_gravado" && emAtividade(c))
+      .reduce((t, c) => t + unidadesDoMes(c, videos, clientesNoTotal), 0);
 
     const custoFixo = sistema.custoFixoPorMes[mes] ?? sistema.custoFixoPadrao;
     const custoTotal =
@@ -270,7 +329,9 @@ export function montarProjecao(
       guardadoAcumulado: guardado,
       videos,
       videosComOEditor,
+      videosComOVideomaker,
       videosComAFran: videos - videosComOEditor,
+      videosParaAFranGravar: videos - videosComOVideomaker,
       impostoPeloSimples,
       sobraPeloSimples,
     });
@@ -284,7 +345,14 @@ export function montarProjecao(
     diferencaParaAMeta: guardado - premissas.metaGuardada,
     mesEmQueBate,
     semValor: contratacoes.filter(
-      (c) => c.ativa && c.forma === "mensal" && c.custoMensal == null,
+      (c) =>
+        c.ativa &&
+        ((c.forma === "mensal" || c.forma === "uma_vez") &&
+          c.custoMensal == null) ||
+        (c.ativa &&
+          c.forma !== "mensal" &&
+          c.forma !== "uma_vez" &&
+          c.valorPorUnidade == null),
     ),
     faturamentoMinimo: ultimo
       ? ultimo.custoTotal + premissas.guardarPorMes

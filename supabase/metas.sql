@@ -29,6 +29,10 @@ create table if not exists public.growth_assumptions (
   ticket_novo        numeric(14, 2) not null default 2000,
   videos_por_cliente numeric(6, 2)  not null default 4,
   -- O editor é pago por vídeo, não por mês: tem teto de produção.
+  --
+  -- Estes dois ficaram por compatibilidade: o valor e o teto de cada
+  -- pessoa agora moram na contratação dela, onde dá para saber de
+  -- quem são.
   videos_do_editor   integer        not null default 50,
   preco_por_video    numeric(14, 2) not null default 50,
   -- Imposto. `imposto_fixo` é o palpite de vocês; `imposto_percentual`
@@ -60,34 +64,95 @@ comment on table public.growth_assumptions is
 -- -------------------------------------------------------------
 -- 2. Contratações
 -- -------------------------------------------------------------
-do $$
-begin
-  if not exists (select 1 from pg_type where typname = 'hire_pay_kind') then
-    -- Duas formas de pagar, e elas mudam a conta:
-    --   mensal       custo igual todo mês (salário, PJ fixo)
-    --   por_video    custo = vídeos editados × preço, com teto
-    create type hire_pay_kind as enum ('mensal', 'por_video');
-  end if;
-end $$;
-
+-- -------------------------------------------------------------
+-- 2. Contratações
+--
+-- CINCO FORMAS DE PAGAR, e elas mudam a conta de jeitos diferentes:
+--
+--   mensal              salário igual todo mês (a CS, única CLT)
+--   por_video_editado   o editor: valor por vídeo, com teto
+--   por_video_gravado   o videomaker: valor por vídeo GRAVADO
+--   por_cliente         a social media: valor por cliente atendido
+--   uma_vez             o advogado: custo único, num mês só
+--
+-- GRAVADO E EDITADO SÃO CONTAS SEPARADAS. Videomaker grava, editor
+-- edita, e o mesmo vídeo passa pelos dois. Na primeira versão eu
+-- tinha os dois como "por vídeo" e a conta pagaria duas vezes pela
+-- mesma coisa.
+--
+-- O VALOR E O TETO MORAM NA CONTRATAÇÃO, não nas premissas. O editor
+-- edita 50 a R$ 50; o videomaker grava 45 a R$ 60; a social media
+-- atende 10 a R$ 200. São três pares de números, e cada um pertence
+-- a uma pessoa: nas premissas viravam seis campos soltos que ninguém
+-- sabe de quem são.
+--
+-- `pay_kind` é TEXTO com lista fechada, e não enum, de propósito: o
+-- Postgres não deixa usar um valor de enum recém-criado como literal
+-- na mesma transação, e esta lista ainda vai crescer. Com texto e
+-- check, acrescentar uma forma nova é uma linha.
+-- -------------------------------------------------------------
 create table if not exists public.growth_hires (
   id         uuid primary key default gen_random_uuid(),
   role       text not null,
-  pay_kind   hire_pay_kind not null default 'mensal',
-  -- Para 'mensal': o salário. Para 'por_video': fica em branco e a
-  -- conta usa o preço por vídeo das premissas.
+  pay_kind   text not null default 'mensal',
+
+  -- Para 'mensal' e 'uma_vez': o valor. Nas outras, fica em branco e
+  -- a conta usa `unit_rate` vezes as unidades do mês.
   monthly_cost numeric(14, 2),
+
+  -- Para as formas por unidade: quanto vale cada uma e quantas no
+  -- máximo por mês. O que passar do teto continua com as sócias.
+  unit_rate  numeric(14, 2),
+  unit_cap   numeric(10, 2),
+
   -- 'YYYY-MM' do primeiro mês em que a pessoa custa dinheiro.
+  -- Para 'uma_vez', é o único mês em que ela custa.
   start_month text not null,
+
   -- Entra na conta? Desmarcar simula adiar a contratação sem apagar.
   active     boolean not null default true,
-  -- Encargos CLT por cima do salário. PJ: false.
+
+  -- Encargos CLT por cima do salário. Por demanda: false.
   clt        boolean not null default true,
 
   notes      text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Quem já tinha a tabela com o enum antigo: converte para texto.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'growth_hires'
+       and column_name = 'pay_kind' and udt_name = 'hire_pay_kind'
+  ) then
+    alter table public.growth_hires
+      alter column pay_kind drop default,
+      alter column pay_kind type text using pay_kind::text,
+      alter column pay_kind set default 'mensal';
+    update public.growth_hires set pay_kind = 'por_video_editado'
+     where pay_kind = 'por_video';
+  end if;
+end $$;
+
+alter table public.growth_hires
+  add column if not exists unit_rate numeric(14, 2),
+  add column if not exists unit_cap  numeric(10, 2);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'growth_hires_pay_kind_ok'
+  ) then
+    alter table public.growth_hires
+      add constraint growth_hires_pay_kind_ok check (pay_kind in (
+        'mensal', 'por_video_editado', 'por_video_gravado',
+        'por_cliente', 'uma_vez'
+      ));
+  end if;
+end $$;
 
 create index if not exists idx_growth_hires_start
   on public.growth_hires (start_month);
@@ -152,30 +217,34 @@ end $$;
 -- Entram só se a tabela estiver vazia: depois disso, quem manda é o
 -- que as duas mexeram na tela.
 -- -------------------------------------------------------------
-insert into public.growth_hires (role, pay_kind, monthly_cost, start_month, clt, notes)
+insert into public.growth_hires
+  (role, pay_kind, monthly_cost, unit_rate, unit_cap, start_month, clt, notes)
 select * from (values
-  -- Mensal, e SEM VALOR de propósito.
-  --
-  -- A Fran disse quando e para quê, não quanto. Eu não invento folha
-  -- de pagamento: um número chutado aqui atravessa a projeção
-  -- inteira e some, porque vira só mais uma linha somada. Em branco,
-  -- a tela cobra o valor e avisa que a projeção está incompleta.
-  --
-  -- E não é 'por_video': videomaker GRAVA, o editor EDITA. Pôr os
-  -- dois na mesma conta pagaria duas vezes pelo mesmo vídeo.
-  ('Videomaker', 'mensal'::hire_pay_kind, null::numeric,
+  ('Editor', 'por_video_editado', null::numeric, 50::numeric, 50::numeric,
    '2027-03', false,
-   'Acompanha as gravações, para a Fran fazer a transição. Falta definir o valor.'),
-  ('Editor', 'por_video'::hire_pay_kind, null::numeric,
+   'Por demanda. Edita até 50 vídeos por mês; o que passar fica com a Fran.'),
+
+  -- "Uma pessoa que acompanha as gravações, para a gente conseguir
+  -- fazer uma transição." Grava, não edita: o mesmo vídeo passa
+  -- pelos dois, e somar os dois na mesma conta pagaria duas vezes.
+  ('Videomaker', 'por_video_gravado', null::numeric, 60::numeric, 45::numeric,
    '2027-03', false,
-   'Pago por vídeo, com teto de produção nas premissas.'),
-  ('CS', 'mensal'::hire_pay_kind, 2000::numeric,
+   'Por demanda. Grava até 45 vídeos por mês; o resto a Fran grava. Cerca de 1h por vídeo.'),
+
+  ('Social media', 'por_cliente', null::numeric, 200::numeric, 10::numeric,
+   '2027-05', false,
+   'Por demanda. Planejamento, roteiros, legendas e carrosséis de até 10 clientes.'),
+
+  ('CS', 'mensal', 2000::numeric, null::numeric, null::numeric,
    '2027-04', true,
-   'Atendimento, aprovações e relatórios.'),
-  ('Social media', 'mensal'::hire_pay_kind, 2000::numeric,
-   '2027-05', true,
-   'Planejamento, roteiros, legendas e carrosséis.')
-) as t(role, pay_kind, monthly_cost, start_month, clt, notes)
+   'Única contratação CLT. Atendimento, aprovações e relatórios.'),
+
+  -- Custo de uma vez, num mês só. Um mês antes das contratações de
+  -- março, para os contratos estarem prontos quando a equipe entrar.
+  ('Advogado', 'uma_vez', 3000::numeric, null::numeric, null::numeric,
+   '2027-02', false,
+   'Revisão de 3 contratos a R$ 1.000: modelo PJ por demanda, contrato CLT da CS e modelo dos clientes. Não é custo mensal.')
+) as t(role, pay_kind, monthly_cost, unit_rate, unit_cap, start_month, clt, notes)
 where not exists (select 1 from public.growth_hires);
 
 -- O ritmo de entrada da planilha da Vitória: 12 clientes até maio.
