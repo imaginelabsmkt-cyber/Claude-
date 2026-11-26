@@ -39,6 +39,8 @@
 --      estúdio. Passa tudo para um e apaga a duplicata.
 --  13. metas — as premissas, as contratações e o ritmo de entrada
 --      da projeção. O videomaker já entra em março/27.
+--  14. videos_por_cliente — quantos vídeos cada contrato tem por
+--      mês, que é o que dimensiona editor e videomaker.
 --
 -- COMO RODAR
 --
@@ -2316,3 +2318,40 @@ select * from (values
   ('2027-04', 2), ('2027-05', 2), ('2027-06', 0)
 ) as t(mes, novos)
 where not exists (select 1 from public.growth_months);
+
+-- =============================================================
+-- videos_por_cliente
+-- =============================================================
+alter table public.clients
+  add column if not exists monthly_videos integer;
+
+comment on column public.clients.monthly_videos is
+  'Vídeos por mês no contrato. Null = o contrato não diz. Diferente de monthly_goal, que é meta de conteúdos.';
+
+-- Os contratos que a Vitória leu no Drive, em 26/11/2026.
+-- Só preenche quem ainda está em branco: depois disso quem manda é
+-- o que as duas ajustarem na tela.
+do $$
+declare
+  r record;
+begin
+  for r in
+    select * from (values
+      ('Dra. Hemilayne',        6),
+      ('Izabela Schipitoski',   5),
+      ('Laura Chioquetta',      4),
+      ('Malukies Cookies & Co', 4),
+      ('Studio Bambu',          4),
+      ('Studio Salte',          4)
+    ) as t(nome, videos)
+  loop
+    update public.clients
+       set monthly_videos = r.videos
+     where lower(btrim(name)) = lower(r.nome)
+       and monthly_videos is null;
+  end loop;
+end $$;
+
+-- Kiku Sushi e Natural Concept ficam em branco de propósito: o
+-- contrato do Kiku não separa vídeo de carrossel, e o da Natural
+-- Concept está sem quantidade nenhuma. A tela cobra os dois.

@@ -24,6 +24,7 @@ ORDEM=(
   comercial_do_prototipo
   juntar_salte
   metas
+  videos_por_cliente
 )
 
 {
@@ -69,6 +70,8 @@ ORDEM=(
 --      estúdio. Passa tudo para um e apaga a duplicata.
 --  13. metas — as premissas, as contratações e o ritmo de entrada
 --      da projeção. O videomaker já entra em março/27.
+--  14. videos_por_cliente — quantos vídeos cada contrato tem por
+--      mês, que é o que dimensiona editor e videomaker.
 --
 -- COMO RODAR
 --

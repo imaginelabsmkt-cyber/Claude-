@@ -249,3 +249,32 @@ describe("clientesParaChegarA", () => {
     expect(clientesParaChegarA(30000, 14450, 0)).toBeNull();
   });
 });
+
+describe("a outra conta do imposto: 6% do Simples", () => {
+  const p = montarProjecao("2027-01", PREMISSAS, EQUIPE, RITMO, SISTEMA);
+
+  it("antes de sair do MEI, não existe", () => {
+    const antes = montarProjecao(
+      "2027-01",
+      { ...PREMISSAS, mesSaidaDoMei: "2027-04" },
+      EQUIPE,
+      RITMO,
+      SISTEMA,
+    );
+    expect(antes.meses[0].impostoPeloSimples).toBe(0);
+    // E a sobra é a mesma nas duas contas enquanto for MEI.
+    expect(antes.meses[0].sobraPeloSimples).toBeCloseTo(antes.meses[0].sobra, 2);
+  });
+
+  it("é 6% do faturamento do mês", () => {
+    // 38.450 × 6% = 2.307, o número da planilha.
+    expect(p.meses[4].impostoPeloSimples).toBeCloseTo(2307, 2);
+  });
+
+  it("guarda menos, porque o imposto é maior que o palpite", () => {
+    /* R$ 600 estimados contra R$ 2.307 reais: a diferença decide se
+       a meta é batida. Por isso as duas contas ficam lado a lado. */
+    expect(p.guardadoPeloSimples).toBeLessThan(p.guardadoAteAMeta);
+    expect(p.guardadoPeloSimples).toBeCloseTo(65108.98, 2);
+  });
+});

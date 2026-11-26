@@ -26,6 +26,8 @@ export interface ClienteCarteira {
   ultimoMes: string | null;
   /** Valor do último pagamento. */
   ultimoValor: number;
+  /** Vídeos por mês no contrato. `null` quando o contrato não diz. */
+  videosPorMes: number | null;
 }
 
 export interface Carteira {
@@ -39,6 +41,15 @@ export interface Carteira {
   ticketMedio: number;
   /** Quanto os clientes que saíram levavam por mês. */
   perdidoPorMes: number;
+  /**
+   * Vídeos por mês somados nos contratos dos clientes ativos.
+   *
+   * É o que dimensiona editor e videomaker na projeção. Só soma quem
+   * tem o número no contrato: quem está em branco não entra, e
+   * `clientesSemVideos` diz quantos são, para a tela poder cobrar.
+   */
+  videosPorMes: number;
+  clientesSemVideos: number;
 }
 
 /**
@@ -51,7 +62,10 @@ export async function obterCarteira(mes: string): Promise<Carteira> {
 
   const [{ data: clientes }, { data: recorrencias }, { data: lancamentos }] =
     await Promise.all([
-      supabase.from("clients").select("id, name, active").order("name"),
+      supabase
+        .from("clients")
+        .select("id, name, active, monthly_videos")
+        .order("name"),
       supabase
         .from("financial_recurrences")
         .select("client_id, kind, amount, start_month, end_month")
@@ -83,6 +97,13 @@ export async function obterCarteira(mes: string): Promise<Carteira> {
   >;
   const linhas = (lancamentos ?? []) as Linha[];
 
+  const videosDe = new Map(
+    (clientes ?? []).map((c) => [
+      c.id,
+      (c as { monthly_videos?: number | null }).monthly_videos ?? null,
+    ]),
+  );
+
   function montar(id: string, nome: string): ClienteCarteira {
     const meus = linhas.filter((l) => l.client_id === id);
     const pagos = meus.filter((l) => l.status === "Pago");
@@ -93,6 +114,7 @@ export async function obterCarteira(mes: string): Promise<Carteira> {
     return {
       id,
       nome,
+      videosPorMes: videosDe.get(id) ?? null,
       mensal: mensalPorCliente.get(id) ?? 0,
       pagoNoAno: somar(pagos.map((l) => Number(l.amount))),
       pendenteNoMes: somar(
@@ -130,6 +152,10 @@ export async function obterCarteira(mes: string): Promise<Carteira> {
       ? somar(comMensalidade.map((c) => c.mensal)) / comMensalidade.length
       : 0,
     perdidoPorMes: somar(inativos.map((c) => c.ultimoValor)),
+    videosPorMes: somar(
+      ativos.map((c) => c.videosPorMes ?? 0),
+    ),
+    clientesSemVideos: ativos.filter((c) => c.videosPorMes == null).length,
   };
 }
 

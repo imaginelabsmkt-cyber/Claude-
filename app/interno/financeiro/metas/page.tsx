@@ -68,10 +68,11 @@ export default async function MetasPage() {
     faturamentoRecorrente: carteira.recorrente,
     custoFixoPorMes: mapaDoCustoFixo,
     custoFixoPadrao: carteira.custoFixo,
-    /* Vídeos por mês nos contratos: o sistema ainda não guarda isso
-       por cliente, então entra pelo que a projeção supõe por cliente
-       novo. Quando os contratos tiverem a quantidade, sai daqui. */
-    videosDeHoje: 0,
+    /* Vídeos por mês nos contratos de hoje, somados da carteira. Era
+       uma coluna digitada à mão na planilha; agora cada cliente tem
+       o número no cadastro. Quem está em branco não entra, e a tela
+       diz quantos são. */
+    videosDeHoje: carteira.videosPorMes,
   };
 
   const p = montarProjecao(
@@ -163,6 +164,68 @@ export default async function MetasPage() {
         />
       </Secao>
 
+      <Secao titulo="E se o imposto for 6% do faturamento">
+        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          {/* As duas contas lado a lado, não uma escolhida por mim: a
+              diferença entre R$ 600 estimados e 6% do faturamento
+              decide se a meta é batida, e quem decide qual vale é o
+              contador. */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Com o imposto estimado
+              </p>
+              <p className="text-xl font-bold tabular-nums text-gray-900">
+                {formatarMoeda(p.guardadoAteAMeta)}
+              </p>
+              <p className="text-xs text-gray-500">
+                {formatarMoeda(premissas.impostoFixo)} por mês
+              </p>
+            </div>
+            <div className="border-t border-gray-100 pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Com {Math.round(premissas.impostoPercentual * 100)}% do
+                faturamento
+              </p>
+              <p className="text-xl font-bold tabular-nums text-gray-900">
+                {formatarMoeda(p.guardadoPeloSimples)}
+              </p>
+              <p className="text-xs text-gray-500">
+                {ultimo
+                  ? `${formatarMoeda(ultimo.impostoPeloSimples)} no último mês`
+                  : null}
+              </p>
+            </div>
+            <div className="border-t border-gray-100 pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Diferença
+              </p>
+              <p
+                className={
+                  "text-xl font-bold tabular-nums " +
+                  (p.guardadoPeloSimples < p.guardadoAteAMeta
+                    ? "text-alerta"
+                    : "text-gray-900")
+                }
+              >
+                {formatarMoeda(
+                  Math.abs(p.guardadoAteAMeta - p.guardadoPeloSimples),
+                )}
+              </p>
+              <p className="text-xs text-gray-500">
+                {p.guardadoPeloSimples >= premissas.metaGuardada
+                  ? "a meta é batida nas duas contas"
+                  : "nessa conta a meta não é batida"}
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 border-t border-gray-100 pt-3 text-sm text-gray-600">
+            Anexo III, 1ª faixa (até R$ 180 mil em 12 meses). Vale confirmar
+            com o contador qual das duas é a sua.
+          </p>
+        </div>
+      </Secao>
+
       <Secao titulo="De onde vêm os números">
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
           <ul className="space-y-1.5 text-sm text-gray-700">
@@ -192,6 +255,27 @@ export default async function MetasPage() {
                 {formatarMoeda(a.valor)} por mês.
               </li>
             ))}
+            <li>
+              <strong className="font-semibold text-gray-900">
+                {carteira.videosPorMes} vídeos
+              </strong>{" "}
+              por mês nos contratos de hoje
+              {carteira.clientesSemVideos > 0 ? (
+                <>
+                  {" — "}
+                  <strong className="font-semibold text-alerta">
+                    {carteira.clientesSemVideos}{" "}
+                    {carteira.clientesSemVideos === 1
+                      ? "cliente está"
+                      : "clientes estão"}{" "}
+                    sem esse número
+                  </strong>
+                  , então a conta de editor e videomaker está por baixo.
+                </>
+              ) : (
+                "."
+              )}
+            </li>
             {faltam != null ? (
               <li>
                 Para pagar tudo e guardar{" "}

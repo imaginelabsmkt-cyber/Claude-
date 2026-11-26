@@ -265,3 +265,37 @@ export async function reativarClienteAction(
   revalidar();
   return { ok: true, id };
 }
+
+/**
+ * Quantos vídeos o contrato do cliente tem por mês.
+ *
+ * É o número que dimensiona editor e videomaker na projeção. Em
+ * branco quer dizer "o contrato não diz" — diferente de zero, que
+ * quer dizer "nenhum". A tela de Metas conta quantos estão em branco
+ * e avisa que a conta está por baixo.
+ */
+export async function salvarVideosDoClienteAction(
+  id: string,
+  valor: string,
+): Promise<ActionResult> {
+  const t = valor.trim();
+  let videos: number | null = null;
+
+  if (t !== "") {
+    const n = paraNumero(t);
+    if (n == null || n < 0) return { ok: false, error: "Valor inválido." };
+    videos = Math.round(n);
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("clients")
+    .update({ monthly_videos: videos })
+    .eq("id", id);
+
+  if (error) return { ok: false, error: "Não foi possível salvar." };
+
+  revalidar();
+  revalidatePath("/interno/financeiro/metas");
+  return { ok: true, id };
+}

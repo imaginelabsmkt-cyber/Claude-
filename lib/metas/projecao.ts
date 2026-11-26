@@ -100,6 +100,20 @@ export interface MesDaProjecao {
   videos: number;
   videosComOEditor: number;
   videosComAFran: number;
+  /**
+   * O imposto se fosse 6% do faturamento, em vez do valor fixo.
+   *
+   * A Fran estimou R$ 600 por mês. No Simples (Anexo III) a 1ª faixa
+   * é 6% do faturamento, e com 20 clientes isso passa de R$ 2.300 —
+   * quatro vezes o palpite. É diferença que decide se a meta é
+   * atingida ou não, então as duas contas ficam lado a lado em vez
+   * de uma só, escolhida por mim.
+   *
+   * Zero antes de sair do MEI, quando o DAS é o imposto.
+   */
+  impostoPeloSimples: number;
+  /** A sobra do mês se o imposto fosse o do Simples. */
+  sobraPeloSimples: number;
 }
 
 export interface Projecao {
@@ -114,6 +128,8 @@ export interface Projecao {
   semValor: Contratacao[];
   /** Faturamento mínimo no último mês para pagar tudo e guardar. */
   faturamentoMinimo: number;
+  /** Quanto se junta até a meta, com o imposto do Simples. */
+  guardadoPeloSimples: number;
 }
 
 /** Soma meses a um "YYYY-MM". */
@@ -177,6 +193,7 @@ export function montarProjecao(
 
   let acumuladoDeClientes = 0;
   let guardado = 0;
+  let guardadoPeloSimples = 0;
   let mesEmQueBate: string | null = null;
 
   for (let i = 0; i <= ate; i++) {
@@ -223,6 +240,17 @@ export function montarProjecao(
     const sobra = faturamento - custoTotal;
     guardado += sobra;
 
+    /* A outra conta do imposto, a do Simples. Entra junto com o
+       imposto fixo, não no lugar dele: quem decide qual vale é o
+       contador, e a tela mostra as duas. */
+    const impostoPeloSimples = foraDoMei
+      ? faturamento * premissas.impostoPercentual
+      : 0;
+    const sobraPeloSimples = foraDoMei
+      ? sobra + premissas.impostoFixo - impostoPeloSimples
+      : sobra;
+    guardadoPeloSimples += sobraPeloSimples;
+
     if (mesEmQueBate == null && guardado >= premissas.metaGuardada) {
       mesEmQueBate = mes;
     }
@@ -243,6 +271,8 @@ export function montarProjecao(
       videos,
       videosComOEditor,
       videosComAFran: videos - videosComOEditor,
+      impostoPeloSimples,
+      sobraPeloSimples,
     });
   }
 
@@ -259,6 +289,7 @@ export function montarProjecao(
     faturamentoMinimo: ultimo
       ? ultimo.custoTotal + premissas.guardarPorMes
       : premissas.guardarPorMes,
+    guardadoPeloSimples,
   };
 }
 

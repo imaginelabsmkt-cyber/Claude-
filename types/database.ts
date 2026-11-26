@@ -72,6 +72,16 @@ export type Client = {
   niche: string | null;
   /** Meta de conteúdos por mês (opcional; combo contratado). */
   monthly_goal: number | null;
+  /**
+   * Vídeos por mês no contrato. `null` = o contrato não diz.
+   *
+   * Não é o `monthly_goal`: aquele conta CONTEÚDO (vídeo, foto,
+   * carrossel) e este conta só VÍDEO. O contrato do Kiku Sushi fala
+   * em "até 16 conteúdos" sem separar; o do Studio Bambu, em "4
+   * Reels". Somar os dois daria um número que não serve para
+   * dimensionar editor nem videomaker, que é para o que ele existe.
+   */
+  monthly_videos: number | null;
   notes: string | null;
   created_at: ISODateString;
   updated_at: ISODateString;
@@ -1012,13 +1022,22 @@ export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at" | "updated
 
 export type ClientInsert = Omit<
   Client,
-  "id" | "created_at" | "updated_at" | "active" | "color" | "niche" | "monthly_goal" | "notes"
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "active"
+  | "color"
+  | "niche"
+  | "monthly_goal"
+  | "monthly_videos"
+  | "notes"
 > & {
   id?: UUID;
   active?: boolean;
   color?: string | null;
   niche?: string | null;
   monthly_goal?: number | null;
+  monthly_videos?: number | null;
   notes?: string | null;
 };
 export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at">>;

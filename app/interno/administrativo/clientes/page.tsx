@@ -131,6 +131,12 @@ export default async function ClientesPage() {
           semContrato={semContrato}
           hoje={hoje}
           rendeuNoAno={rendeuNoAno}
+          videos={Object.fromEntries(
+            [...carteira.ativos, ...carteira.inativos].map((c) => [
+              c.id,
+              c.videosPorMes,
+            ]),
+          )}
         />
       </Secao>
 

@@ -4,6 +4,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { CampoSalvo } from "@/components/metas/campo-salvo";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
   excluirContratoAction,
   inativarClienteAction,
   registrarReajusteAction,
+  salvarVideosDoClienteAction,
 } from "@/lib/actions/contratos";
 import { hojeISO } from "@/lib/financeiro/meses";
 import { paraCampo } from "@/lib/financeiro/valores";
@@ -74,6 +76,37 @@ interface ContratosPanelProps {
    * R$ 17.600 no ano" diz.
    */
   rendeuNoAno?: Record<string, number>;
+  /**
+   * Vídeos por mês no contrato de cada cliente, por id.
+   *
+   * É o número que dimensiona editor e videomaker na aba Metas, e o
+   * lugar dele é aqui: quem lê o contrato é quem está nesta tela.
+   */
+  videos?: Record<string, number | null>;
+}
+
+/** O campo de vídeos por mês, que salva ao sair dele. */
+function Videos({
+  id,
+  nome,
+  valor,
+}: {
+  id: string;
+  nome: string;
+  valor: number | null;
+}) {
+  return (
+    <label className="flex items-center gap-1.5">
+      <CampoSalvo
+        valor={valor == null ? "" : String(valor)}
+        rotulo={`Vídeos por mês de ${nome}`}
+        largura="w-14"
+        alinhar="text-center"
+        aoSalvar={(v) => salvarVideosDoClienteAction(id, v)}
+      />
+      <span className="text-xs text-gray-500">vídeos/mês</span>
+    </label>
+  );
 }
 
 /**
@@ -89,6 +122,7 @@ export function ContratosPanel({
   semContrato = [],
   hoje,
   rendeuNoAno = {},
+  videos = {},
 }: ContratosPanelProps) {
   const router = useRouter();
   const [editando, setEditando] = useState<string | "novo" | null>(null);
@@ -167,7 +201,8 @@ export function ContratosPanel({
                   <Badge tom="vermelho">Sem contrato</Badge>
                 </span>
               </span>
-              <span className="flex shrink-0 flex-wrap gap-2">
+              <span className="flex shrink-0 flex-wrap items-center gap-2">
+                <Videos id={c.id} nome={c.name} valor={videos[c.id] ?? null} />
                 <Button
                   variante="secundaria"
                   tamanho="sm"
@@ -213,6 +248,7 @@ export function ContratosPanel({
               <Linha
                 key={c.id}
                 rendeu={c.client_id ? rendeuNoAno[c.client_id] : undefined}
+                videos={c.client_id ? (videos[c.client_id] ?? null) : null}
                 contrato={c}
                 hoje={hoje}
                 aoEditar={() => setEditando(c.id)}
@@ -257,12 +293,14 @@ function Linha({
   contrato,
   hoje,
   rendeu,
+  videos,
   aoEditar,
   aoExcluir,
 }: {
   contrato: ContratoComCliente;
   hoje: string;
   rendeu?: number;
+  videos: number | null;
   aoEditar: () => void;
   aoExcluir: () => void;
 }) {
@@ -337,7 +375,19 @@ function Linha({
           ) : null}
         </span>
 
-        <span className="flex shrink-0 gap-1">
+        <span className="flex shrink-0 items-center gap-1">
+          {/* Vídeos por mês do contrato: quem lê o contrato é quem
+              está nesta tela, e é esse número que dimensiona editor e
+              videomaker lá nas Metas. */}
+          {contrato.client_id ? (
+            <span className="mr-2">
+              <Videos
+                id={contrato.client_id}
+                nome={contrato.client?.name ?? "cliente"}
+                valor={videos}
+              />
+            </span>
+          ) : null}
           {contrato.readjust_index ? (
             <button
               type="button"
