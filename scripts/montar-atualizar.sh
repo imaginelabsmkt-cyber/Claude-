@@ -26,6 +26,7 @@ ORDEM=(
   metas
   videos_por_cliente
   demandas_internas
+  oportunidades_em_negociacao
 )
 
 {
@@ -75,6 +76,8 @@ ORDEM=(
 --      mês, que é o que dimensiona editor e videomaker.
 --  15. demandas_internas, as tarefas da empresa que não são de
 --      cliente nem de lead, e as duas primeiras já cadastradas.
+--  16. oportunidades_em_negociacao, as quatro que estavam só na
+--      planilha. Nenhuma entra como fechada.
 --
 -- COMO RODAR
 --

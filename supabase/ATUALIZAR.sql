@@ -43,6 +43,8 @@
 --      mês, que é o que dimensiona editor e videomaker.
 --  15. demandas_internas, as tarefas da empresa que não são de
 --      cliente nem de lead, e as duas primeiras já cadastradas.
+--  16. oportunidades_em_negociacao, as quatro que estavam só na
+--      planilha. Nenhuma entra como fechada.
 --
 -- COMO RODAR
 --
@@ -2514,4 +2516,62 @@ select
 where not exists (
   select 1 from public.company_tasks
    where lower(btrim(title)) = lower('Refazer os contratos de todos os clientes, com vigência de 1 ano')
+);
+
+-- =============================================================
+-- oportunidades_em_negociacao
+-- =============================================================
+insert into public.commercial_leads
+  (name, channel, stage, max_stage, estimated_monthly, temperature,
+   next_contact_on, notes, created_at)
+select * from (values
+  (
+    'Dra. Ana Gessyca',
+    'Outro'::lead_channel,
+    'Negociação'::lead_stage,
+    'Negociação'::lead_stage,
+    2000.00::numeric,
+    'Quente'::lead_temperature,
+    date '2026-12-05',
+    'Contrato pronto, 1º pagamento combinado para 05/12. 4 vídeos por mês. Confirmar a origem: hoje está como Outro.',
+    timestamptz '2026-11-01 12:00:00-04'
+  ),
+  (
+    'Vértice Arquitetura',
+    'Outro'::lead_channel,
+    'Negociação'::lead_stage,
+    'Negociação'::lead_stage,
+    2000.00::numeric,
+    'Quente'::lead_temperature,
+    null::date,
+    'Contrato pronto. Passa a R$ 2.500 em março/27, lembrar de reajustar o contrato quando fechar. 4 vídeos por mês. Confirmar a origem: hoje está como Outro.',
+    timestamptz '2026-11-01 12:00:00-04'
+  ),
+  (
+    'Dra. Bruna Arantes',
+    'Outro'::lead_channel,
+    'Primeiro contato'::lead_stage,
+    'Primeiro contato'::lead_stage,
+    2000.00::numeric,
+    null::lead_temperature,
+    null::date,
+    'Vídeos estimados em 4 por mês. Confirmar a origem e a temperatura.',
+    timestamptz '2026-11-15 12:00:00-04'
+  ),
+  (
+    'Rafaela Nutricionista',
+    'Outro'::lead_channel,
+    'Negociação'::lead_stage,
+    'Negociação'::lead_stage,
+    2000.00::numeric,
+    null::lead_temperature,
+    null::date,
+    'Vídeos estimados em 4 por mês. Confirmar a origem e a temperatura.',
+    timestamptz '2026-11-10 12:00:00-04'
+  )
+) as t(name, channel, stage, max_stage, estimated_monthly, temperature,
+       next_contact_on, notes, created_at)
+where not exists (
+  select 1 from public.commercial_leads l
+   where lower(btrim(l.name)) = lower(btrim(t.name))
 );
