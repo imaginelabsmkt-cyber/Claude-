@@ -19,7 +19,7 @@ create table if not exists public.client_diagnostics (
 );
 
 comment on table public.client_diagnostics is
-  'Diagnósticos (HTML visual) por cliente, análise profunda, distinta do relatório.';
+  'Diagnósticos (HTML visual) por cliente: análise profunda, distinta do relatório.';
 
 create index if not exists idx_client_diagnostics_client_id
   on public.client_diagnostics (client_id);

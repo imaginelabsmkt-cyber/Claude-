@@ -25,6 +25,7 @@ ORDEM=(
   juntar_salte
   metas
   videos_por_cliente
+  demandas_internas
 )
 
 {
@@ -72,6 +73,8 @@ ORDEM=(
 --      da projeção. O videomaker já entra em março/27.
 --  14. videos_por_cliente, quantos vídeos cada contrato tem por
 --      mês, que é o que dimensiona editor e videomaker.
+--  15. demandas_internas, as tarefas da empresa que não são de
+--      cliente nem de lead, e as duas primeiras já cadastradas.
 --
 -- COMO RODAR
 --

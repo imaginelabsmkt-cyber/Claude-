@@ -41,6 +41,8 @@
 --      da projeção. O videomaker já entra em março/27.
 --  14. videos_por_cliente, quantos vídeos cada contrato tem por
 --      mês, que é o que dimensiona editor e videomaker.
+--  15. demandas_internas, as tarefas da empresa que não são de
+--      cliente nem de lead, e as duas primeiras já cadastradas.
 --
 -- COMO RODAR
 --
@@ -328,7 +330,7 @@ comment on column public.financial_settings.annual_revenue_goal is
 delete from public.financial_entries
  where reference_month in ('2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10')
    and kind = 'Despesa'
-   and description in ('Pró-labore (sócias)', 'Assinaturas e ferramentas digitais', 'Equipamentos', 'Outros custos operacionais', 'Transporte / deslocamento', 'Tráfego pago (gestão)', 'Contabilidade / MEI', 'DAS - Simples Nacional', 'Telefone / internet', 'Freelancers / colaboradores', 'A CLASSIFICAR, diferença da planilha', 'Projetos avulsos', 'Projeto avulso');
+   and description in ('Pró-labore (sócias)', 'Assinaturas e ferramentas digitais', 'Equipamentos', 'Outros custos operacionais', 'Transporte / deslocamento', 'Tráfego pago (gestão)', 'Contabilidade / MEI', 'DAS - Simples Nacional', 'Telefone / internet', 'Freelancers / colaboradores', 'A CLASSIFICAR — diferença da planilha', 'Projetos avulsos', 'Projeto avulso');
 
 -- 2. Uma linha por item.
 insert into public.financial_entries
@@ -2345,3 +2347,102 @@ end $$;
 -- Kiku Sushi e Natural Concept ficam em branco de propósito: o
 -- contrato do Kiku não separa vídeo de carrossel, e o da Natural
 -- Concept está sem quantidade nenhuma. A tela cobra os dois.
+
+-- =============================================================
+-- demandas_internas
+-- =============================================================
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'company_task_area') then
+    create type company_task_area as enum (
+      'administrativo',
+      'comercial',
+      'financeiro'
+    );
+  end if;
+end
+$$;
+
+create table if not exists public.company_tasks (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null check (btrim(title) <> '' and length(title) <= 140),
+  area        company_task_area not null default 'administrativo',
+  -- Null = as duas.
+  assigned_to uuid references public.profiles(id) on delete set null,
+  due_date    date,
+  notes       text,
+  -- Quando foi concluída. Null = ainda aberta.
+  done_at     timestamptz,
+  created_by  uuid references public.profiles(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table public.company_tasks is
+  'Demandas internas da empresa: tarefas que não são de cliente nem de lead.';
+comment on column public.company_tasks.assigned_to is
+  'Responsável. Null quer dizer "as duas", que é o caso mais comum.';
+comment on column public.company_tasks.done_at is
+  'Quando foi concluída. Null = aberta. Desfazer a conclusão é voltar para null.';
+
+-- A fila lê por prazo, e separa aberta de concluída. O índice parcial
+-- cobre as abertas, que são as que a tela busca a cada carregamento.
+create index if not exists idx_company_tasks_abertas
+  on public.company_tasks (due_date)
+  where done_at is null;
+create index if not exists idx_company_tasks_done
+  on public.company_tasks (done_at desc)
+  where done_at is not null;
+
+drop trigger if exists trg_company_tasks_updated_at on public.company_tasks;
+create trigger trg_company_tasks_updated_at
+  before update on public.company_tasks
+  for each row execute function public.set_updated_at();
+
+-- Dado da empresa: as duas sócias veem o mesmo, desde que liberadas.
+alter table public.company_tasks enable row level security;
+
+drop policy if exists "company_tasks_liberado" on public.company_tasks;
+create policy "company_tasks_liberado"
+  on public.company_tasks for all
+  to authenticated
+  using (public.usuario_aprovado())
+  with check (public.usuario_aprovado());
+
+revoke all on public.company_tasks from anon;
+
+-- -------------------------------------------------------------
+-- As demandas que já estão decididas
+--
+-- Entram pelo TÍTULO: se já existir uma com o mesmo, não duplica.
+-- Assim o arquivo pode rodar quantas vezes for preciso, e o que as
+-- duas editarem na tela não é desfeito na rodada seguinte.
+-- -------------------------------------------------------------
+insert into public.company_tasks (title, area, assigned_to, due_date, notes)
+select
+  'Pesquisar cartão de crédito com milhas',
+  'financeiro'::company_task_area,
+  (select id from public.profiles
+    where lower(btrim(name)) like 'fran%' order by created_at limit 1),
+  date '2026-12-15',
+  'vamos usar muito as milhas em 2027 e queremos começar a acumular agora'
+where not exists (
+  select 1 from public.company_tasks
+   where lower(btrim(title)) = lower('Pesquisar cartão de crédito com milhas')
+);
+
+-- "Eu quero que em final de dezembro, pode ser ali dia 20 de
+-- dezembro, a Vitória refaça todos os contratos de todos os clientes
+-- para começar um ano, e eu quero que os contratos sejam de um ano."
+insert into public.company_tasks (title, area, assigned_to, due_date, notes)
+select
+  'Refazer os contratos de todos os clientes, com vigência de 1 ano',
+  'administrativo'::company_task_area,
+  (select id from public.profiles
+    where lower(btrim(name)) like 'vit%' order by created_at limit 1),
+  date '2026-12-20',
+  'Começar 2027 com todos os contratos novos e de um ano. Depois de refazer, atualizar a vigência de cada um em Administrativo > Clientes.'
+where not exists (
+  select 1 from public.company_tasks
+   where lower(btrim(title)) = lower('Refazer os contratos de todos os clientes, com vigência de 1 ano')
+);

@@ -21,7 +21,7 @@ const total = arquivos.length;
 const largura = String(total).length;
 
 const cabecalho = `-- =============================================================
--- FAVIE — SCHEMA COMPLETO (arquivo único)
+-- FAVIE, SCHEMA COMPLETO (arquivo único)
 --
 -- Junta as ${total} migrations na ordem correta, para você colar UMA VEZ
 -- no SQL Editor do Supabase em vez de rodar uma a uma.
@@ -29,7 +29,7 @@ const cabecalho = `-- ==========================================================
 -- É seguro rodar mais de uma vez: todas as partes são idempotentes.
 -- Se parar no meio por algum motivo, pode rodar tudo de novo.
 --
--- Gerado a partir de supabase/migrations/ — não edite este arquivo à
+-- Gerado a partir de supabase/migrations/, não edite este arquivo à
 -- mão: mexa na migration correspondente e rode
 -- \`node scripts/gerar-schema.mjs\`.
 -- =============================================================

@@ -91,9 +91,9 @@ create table if not exists public.personal_entries (
 );
 
 comment on table public.personal_entries is
-  'Gastos e receitas pessoais. PRIVADO por user_id, nunca compartilhado.';
+  'Gastos e receitas pessoais. PRIVADO por user_id: nunca compartilhado.';
 comment on table public.personal_recurrences is
-  'Plano fixo pessoal. PRIVADO por user_id, nunca compartilhado.';
+  'Contas fixas pessoais. PRIVADO por user_id: nunca compartilhado.';
 
 -- -------------------------------------------------------------
 -- 3. Índices, a consulta sempre parte de (quem, qual mês)

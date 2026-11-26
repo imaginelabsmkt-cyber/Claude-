@@ -47,7 +47,7 @@ do $$
 begin
 
 if exists (select 1 from public.financial_entries) then
-  raise notice 'Financeiro já possui lançamentos, carga inicial ignorada.';
+  raise notice 'Financeiro já possui lançamentos: carga inicial ignorada.';
   return;
 end if;
 
@@ -396,15 +396,15 @@ select '2026-07', 'Receita', c.id, cl.id, 'Mensalidade Vieira Franco Advogados',
  where c.kind = 'Receita' and c.name = 'Mensalidades / clientes recorrentes'
    and cl.name = 'Vieira Franco Advogados';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
-select '2026-07', 'Receita', c.id, 'Acompanhamento de parto, Brenda', 800.00, 'Pago', '2026-07-15', '2026-07-15'
+select '2026-07', 'Receita', c.id, 'Acompanhamento de parto — Brenda', 800.00, 'Pago', '2026-07-15', '2026-07-15'
   from public.financial_categories c
  where c.kind = 'Receita' and c.name = 'Projetos avulsos';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
-select '2026-07', 'Receita', c.id, 'Acompanhamento de parto, Josiele', 1100.00, 'Pago', '2026-07-15', '2026-07-15'
+select '2026-07', 'Receita', c.id, 'Acompanhamento de parto — Josiele', 1100.00, 'Pago', '2026-07-15', '2026-07-15'
   from public.financial_categories c
  where c.kind = 'Receita' and c.name = 'Projetos avulsos';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
-select '2026-07', 'Receita', c.id, 'Vídeo de aniversário, Marcela', 350.00, 'Pago', '2026-07-15', '2026-07-15'
+select '2026-07', 'Receita', c.id, 'Vídeo de aniversário — Marcela', 350.00, 'Pago', '2026-07-15', '2026-07-15'
   from public.financial_categories c
  where c.kind = 'Receita' and c.name = 'Projetos avulsos';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -424,7 +424,7 @@ select '2026-07', 'Despesa', c.id, 'Assinaturas e ferramentas digitais', 1081.27
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Assinaturas e ferramentas digitais';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date, notes)
-select '2026-07', 'Despesa', c.id, 'A CLASSIFICAR, diferença da planilha', 1239.80, 'Pago', '2026-07-28', '2026-07-28',
+select '2026-07', 'Despesa', c.id, 'A CLASSIFICAR — diferença da planilha', 1239.80, 'Pago', '2026-07-28', '2026-07-28',
        'No Resumo Anual da planilha, as categorias de despesa deste mês somam R$ 1,239.80 a menos que o TOTAL do próprio Resumo. Lançado aqui para o mês fechar; edite e escolha a categoria certa.'
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Outros custos operacionais';
@@ -471,7 +471,7 @@ select '2026-08', 'Receita', c.id, cl.id, 'Mensalidade Vieira Franco Advogados',
  where c.kind = 'Receita' and c.name = 'Mensalidades / clientes recorrentes'
    and cl.name = 'Vieira Franco Advogados';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
-select '2026-08', 'Receita', c.id, 'Acompanhamento de parto, Sheila', 1100.00, 'Pago', '2026-08-15', '2026-08-15'
+select '2026-08', 'Receita', c.id, 'Acompanhamento de parto — Sheila', 1100.00, 'Pago', '2026-08-15', '2026-08-15'
   from public.financial_categories c
  where c.kind = 'Receita' and c.name = 'Projetos avulsos';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date)
@@ -495,7 +495,7 @@ select '2026-08', 'Despesa', c.id, 'Assinaturas e ferramentas digitais', 1029.37
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Assinaturas e ferramentas digitais';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date, notes)
-select '2026-08', 'Despesa', c.id, 'A CLASSIFICAR, diferença da planilha', 1534.80, 'Pago', '2026-08-28', '2026-08-28',
+select '2026-08', 'Despesa', c.id, 'A CLASSIFICAR — diferença da planilha', 1534.80, 'Pago', '2026-08-28', '2026-08-28',
        'No Resumo Anual da planilha, as categorias de despesa deste mês somam R$ 1,534.80 a menos que o TOTAL do próprio Resumo. Lançado aqui para o mês fechar; edite e escolha a categoria certa.'
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Outros custos operacionais';
@@ -570,7 +570,7 @@ select '2026-09', 'Despesa', c.id, 'Assinaturas e ferramentas digitais', 1026.37
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Assinaturas e ferramentas digitais';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date, notes)
-select '2026-09', 'Despesa', c.id, 'A CLASSIFICAR, diferença da planilha', 1166.04, 'Pago', '2026-09-28', '2026-09-28',
+select '2026-09', 'Despesa', c.id, 'A CLASSIFICAR — diferença da planilha', 1166.04, 'Pago', '2026-09-28', '2026-09-28',
        'No Resumo Anual da planilha, as categorias de despesa deste mês somam R$ 1,166.04 a menos que o TOTAL do próprio Resumo. Lançado aqui para o mês fechar; edite e escolha a categoria certa.'
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Outros custos operacionais';
@@ -632,7 +632,7 @@ select '2026-10', 'Despesa', c.id, 'Assinaturas e ferramentas digitais', 1026.37
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Assinaturas e ferramentas digitais';
 insert into public.financial_entries (reference_month, kind, category_id, description, amount, status, due_date, paid_date, notes)
-select '2026-10', 'Despesa', c.id, 'A CLASSIFICAR, diferença da planilha', 2837.74, 'Pago', '2026-10-28', '2026-10-28',
+select '2026-10', 'Despesa', c.id, 'A CLASSIFICAR — diferença da planilha', 2837.74, 'Pago', '2026-10-28', '2026-10-28',
        'No Resumo Anual da planilha, as categorias de despesa deste mês somam R$ 2,837.74 a menos que o TOTAL do próprio Resumo. Lançado aqui para o mês fechar; edite e escolha a categoria certa.'
   from public.financial_categories c
  where c.kind = 'Despesa' and c.name = 'Outros custos operacionais';

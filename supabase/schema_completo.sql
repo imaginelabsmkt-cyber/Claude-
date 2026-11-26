@@ -1,7 +1,7 @@
 -- =============================================================
 -- FAVIE, SCHEMA COMPLETO (arquivo único)
 --
--- Junta as 24 migrations na ordem correta, para você colar UMA VEZ
+-- Junta as 25 migrations na ordem correta, para você colar UMA VEZ
 -- no SQL Editor do Supabase em vez de rodar uma a uma.
 --
 -- É seguro rodar mais de uma vez: todas as partes são idempotentes.
@@ -14,7 +14,7 @@
 
 
 -- =============================================================
--- [01/24] 20260714120000_initial_schema.sql
+-- [01/25] 20260714120000_initial_schema.sql
 -- =============================================================
 
 -- =============================================================
@@ -122,6 +122,7 @@ comment on table public.clients is 'Clientes da agência.';
 create table if not exists public.contents (
   id                     uuid primary key default gen_random_uuid(),
   client_id              uuid not null references public.clients (id) on delete restrict,
+
   -- Identificação / planejamento
   title                  text not null,
   description            text,
@@ -130,6 +131,7 @@ create table if not exists public.contents (
   objective              text,          -- objetivo da postagem
   status                 content_status not null default 'Planejamento',
   priority               content_priority not null default 'Média',
+
   -- Datas de planejamento
   reference_month        text,          -- mês de referência, ex.: "2026-07"
   planned_week           integer,       -- semana planejada (1-5)
@@ -144,15 +146,18 @@ create table if not exists public.contents (
   participants           text[] not null default '{}',
   outfit                 text,          -- figurino/vestuário
   required_materials     text[] not null default '{}',
+
   -- Responsáveis (referenciam profiles)
   planner_id             uuid references public.profiles (id) on delete set null,
   recorder_id            uuid references public.profiles (id) on delete set null,
   editor_id              uuid references public.profiles (id) on delete set null,
   publisher_id           uuid references public.profiles (id) on delete set null,
+
   -- Prazos
   script_deadline        date,
   recording_deadline     date,
   editing_deadline       date,
+
   -- Conteúdo rico (vindo do planejamento)
   script                 text,          -- roteiro completo
   caption                text,          -- legenda do post
@@ -163,6 +168,7 @@ create table if not exists public.contents (
   raw_files_url          text,
   edited_file_url        text,
   published_url          text,
+
   -- Controle
   notes                  text,
   revision_count         integer not null default 0,
@@ -347,7 +353,7 @@ create policy "comments_all_authenticated"
 
 
 -- =============================================================
--- [02/24] 20260715120000_client_niche_monthly_goal.sql
+-- [02/25] 20260715120000_client_niche_monthly_goal.sql
 -- =============================================================
 
 -- =============================================================
@@ -364,7 +370,7 @@ alter table public.clients drop column if exists posting_frequency;
 
 
 -- =============================================================
--- [03/24] 20260715130000_content_script_caption.sql
+-- [03/25] 20260715130000_content_script_caption.sql
 -- =============================================================
 
 -- =============================================================
@@ -379,7 +385,7 @@ alter table public.contents add column if not exists caption text;
 
 
 -- =============================================================
--- [04/24] 20260715140000_content_reference_url.sql
+-- [04/25] 20260715140000_content_reference_url.sql
 -- =============================================================
 
 -- =============================================================
@@ -393,7 +399,7 @@ alter table public.contents add column if not exists reference_url text;
 
 
 -- =============================================================
--- [05/24] 20260716120000_hardening_rls.sql
+-- [05/25] 20260716120000_hardening_rls.sql
 -- =============================================================
 
 -- =============================================================
@@ -521,7 +527,7 @@ $$;
 
 
 -- =============================================================
--- [06/24] 20260717120000_content_recording_time.sql
+-- [06/25] 20260717120000_content_recording_time.sql
 -- =============================================================
 
 -- =============================================================
@@ -535,7 +541,7 @@ alter table public.contents add column if not exists recording_time text;
 
 
 -- =============================================================
--- [07/24] 20260718120000_google_integration.sql
+-- [07/25] 20260718120000_google_integration.sql
 -- =============================================================
 
 -- =============================================================
@@ -590,7 +596,7 @@ create policy "google_sync_own"
 
 
 -- =============================================================
--- [08/24] 20260719120000_plannings.sql
+-- [08/25] 20260719120000_plannings.sql
 -- =============================================================
 
 -- =============================================================
@@ -633,7 +639,7 @@ create trigger trg_plannings_updated_at
 
 
 -- =============================================================
--- [09/24] 20260720120000_planning_google_sync.sql
+-- [09/25] 20260720120000_planning_google_sync.sql
 -- =============================================================
 
 -- =============================================================
@@ -665,7 +671,7 @@ create policy "planning_google_sync_own"
 
 
 -- =============================================================
--- [10/24] 20260721120000_planning_situation.sql
+-- [10/25] 20260721120000_planning_situation.sql
 -- =============================================================
 
 -- Situação MANUAL do planejamento (marcada pela planejadora, não automática).
@@ -675,7 +681,7 @@ alter table public.plannings
 
 
 -- =============================================================
--- [11/24] 20260722120000_google_calendars.sql
+-- [11/25] 20260722120000_google_calendars.sql
 -- =============================================================
 
 -- Calendários próprios da agência dentro da conta Google de cada usuário.
@@ -688,7 +694,7 @@ alter table public.google_accounts
 
 
 -- =============================================================
--- [12/24] 20260723120000_content_cover_source.sql
+-- [12/25] 20260723120000_content_cover_source.sql
 -- =============================================================
 
 -- Vincula uma CAPA (arte) ao vídeo de origem, para gerar a demanda de capa
@@ -701,7 +707,7 @@ create index if not exists idx_contents_cover_source
 
 
 -- =============================================================
--- [13/24] 20260724120000_client_files.sql
+-- [13/25] 20260724120000_client_files.sql
 -- =============================================================
 
 -- =============================================================
@@ -782,7 +788,7 @@ create policy "client_files_objects_delete"
 
 
 -- =============================================================
--- [14/24] 20260725120000_client_onboarding_reports.sql
+-- [14/25] 20260725120000_client_onboarding_reports.sql
 -- =============================================================
 
 -- =============================================================
@@ -864,7 +870,7 @@ on conflict (id) do nothing;
 
 
 -- =============================================================
--- [15/24] 20260726120000_client_diagnostics.sql
+-- [15/25] 20260726120000_client_diagnostics.sql
 -- =============================================================
 
 -- =============================================================
@@ -888,7 +894,7 @@ create table if not exists public.client_diagnostics (
 );
 
 comment on table public.client_diagnostics is
-  'Diagnósticos (HTML visual) por cliente, análise profunda, distinta do relatório.';
+  'Diagnósticos (HTML visual) por cliente: análise profunda, distinta do relatório.';
 
 create index if not exists idx_client_diagnostics_client_id
   on public.client_diagnostics (client_id);
@@ -904,7 +910,7 @@ create policy "client_diagnostics_all_authenticated"
 
 
 -- =============================================================
--- [16/24] 20260727120000_report_analysis.sql
+-- [16/25] 20260727120000_report_analysis.sql
 -- =============================================================
 
 -- =============================================================
@@ -919,7 +925,7 @@ alter table public.client_reports
 
 
 -- =============================================================
--- [17/24] 20260908120000_financeiro.sql
+-- [17/25] 20260908120000_financeiro.sql
 -- =============================================================
 
 -- =============================================================
@@ -974,8 +980,6 @@ create table if not exists public.financial_settings (
   id              boolean primary key default true check (id),
   opening_balance numeric(14, 2) not null default 0,
   opening_month   text not null default '2026-04', -- "YYYY-MM"
-  -- Meta de faturamento do ano, em reais. Null = sem meta.
-  annual_revenue_goal numeric(14, 2),
   updated_at      timestamptz not null default now()
 );
 
@@ -1004,10 +1008,6 @@ create table if not exists public.financial_recurrences (
   client_id    uuid references public.clients(id) on delete set null,
   amount       numeric(12, 2) not null check (amount >= 0),
   due_day      integer check (due_day between 1 and 31),
-  -- Quantos meses depois da competência a conta vence. +1 é o normal
-  -- ("as contas de outubro eu fecho em novembro"); -1 é quem paga
-  -- antecipado (o Studio Bambu paga novembro no dia 25 de outubro).
-  vencimento_meses smallint not null default 1,
   start_month  text not null,  -- "YYYY-MM"
   end_month    text,           -- "YYYY-MM" (null = sem fim previsto)
   active       boolean not null default true,
@@ -1129,7 +1129,7 @@ on conflict (kind, name) do nothing;
 
 
 -- =============================================================
--- [18/24] 20260921120000_comercial.sql
+-- [18/25] 20260921120000_comercial.sql
 -- =============================================================
 
 -- =============================================================
@@ -1164,12 +1164,9 @@ do $$
 begin
   if not exists (select 1 from pg_type where typname = 'lead_stage') then
     create type lead_stage as enum (
-      'Novo lead',
-      'Primeiro contato',
-      'Em conversa',
+      'Contato feito',
       'Diagnóstico',
-      'Reunião marcada',
-      'Proposta apresentada',
+      'Proposta enviada',
       'Negociação',
       'Fechado',
       'Perdido'
@@ -1180,28 +1177,10 @@ $$;
 
 do $$
 begin
-  if not exists (select 1 from pg_type where typname = 'lead_temperature') then
-    create type lead_temperature as enum ('Quente', 'Morno', 'Frio');
-  end if;
-  if not exists (select 1 from pg_type where typname = 'lost_reason_kind') then
-    create type lost_reason_kind as enum (
-      'Sem resposta',
-      'Achou caro',
-      'Fechou com outra agência',
-      'Não é o momento',
-      'Fora do perfil',
-      'Outro'
-    );
-  end if;
-end
-$$;
-
-do $$
-begin
   if not exists (select 1 from pg_type where typname = 'proposal_status') then
     create type proposal_status as enum (
       'Rascunho',
-      'Apresentada',
+      'Enviada',
       'Aceita',
       'Recusada'
     );
@@ -1222,29 +1201,21 @@ create table if not exists public.commercial_leads (
   contact_phone      text,
   -- Como chegou até a agência (indicação, Instagram, etc).
   source             text,
-  stage              lead_stage not null default 'Novo lead',
+  stage              lead_stage not null default 'Contato feito',
   -- Quanto se espera faturar por mês com este cliente.
   estimated_monthly  numeric(12, 2) not null default 0 check (estimated_monthly >= 0),
   notes              text,
   -- Preenchido quando o lead é ganho: aponta para o cliente criado.
   client_id          uuid references public.clients(id) on delete set null,
-  -- Preenchido quando é perdido: o motivo da lista, e o texto livre.
-  lost_reason_kind   lost_reason_kind,
+  -- Preenchido quando é perdido.
   lost_reason        text,
-  -- Quando é a reunião de apresentação (etapa "Reunião marcada").
-  meeting_at         timestamptz,
-  -- Quente: veio pedindo ajuda. Morno: interesse sem urgência.
-  -- Frio: a agência foi atrás.
-  temperature        lead_temperature,
-  -- Quando falar com este lead de novo. Sugerido pela etapa ao mover.
-  next_contact_on    date,
   -- Quando entrou na etapa atual, alimenta o "X dias parado".
   stage_changed_at   timestamptz not null default now(),
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
 
--- 2.2 Propostas apresentadas a uma oportunidade.
+-- 2.2 Propostas enviadas a uma oportunidade.
 --     Mais de uma por lead é normal (a segunda versão depois da
 --     negociação), por isso é tabela e não campo.
 create table if not exists public.commercial_proposals (
@@ -1290,59 +1261,6 @@ create trigger trg_proposals_updated_at
 -- 4.1 Carimba a data quando a etapa muda, é o relógio do "parado há
 --     N dias". Fica no banco para valer mesmo se a etapa for mudada
 --     fora da tela do funil.
--- 2.3 Histórico de etapas: cada mudança, com data.
---     "Datas gravadas desde o primeiro dia" é a lição do raio-X do
---     Zoho: sem elas não há tempo de ciclo nem conversão por etapa.
-create table if not exists public.commercial_stage_history (
-  id          uuid primary key default gen_random_uuid(),
-  lead_id     uuid not null references public.commercial_leads(id) on delete cascade,
-  -- Nula na primeira linha: a oportunidade nasceu nesta etapa.
-  de          lead_stage,
-  para        lead_stage not null,
-  em          timestamptz not null default now(),
-  created_at  timestamptz not null default now()
-);
-
-create index if not exists idx_stage_history_lead
-  on public.commercial_stage_history (lead_id, em);
-
--- 2.4 Atividades: o que alguém precisa fazer com um cliente.
-do $$
-begin
-  if not exists (select 1 from pg_type where typname = 'activity_kind') then
-    create type activity_kind as enum ('Tarefa', 'Reunião', 'Ligação', 'WhatsApp');
-  end if;
-end
-$$;
-
-create table if not exists public.commercial_activities (
-  id           uuid primary key default gen_random_uuid(),
-  kind         activity_kind not null default 'Tarefa',
-  subject      text not null,
-  -- Presa a uma oportunidade OU a um cliente, nunca a nenhum dos dois.
-  lead_id      uuid references public.commercial_leads(id) on delete cascade,
-  client_id    uuid references public.clients(id) on delete cascade,
-  due_at       timestamptz,
-  done_at      timestamptz,
-  notes        text,
-  created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now(),
-  constraint commercial_activities_tem_dono
-    check (lead_id is not null or client_id is not null)
-);
-
-create index if not exists idx_atividades_abertas
-  on public.commercial_activities (due_at) where done_at is null;
-create index if not exists idx_atividades_lead
-  on public.commercial_activities (lead_id);
-create index if not exists idx_atividades_cliente
-  on public.commercial_activities (client_id);
-
-drop trigger if exists trg_atividades_updated on public.commercial_activities;
-create trigger trg_atividades_updated
-  before update on public.commercial_activities
-  for each row execute function public.set_updated_at();
-
 create or replace function public.marcar_mudanca_etapa()
 returns trigger
 language plpgsql
@@ -1350,8 +1268,6 @@ as $$
 begin
   if new.stage is distinct from old.stage then
     new.stage_changed_at = now();
-    insert into public.commercial_stage_history (lead_id, de, para, em)
-    values (new.id, old.stage, new.stage, now());
   end if;
   return new;
 end;
@@ -1362,29 +1278,11 @@ create trigger trg_leads_stage_changed
   before update on public.commercial_leads
   for each row execute function public.marcar_mudanca_etapa();
 
-create or replace function public.nascer_na_etapa()
-returns trigger
-language plpgsql
-as $$
-begin
-  insert into public.commercial_stage_history (lead_id, de, para, em)
-  values (new.id, null, new.stage, coalesce(new.created_at, now()));
-  return new;
-end;
-$$;
-
-drop trigger if exists trg_leads_nasceu on public.commercial_leads;
-create trigger trg_leads_nasceu
-  after insert on public.commercial_leads
-  for each row execute function public.nascer_na_etapa();
-
 -- -------------------------------------------------------------
 -- 5. Row Level Security (mesma filosofia das demais tabelas)
 -- -------------------------------------------------------------
-alter table public.commercial_leads         enable row level security;
-alter table public.commercial_proposals     enable row level security;
-alter table public.commercial_stage_history enable row level security;
-alter table public.commercial_activities    enable row level security;
+alter table public.commercial_leads     enable row level security;
+alter table public.commercial_proposals enable row level security;
 
 drop policy if exists "commercial_leads_all_authenticated" on public.commercial_leads;
 create policy "commercial_leads_all_authenticated"
@@ -1396,20 +1294,9 @@ create policy "commercial_proposals_all_authenticated"
   on public.commercial_proposals for all
   to authenticated using (true) with check (true);
 
-drop policy if exists "stage_history_all_authenticated" on public.commercial_stage_history;
-create policy "stage_history_all_authenticated"
-  on public.commercial_stage_history for all
-  to authenticated using (true) with check (true);
-
-drop policy if exists "atividades_all_authenticated" on public.commercial_activities;
-create policy "atividades_all_authenticated"
-  on public.commercial_activities for all
-  to authenticated using (true) with check (true);
-
-
 
 -- =============================================================
--- [19/24] 20260922120000_empresa.sql
+-- [19/25] 20260922120000_empresa.sql
 -- =============================================================
 
 -- =============================================================
@@ -1614,7 +1501,7 @@ where not exists (select 1 from public.company_obligations);
 
 
 -- =============================================================
--- [20/24] 20260923120000_pessoas.sql
+-- [20/25] 20260923120000_pessoas.sql
 -- =============================================================
 
 -- =============================================================
@@ -1739,7 +1626,7 @@ update public.financial_recurrences r
 
 
 -- =============================================================
--- [21/24] 20260924120000_seguranca.sql
+-- [21/25] 20260924120000_seguranca.sql
 -- =============================================================
 
 -- =============================================================
@@ -1987,7 +1874,7 @@ drop policy if exists "company_files_objects_delete" on storage.objects;
 
 
 -- =============================================================
--- [22/24] 20261011120000_pessoal.sql
+-- [22/25] 20261011120000_pessoal.sql
 -- =============================================================
 
 -- =============================================================
@@ -2083,9 +1970,9 @@ create table if not exists public.personal_entries (
 );
 
 comment on table public.personal_entries is
-  'Gastos e receitas pessoais. PRIVADO por user_id, nunca compartilhado.';
+  'Gastos e receitas pessoais. PRIVADO por user_id: nunca compartilhado.';
 comment on table public.personal_recurrences is
-  'Plano fixo pessoal. PRIVADO por user_id, nunca compartilhado.';
+  'Contas fixas pessoais. PRIVADO por user_id: nunca compartilhado.';
 
 -- -------------------------------------------------------------
 -- 3. Índices, a consulta sempre parte de (quem, qual mês)
@@ -2181,7 +2068,7 @@ grant execute on function public.vincular_me_a_pessoa(uuid) to authenticated;
 
 
 -- =============================================================
--- [23/24] 20261109120000_prospeccao.sql
+-- [23/25] 20261109120000_prospeccao.sql
 -- =============================================================
 
 -- =============================================================
@@ -2204,13 +2091,9 @@ begin
   if not exists (select 1 from pg_type where typname = 'lead_channel') then
     create type lead_channel as enum (
       'Social selling',
-      'Tráfego pago',
-      'Instagram orgânico',
       'Indicação',
       'Evento',
-      'Grupos e WhatsApp',
       'Parceria',
-      'Visita presencial',
       'Outro'
     );
   end if;
@@ -2219,36 +2102,6 @@ $$;
 
 alter table public.commercial_leads
   add column if not exists channel lead_channel not null default 'Outro';
-
--- Investimento por canal: quanto cada origem custou, por mês. Fica
--- AQUI, e não lá em cima com as outras tabelas do comercial, porque
--- depende do enum `lead_channel`, que só nasce nesta altura do
--- arquivo, posta antes, a instalação do zero quebra com
--- "type lead_channel does not exist".
-create table if not exists public.commercial_investments (
-  id          uuid primary key default gen_random_uuid(),
-  mes         text not null check (mes ~ '^\d{4}-(0[1-9]|1[0-2])$'),
-  channel     lead_channel not null,
-  amount      numeric(12, 2) not null check (amount >= 0),
-  notes       text,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
-);
-
-create index if not exists idx_investimentos_mes
-  on public.commercial_investments (mes, channel);
-
-drop trigger if exists trg_investimentos_updated on public.commercial_investments;
-create trigger trg_investimentos_updated
-  before update on public.commercial_investments
-  for each row execute function public.set_updated_at();
-
-alter table public.commercial_investments enable row level security;
-
-drop policy if exists "investimentos_all_authenticated" on public.commercial_investments;
-create policy "investimentos_all_authenticated"
-  on public.commercial_investments for all
-  to authenticated using (true) with check (true);
 
 comment on column public.commercial_leads.channel is
   'Canal de prospecção de onde a oportunidade veio.';
@@ -2275,7 +2128,7 @@ create index if not exists idx_commercial_leads_channel
 -- funil); Perdido não mexe, preservando o último degrau real.
 -- -------------------------------------------------------------
 alter table public.commercial_leads
-  add column if not exists max_stage lead_stage not null default 'Novo lead';
+  add column if not exists max_stage lead_stage not null default 'Contato feito';
 
 comment on column public.commercial_leads.max_stage is
   'Etapa mais avançada já alcançada. Só avança. Alimenta o funil acumulado.';
@@ -2285,15 +2138,12 @@ returns int
 language sql
 immutable
 as $$
-  select case e::text
-    when 'Novo lead'            then 1
-    when 'Primeiro contato'     then 2
-    when 'Em conversa'          then 3
-    when 'Diagnóstico'          then 4
-    when 'Reunião marcada'      then 5
-    when 'Proposta apresentada' then 6
-    when 'Negociação'           then 7
-    when 'Fechado'              then 8
+  select case e
+    when 'Contato feito'    then 1
+    when 'Diagnóstico'      then 2
+    when 'Proposta enviada' then 3
+    when 'Negociação'       then 4
+    when 'Fechado'          then 5
     else 0                                  -- Perdido: não é degrau
   end;
 $$;
@@ -2368,7 +2218,7 @@ update public.commercial_leads
 
 
 -- =============================================================
--- [24/24] 20261109130000_contratos.sql
+-- [24/25] 20261109130000_contratos.sql
 -- =============================================================
 
 -- =============================================================
@@ -2485,3 +2335,136 @@ select r.client_id,
    and not exists (
      select 1 from public.client_contracts c where c.recurrence_id = r.id
    );
+
+
+-- =============================================================
+-- [25/25] 20261126120000_demandas_internas.sql
+-- =============================================================
+
+-- =============================================================
+-- Demandas internas: as tarefas que não são de ninguém de fora
+--
+-- A Fran: "eu queria adicionar um sistema de demandas também
+-- administrativo: tarefas avulsas da empresa que não são de cliente
+-- nem de lead."
+--
+-- POR QUE UMA TABELA NOVA, E NÃO UMA DAS QUE JÁ EXISTEM
+--
+--   commercial_activities  tem a trava `commercial_activities_tem_dono`,
+--                          que obriga lead_id OU client_id. Uma tarefa
+--                          da empresa não tem nenhum dos dois. Afrouxar
+--                          a trava deixaria entrar atividade órfã de
+--                          cliente por engano, que é justamente o que
+--                          ela protege.
+--
+--   company_obligations    é prazo contábil que se repete (DAS, DEFIS),
+--                          e mora na tela de Impostos. "Pesquisar cartão
+--                          de crédito com milhas" não é obrigação e não
+--                          se repete.
+--
+-- A ÁREA DÁ A COR. O valor casa com os ids de `lib/interno/areas.ts`,
+-- então a demanda aparece na fila com a mesma tarja das outras linhas,
+-- e dá para varrer a tela de olho sem ler de onde cada coisa vem.
+--
+-- RESPONSÁVEL NULO QUER DIZER "AS DUAS". Não é ausência de dado: é a
+-- resposta mais comum numa empresa de duas sócias, e obrigar a
+-- escolher uma faria escolher errado.
+--
+-- Idempotente.
+-- =============================================================
+
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'company_task_area') then
+    create type company_task_area as enum (
+      'administrativo',
+      'comercial',
+      'financeiro'
+    );
+  end if;
+end
+$$;
+
+create table if not exists public.company_tasks (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null check (btrim(title) <> '' and length(title) <= 140),
+  area        company_task_area not null default 'administrativo',
+  -- Null = as duas.
+  assigned_to uuid references public.profiles(id) on delete set null,
+  due_date    date,
+  notes       text,
+  -- Quando foi concluída. Null = ainda aberta.
+  done_at     timestamptz,
+  created_by  uuid references public.profiles(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table public.company_tasks is
+  'Demandas internas da empresa: tarefas que não são de cliente nem de lead.';
+comment on column public.company_tasks.assigned_to is
+  'Responsável. Null quer dizer "as duas", que é o caso mais comum.';
+comment on column public.company_tasks.done_at is
+  'Quando foi concluída. Null = aberta. Desfazer a conclusão é voltar para null.';
+
+-- A fila lê por prazo, e separa aberta de concluída. O índice parcial
+-- cobre as abertas, que são as que a tela busca a cada carregamento.
+create index if not exists idx_company_tasks_abertas
+  on public.company_tasks (due_date)
+  where done_at is null;
+create index if not exists idx_company_tasks_done
+  on public.company_tasks (done_at desc)
+  where done_at is not null;
+
+drop trigger if exists trg_company_tasks_updated_at on public.company_tasks;
+create trigger trg_company_tasks_updated_at
+  before update on public.company_tasks
+  for each row execute function public.set_updated_at();
+
+-- Dado da empresa: as duas sócias veem o mesmo, desde que liberadas.
+alter table public.company_tasks enable row level security;
+
+drop policy if exists "company_tasks_liberado" on public.company_tasks;
+create policy "company_tasks_liberado"
+  on public.company_tasks for all
+  to authenticated
+  using (public.usuario_aprovado())
+  with check (public.usuario_aprovado());
+
+revoke all on public.company_tasks from anon;
+
+-- -------------------------------------------------------------
+-- As demandas que já estão decididas
+--
+-- Entram pelo TÍTULO: se já existir uma com o mesmo, não duplica.
+-- Assim o arquivo pode rodar quantas vezes for preciso, e o que as
+-- duas editarem na tela não é desfeito na rodada seguinte.
+-- -------------------------------------------------------------
+insert into public.company_tasks (title, area, assigned_to, due_date, notes)
+select
+  'Pesquisar cartão de crédito com milhas',
+  'financeiro'::company_task_area,
+  (select id from public.profiles
+    where lower(btrim(name)) like 'fran%' order by created_at limit 1),
+  date '2026-12-15',
+  'vamos usar muito as milhas em 2027 e queremos começar a acumular agora'
+where not exists (
+  select 1 from public.company_tasks
+   where lower(btrim(title)) = lower('Pesquisar cartão de crédito com milhas')
+);
+
+-- "Eu quero que em final de dezembro, pode ser ali dia 20 de
+-- dezembro, a Vitória refaça todos os contratos de todos os clientes
+-- para começar um ano, e eu quero que os contratos sejam de um ano."
+insert into public.company_tasks (title, area, assigned_to, due_date, notes)
+select
+  'Refazer os contratos de todos os clientes, com vigência de 1 ano',
+  'administrativo'::company_task_area,
+  (select id from public.profiles
+    where lower(btrim(name)) like 'vit%' order by created_at limit 1),
+  date '2026-12-20',
+  'Começar 2027 com todos os contratos novos e de um ano. Depois de refazer, atualizar a vigência de cada um em Administrativo > Clientes.'
+where not exists (
+  select 1 from public.company_tasks
+   where lower(btrim(title)) = lower('Refazer os contratos de todos os clientes, com vigência de 1 ano')
+);
