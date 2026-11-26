@@ -4,6 +4,7 @@ import { Secao } from "@/components/interno/secao";
 import { Stat } from "@/components/interno/stat";
 import { TabelaDaProjecao } from "@/components/metas/tabela-da-projecao";
 import { PainelDasMetas } from "@/components/metas/painel-das-metas";
+import { PremissasDoSistema } from "@/components/metas/premissas-do-sistema";
 import { obterProjecao } from "@/lib/data/metas";
 import { FunilNasMetas } from "@/components/metas/funil-nas-metas";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
@@ -37,7 +38,8 @@ export default async function MetasPage() {
     projecao: p,
     premissas,
     contratacoes,
-    ritmo,
+    automatico,
+    calculadas,
     carteira,
     noBanco,
     primeiroMes,
@@ -71,27 +73,36 @@ export default async function MetasPage() {
           valor={formatarMoeda(premissas.metaGuardada)}
           detalhe={`guardado até ${rotuloMesCurto(premissas.mesDaMeta)}`}
         />
-        {/* O aviso de valor faltando mora AQUI, embaixo do número que
-            ele afeta, e não num banner amarelo no alto da tela. O
-            banner gritava e não dizia onde mexer; esta linha diz qual
-            número está otimista e por quê. */}
+        {/* O número que a tela existe para dar. Antes era digitado
+            mês a mês, seis palpites; agora é a resposta: o menor
+            ritmo que chega na meta. O aviso de salário faltando mora
+            AQUI, embaixo do número que ele afeta, porque sem ele o
+            ritmo sai otimista. */}
         <Stat
-          rotulo="No ritmo de hoje"
-          valor={formatarMoeda(p.guardadoAteAMeta)}
-          alerta={p.diferencaParaAMeta < 0}
+          rotulo="Precisa fechar"
+          valor={
+            automatico.naoChega
+              ? `+${automatico.quantosPorMes}/mês`
+              : `${automatico.quantosPorMes}/mês`
+          }
+          alerta={automatico.naoChega || p.semValor.length > 0}
           detalhe={
-            p.semValor.length > 0
-              ? `sem o valor de ${p.semValor.map((c) => c.cargo.toLowerCase()).join(" e ")}`
-              : p.diferencaParaAMeta >= 0
-                ? `${formatarMoeda(p.diferencaParaAMeta)} acima`
-                : `faltam ${formatarMoeda(-p.diferencaParaAMeta)}`
+            automatico.naoChega
+              ? "nem nesse ritmo a meta sai nesta janela"
+              : p.semValor.length > 0
+                ? `sem o valor de ${p.semValor.map((c) => c.cargo.toLowerCase()).join(" e ")}`
+                : `${pedidos} clientes até ${rotuloMesCurto(premissas.mesDaMeta)}`
           }
         />
         <Stat
           rotulo="Bate a meta em"
           valor={p.mesEmQueBate ? rotuloMesCurto(p.mesEmQueBate) : "-"}
           alerta={p.mesEmQueBate == null}
-          detalhe={p.mesEmQueBate == null ? "não bate nesta janela" : undefined}
+          detalhe={
+            p.mesEmQueBate == null
+              ? "não bate nesta janela"
+              : `${formatarMoeda(p.guardadoAteAMeta)} guardados`
+          }
         />
         <Stat
           rotulo="Clientes no fim"
@@ -106,6 +117,7 @@ export default async function MetasPage() {
           pedidos={pedidos}
           faltam={faltamProspectar}
           ticketDaProjecao={premissas.ticketNovo}
+          mesDaMeta={premissas.mesDaMeta}
         />
       </Secao>
 
@@ -118,11 +130,21 @@ export default async function MetasPage() {
       </Secao>
 
       <Secao titulo="Mexer na projeção">
+        <div className="mb-6">
+          <PremissasDoSistema
+            calculadas={calculadas}
+            ritmo={automatico}
+            mesDaMeta={premissas.mesDaMeta}
+            clientesHoje={carteira.ativos.length}
+            faturamentoDeHoje={carteira.recorrente}
+            custoFixoDoMes={mapaDoCustoFixo[primeiroMes] ?? carteira.custoFixo}
+            mesDoCustoFixo={primeiroMes}
+          />
+        </div>
         <PainelDasMetas
           premissas={premissas}
           contratacoes={contratacoes}
-          ritmo={ritmo}
-          meses={p.meses.map((m) => m.mes)}
+          primeiroMes={primeiroMes}
           podeSalvar={noBanco}
         />
       </Secao>
@@ -189,32 +211,9 @@ export default async function MetasPage() {
         </div>
       </Secao>
 
-      <Secao titulo="De onde vêm os números">
+      <Secao titulo="O que muda a conta no caminho">
         <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
           <ul className="space-y-1.5 text-sm text-gray-700">
-            <li>
-              <Link
-                href="/interno/administrativo/clientes"
-                className="font-semibold text-gray-900 hover:underline"
-              >
-                {carteira.ativos.length} clientes
-              </Link>{" "}
-              e{" "}
-              <strong className="font-semibold text-gray-900">
-                {formatarMoeda(carteira.recorrente)}
-              </strong>{" "}
-              por mês: da carteira do Administrativo.
-            </li>
-            <li>
-              <Link
-                href="/interno/financeiro/recorrencias"
-                className="font-semibold text-gray-900 hover:underline"
-              >
-                {formatarMoeda(mapaDoCustoFixo[primeiroMes] ?? carteira.custoFixo)}
-              </Link>{" "}
-              de contas fixas em {rotuloMesCurto(primeiroMes)}: somadas das
-              contas fixas que estão valendo nesse mês.
-            </li>
             {acabam.map((a) => (
               <li key={a.descricao + a.mes}>
                 <strong className="font-semibold text-gray-900">
@@ -231,7 +230,8 @@ export default async function MetasPage() {
               >
                 {carteira.videosPorMes} vídeos
               </Link>{" "}
-              por mês nos contratos de hoje
+              por mês nos contratos de hoje, que é o que dimensiona editor e
+              videomaker
               {carteira.clientesSemVideos > 0 ? (
                 <>
                   {". "}
@@ -242,7 +242,7 @@ export default async function MetasPage() {
                       : "clientes estão"}{" "}
                     sem esse número
                   </strong>
-                 , então a conta de editor e videomaker está por baixo.
+                  , então essa conta está por baixo.
                 </>
               ) : (
                 "."
@@ -256,7 +256,8 @@ export default async function MetasPage() {
                 <strong className="font-semibold text-gray-900">
                   {formatarMoeda(p.faturamentoMinimo)}
                 </strong>
-                : faltam <strong className="font-semibold text-gray-900">
+                : faltam{" "}
+                <strong className="font-semibold text-gray-900">
                   {faltam}
                 </strong>{" "}
                 clientes no ticket de {formatarMoeda(premissas.ticketNovo)}.
@@ -265,6 +266,7 @@ export default async function MetasPage() {
           </ul>
         </div>
       </Secao>
+
     </>
   );
 }

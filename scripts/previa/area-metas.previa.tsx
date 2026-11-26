@@ -48,22 +48,28 @@ describe("prévia", () => {
           <div className="min-w-0 flex-1">
             <FaixaDaMeta
               meta={50000}
-              guardadoProjetado={72950.98}
               mesDaMeta="2027-06"
-              mesEmQueBate="2027-05"
+              porMes={3}
+              pedidos={18}
+              noFunil={4}
+              adiantadas={3}
+              faltam={14}
+              naoChega={false}
               clientesHoje={8}
-              clientesNoFim={20}
-              faltamClientes={9}
+              clientesNoFim={26}
             />
             <div className="mt-4">
               <FaixaDaMeta
                 meta={50000}
-                guardadoProjetado={31200}
                 mesDaMeta="2027-06"
-                mesEmQueBate={null}
+                porMes={30}
+                pedidos={180}
+                noFunil={4}
+                adiantadas={3}
+                faltam={176}
+                naoChega
                 clientesHoje={8}
-                clientesNoFim={14}
-                faltamClientes={9}
+                clientesNoFim={188}
               />
             </div>
           </div>

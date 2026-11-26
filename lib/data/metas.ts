@@ -13,8 +13,6 @@ import type { ContaFixa } from "@/lib/metas/custo-fixo";
 const PADRAO: Premissas = {
   ticketNovo: 2000,
   videosPorCliente: 4,
-  videosDoEditor: 50,
-  precoPorVideo: 50,
   impostoFixo: 600,
   contadorMensal: 0,
   dasDoMei: 86.05,
@@ -25,7 +23,6 @@ const PADRAO: Premissas = {
   guardarPorMes: 8500,
   metaGuardada: 50000,
   mesDaMeta: "2027-06",
-  clientesNaProjecao: 20,
 };
 
 /**
@@ -57,8 +54,6 @@ export async function obterPremissas(): Promise<{
     premissas: {
       ticketNovo: Number(linha.ticket_novo),
       videosPorCliente: Number(linha.videos_por_cliente),
-      videosDoEditor: Number(linha.videos_do_editor),
-      precoPorVideo: Number(linha.preco_por_video),
       impostoFixo: Number(linha.imposto_fixo),
       contadorMensal: Number(linha.contador_mensal),
       dasDoMei: Number(linha.das_do_mei),
@@ -69,7 +64,6 @@ export async function obterPremissas(): Promise<{
       guardarPorMes: Number(linha.guardar_por_mes),
       metaGuardada: Number(linha.meta_guardada),
       mesDaMeta: linha.mes_da_meta as string,
-      clientesNaProjecao: Number(linha.clientes_na_projecao),
     },
   };
 }
@@ -134,6 +128,28 @@ export async function listarContasFixasDaProjecao(): Promise<
 }
 
 /**
+ * O último DAS que saiu da conta.
+ *
+ * A projeção tira o DAS do custo no mês em que a agência sai do MEI,
+ * então ela precisa do valor certo. Em vez de um campo digitado que
+ * envelhece a cada reajuste do salário mínimo, lê o último
+ * lançamento: é o que o banco debitou de verdade.
+ */
+export async function ultimoDasPago(): Promise<number | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("financial_entries")
+    .select("amount, reference_month")
+    .eq("kind", "Despesa")
+    .ilike("description", "das%")
+    .order("reference_month", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return data ? Number((data as { amount: number }).amount) : null;
+}
+
+/**
  * A projeção pronta, com tudo que ela leu.
  *
  * Existe para o Dashboard e a tela de Metas montarem a MESMA conta.
@@ -149,18 +165,57 @@ export async function obterProjecao() {
   const { custoFixoPorMes, oQueAcabaNaJanela } = await import(
     "@/lib/metas/custo-fixo"
   );
-  const { mesesEntre, montarProjecao, somarMeses, clientesParaChegarA } =
-    await import("@/lib/metas/projecao");
+  const {
+    mesesEntre,
+    montarProjecao,
+    ritmoParaAMeta,
+    somarMeses,
+    clientesParaChegarA,
+  } = await import("@/lib/metas/projecao");
+  const { premissasAutomaticas } = await import("@/lib/metas/automaticas");
 
-  const [{ premissas, noBanco }, contratacoes, ritmo, contasFixas, carteira, leads] =
-    await Promise.all([
-      obterPremissas(),
-      listarContratacoes(),
-      obterRitmo(),
-      listarContasFixasDaProjecao(),
-      obterCarteira(mesAtual()),
-      listarLeads(ETAPAS_ABERTAS),
-    ]);
+  const [
+    { premissas: guardadas, noBanco },
+    contratacoes,
+    ritmo,
+    contasFixas,
+    carteira,
+    leads,
+    dasPago,
+  ] = await Promise.all([
+    obterPremissas(),
+    listarContratacoes(),
+    obterRitmo(),
+    listarContasFixasDaProjecao(),
+    obterCarteira(mesAtual()),
+    listarLeads(ETAPAS_ABERTAS),
+    ultimoDasPago(),
+  ]);
+
+  /* A ORDEM aqui é a resposta ao pedido da Fran: "as premissas, eu
+     também já quero que seja automático". O funil e as contas fixas
+     são lidos ANTES da projeção, porque é deles que saem o ticket, o
+     número de vídeos por cliente e o DAS. Antes a projeção rodava
+     com os números digitados e o funil era lido depois, só para
+     comparar: dava para a tela mostrar um ticket e a conta usar
+     outro. */
+  const funil = resumoDoFunil(
+    leads.map((l) => ({
+      id: l.id,
+      name: l.name,
+      stage: l.stage,
+      estimated_monthly: Number(l.estimated_monthly ?? 0),
+    })),
+  );
+
+  const { premissas, calculadas } = premissasAutomaticas(
+    guardadas,
+    funil,
+    contasFixas,
+    carteira.videosPorMes,
+    carteira.ativos.length - carteira.clientesSemVideos,
+    dasPago,
+  );
 
   /* A projeção começa no MÊS QUE VEM: este já está acontecendo, e
      misturar o que é com o que seria é o que torna uma projeção
@@ -170,25 +225,30 @@ export async function obterProjecao() {
 
   const mapaDoCustoFixo = custoFixoPorMes(contasFixas, primeiroMes, quantos);
 
-  const projecao = montarProjecao(primeiroMes, premissas, contratacoes, ritmo, {
+  const doSistema = {
     clientesAtivos: carteira.ativos.length,
     faturamentoRecorrente: carteira.recorrente,
     custoFixoPorMes: mapaDoCustoFixo,
     custoFixoPadrao: carteira.custoFixo,
     videosDeHoje: carteira.videosPorMes,
-  });
+  };
 
-  /* O funil de verdade, que é de onde os clientes novos da projeção
-     têm que sair. A Fran: "você tem que levar o comercial em
-     consideração, quantos clientes a gente está em negociação." */
-  const funil = resumoDoFunil(
-    leads.map((l) => ({
-      id: l.id,
-      name: l.name,
-      stage: l.stage,
-      estimated_monthly: Number(l.estimated_monthly ?? 0),
-    })),
+  /* O ritmo também sai calculado: qual é o menor número de clientes
+     por mês que chega na meta. Era digitado mês a mês, seis números
+     que não respondiam a nada. Um mês escrito à mão na tabela
+     continua valendo por cima, para quando houver motivo (férias,
+     um mês que já se sabe parado). */
+  const automatico = ritmoParaAMeta(primeiroMes, premissas, contratacoes, doSistema);
+  const ritmoUsado = { ...automatico.porMes, ...ritmo };
+
+  const projecao = montarProjecao(
+    primeiroMes,
+    premissas,
+    contratacoes,
+    ritmoUsado,
+    doSistema,
   );
+
   const pedidos = projecao.meses.reduce((t, m) => t + m.novosClientes, 0);
 
   return {
@@ -197,8 +257,11 @@ export async function obterProjecao() {
     faltamProspectar: oQueFaltaNoFunil(funil, pedidos).faltam,
     projecao,
     premissas,
+    calculadas,
     contratacoes,
-    ritmo,
+    ritmo: ritmoUsado,
+    automatico,
+    mesesForcados: Object.keys(ritmo),
     carteira,
     noBanco,
     primeiroMes,

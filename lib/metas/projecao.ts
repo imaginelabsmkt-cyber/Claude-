@@ -22,8 +22,6 @@
 export interface Premissas {
   ticketNovo: number;
   videosPorCliente: number;
-  videosDoEditor: number;
-  precoPorVideo: number;
   impostoFixo: number;
   contadorMensal: number;
   dasDoMei: number;
@@ -36,7 +34,6 @@ export interface Premissas {
   metaGuardada: number;
   /** "YYYY-MM" */
   mesDaMeta: string;
-  clientesNaProjecao: number;
 }
 
 /**
@@ -372,4 +369,86 @@ export function clientesParaChegarA(
 ): number | null {
   if (ticket <= 0) return null;
   return Math.ceil(Math.max(0, alvo - faturamentoDeHoje) / ticket);
+}
+
+/**
+ * O ritmo que a meta exige, em vez de um ritmo digitado.
+ *
+ * A Fran: "essa projeção aqui, eu acho que eu já quero que seja
+ * automático, de acordo com o comercial, com o financeiro, com a
+ * administrativa, com tudo."
+ *
+ * Ela digitava, mês a mês, quantos clientes novos entrariam. Seis
+ * números inventados, e deles saía tudo o resto: faturamento, custo
+ * do editor, sobra, guardado. Era um palpite vestido de projeção.
+ *
+ * A pergunta de verdade é a inversa: para guardar o que a gente
+ * quer, até o mês que a gente quer, quantos clientes por mês a gente
+ * precisa fechar? Esta função responde isso procurando o menor
+ * ritmo que chega lá, com o ticket do funil, as contas fixas do
+ * financeiro e a equipe das contratações.
+ *
+ * Procura por varredura em vez de fórmula de propósito: cada cliente
+ * novo traz faturamento mas também traz custo (vídeo para editar,
+ * vídeo para gravar, cliente para atender), e esse custo tem teto
+ * por pessoa. Não é uma reta, e a varredura não se engana com isso.
+ */
+export interface RitmoParaAMeta {
+  /** O ritmo pronto para a projeção: o mesmo número em todos os meses. */
+  porMes: Record<string, number>;
+  quantosPorMes: number;
+  /** A carteira de hoje já chega na meta sem nenhum cliente novo. */
+  jaChega: boolean;
+  /**
+   * Quanto faltaria para a meta com UM cliente a menos por mês.
+   *
+   * É a justificativa do número: sem ela, "3 por mês" parece
+   * arbitrário, ainda mais quando a conta termina bem acima da meta
+   * (cliente é inteiro, não dá para fechar dois e meio).
+   * `null` quando o ritmo é zero.
+   */
+  faltaComUmAMenos: number | null;
+  /** Nem o teto da busca chega: o problema não é prospecção. */
+  naoChega: boolean;
+}
+
+export function ritmoParaAMeta(
+  primeiroMes: string,
+  premissas: Premissas,
+  contratacoes: Contratacao[],
+  sistema: DoSistema,
+  teto = 30,
+): RitmoParaAMeta {
+  const ate = Math.max(0, mesesEntre(primeiroMes, premissas.mesDaMeta));
+
+  const uniforme = (n: number): Record<string, number> => {
+    const r: Record<string, number> = {};
+    for (let i = 0; i <= ate; i++) r[somarMeses(primeiroMes, i)] = n;
+    return r;
+  };
+
+  const guardadoCom = (n: number) =>
+    montarProjecao(primeiroMes, premissas, contratacoes, uniforme(n), sistema)
+      .guardadoAteAMeta;
+
+  for (let n = 0; n <= teto; n++) {
+    if (guardadoCom(n) >= premissas.metaGuardada) {
+      return {
+        porMes: uniforme(n),
+        quantosPorMes: n,
+        jaChega: n === 0,
+        naoChega: false,
+        faltaComUmAMenos:
+          n === 0 ? null : premissas.metaGuardada - guardadoCom(n - 1),
+      };
+    }
+  }
+
+  return {
+    porMes: uniforme(teto),
+    quantosPorMes: teto,
+    jaChega: false,
+    naoChega: true,
+    faltaComUmAMenos: null,
+  };
 }

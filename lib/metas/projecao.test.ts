@@ -4,6 +4,7 @@ import {
   custoDaPessoa,
   mesesEntre,
   montarProjecao,
+  ritmoParaAMeta,
   somarMeses,
   type Contratacao,
   type DoSistema,
@@ -14,8 +15,6 @@ import {
 const PREMISSAS: Premissas = {
   ticketNovo: 2000,
   videosPorCliente: 4,
-  videosDoEditor: 50,
-  precoPorVideo: 50,
   impostoFixo: 600,
   contadorMensal: 0,
   dasDoMei: 86.05,
@@ -26,7 +25,6 @@ const PREMISSAS: Premissas = {
   guardarPorMes: 8500,
   metaGuardada: 50000,
   mesDaMeta: "2027-06",
-  clientesNaProjecao: 20,
 };
 
 /* O que o sistema sabe em novembro/2026. */
@@ -357,5 +355,72 @@ describe("a outra conta do imposto: 6% do Simples", () => {
        a meta é batida. Por isso as duas contas ficam lado a lado. */
     expect(p.guardadoPeloSimples).toBeLessThan(p.guardadoAteAMeta);
     expect(p.guardadoPeloSimples).toBeCloseTo(52908.98, 2);
+  });
+});
+
+describe("o ritmo que a meta exige", () => {
+  /* A pergunta que a Fran quer ver respondida sozinha: quantos
+     clientes por mês para guardar 50 mil até junho. */
+  it("acha o menor ritmo que chega na meta", () => {
+    const r = ritmoParaAMeta("2027-01", PREMISSAS, EQUIPE, SISTEMA);
+
+    expect(r.naoChega).toBe(false);
+    expect(r.jaChega).toBe(false);
+
+    /* O ritmo achado chega. */
+    const comEle = montarProjecao(
+      "2027-01", PREMISSAS, EQUIPE, r.porMes, SISTEMA,
+    );
+    expect(comEle.guardadoAteAMeta).toBeGreaterThanOrEqual(PREMISSAS.metaGuardada);
+
+    /* E um a menos NÃO chega: é o menor mesmo, não um qualquer. */
+    const umMenos: Record<string, number> = {};
+    for (const m of Object.keys(r.porMes)) umMenos[m] = r.quantosPorMes - 1;
+    const comUmMenos = montarProjecao(
+      "2027-01", PREMISSAS, EQUIPE, umMenos, SISTEMA,
+    );
+    expect(comUmMenos.guardadoAteAMeta).toBeLessThan(PREMISSAS.metaGuardada);
+  });
+
+  it("devolve o mesmo número em todos os meses da janela", () => {
+    const r = ritmoParaAMeta("2027-01", PREMISSAS, EQUIPE, SISTEMA);
+    expect(Object.keys(r.porMes)).toEqual([
+      "2027-01", "2027-02", "2027-03", "2027-04", "2027-05", "2027-06",
+    ]);
+    for (const m of Object.keys(r.porMes)) {
+      expect(r.porMes[m]).toBe(r.quantosPorMes);
+    }
+  });
+
+  it("diz jaChega quando a carteira de hoje dá conta sozinha", () => {
+    /* Com a carteira de HOJE (R$ 14.450 contra R$ 16.222 de contas)
+       a agência perde dinheiro parada, então nem uma meta de R$ 1
+       sai no ritmo zero. Para provar o jaChega é preciso uma
+       carteira que já sobre: R$ 40.000 por mês. */
+    const sobrando: DoSistema = { ...SISTEMA, faturamentoRecorrente: 40000 };
+    const r = ritmoParaAMeta(
+      "2027-01", { ...PREMISSAS, metaGuardada: 1000 }, EQUIPE, sobrando,
+    );
+    expect(r.jaChega).toBe(true);
+    expect(r.quantosPorMes).toBe(0);
+  });
+
+  it("no ritmo zero a agência de hoje não chega: ela perde parada", () => {
+    /* Não é um detalhe do teste, é o retrato: R$ 14.450 de
+       faturamento contra R$ 16.222 de contas fixas. Parada, a
+       projeção afunda, e por isso o ritmo mínimo nunca é zero. */
+    const r = ritmoParaAMeta(
+      "2027-01", { ...PREMISSAS, metaGuardada: 1 }, EQUIPE, SISTEMA,
+    );
+    expect(r.quantosPorMes).toBeGreaterThan(0);
+  });
+
+  it("diz naoChega quando nem o teto da busca alcança", () => {
+    /* Dez milhões em seis meses: o problema não é prospecção, e
+       a tela precisa poder dizer isso em vez de mostrar um ritmo
+       inventado. */
+    const impossivel = { ...PREMISSAS, metaGuardada: 10_000_000 };
+    const r = ritmoParaAMeta("2027-01", impossivel, EQUIPE, SISTEMA);
+    expect(r.naoChega).toBe(true);
   });
 });

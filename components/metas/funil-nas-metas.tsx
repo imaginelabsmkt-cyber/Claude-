@@ -1,126 +1,156 @@
 import Link from "next/link";
 import { formatarMoeda } from "@/lib/utils";
 import { rotuloDaEtapa } from "@/lib/comercial/etapas";
+import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import type { FunilParaMetas } from "@/lib/metas/funil";
 
 /**
- * O funil do comercial, dentro das Metas.
+ * De onde vêm os clientes novos.
  *
- * A Fran: "você tem que levar o comercial em consideração, quantos
- * clientes a gente está em negociação ou a gente está em conversa."
+ * A Fran: "essa parte aqui de onde vêm os clientes novos, eu acho
+ * que ela tá um pouco confusa. Acho que dá pra diagramar de uma
+ * maneira que visualmente a gente já consegue identificar."
  *
- * A projeção pedia "12 clientes novos" e não dizia de onde sairiam.
- * Agora diz: estes aqui, nestas etapas, valendo isto. E a linha de
- * baixo faz a conta que importa, quantos ainda precisam ser
- * arrumados além dos que já estão em jogo.
+ * Teve duas versões antes desta, e as duas erravam o alvo.
  *
- * As etapas adiantadas (da reunião marcada em diante) ficam em
- * destaque. Contar um "Novo lead" frio como receita quase certa é o
- * jeito mais rápido de a projeção mentir.
+ * A primeira listava as sete etapas em barras do mesmo tamanho. A
+ * segunda fez as barras afunilarem de verdade, e ficou um funil
+ * correto respondendo a pergunta errada: com quatro oportunidades em
+ * sete etapas, cinco linhas ficavam vazias e a figura falava do
+ * comercial, não da meta.
+ *
+ * A pergunta desta tela é outra: a projeção pede 18 clientes e o
+ * funil tem 4. O buraco é o assunto. Então o desenho é UMA barra
+ * dos 18, com o que já existe preenchido e o resto aberto. Dá para
+ * ver o tamanho do buraco sem ler número nenhum.
  */
 export function FunilNasMetas({
   funil,
   pedidos,
   faltam,
   ticketDaProjecao,
+  mesDaMeta,
 }: {
   funil: FunilParaMetas;
   /** Quantos clientes novos a projeção soma no período. */
   pedidos: number;
   faltam: number;
   ticketDaProjecao: number;
+  mesDaMeta: string;
 }) {
-  const maior = Math.max(1, ...funil.porEtapa.map((e) => e.quantas));
+  const emConversa = funil.quantas - funil.quantasAdiantadas;
+
+  /* A barra inteira é o que a projeção pede. Quando o funil tem mais
+     do que isso, ela passa a ser o funil: senão o excedente ficaria
+     de fora do desenho, e sobrar oportunidade é notícia boa. */
+  const total = Math.max(pedidos, funil.quantas, 1);
+
+  const faixas = [
+    {
+      chave: "adiantadas",
+      quantas: funil.quantasAdiantadas,
+      cor: "bg-area",
+      texto: "text-white",
+      rotulo: "já passaram da reunião",
+      valor: funil.valorAdiantado,
+    },
+    {
+      chave: "conversa",
+      quantas: emConversa,
+      cor: "bg-area/35",
+      texto: "text-gray-900",
+      rotulo: "em conversa",
+      valor: funil.valor - funil.valorAdiantado,
+    },
+    {
+      chave: "faltam",
+      quantas: faltam,
+      cor: "bg-gray-100",
+      texto: "text-gray-500",
+      rotulo: "ainda não estão em lugar nenhum",
+      valor: null,
+    },
+  ].filter((f) => f.quantas > 0);
+
+  const comGente = funil.porEtapa.filter((e) => e.quantas > 0);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-      <div className="mb-4 grid gap-4 sm:grid-cols-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Em negociação hoje
-          </p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">
-            {funil.quantas}
-          </p>
-          <p className="text-xs text-gray-500">
-            {formatarMoeda(funil.valor)} por mês se todas fecharem
-          </p>
-        </div>
+      <p className="text-sm text-gray-700">
+        A projeção pede{" "}
+        <strong className="font-bold text-gray-900">{pedidos} clientes</strong>{" "}
+        novos até {rotuloMesCurto(mesDaMeta)}. O comercial já tem{" "}
+        <strong className="font-bold text-gray-900">{funil.quantas}</strong>{" "}
+        deles em negociação.
+      </p>
 
-        <div className="border-t border-gray-100 pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Perto de decidir
-          </p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">
-            {funil.quantasAdiantadas}
-          </p>
-          <p className="text-xs text-gray-500">
-            reunião marcada, proposta ou negociação
-          </p>
-        </div>
-
-        <div className="border-t border-gray-100 pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Faltam prospectar
-          </p>
-          <p
+      {/* A barra: tudo o que a meta pede, numa linha só. */}
+      <div className="mt-3 flex gap-1 overflow-hidden rounded-lg">
+        {faixas.map((f) => (
+          <div
+            key={f.chave}
+            style={{ width: `${(f.quantas / total) * 100}%` }}
             className={
-              "text-2xl font-bold tabular-nums " +
-              (faltam > 0 ? "text-alerta" : "text-gray-900")
+              "flex h-11 min-w-[2.5rem] items-center justify-center rounded text-base font-bold tabular-nums " +
+              f.cor +
+              " " +
+              f.texto
             }
           >
-            {faltam}
-          </p>
-          <p className="text-xs text-gray-500">
-            a projeção pede {pedidos}, o funil tem {funil.quantas}
-          </p>
-        </div>
+            {f.quantas}
+          </div>
+        ))}
       </div>
 
-      <ul className="space-y-1.5 border-t border-gray-100 pt-3">
-        {funil.porEtapa.map((e) => (
-          <li key={e.etapa} className="flex items-center gap-3 text-sm">
+      {/* A legenda embaixo, na mesma ordem da barra. */}
+      <ul className="mt-2.5 flex flex-wrap gap-x-6 gap-y-1.5">
+        {faixas.map((f) => (
+          <li key={f.chave} className="flex items-center gap-2">
             <span
-              className={
-                "w-44 shrink-0 truncate " +
-                (e.adiantada ? "font-semibold text-gray-900" : "text-gray-600")
-              }
-            >
-              {rotuloDaEtapa(e.etapa)}
-            </span>
-            <span className="h-3 min-w-0 flex-1 overflow-hidden rounded bg-gray-100">
-              <span
-                className={
-                  "block h-full rounded " +
-                  (e.adiantada ? "bg-area" : "bg-gray-300")
-                }
-                style={{ width: `${(e.quantas / maior) * 100}%` }}
-              />
-            </span>
-            <span className="w-8 shrink-0 text-right tabular-nums text-gray-700">
-              {e.quantas || ""}
-            </span>
-            <span className="w-28 shrink-0 text-right text-xs tabular-nums text-gray-500">
-              {e.valor > 0 ? formatarMoeda(e.valor) : ""}
+              className={"h-2.5 w-2.5 shrink-0 rounded-sm " + f.cor}
+              aria-hidden
+            />
+            <span className="text-sm text-gray-600">
+              <strong className="font-semibold text-gray-900">
+                {f.quantas}
+              </strong>{" "}
+              {f.rotulo}
+              {f.valor != null && f.valor > 0 ? (
+                <span className="text-gray-500">
+                  {", "}
+                  {formatarMoeda(f.valor)} por mês
+                </span>
+              ) : null}
             </span>
           </li>
         ))}
       </ul>
 
-      <p className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-1 border-t border-gray-100 pt-3 text-sm text-gray-600">
-        {funil.ticketMedio != null ? (
+      <p className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-gray-100 pt-3 text-sm text-gray-600">
+        {comGente.length > 0 ? (
           <span>
-            Ticket médio do funil{" "}
-            <strong className="font-semibold tabular-nums text-gray-900">
-              {formatarMoeda(funil.ticketMedio)}
-            </strong>
-            {Math.abs(funil.ticketMedio - ticketDaProjecao) >= 1 ? (
-              <>
-                , e a projeção usa {formatarMoeda(ticketDaProjecao)}
-              </>
-            ) : null}
+            {comGente.map((e, i) => (
+              <span key={e.etapa}>
+                {i > 0 ? <span className="text-gray-300">{" · "}</span> : null}
+                {rotuloDaEtapa(e.etapa)}{" "}
+                <strong className="font-semibold text-gray-900">
+                  {e.quantas}
+                </strong>
+              </span>
+            ))}
+          </span>
+        ) : (
+          <span>Nenhuma oportunidade aberta no comercial.</span>
+        )}
+
+        {funil.ticketMedio != null &&
+        Math.abs(funil.ticketMedio - ticketDaProjecao) >= 1 ? (
+          <span className="text-gray-500">
+            Ticket do funil {formatarMoeda(funil.ticketMedio)}, a projeção usa{" "}
+            {formatarMoeda(ticketDaProjecao)}
           </span>
         ) : null}
+
         <Link
           href="/interno/comercial/funil"
           className="ml-auto font-medium text-gray-600 hover:underline"

@@ -296,6 +296,6 @@ export async function salvarVideosDoClienteAction(
   if (error) return { ok: false, error: "Não foi possível salvar." };
 
   revalidar();
-  revalidatePath("/interno/financeiro/metas");
+  revalidatePath("/interno/metas");
   return { ok: true, id };
 }

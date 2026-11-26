@@ -247,10 +247,28 @@ select * from (values
 ) as t(role, pay_kind, monthly_cost, unit_rate, unit_cap, start_month, clt, notes)
 where not exists (select 1 from public.growth_hires);
 
--- O ritmo de entrada da planilha da Vitória: 12 clientes até maio.
-insert into public.growth_months (reference_month, novos_clientes)
-select * from (values
-  ('2027-01', 4), ('2027-02', 2), ('2027-03', 2),
-  ('2027-04', 2), ('2027-05', 2), ('2027-06', 0)
-) as t(mes, novos)
-where not exists (select 1 from public.growth_months);
+-- -------------------------------------------------------------
+-- O ritmo de entrada NÃO é semeado, e isso é de propósito.
+--
+-- A planilha tinha 12 clientes até maio, digitados mês a mês. A
+-- Fran: "essa projeção aqui, eu acho que eu já quero que seja
+-- automático, de acordo com o comercial, com o financeiro, com a
+-- administrativa, com tudo."
+--
+-- Então o ritmo passou a ser CALCULADO: o sistema procura o menor
+-- número de clientes por mês que chega na meta guardada, com o
+-- ticket do funil e as contas fixas de cada mês. A tabela segue
+-- existindo para forçar um mês específico quando houver motivo
+-- (férias, um mês que a gente sabe que não entra ninguém), e
+-- enquanto estiver vazia quem manda é a conta.
+--
+-- O delete abaixo tira as seis linhas da planilha de quem rodou a
+-- versão anterior deste arquivo. Só elas, e só se ninguém tiver
+-- mexido: um ritmo escrito à mão depois disso é decisão das duas e
+-- não se apaga.
+-- -------------------------------------------------------------
+delete from public.growth_months
+ where (reference_month, novos_clientes) in (
+   ('2027-01', 4), ('2027-02', 2), ('2027-03', 2),
+   ('2027-04', 2), ('2027-05', 2), ('2027-06', 0)
+ );

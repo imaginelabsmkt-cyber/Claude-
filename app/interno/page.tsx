@@ -128,15 +128,18 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
       <div className="mb-6">
         <FaixaDaMeta
           meta={metas.premissas.metaGuardada}
-          guardadoProjetado={metas.projecao.guardadoAteAMeta}
           mesDaMeta={metas.premissas.mesDaMeta}
-          mesEmQueBate={metas.projecao.mesEmQueBate}
+          porMes={metas.automatico.quantosPorMes}
+          pedidos={metas.pedidos}
+          noFunil={metas.funil.quantas}
+          adiantadas={metas.funil.quantasAdiantadas}
+          faltam={metas.faltamProspectar}
+          naoChega={metas.automatico.naoChega}
           clientesHoje={metas.carteira.ativos.length}
           clientesNoFim={
             metas.projecao.meses[metas.projecao.meses.length - 1]
               ?.clientesNoTotal ?? metas.carteira.ativos.length
           }
-          faltamClientes={metas.faltamClientes}
         />
       </div>
 

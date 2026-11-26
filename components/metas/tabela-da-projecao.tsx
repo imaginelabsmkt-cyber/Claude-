@@ -40,6 +40,11 @@ export function TabelaDaProjecao({
             <th scope="col" className="hidden px-3 py-2 text-right font-bold lg:table-cell">
               Contas fixas
             </th>
+            {/* "E saída" porque em um mês só ela carrega também o
+                custo de uma vez de sair do MEI. */}
+            <th scope="col" className="hidden whitespace-nowrap px-3 py-2 text-right font-bold lg:table-cell">
+              Imposto e saída
+            </th>
             {pessoas.map((p) => (
               <th
                 key={p.id}
@@ -88,8 +93,17 @@ export function TabelaDaProjecao({
                 <td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-gray-700 sm:table-cell">
                   {formatarMoeda(m.faturamento)}
                 </td>
+                {/* Contas fixas é contas fixas, e só. A coluna somava
+                    imposto e saída do MEI aqui dentro, e aí o mesmo
+                    mês aparecia com dois valores diferentes de conta
+                    fixa em duas partes da tela. */}
                 <td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-gray-600 lg:table-cell">
-                  {formatarMoeda(m.custoFixo + m.impostoEContador + m.saidaDoMei)}
+                  {formatarMoeda(m.custoFixo)}
+                </td>
+                <td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-gray-600 lg:table-cell">
+                  {m.impostoEContador + m.saidaDoMei > 0
+                    ? formatarMoeda(m.impostoEContador + m.saidaDoMei)
+                    : "-"}
                 </td>
                 {pessoas.map((p) => (
                   <td

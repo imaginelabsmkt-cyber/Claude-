@@ -19,7 +19,8 @@ export interface ResultadoDaMeta {
 }
 
 function revalidar() {
-  revalidatePath("/interno/financeiro/metas");
+  revalidatePath("/interno/metas");
+  revalidatePath("/interno");
   revalidatePath("/interno/financeiro/estimativa");
 }
 
@@ -29,8 +30,6 @@ const MES = /^\d{4}-(0[1-9]|1[0-2])$/;
 const PREMISSAS_EDITAVEIS: Record<string, "numero" | "mes" | "percentual"> = {
   ticket_novo: "numero",
   videos_por_cliente: "numero",
-  videos_do_editor: "numero",
-  preco_por_video: "numero",
   imposto_fixo: "numero",
   contador_mensal: "numero",
   das_do_mei: "numero",
@@ -41,7 +40,6 @@ const PREMISSAS_EDITAVEIS: Record<string, "numero" | "mes" | "percentual"> = {
   guardar_por_mes: "numero",
   meta_guardada: "numero",
   mes_da_meta: "mes",
-  clientes_na_projecao: "numero",
 };
 
 export async function salvarPremissaAction(

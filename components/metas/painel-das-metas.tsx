@@ -10,9 +10,7 @@ import {
   excluirContratacaoAction,
   salvarContratacaoAction,
   salvarPremissaAction,
-  salvarRitmoAction,
 } from "@/lib/actions/metas";
-import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import { toast } from "@/lib/ui/toast";
 import { formatarMoeda } from "@/lib/utils";
 import type { Premissas } from "@/lib/metas/projecao";
@@ -63,15 +61,13 @@ function emReais(v: number): string {
 export function PainelDasMetas({
   premissas,
   contratacoes,
-  ritmo,
-  meses,
+  primeiroMes,
   podeSalvar,
 }: {
   premissas: Premissas;
   contratacoes: ContratacaoNaTela[];
-  ritmo: Record<string, number>;
-  /** Os meses da projeção, em ordem. */
-  meses: string[];
+  /** O primeiro mês da projeção, para sugerir na contratação nova. */
+  primeiroMes: string;
   /** false enquanto as tabelas não existirem no banco. */
   podeSalvar: boolean;
 }) {
@@ -79,7 +75,7 @@ export function PainelDasMetas({
   const [processando, iniciar] = useTransition();
   const [excluindo, setExcluindo] = useState<ContratacaoNaTela | null>(null);
   const [novoCargo, setNovoCargo] = useState("");
-  const [novoMes, setNovoMes] = useState(meses[0] ?? "");
+  const [novoMes, setNovoMes] = useState(primeiroMes);
 
   const bloqueado = async () => ({
     ok: false,
@@ -132,34 +128,6 @@ export function PainelDasMetas({
 
   return (
     <>
-      {/* ------------------------------------------------- ritmo */}
-      <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-        <h2 className="text-sm font-bold text-gray-900">
-          Clientes novos em cada mês
-        </h2>
-        <p className="mb-3 text-xs text-gray-500">
-          É o ritmo que a projeção inteira segue.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {meses.map((m) => (
-            <label key={m} className="flex flex-col gap-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                {rotuloMesCurto(m)}
-              </span>
-              <CampoSalvo
-                valor={String(ritmo[m] ?? 0)}
-                rotulo={`Clientes novos em ${rotuloMesCurto(m)}`}
-                largura="w-16"
-                alinhar="text-center"
-                aoSalvar={
-                  podeSalvar ? (v) => salvarRitmoAction(m, v) : bloqueado
-                }
-              />
-            </label>
-          ))}
-        </div>
-      </div>
-
       {/* ------------------------------------------ contratações */}
       <div className="mb-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         <header className="border-b border-gray-200 px-4 py-2.5">
@@ -298,27 +266,26 @@ export function PainelDasMetas({
         </footer>
       </div>
 
-      {/* ---------------------------------------------- premissas */}
-      <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-        <h2 className="text-sm font-bold text-gray-900">Premissas</h2>
+      {/* ---------------------------------------------- decisões */}
+      <div
+        id="decisoes"
+        className="mb-6 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm"
+      >
+        <h3 className="text-sm font-bold text-gray-900">Suas decisões</h3>
         <p className="mb-3 text-xs text-gray-500">
-          Mudar qualquer uma refaz a conta inteira.
+          Só o que é escolha de vocês duas. Mudar qualquer uma refaz a conta
+          inteira, inclusive quantos clientes por mês a meta passa a exigir.
         </p>
-        <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
           {[
-            ["Ticket do cliente novo", "ticket_novo", emReais(premissas.ticketNovo)],
-            ["Vídeos por cliente novo", "videos_por_cliente", String(premissas.videosPorCliente)],
-            ["Vídeos que o editor edita", "videos_do_editor", String(premissas.videosDoEditor)],
-            ["Preço por vídeo ao editor", "preco_por_video", emReais(premissas.precoPorVideo)],
-            ["Guardar por mês", "guardar_por_mes", emReais(premissas.guardarPorMes)],
             ["Meta guardada", "meta_guardada", emReais(premissas.metaGuardada)],
             ["Mês da meta", "mes_da_meta", premissas.mesDaMeta],
-            ["Encargos CLT (%)", "encargos_clt", String(Math.round(premissas.encargosClt * 100))],
+            ["Guardar por mês", "guardar_por_mes", emReais(premissas.guardarPorMes)],
+            ["Mês da saída do MEI", "mes_saida_do_mei", premissas.mesSaidaDoMei],
+            ["Custo da saída do MEI, uma vez", "custo_saida_do_mei", emReais(premissas.custoSaidaDoMei)],
             ["Imposto por mês fora do MEI", "imposto_fixo", emReais(premissas.impostoFixo)],
             ["Contador por mês", "contador_mensal", emReais(premissas.contadorMensal)],
-            ["DAS do MEI (sai do custo fixo)", "das_do_mei", emReais(premissas.dasDoMei)],
-            ["Saída do MEI (uma vez)", "custo_saida_do_mei", emReais(premissas.custoSaidaDoMei)],
-            ["Mês da saída do MEI", "mes_saida_do_mei", premissas.mesSaidaDoMei],
+            ["Encargos CLT (%)", "encargos_clt", String(Math.round(premissas.encargosClt * 100))],
           ].map(([rotulo, campo, valor]) => (
             <label key={campo} className="flex items-center justify-between gap-3">
               <span className="min-w-0 text-sm text-gray-700">{rotulo}</span>
@@ -330,10 +297,6 @@ export function PainelDasMetas({
             </label>
           ))}
         </div>
-        <p className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
-          Clientes de hoje, faturamento recorrente e contas fixas não se
-          editam aqui: vêm do Administrativo e do Financeiro.
-        </p>
       </div>
 
       <ConfirmDialog
