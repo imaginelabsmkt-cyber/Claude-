@@ -14,6 +14,7 @@ const TELAS = [
   "/interno/financeiro/recorrencias",
   "/interno/financeiro/resumo-anual",
   "/interno/financeiro/estimativa",
+  "/interno/financeiro/metas",
   "/interno/financeiro/relatorios",
   "/interno/financeiro/fluxo-caixa",
   "/interno/financeiro/impostos",
@@ -71,6 +72,7 @@ describe("abaAtiva", () => {
       "Este mês",
       "Contas fixas",
       "Estimativa",
+      "Metas",
       "Resumo",
     ]);
   });

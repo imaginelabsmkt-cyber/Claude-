@@ -23,6 +23,7 @@ ORDEM=(
   salte_e_clientes_repetidos
   comercial_do_prototipo
   juntar_salte
+  metas
 )
 
 {
@@ -66,6 +67,8 @@ ORDEM=(
 --      faltavam, vindas do protótipo que a Vitória montou.
 --  12. juntar_salte — a "Salte" e o "Studio Salte" são o mesmo
 --      estúdio. Passa tudo para um e apaga a duplicata.
+--  13. metas — as premissas, as contratações e o ritmo de entrada
+--      da projeção. O videomaker já entra em março/27.
 --
 -- COMO RODAR
 --
