@@ -141,20 +141,23 @@ export async function listarContasFixasDaProjecao(): Promise<
  */
 export async function obterProjecao() {
   const { mesAtual } = await import("@/lib/financeiro/meses");
-  const { obterCarteira } = await import("@/lib/data/comercial");
+  const { obterCarteira, listarLeads } = await import("@/lib/data/comercial");
+  const { ETAPAS_ABERTAS } = await import("@/lib/comercial/etapas");
+  const { resumoDoFunil, oQueFaltaNoFunil } = await import("@/lib/metas/funil");
   const { custoFixoPorMes, oQueAcabaNaJanela } = await import(
     "@/lib/metas/custo-fixo"
   );
   const { mesesEntre, montarProjecao, somarMeses, clientesParaChegarA } =
     await import("@/lib/metas/projecao");
 
-  const [{ premissas, noBanco }, contratacoes, ritmo, contasFixas, carteira] =
+  const [{ premissas, noBanco }, contratacoes, ritmo, contasFixas, carteira, leads] =
     await Promise.all([
       obterPremissas(),
       listarContratacoes(),
       obterRitmo(),
       listarContasFixasDaProjecao(),
       obterCarteira(mesAtual()),
+      listarLeads(ETAPAS_ABERTAS),
     ]);
 
   /* A projeção começa no MÊS QUE VEM: este já está acontecendo, e
@@ -173,7 +176,23 @@ export async function obterProjecao() {
     videosDeHoje: carteira.videosPorMes,
   });
 
+  /* O funil de verdade, que é de onde os clientes novos da projeção
+     têm que sair. A Fran: "você tem que levar o comercial em
+     consideração, quantos clientes a gente está em negociação." */
+  const funil = resumoDoFunil(
+    leads.map((l) => ({
+      id: l.id,
+      name: l.name,
+      stage: l.stage,
+      estimated_monthly: Number(l.estimated_monthly ?? 0),
+    })),
+  );
+  const pedidos = projecao.meses.reduce((t, m) => t + m.novosClientes, 0);
+
   return {
+    funil,
+    pedidos,
+    faltamProspectar: oQueFaltaNoFunil(funil, pedidos).faltam,
     projecao,
     premissas,
     contratacoes,

@@ -5,6 +5,7 @@ import { Stat } from "@/components/interno/stat";
 import { TabelaDaProjecao } from "@/components/metas/tabela-da-projecao";
 import { PainelDasMetas } from "@/components/metas/painel-das-metas";
 import { obterProjecao } from "@/lib/data/metas";
+import { FunilNasMetas } from "@/components/metas/funil-nas-metas";
 import { rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
@@ -43,6 +44,9 @@ export default async function MetasPage() {
     mapaDoCustoFixo,
     acabam,
     faltamClientes: faltam,
+    funil,
+    pedidos,
+    faltamProspectar,
   } = await obterProjecao();
 
   const ultimo = p.meses[p.meses.length - 1];
@@ -61,31 +65,26 @@ export default async function MetasPage() {
         </div>
       ) : null}
 
-      {p.semValor.length > 0 ? (
-        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-900">
-            <strong>A projeção está otimista.</strong>{" "}
-            {p.semValor.map((c) => c.cargo).join(", ")}{" "}
-            {p.semValor.length === 1 ? "entra" : "entram"} na conta sem valor
-            definido, e conta como R$ 0,00 até você preencher.
-          </p>
-        </div>
-      ) : null}
-
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
           rotulo="Meta"
           valor={formatarMoeda(premissas.metaGuardada)}
           detalhe={`guardado até ${rotuloMesCurto(premissas.mesDaMeta)}`}
         />
+        {/* O aviso de valor faltando mora AQUI, embaixo do número que
+            ele afeta, e não num banner amarelo no alto da tela. O
+            banner gritava e não dizia onde mexer; esta linha diz qual
+            número está otimista e por quê. */}
         <Stat
           rotulo="No ritmo de hoje"
           valor={formatarMoeda(p.guardadoAteAMeta)}
           alerta={p.diferencaParaAMeta < 0}
           detalhe={
-            p.diferencaParaAMeta >= 0
-              ? `${formatarMoeda(p.diferencaParaAMeta)} acima`
-              : `faltam ${formatarMoeda(-p.diferencaParaAMeta)}`
+            p.semValor.length > 0
+              ? `sem o valor de ${p.semValor.map((c) => c.cargo.toLowerCase()).join(" e ")}`
+              : p.diferencaParaAMeta >= 0
+                ? `${formatarMoeda(p.diferencaParaAMeta)} acima`
+                : `faltam ${formatarMoeda(-p.diferencaParaAMeta)}`
           }
         />
         <Stat
@@ -100,6 +99,15 @@ export default async function MetasPage() {
           detalhe={`hoje são ${carteira.ativos.length}`}
         />
       </div>
+
+      <Secao titulo="De onde vêm os clientes novos">
+        <FunilNasMetas
+          funil={funil}
+          pedidos={pedidos}
+          faltam={faltamProspectar}
+          ticketDaProjecao={premissas.ticketNovo}
+        />
+      </Secao>
 
       <Secao titulo={`Mês a mês até ${rotuloMesCurto(premissas.mesDaMeta)}`}>
         <TabelaDaProjecao
@@ -239,16 +247,6 @@ export default async function MetasPage() {
               ) : (
                 "."
               )}
-            </li>
-            <li>
-              Quem pode virar esses clientes está no{" "}
-              <Link
-                href="/interno/comercial/funil"
-                className="font-semibold text-gray-900 hover:underline"
-              >
-                funil do Comercial
-              </Link>
-              .
             </li>
             {faltam != null ? (
               <li>

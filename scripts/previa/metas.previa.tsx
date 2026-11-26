@@ -21,6 +21,8 @@ import { TabelaDaProjecao } from "@/components/metas/tabela-da-projecao";
 import { montarProjecao, type Contratacao } from "@/lib/metas/projecao";
 import { custoFixoPorMes } from "@/lib/metas/custo-fixo";
 import { PainelDasMetas } from "@/components/metas/painel-das-metas";
+import { FunilNasMetas } from "@/components/metas/funil-nas-metas";
+import { resumoDoFunil, oQueFaltaNoFunil } from "@/lib/metas/funil";
 
 const PREMISSAS = {
   ticketNovo: 2000,
@@ -61,6 +63,14 @@ const RITMO = {
   "2027-04": 2, "2027-05": 2, "2027-06": 0,
 };
 
+/* O funil de verdade da Favie, como está na planilha da Vitória. */
+const FUNIL = resumoDoFunil([
+  { id: "1", name: "Dra. Ana Gessyca", stage: "Negociação", estimated_monthly: 2000 },
+  { id: "2", name: "Vértice Arquitetura", stage: "Proposta apresentada", estimated_monthly: 2000 },
+  { id: "3", name: "Dra. Bruna Arantes", stage: "Primeiro contato", estimated_monthly: 2000 },
+  { id: "4", name: "Rafaela Nutricionista", stage: "Negociação", estimated_monthly: 2000 },
+]);
+
 describe("prévia", () => {
   it("escreve o HTML das Metas", () => {
     const p = montarProjecao("2027-01", PREMISSAS, EQUIPE, RITMO, {
@@ -80,6 +90,13 @@ describe("prévia", () => {
         <>
           <AreaHeader titulo="Metas" />
           <FinanceTabs />
+          <FunilNasMetas
+            funil={FUNIL}
+            pedidos={12}
+            faltam={oQueFaltaNoFunil(FUNIL, 12).faltam}
+            ticketDaProjecao={2000}
+          />
+          <div className="mt-6" />
           <TabelaDaProjecao
             meses={p.meses}
             pessoas={EQUIPE}
