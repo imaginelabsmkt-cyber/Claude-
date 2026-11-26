@@ -8,6 +8,9 @@ import { FaixaDaMeta } from "@/components/metas/faixa-da-meta";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterPainelInterno } from "@/lib/data/interno";
 import { obterProjecao } from "@/lib/data/metas";
+import { listarDemandas } from "@/lib/data/demandas";
+import { demandasComoCompromissos } from "@/lib/empresa/demandas";
+import { prazoEmPalavras } from "@/lib/comercial/atividades";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
@@ -80,10 +83,26 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
-  const [painel, metas] = await Promise.all([
+  const [painel, metas, demandas] = await Promise.all([
     obterPainelInterno(mes),
     obterProjecao(),
+    listarDemandas(),
   ]);
+
+  /* As demandas internas entram na MESMA lista de pendências, não numa
+     lista separada do lado: com duas listas, a pessoa somaria as duas
+     de cabeça para saber o que fazer primeiro. Ordenadas junto, por
+     urgência, e o que não tem prazo vai para o fim. */
+  const agoraNaTela = new Date();
+  const pendencias = [
+    ...painel.compromissos,
+    ...demandasComoCompromissos(demandas, agoraNaTela, prazoEmPalavras),
+  ].sort((a, b) => {
+    if (a.dias == null && b.dias == null) return 0;
+    if (a.dias == null) return 1;
+    if (b.dias == null) return -1;
+    return a.dias - b.dias;
+  });
   const {
     financeiro,
     carteira,
@@ -295,13 +314,13 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
             href="/interno/fila"
             className="font-medium text-gray-600 hover:underline"
           >
-            {painel.compromissos.length > 5
-              ? `Fila de trabalho (${painel.compromissos.length})`
+            {pendencias.length > 5
+              ? `Fila de trabalho (${pendencias.length})`
               : "Fila de trabalho"}
           </Link>
         }
       >
-        {painel.compromissos.length === 0 ? (
+        {pendencias.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center">
             <p className="font-medium text-gray-900">
               Nenhuma pendência em {rotuloMes(mes)}
@@ -309,7 +328,7 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <OrigemLista>
-            {painel.compromissos.slice(0, 5).map((c) => (
+            {pendencias.slice(0, 5).map((c) => (
               <OrigemItem
                 key={c.id}
                 origem={c.origem}

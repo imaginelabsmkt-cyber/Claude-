@@ -5,6 +5,9 @@ import { Stat } from "@/components/interno/stat";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { listarAtividades, listarLeads } from "@/lib/data/comercial";
 import { listarLancamentos } from "@/lib/data/financeiro";
+import { listarDemandas, listarResponsaveis } from "@/lib/data/demandas";
+import { DemandasPainel } from "@/components/empresa/demandas-painel";
+import { demandasQuePedemAtencao } from "@/lib/empresa/demandas";
 import {
   montarFila,
   pedemAtencao,
@@ -41,14 +44,21 @@ export default async function FilaPage() {
   const hoje = hojeISO();
   const mes = mesAtual();
 
-  const [atividades, leads, lancamentos] = await Promise.all([
+  const [atividades, leads, lancamentos, demandas, responsaveis] = await Promise.all([
     listarAtividades({ abertas: true }),
     listarLeads(LEAD_STAGES_ABERTAS),
     listarLancamentos({ mes }),
+    listarDemandas(),
+    listarResponsaveis(),
   ]);
 
   const fila = montarFila(atividades, agora);
   const agora_pedem = pedemAtencao(fila);
+
+  /* As demandas internas entram na conta de "Pendentes": o número do
+     topo tem que ser o número de coisas que pedem atenção hoje, não o
+     número de coisas de uma origem só. */
+  const demandasUrgentes = demandasQuePedemAtencao(demandas, agora);
 
   /* Reuniões marcadas que ainda não aconteceram, mais as que já
      passaram e ninguém mexeu, essas são as que mais doem. */
@@ -79,6 +89,7 @@ export default async function FilaPage() {
   );
 
   const nada =
+    demandas.filter((d) => !d.done_at).length === 0 &&
     contatoVencido.length === 0 &&
     contatoHoje.length === 0 &&
     agora_pedem === 0 &&
@@ -112,9 +123,20 @@ export default async function FilaPage() {
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
           rotulo="Pendentes"
-          valor={String(agora_pedem + contatoVencido.length + contatoHoje.length)}
-          alerta={agora_pedem + contatoVencido.length + contatoHoje.length > 0}
-          detalhe="atividades e contatos de hoje ou em atraso"
+          valor={String(
+            agora_pedem +
+              contatoVencido.length +
+              contatoHoje.length +
+              demandasUrgentes,
+          )}
+          alerta={
+            agora_pedem +
+              contatoVencido.length +
+              contatoHoje.length +
+              demandasUrgentes >
+            0
+          }
+          detalhe="demandas, atividades e contatos de hoje ou em atraso"
         />
         <Stat
           rotulo="Reuniões marcadas"
@@ -141,6 +163,17 @@ export default async function FilaPage() {
           detalhe="títulos em aberto no mês"
         />
       </div>
+
+      {/* As demandas internas: o que é da empresa e não de ninguém de
+          fora. Ficam no alto porque são as únicas desta tela que
+          nascem aqui dentro; o resto é reflexo de outra área. */}
+      <Secao titulo="Demandas internas">
+        <DemandasPainel
+          demandas={demandas}
+          responsaveis={responsaveis}
+          agoraISO={agora.toISOString()}
+        />
+      </Secao>
 
       {nada ? (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">

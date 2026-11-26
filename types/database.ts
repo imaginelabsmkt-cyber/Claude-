@@ -87,6 +87,49 @@ export type Client = {
   updated_at: ISODateString;
 }
 
+/** company_tasks, demandas internas da empresa */
+export type CompanyTaskArea = "administrativo" | "comercial" | "financeiro";
+
+export interface CompanyTask {
+  id: UUID;
+  title: string;
+  /** Casa com os ids de `lib/interno/areas.ts`: é ela que dá a cor. */
+  area: CompanyTaskArea;
+  /** Responsável. `null` quer dizer "as duas". */
+  assigned_to: UUID | null;
+  due_date: DateString | null;
+  notes: string | null;
+  /** Quando foi concluída. `null` = aberta. */
+  done_at: ISODateString | null;
+  created_by: UUID | null;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+}
+
+export type CompanyTaskInsert = Omit<
+  CompanyTask,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "area"
+  | "assigned_to"
+  | "due_date"
+  | "notes"
+  | "done_at"
+  | "created_by"
+> & {
+  id?: UUID;
+  area?: CompanyTaskArea;
+  assigned_to?: UUID | null;
+  due_date?: DateString | null;
+  notes?: string | null;
+  done_at?: ISODateString | null;
+  created_by?: UUID | null;
+};
+export type CompanyTaskUpdate = Partial<
+  Omit<CompanyTask, "id" | "created_at" | "updated_at">
+>;
+
 /** contents, entidade central */
 export type Content = {
   id: UUID;
@@ -1211,6 +1254,12 @@ export interface Database {
         Row: ClientContract;
         Insert: ClientContractInsert;
         Update: Partial<ClientContractInsert>;
+        Relationships: [];
+      };
+      company_tasks: {
+        Row: CompanyTask;
+        Insert: CompanyTaskInsert;
+        Update: CompanyTaskUpdate;
         Relationships: [];
       };
       commercial_proposals: {
