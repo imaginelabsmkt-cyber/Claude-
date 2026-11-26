@@ -16,6 +16,7 @@ import {
   valorDoFunil,
 } from "@/lib/comercial/funil";
 import { mesAtual } from "@/lib/financeiro/meses";
+import { obterProjecao } from "@/lib/data/metas";
 import { formatarMoeda } from "@/lib/utils";
 import { LEAD_STAGES_ABERTAS } from "@/types";
 import type { LeadChannel, LeadStage, LeadTemperature } from "@/types";
@@ -42,10 +43,11 @@ export default async function FunilPage({ searchParams }: PageProps) {
   /* Um instante só para a tela inteira: duas linhas da lista não podem
      discordar sobre que horas são. */
   const agora = new Date();
-  const [leads, encerrados, carteira] = await Promise.all([
+  const [leads, encerrados, carteira, metas] = await Promise.all([
     listarLeads(LEAD_STAGES_ABERTAS),
     listarEncerrados(6),
     obterCarteira(mes),
+    obterProjecao(),
   ]);
 
   const noFunil = valorDoFunil(leads);
@@ -125,6 +127,18 @@ export default async function FunilPage({ searchParams }: PageProps) {
               : undefined
           }
         />
+        {/* A ponte com as Metas. O funil já responde "quanto está em
+            jogo"; esta responde "e isso chega onde a gente quer?" —
+            que é a pergunta seguinte e morava em outra tela. */}
+        {metas.faltamClientes != null ? (
+          <Stat
+            rotulo="Para a meta"
+            valor={`${metas.faltamClientes} ${metas.faltamClientes === 1 ? "cliente" : "clientes"}`}
+            origem="metas"
+            alerta={metas.faltamClientes > leads.length}
+            detalhe={`${leads.length} em negociação hoje`}
+          />
+        ) : null}
       </div>
 
       {leads.length > 0 ? (

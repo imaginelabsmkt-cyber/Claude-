@@ -130,3 +130,63 @@ export async function listarContasFixasDaProjecao(): Promise<
     end_month: (r.end_month as string | null) ?? null,
   }));
 }
+
+/**
+ * A projeção pronta, com tudo que ela leu.
+ *
+ * Existe para o Dashboard e a tela de Metas montarem a MESMA conta.
+ * Com duas montagens, bastava uma mudar para as duas telas darem
+ * números diferentes do mesmo mês — e aí não dá para confiar em
+ * nenhuma das duas.
+ */
+export async function obterProjecao() {
+  const { mesAtual } = await import("@/lib/financeiro/meses");
+  const { obterCarteira } = await import("@/lib/data/comercial");
+  const { custoFixoPorMes, oQueAcabaNaJanela } = await import(
+    "@/lib/metas/custo-fixo"
+  );
+  const { mesesEntre, montarProjecao, somarMeses, clientesParaChegarA } =
+    await import("@/lib/metas/projecao");
+
+  const [{ premissas, noBanco }, contratacoes, ritmo, contasFixas, carteira] =
+    await Promise.all([
+      obterPremissas(),
+      listarContratacoes(),
+      obterRitmo(),
+      listarContasFixasDaProjecao(),
+      obterCarteira(mesAtual()),
+    ]);
+
+  /* A projeção começa no MÊS QUE VEM: este já está acontecendo, e
+     misturar o que é com o que seria é o que torna uma projeção
+     inútil. */
+  const primeiroMes = somarMeses(mesAtual(), 1);
+  const quantos = Math.max(1, mesesEntre(primeiroMes, premissas.mesDaMeta) + 1);
+
+  const mapaDoCustoFixo = custoFixoPorMes(contasFixas, primeiroMes, quantos);
+
+  const projecao = montarProjecao(primeiroMes, premissas, contratacoes, ritmo, {
+    clientesAtivos: carteira.ativos.length,
+    faturamentoRecorrente: carteira.recorrente,
+    custoFixoPorMes: mapaDoCustoFixo,
+    custoFixoPadrao: carteira.custoFixo,
+    videosDeHoje: carteira.videosPorMes,
+  });
+
+  return {
+    projecao,
+    premissas,
+    contratacoes,
+    ritmo,
+    carteira,
+    noBanco,
+    primeiroMes,
+    mapaDoCustoFixo,
+    acabam: oQueAcabaNaJanela(contasFixas, primeiroMes, quantos),
+    faltamClientes: clientesParaChegarA(
+      projecao.faturamentoMinimo,
+      carteira.recorrente,
+      premissas.ticketNovo,
+    ),
+  };
+}

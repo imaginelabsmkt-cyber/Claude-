@@ -4,8 +4,10 @@ import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
 import { CartaoDoAno } from "@/components/interno/cartao-do-ano";
 import { OrigemItem, OrigemLista } from "@/components/interno/origem-item";
 import { Secao } from "@/components/interno/secao";
+import { FaixaDaMeta } from "@/components/metas/faixa-da-meta";
 import { MonthNav } from "@/components/financeiro/month-nav";
 import { obterPainelInterno } from "@/lib/data/interno";
+import { obterProjecao } from "@/lib/data/metas";
 import { mesAtual, mesValido, rotuloMes } from "@/lib/financeiro/meses";
 import { formatarMoeda } from "@/lib/utils";
 
@@ -78,7 +80,10 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
   const mes =
     searchParams.mes && mesValido(searchParams.mes) ? searchParams.mes : mesAtual();
 
-  const painel = await obterPainelInterno(mes);
+  const [painel, metas] = await Promise.all([
+    obterPainelInterno(mes),
+    obterProjecao(),
+  ]);
   const {
     financeiro,
     carteira,
@@ -97,6 +102,24 @@ export default async function InternoInicioPage({ searchParams }: PageProps) {
   return (
     <>
       <AreaHeader acao={<MonthNav mes={mes} />} />
+
+      {/* 0. A META, ANTES DE TUDO.
+          "A gente tem que estar vendo aquilo ali todo dia." Virar
+          área no menu resolve ONDE ir; não precisar ir é isto. */}
+      <div className="mb-6">
+        <FaixaDaMeta
+          meta={metas.premissas.metaGuardada}
+          guardadoProjetado={metas.projecao.guardadoAteAMeta}
+          mesDaMeta={metas.premissas.mesDaMeta}
+          mesEmQueBate={metas.projecao.mesEmQueBate}
+          clientesHoje={metas.carteira.ativos.length}
+          clientesNoFim={
+            metas.projecao.meses[metas.projecao.meses.length - 1]
+              ?.clientesNoTotal ?? metas.carteira.ativos.length
+          }
+          faltamClientes={metas.faltamClientes}
+        />
+      </div>
 
       {/* 1. O ANO */}
       <Secao

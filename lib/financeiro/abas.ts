@@ -20,18 +20,20 @@
  * "Fixos e ferramentas" virou "Contas fixas". O nome velho dizia o
  * que tem dentro; o novo diz o que é.
  *
- * "Estimativa" e "Metas" entraram depois, a pedido da Fran. São as
- * duas que não mostram o que aconteceu, e sim o que aconteceria —
- * uma responde "e se fechasse isto" hoje, a outra "quando chegamos
- * lá" mês a mês. Ficam entre as contas fixas e o resumo porque são a
- * ponte entre as duas: o que sai todo mês de um lado, quanto precisa
- * entrar do outro.
+ * "Estimativa" entrou depois, a pedido da Fran: é a única aqui que
+ * não mostra o que aconteceu, e sim o que aconteceria se um cliente
+ * do funil fechasse. Fica entre as contas fixas e o resumo porque é
+ * a ponte entre as duas — o que sai todo mês de um lado, quanto
+ * precisa entrar do outro.
+ *
+ * "Metas" chegou a ser aba aqui e saiu: virou área própria, porque
+ * olhar para a frente não é assunto só do financeiro. O endereço
+ * antigo redireciona.
  */
 export const ABAS_FINANCEIRO = [
   { href: "/interno/financeiro", label: "Este mês" },
   { href: "/interno/financeiro/recorrencias", label: "Contas fixas" },
   { href: "/interno/financeiro/estimativa", label: "Estimativa" },
-  { href: "/interno/financeiro/metas", label: "Metas" },
   { href: "/interno/financeiro/resumo-anual", label: "Resumo" },
 ] as const;
 

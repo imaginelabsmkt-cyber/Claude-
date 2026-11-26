@@ -19,6 +19,7 @@ SAIDA_LANCAMENTOS="$SAIDA_DIR/lancamentos.html" \
 SAIDA_ESTIMATIVA="$SAIDA_DIR/estimativa.html" \
 SAIDA_CLIENTES="$SAIDA_DIR/clientes.html" \
 SAIDA_METAS="$SAIDA_DIR/metas.html" \
+SAIDA_AREA_METAS="$SAIDA_DIR/area-metas.html" \
 SAIDA_COMPONENTES="$SAIDA_DIR/componentes.html" \
 SAIDA_FICHA="$SAIDA_DIR/ficha.html" \
 SAIDA_COMERCIAL="$SAIDA_DIR/comercial.html" \

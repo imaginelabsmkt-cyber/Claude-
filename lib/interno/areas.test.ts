@@ -18,6 +18,7 @@ describe("ordem do menu", () => {
       "Administrativo",
       "Comercial",
       "Financeiro",
+      "Metas",
     ]);
   });
 

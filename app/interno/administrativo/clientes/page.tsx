@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AreaHeader } from "@/components/interno/area-header";
 import { AdministrativoTabs } from "@/components/interno/administrativo-tabs";
 import { BarrasRanqueadas } from "@/components/interno/barras-ranqueadas";
@@ -9,9 +10,10 @@ import {
   receitaPorClienteNoAno,
 } from "@/lib/data/financeiro";
 import { obterCarteira } from "@/lib/data/comercial";
+import { obterProjecao } from "@/lib/data/metas";
 import { receitaContratada } from "@/lib/empresa/contratos";
 import { contratosQuePedemConversa } from "@/lib/empresa/contratos";
-import { mesAtual, hojeISO } from "@/lib/financeiro/meses";
+import { mesAtual, hojeISO, rotuloMesCurto } from "@/lib/financeiro/meses";
 import { formatarData, formatarMoeda } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -34,13 +36,14 @@ export const metadata = { title: "Clientes" };
 export default async function ClientesPage() {
   const hoje = hojeISO();
 
-  const [contratos, clientes, carteira, rendeuNoAno] = await Promise.all([
+  const [contratos, clientes, carteira, rendeuNoAno, metas] = await Promise.all([
     listarContratosDeCliente(),
     listarClientesFinanceiro(),
     // A carteira é "hoje", não um mês escolhido: é a relação de quem é
     // cliente agora.
     obterCarteira(mesAtual()),
     receitaPorClienteNoAno(Number(mesAtual().slice(0, 4))),
+    obterProjecao(),
   ]);
 
   const conversas = contratosQuePedemConversa(contratos, hoje);
@@ -75,6 +78,37 @@ export default async function ClientesPage() {
       />
 
       <AdministrativoTabs />
+
+      {/* A ponte com as Metas. A carteira responde "quem são"; esta
+          linha responde "e quantos a gente quer ser" — que é o que
+          transforma a relação numa meta de crescimento. */}
+      <Link
+        href="/interno/metas"
+        data-area="metas"
+        className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-gray-200 border-l-[3px] border-l-area bg-white px-4 py-2.5 shadow-sm transition-colors hover:bg-gray-50"
+      >
+        <span className="min-w-0 flex-1 text-sm text-gray-700">
+          A projeção quer{" "}
+          <strong className="font-semibold text-gray-900">
+            {metas.projecao.meses[metas.projecao.meses.length - 1]
+              ?.clientesNoTotal ?? naRelacao}{" "}
+            clientes
+          </strong>{" "}
+          até {rotuloMesCurto(metas.premissas.mesDaMeta)}
+          {metas.faltamClientes != null && metas.faltamClientes > 0 ? (
+            <>
+              {" · faltam "}
+              <strong className="font-semibold text-gray-900">
+                {metas.faltamClientes}
+              </strong>{" "}
+              para pagar tudo e guardar
+            </>
+          ) : null}
+        </span>
+        <span className="shrink-0 text-xs font-medium text-gray-500">
+          Ver as metas →
+        </span>
+      </Link>
 
       {conversas.length > 0 ? (
         <Secao

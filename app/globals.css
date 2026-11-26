@@ -76,6 +76,12 @@ textarea:focus-visible,
   --area: #0f5d52;
   --area-soft: #e0ece4;
 }
+/* Metas. Dourado: o vão entre o verde do Financeiro e o vinho do
+   Comercial. A área não é dinheiro nem venda — é o alvo dos dois. */
+[data-area="metas"] {
+  --area: #8a6a12;
+  --area-soft: #f5edda;
+}
 /* A única área privada por login. Rosa-magenta: é o vão que sobrou
    na roda de cores (entre o vinho do Comercial e o roxo de Pessoas),
    e justamente por não parecer com nenhuma das áreas da empresa ela

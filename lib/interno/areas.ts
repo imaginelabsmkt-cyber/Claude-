@@ -28,6 +28,22 @@
  *                   o que importa delas é quanto custam), impostos e
  *                   contábil, relatório do mês
  *
+ *   METAS           onde a gente quer chegar, e quando
+ *                   a projeção mês a mês, as contratações e as
+ *                   premissas
+ *
+ * METAS NASCEU DENTRO DO FINANCEIRO, COMO ABA, E SAIU. A Fran: "eu
+ * acho que dentro do financeiro fica muito escondido. E a gente tem
+ * que estar vendo aquilo ali todo dia."
+ *
+ * Pela régua abaixo, ela tem razão: a pergunta "onde a gente quer
+ * chegar, e quando" não é respondida por nenhuma das outras três. O
+ * Comercial responde de onde vem o próximo cliente; o Financeiro,
+ * quanto entrou e saiu — ambos olham para trás ou para hoje. Metas é
+ * a única que olha para a frente, e ela ATRAVESSA as três: lê a
+ * carteira do Administrativo, o funil do Comercial e as contas fixas
+ * do Financeiro.
+ *
  * RH não é etapa: contratar alguém é ato administrativo, e o valor
  * combinado vira lançamento no financeiro. Contábil não é etapa:
  * imposto é dinheiro saindo. Ferramenta não é etapa: é custo.
@@ -48,6 +64,7 @@ export type AreaId =
   | "comercial"
   | "administrativo"
   | "financeiro"
+  | "metas"
   | "pessoal";
 
 export interface Area {
@@ -125,6 +142,19 @@ export const AREAS: Area[] = [
     pergunta: "Quanto entra e quanto sai?",
     cor: "#0f5d52",
     icone: "financeiro",
+  },
+  {
+    id: "metas",
+    label: "Metas",
+    curto: "Metas",
+    href: "/interno/metas",
+    contexto: "Projeção, equipe e premissas",
+    pergunta: "Onde a gente quer chegar, e quando?",
+    /* Dourado. É o vão que sobrou entre o verde do Financeiro e o
+       vinho do Comercial, e combina com uma área que não é dinheiro
+       nem venda: é o alvo dos dois. */
+    cor: "#8a6a12",
+    icone: "metas",
   },
   {
     id: "pessoal",
