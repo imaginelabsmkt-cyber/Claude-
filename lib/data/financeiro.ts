@@ -161,7 +161,7 @@ export async function obterLancamento(
 }
 
 /**
- * Lançamentos "crus" de um intervalo — usados só para cálculo (sem joins,
+ * Lançamentos "crus" de um intervalo, usados só para cálculo (sem joins,
  * para não trazer peso desnecessário no encadeamento de saldo).
  */
 async function lancamentosDoIntervalo(
@@ -479,7 +479,7 @@ export async function obterResumoAnual(ano: number): Promise<ResumoAnual> {
 
 /**
  * Quanto cada cliente rendeu no ano, somando tudo que foi lançado
- * para ele — caído ou não, como a planilha soma.
+ * para ele, caído ou não, como a planilha soma.
  *
  * É o número que falta na tela de Clientes para ela deixar de ser um
  * cadastro: "Kiku Sushi, 8 meses de casa, R$ 2.200 por mês" não diz
@@ -557,7 +557,7 @@ export async function obterRecorrencia(
 }
 
 /**
- * Quantas recorrências ainda NÃO foram geradas para o mês — alimenta o
+ * Quantas recorrências ainda NÃO foram geradas para o mês, alimenta o
  * aviso do botão "Gerar lançamentos do mês".
  */
 export async function contarRecorrenciasPendentes(mes: string): Promise<number> {

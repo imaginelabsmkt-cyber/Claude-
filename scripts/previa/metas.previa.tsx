@@ -48,7 +48,7 @@ const EQUIPE: Contratacao[] = [
 ];
 
 /* As contas fixas de verdade da Favie, com a mentoria acabando em
-   fevereiro — é o degrau de R$ 2.166,70 no meio da tabela. */
+   fevereiro, é o degrau de R$ 2.166,70 no meio da tabela. */
 const CONTAS = [
   { kind: "Despesa", amount: 6500, active: true, start_month: "2026-01", end_month: null },
   { kind: "Despesa", amount: 6500, active: true, start_month: "2026-01", end_month: null },

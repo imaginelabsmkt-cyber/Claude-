@@ -59,7 +59,7 @@ export default async function OportunidadePage({ params }: PageProps) {
         }
       />
 
-      {/* A barra de etapas, clicável — do raio-X do Zoho: "a Visão
+      {/* A barra de etapas, clicável, do raio-X do Zoho: "a Visão
           geral traz uma barra clicável com as situações do lead".
           Antes, mudar de etapa só dava arrastando o cartão no quadro. */}
       <div className="mb-3">
@@ -80,7 +80,7 @@ export default async function OportunidadePage({ params }: PageProps) {
         ) : null}
         {lead.client ? (
           /* Apontava para /clientes/<id>, que não existe: dava 404.
-             Não há ficha de cliente no sistema — quem é cliente mora
+             Não há ficha de cliente no sistema, quem é cliente mora
              na carteira do Administrativo. A âncora leva direto à
              linha dele, em vez de largar a pessoa no topo da lista. */
           <Link

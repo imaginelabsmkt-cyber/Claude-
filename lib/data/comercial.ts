@@ -259,7 +259,7 @@ export interface LeadEncerrada {
  * TODAS as oportunidades que acabaram, ganhas e perdidas.
  *
  * Diferente de `listarEncerrados`, que traz só as últimas para o pé do
- * funil: esta é a base de dados inteira, que é o que a Fran pediu —
+ * funil: esta é a base de dados inteira, que é o que a Fran pediu,
  * "a pessoa que a gente não fechou, e a gente vai tentar entender essa
  * métrica depois".
  */
@@ -388,7 +388,7 @@ export interface LeadProspeccao {
  * Todas as oportunidades, do jeito que a Prospecção lê.
  *
  * Sem filtro de etapa de propósito: o funil e a conversão por canal
- * só fazem sentido com as perdidas e as fechadas dentro da conta —
+ * só fazem sentido com as perdidas e as fechadas dentro da conta,
  * olhar só as abertas mostraria um funil que nunca perde ninguém.
  */
 export async function listarProspeccao(): Promise<LeadProspeccao[]> {

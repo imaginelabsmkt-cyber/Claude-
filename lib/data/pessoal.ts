@@ -5,7 +5,7 @@
  * Nenhuma função daqui filtra por usuário. Isso é de propósito: o
  * filtro é do BANCO, pela policy `user_id = auth.uid()`. Se o filtro
  * estivesse aqui, um esquecimento numa query futura vazaria o dado de
- * uma sócia para a outra. Do jeito que está, esquecer não vaza nada —
+ * uma sócia para a outra. Do jeito que está, esquecer não vaza nada,
  * o Postgres devolve só as linhas de quem está logado.
  *
  * A única leitura que atravessa para o lado da empresa é o pró-labore
@@ -36,7 +36,7 @@ export interface PainelPessoal {
   /** O que a agência pagou de pró-labore a esta pessoa no mês. */
   proLabore: { valor: number; emAberto: number; pessoa: TeamMember } | null;
   /**
-   * Pessoas da equipe que ainda não têm login vinculado — para quem
+   * Pessoas da equipe que ainda não têm login vinculado, para quem
    * nunca se identificou poder fazê-lo.
    */
   pessoasSemLogin: TeamMember[];
@@ -52,7 +52,7 @@ export async function obterPainelPessoal(mes: string): Promise<PainelPessoal> {
   const supabase = createClient();
   const meuId = await usuarioAtualId();
 
-  // 1. O que é meu — o RLS já recorta, não preciso de .eq("user_id").
+  // 1. O que é meu, o RLS já recorta, não preciso de .eq("user_id").
   const [{ data: lancamentosBrutos }, { data: fixosBrutos }] = await Promise.all([
     supabase
       .from("personal_entries")

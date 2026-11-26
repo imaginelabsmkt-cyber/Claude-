@@ -18,7 +18,7 @@
 -- O STUDIO BAMBU TAMBÉM É 0. Esteve como -1 (dia 25 do mês ANTERIOR)
 -- por causa da cláusula 5 do contrato, que diz "de forma antecipada".
 -- Lido assim, a mensalidade de novembro vencia em 25/10 e aparecia
--- como vencida há quase um mês, na folha e na fila — alarme falso
+-- como vencida há quase um mês, na folha e na fila, alarme falso
 -- todo mês. A Fran: "o Estúdio Bambu só vence no final do mês, você
 -- tá bem errado". "Antecipado" ali quer dizer que ele paga antes de o
 -- serviço do mês acabar, não que paga no mês anterior.

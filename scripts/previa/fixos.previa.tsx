@@ -1,8 +1,8 @@
 /**
  * Prévia visual de "Fixos e ferramentas".
  *
- * Não é teste: não afirma nada. Renderiza o PAINEL DE VERDADE —
- * `RecurrencesPanel` —, com o roteador fingido, porque ele é
+ * Não é teste: não afirma nada. Renderiza o PAINEL DE VERDADE,
+ * `RecurrencesPanel`, com o roteador fingido, porque ele é
  * componente de cliente.
  *
  * A versão anterior tinha uma cópia do markup das linhas, e cópia

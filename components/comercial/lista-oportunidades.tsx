@@ -16,12 +16,12 @@ import type { LeadWithRelations } from "@/types";
  *
  * A Fran: "os clientes que estão em prospecção, eles não aparecem, só
  * aparece tipo quantitativo". No quadro o nome está lá, mas espalhado
- * em cinco colunas que rolam de lado — não havia um lugar que
+ * em cinco colunas que rolam de lado, não havia um lugar que
  * respondesse "me mostra todas, em ordem, com quanto e em que pé".
  *
  * As colunas são as do "modelo de dados mínimo" do raio-X do Zoho que
  * a Vitória fez: nome, origem, etapa, valor e a PRÓXIMA COISA. Essa
- * última é a etiqueta que, no Zoho, aparece em toda lista — e é o que
+ * última é a etiqueta que, no Zoho, aparece em toda lista, e é o que
  * transforma lista em tela de trabalho: reunião hoje, parado há seis
  * dias, proposta vencida.
  */
@@ -36,7 +36,7 @@ function diasAteOContato(data: string, agora: Date): number {
  *
  * O `agora` vem de cima, calculado uma vez na página. Antes cada
  * linha chamava `new Date()` depois de montar, para o servidor e o
- * navegador não discordarem — e a coluna mais útil da lista ficava
+ * navegador não discordarem, e a coluna mais útil da lista ficava
  * vazia no primeiro quadro. Agora as frases são escritas no fuso de
  * Boa Vista (ver lib/comercial/reuniao.ts), então os dois lados dizem
  * a mesma coisa e isto volta a ser componente de servidor.

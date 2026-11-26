@@ -3,7 +3,7 @@
  *
  * O financeiro é organizado por MÊS (como as abas da planilha), então o
  * mês é a chave de tudo: filtros, encadeamento de saldo e resumo anual.
- * Tudo aqui é manipulação de string — nunca `new Date()` sobre "YYYY-MM",
+ * Tudo aqui é manipulação de string, nunca `new Date()` sobre "YYYY-MM",
  * que introduziria fuso horário e erraria a virada do mês.
  */
 

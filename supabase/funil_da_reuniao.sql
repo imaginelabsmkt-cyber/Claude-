@@ -20,7 +20,7 @@
 -- a proposta. E "enviada" sai do vocabulário: a proposta é
 -- apresentada na reunião, não mandada depois.
 --
--- Também entra "Tráfego pago" na lista de canais — faltava, e é por
+-- Também entra "Tráfego pago" na lista de canais, faltava, e é por
 -- onde parte dos clientes chega.
 --
 -- NADA SE PERDE: as oportunidades que estavam em "Proposta enviada"

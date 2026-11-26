@@ -13,7 +13,7 @@ import {
  * Modo de exibição e filtros do funil.
  *
  * Vem do raio-X do Zoho que a Vitória fez: todo módulo tem a MESMA
- * barra — exibição, filtro, e os modos lista / quadro. "Um padrão de
+ * barra, exibição, filtro, e os modos lista / quadro. "Um padrão de
  * tela só" é a lição que ela destacou no fim do estudo.
  *
  * Aqui o funil só tinha QUADRO, e a Fran: "os clientes que estão em

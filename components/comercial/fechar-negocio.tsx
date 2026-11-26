@@ -29,7 +29,7 @@ export function FecharNegocio({ lead }: { lead: LeadWithRelations }) {
    * passar num aviso que some em três segundos.
    *
    * A Fran: "quando a gente fecha o cliente no comercial, ele já tem
-   * que ir para o administrativo automaticamente". Ia — desde sempre.
+   * que ir para o administrativo automaticamente". Ia, desde sempre.
    * O que faltava era a tela DIZER que foi, e dar o caminho.
    */
   const [feito, setFeito] = useState<{

@@ -1,5 +1,5 @@
 -- =============================================================
--- Segurança — só conta LIBERADA enxerga o sistema
+-- Segurança, só conta LIBERADA enxerga o sistema
 --
 -- O PROBLEMA QUE ISTO RESOLVE
 --
@@ -10,7 +10,7 @@
 --
 -- E o que acontecia depois: o trigger `handle_new_user` criava um
 -- profile para o novo usuário, e as 23 policies com `using (true)`
--- liberavam TUDO para qualquer autenticado — fluxo de caixa, carteira
+-- liberavam TUDO para qualquer autenticado, fluxo de caixa, carteira
 -- de clientes, contratos, chaves PIX, documentos da empresa.
 --
 -- Ou seja: um estranho que criasse conta lia (e escrevia) a empresa
@@ -21,7 +21,7 @@
 -- Uma conta passa a valer só depois de LIBERADA por quem já está
 -- dentro. `profiles.approved` começa em `false`, e todas as policies
 -- passam a exigir que o usuário esteja liberado. Quem se cadastrar
--- sozinho continua criando um profile — mas não enxerga nada.
+-- sozinho continua criando um profile, mas não enxerga nada.
 --
 -- Isso é defesa em profundidade: mesmo que o cadastro fique aberto nas
 -- configurações do Supabase, a conta nasce inerte.
@@ -73,7 +73,7 @@ grant execute on function public.usuario_aprovado() to authenticated;
 --
 --    O Supabase concede UPDATE na tabela inteira para `authenticated`.
 --    Revogar coluna a coluna não adianta enquanto o grant de tabela
---    existir — então revoga-se a tabela e devolve-se só o que o app
+--    existir, então revoga-se a tabela e devolve-se só o que o app
 --    realmente edita (o nome do perfil, em /configuracoes).
 --
 --    Sem isto, um usuário bloqueado se marcaria `approved = true`, ou
@@ -89,12 +89,12 @@ revoke insert, delete on public.profiles from authenticated, anon;
 -- 4. Policies: tudo passa a exigir conta liberada
 -- -------------------------------------------------------------
 
--- 4.1 profiles — você sempre lê a si mesmo (senão nem a tela de
+-- 4.1 profiles, você sempre lê a si mesmo (senão nem a tela de
 --     "conta não liberada" saberia seu nome); ver os colegas exige
 --     estar liberado.
 drop policy if exists "profiles_select_authenticated" on public.profiles;
 -- Também o nome novo: sem este drop, rodar a migration duas vezes
--- falha com "policy already exists" — e o guia de deploy manda rodar
+-- falha com "policy already exists", e o guia de deploy manda rodar
 -- de novo se algo parar no meio.
 drop policy if exists "profiles_select_liberado" on public.profiles;
 create policy "profiles_select_liberado"
@@ -166,7 +166,7 @@ create policy "content_history_insert_liberado"
   to authenticated
   with check (public.usuario_aprovado());
 
--- 4.4 Integrações do Google continuam sendo de cada um — e agora
+-- 4.4 Integrações do Google continuam sendo de cada um, e agora
 --     também exigem conta liberada.
 drop policy if exists "google_accounts_own" on public.google_accounts;
 create policy "google_accounts_own"

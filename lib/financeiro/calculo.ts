@@ -1,7 +1,7 @@
 /**
  * Regras de cálculo do fluxo de caixa.
  *
- * Funções PURAS (sem banco, sem React) — são a tradução das fórmulas da
+ * Funções PURAS (sem banco, sem React), são a tradução das fórmulas da
  * planilha e por isso ficam isoladas e cobertas por testes:
  *
  *   Realizado  = lançamentos com status "Pago"      (dinheiro que andou)
@@ -39,7 +39,7 @@ export interface ResumoMes {
   // Na planilha dela o TOTAL RECEITAS de outubro é R$ 14.150,00, e
   // dentro dele está a Malukies de R$ 2.600,00 marcada "Pendente". O
   // Saldo Acumulado também a inclui. Lá o status é uma MARCAÇÃO (já
-  // caiu ou não), não a base do cálculo — e era isso que fazia o
+  // caiu ou não), não a base do cálculo, e era isso que fazia o
   // sistema mostrar um ano menor do que o dela.
   receitas: number;
   despesas: number;

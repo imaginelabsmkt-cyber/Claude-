@@ -153,7 +153,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 // Os rótulos de status/prioridade já são o próprio valor do ENUM (pt-BR),
-// então não há mapa de rótulos — usa-se o valor diretamente.
+// então não há mapa de rótulos, usa-se o valor diretamente.
 
 export const STATUS_TONE: Record<ContentStatus, BadgeTone> = {
   Planejamento: "cinza",
@@ -180,7 +180,7 @@ export const PRIORITY_TONE: Record<ContentPriority, BadgeTone> = {
 };
 
 // -------------------------------------------------------------
-// Financeiro — opções e tons de UI
+// Financeiro, opções e tons de UI
 // -------------------------------------------------------------
 
 export const FINANCIAL_KIND_OPTIONS: FinancialKind[] = ["Receita", "Despesa"];
@@ -209,7 +209,7 @@ export const PAYMENT_METHOD_OPTIONS: string[] = [
 ];
 
 // -------------------------------------------------------------
-// Comercial — opções e tons de UI
+// Comercial, opções e tons de UI
 // -------------------------------------------------------------
 
 /** Etapas na ordem do funil (as duas últimas encerram). */
@@ -230,7 +230,7 @@ export const LEAD_CHANNEL_OPTIONS: LeadChannel[] = [
  * O que perguntar no "detalhe" de cada origem.
  *
  * Do protótipo da Vitória: o campo não se chama "detalhe da origem"
- * em lugar nenhum — ele pergunta a coisa certa para cada canal. Quem
+ * em lugar nenhum, ele pergunta a coisa certa para cada canal. Quem
  * veio de indicação tem QUEM indicou; quem veio de tráfego tem QUAL
  * campanha. Com um rótulo genérico, o campo ficava vazio.
  */
@@ -249,7 +249,7 @@ export const LEAD_CHANNEL_DETAIL: Record<LeadChannel, string> = {
 /**
  * Os motivos de perda, em lista.
  *
- * Era texto livre, e eu normalizava na hora de somar — tirando
+ * Era texto livre, e eu normalizava na hora de somar, tirando
  * acento, ponto final e maiúscula. Funciona até alguém escrever
  * "preço alto" em vez de "achou caro", e aí a conta mente. Com lista,
  * a pergunta "por que a gente perde" tem resposta de verdade.
@@ -346,7 +346,7 @@ export const LEAD_SOURCE_OPTIONS: string[] = [
 ];
 
 // -------------------------------------------------------------
-// Empresa — opções e tons de UI
+// Empresa, opções e tons de UI
 // -------------------------------------------------------------
 
 export const OBLIGATION_CADENCE_OPTIONS: ObligationCadence[] = [
@@ -386,7 +386,7 @@ export const MESES_CURTOS: string[] = [
 ];
 
 // -------------------------------------------------------------
-// Pessoas — opções e tons de UI
+// Pessoas, opções e tons de UI
 // -------------------------------------------------------------
 
 export const TEAM_KIND_OPTIONS: TeamKind[] = ["Sócia", "Freelancer", "Prestador"];

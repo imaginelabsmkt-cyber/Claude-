@@ -9,7 +9,7 @@ import type { ParteDaFolha } from "@/lib/financeiro/folha";
  *    aconteceu com o que ainda vai acontecer."
  *
  * E está certo. A conta de cima era saldo inicial mais o resultado do
- * mês INTEIRO — incluindo a mensalidade que ninguém pagou ainda e o
+ * mês INTEIRO, incluindo a mensalidade que ninguém pagou ainda e o
  * pró-labore que só sai dia 10 do mês que vem. Dava um "saldo final"
  * que não era saldo de nada: era um palpite escrito com a mesma letra
  * de um extrato.

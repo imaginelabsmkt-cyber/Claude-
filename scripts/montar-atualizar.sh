@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Junta os SQL pendentes num arquivo só, na ordem certa.
 #
-# A Fran tinha quatro arquivos para rodar e rodou nenhum ou alguns —
+# A Fran tinha quatro arquivos para rodar e rodou nenhum ou alguns,
 # por isso outubro ficou agrupado e o Captions continuou em novembro.
 # Um arquivo só resolve: ela abre o SQL Editor, cola, roda.
 #
@@ -30,47 +30,47 @@ ORDEM=(
 {
   cat <<'CAB'
 -- =============================================================
--- ATUALIZAR O SISTEMA — rode este arquivo, só ele
+-- ATUALIZAR O SISTEMA, rode este arquivo, só ele
 --
 -- GERADO por scripts/montar-atualizar.sh. Não editar à mão: mexa
 -- nos arquivos de origem e rode o script de novo.
 --
 -- Junta, na ordem certa, tudo que ainda falta aplicar no banco:
 --
---   0. 00_colunas_novas — as colunas que o sistema passou a precisar.
+--   0. 00_colunas_novas, as colunas que o sistema passou a precisar.
 --      Vem primeiro porque os blocos seguintes usam elas.
---   1. ajustar_planilha_novembro — tira o Captions e a
+--   1. ajustar_planilha_novembro, tira o Captions e a
 --      Contabilidade / MEI, põe o Canva em R$ 35,00, entra a Salte,
 --      e acerta o dia do pró-labore (10) e do cartão (20).
---   2. vencimentos_por_cliente — o dia de cada cliente.
---   3. meta_de_faturamento — cria o campo da meta do ano.
---   4. detalhar_historico — abre os meses passados item por item,
+--   2. vencimentos_por_cliente, o dia de cada cliente.
+--   3. meta_de_faturamento, cria o campo da meta do ano.
+--   4. detalhar_historico, abre os meses passados item por item,
 --      no lugar das linhas-bloco e do "A CLASSIFICAR".
---   5. antecipado_e_fatura_outubro — o Studio Bambu paga adiantado,
+--   5. antecipado_e_fatura_outubro, o Studio Bambu paga adiantado,
 --      a Salte fica sem dia até fechar o contrato, e a fatura do
 --      cartão de outubro entra com o que faltava.
---   6. destravar_fixos — as recorrências passam a valer desde o
+--   6. destravar_fixos, as recorrências passam a valer desde o
 --      começo da série, cada lançamento passado se liga à sua
 --      recorrência (é o que faz aparecer a caixinha de pago nos
 --      meses anteriores), o Softbox duplicado sai e a "segunda
 --      cobrança do Adobe" vira "Adobe Premiere".
---   7. vencimento_das_receitas — receita vence no próprio mês, menos
+--   7. vencimento_das_receitas, receita vence no próprio mês, menos
 --      a Malukies, que vence no seguinte.
---   8. funil_da_reuniao — o funil ganha "Reunião marcada", a proposta
+--   8. funil_da_reuniao, o funil ganha "Reunião marcada", a proposta
 --      passa a ser APRESENTADA (não enviada) e entra o canal
 --      "Tráfego pago".
---   9. comercial_historico_e_atividades — o comercial passa a guardar
+--   9. comercial_historico_e_atividades, o comercial passa a guardar
 --      cada mudança de etapa (com data) e ganha as atividades:
 --      tarefa, reunião, ligação e WhatsApp presas ao cliente.
---  10. salte_e_clientes_repetidos — apaga a cópia órfã de cliente
+--  10. salte_e_clientes_repetidos, apaga a cópia órfã de cliente
 --      repetido por nome e registra a Salte no funil como ganha.
--- 11. comercial_do_prototipo — temperatura do lead e as origens que
+-- 11. comercial_do_prototipo, temperatura do lead e as origens que
 --      faltavam, vindas do protótipo que a Vitória montou.
---  12. juntar_salte — a "Salte" e o "Studio Salte" são o mesmo
+--  12. juntar_salte, a "Salte" e o "Studio Salte" são o mesmo
 --      estúdio. Passa tudo para um e apaga a duplicata.
---  13. metas — as premissas, as contratações e o ritmo de entrada
+--  13. metas, as premissas, as contratações e o ritmo de entrada
 --      da projeção. O videomaker já entra em março/27.
---  14. videos_por_cliente — quantos vídeos cada contrato tem por
+--  14. videos_por_cliente, quantos vídeos cada contrato tem por
 --      mês, que é o que dimensiona editor e videomaker.
 --
 -- COMO RODAR

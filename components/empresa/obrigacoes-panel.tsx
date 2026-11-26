@@ -28,14 +28,14 @@ import type { ObrigacaoComPrazo } from "@/lib/data/empresa";
 
 interface ObrigacoesPanelProps {
   obrigacoes: ObrigacaoComPrazo[];
-  /** Área que a tela representa — pré-selecionada no formulário. */
+  /** Área que a tela representa, pré-selecionada no formulário. */
   area: "contabil" | "administrativo";
 }
 
 /**
  * Obrigações com prazo próprio.
  *
- * São os prazos que NÃO são despesa — declaração anual, renovação de
+ * São os prazos que NÃO são despesa, declaração anual, renovação de
  * alvará. Despesa com prazo (DAS, contabilidade) continua vindo do
  * financeiro, que é onde o dinheiro vive.
  */

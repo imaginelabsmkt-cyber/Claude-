@@ -8,7 +8,7 @@ import { signOutAction } from "@/lib/actions/auth";
  *
  * Vive aqui porque o sistema interno é o único que sobrou nesta base de
  * código: o logout costumava morar na barra do sistema de demandas, que
- * saiu junto com ele. Sem este botão não haveria como trocar de conta —
+ * saiu junto com ele. Sem este botão não haveria como trocar de conta,
  * e trocar de conta é justamente como se confere que "Meus gastos" é
  * privado de cada uma.
  */

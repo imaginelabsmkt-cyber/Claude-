@@ -122,7 +122,7 @@ describe("custo de cada pessoa", () => {
     expect(custoDaPessoa(pessoa({ ativa: false }), "2027-06", PREMISSAS, 89)).toBe(0);
   });
 
-  it("mensal sem valor conta zero — e a projeção avisa", () => {
+  it("mensal sem valor conta zero, e a projeção avisa", () => {
     // É o videomaker: a Fran disse quando e para quê, não quanto.
     const vm = pessoa({ custoMensal: null, clt: false });
     expect(custoDaPessoa(vm, "2027-06", PREMISSAS, 89)).toBe(0);
@@ -210,7 +210,7 @@ describe("o custo fixo muda quando a mentoria acaba", () => {
     /* Na planilha havia duas linhas, "até fev" e "a partir de mar",
        e uma fórmula com a data no meio. Aqui o custo fixo vem das
        contas fixas do sistema, que já sabem quando cada uma começa e
-       acaba — então não se digita duas vezes nem se esquece de
+       acaba, então não se digita duas vezes nem se esquece de
        trocar. */
     const p = montarProjecao("2027-01", PREMISSAS, EQUIPE, RITMO, SISTEMA);
     expect(p.meses.map((m) => m.custoFixo)).toEqual([

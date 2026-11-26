@@ -40,14 +40,14 @@ interface LeadFormProps {
  * TRÊS CAMPOS À VISTA, o resto guardado.
  *
  * A Fran: "o cadastro está bem confuso, não é usual". Eram nove
- * campos de uma vez — nome, valor, etapa, canal, detalhe, contato,
- * e-mail, telefone e anotações — para anotar uma conversa que acabou
+ * campos de uma vez, nome, valor, etapa, canal, detalhe, contato,
+ * e-mail, telefone e anotações, para anotar uma conversa que acabou
  * de acontecer no WhatsApp. Quem lança uma oportunidade na hora sabe
  * três coisas: quem é, quanto mais ou menos, e de onde veio.
  *
  * O resto não sumiu: está em "Mais detalhes", que abre sozinho quando
  * algum desses campos já tem conteúdo (que é sempre o caso na
- * edição) ou quando algum deles deu erro — senão o erro ficaria
+ * edição) ou quando algum deles deu erro, senão o erro ficaria
  * escondido atrás de um bloco fechado.
  *
  * A ETAPA entrou no bloco de baixo porque etapa não se digita: se
@@ -102,7 +102,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
     setErros({});
 
     /* O campo devolve "2026-11-12T16:05", sem fuso. A conversão para
-       instante é a da agência — Boa Vista, UTC-4 o ano inteiro — e
+       instante é a da agência, Boa Vista, UTC-4 o ano inteiro, e
        não a do relógio da máquina: o servidor roda em UTC e
        transformaria as 16h daqui em 12h. */
     const dados = {
@@ -132,7 +132,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
 
   /**
    * "Mais detalhes" começa aberto se já tem o que ver lá dentro, ou se
-   * algum campo de lá deu erro — senão o erro ficava escondido atrás
+   * algum campo de lá deu erro, senão o erro ficava escondido atrás
    * de um bloco fechado e o formulário não salvava sem dizer por quê.
    */
   const GUARDADOS = [
@@ -228,7 +228,7 @@ export function LeadForm({ lead, aoConcluir }: LeadFormProps) {
         </div>
       </div>
 
-      {/* A data só aparece quando a etapa é a da reunião — ou quando
+      {/* A data só aparece quando a etapa é a da reunião, ou quando
           já existe uma marcada, para não sumir com o que foi
           preenchido ao voltar a oportunidade para trás. Campo que não
           serve para a etapa atual é campo a mais, e campo a mais foi

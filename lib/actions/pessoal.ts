@@ -18,7 +18,7 @@ import type { PersonalEntryInsert } from "@/types";
  *
  * REGRA DESTE ARQUIVO: nenhuma função escreve `user_id`. A coluna tem
  * `default auth.uid()` e a policy exige `user_id = auth.uid()` no
- * `with check` — então a linha nasce de quem está logado, e mandar o
+ * `with check`, então a linha nasce de quem está logado, e mandar o
  * id de outra pessoa é rejeitado pelo banco. Não escrever o campo é o
  * que torna impossível errar aqui.
  *

@@ -38,7 +38,7 @@ function Celula({ valor, cor }: { valor: number; cor?: string }) {
 }
 
 /**
- * Resumo anual: uma coluna por mês, uma linha por categoria — a
+ * Resumo anual: uma coluna por mês, uma linha por categoria, a
  * consolidação que na planilha dependia de fórmulas apontando para cada
  * aba (e que quebravam quando uma linha era inserida).
  */

@@ -49,7 +49,7 @@ describe("situação", () => {
     );
   });
 
-  it("perdido é 'não fechou' — nunca 'perdemos'", () => {
+  it("perdido é 'não fechou', nunca 'perdemos'", () => {
     expect(situacaoDe(um({ stage: "Perdido" }))).toBe("Não fechou");
   });
 });

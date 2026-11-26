@@ -28,7 +28,7 @@ import type { PessoaComCusto } from "@/lib/data/pessoas";
 /**
  * Quem trabalha na agência e quanto custa.
  *
- * O valor de cada um vem do financeiro — aqui só se diz quem é quem.
+ * O valor de cada um vem do financeiro, aqui só se diz quem é quem.
  * Ninguém é excluído: desativar preserva o histórico de pagamentos.
  */
 export function PessoasPanel({ pessoas }: { pessoas: PessoaComCusto[] }) {

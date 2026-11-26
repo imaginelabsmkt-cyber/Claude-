@@ -191,7 +191,7 @@ export function ContratosPanel({
               className="flex flex-wrap items-center gap-x-3 gap-y-2 scroll-mt-24 rounded-xl border border-alerta bg-white px-4 py-3"
             >
               {/* No celular o nome fica numa linha só e os dois
-                  botões descem — com `flex-1` sozinho, "Studio Salte"
+                  botões descem, com `flex-1` sozinho, "Studio Salte"
                   quebrava em duas linhas para caber ao lado deles. */}
               <span className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                 <span className="flex flex-wrap items-center gap-2">
@@ -264,7 +264,7 @@ export function ContratosPanel({
         titulo={
           inativando ? `Inativar ${inativando.name}?` : "Inativar cliente?"
         }
-        descricao="Ele sai da relação de clientes ativos e vai para a lista de inativos. O histórico fica inteiro — o que já foi pago continua nas contas do ano. As mensalidades dele param de ser lançadas."
+        descricao="Ele sai da relação de clientes ativos e vai para a lista de inativos. O histórico fica inteiro: o que já foi pago continua nas contas do ano. As mensalidades dele param de ser lançadas."
         textoConfirmar="Inativar"
         carregando={processando}
         aoConfirmar={inativar}

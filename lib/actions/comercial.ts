@@ -45,8 +45,8 @@ function limpar(v?: string | null): string | null {
 }
 
 function revalidarComercial() {
-  // A mesma linha estava escrita duas vezes, e a Prospecção — que lê
-  // os mesmos leads — não era revalidada nunca.
+  // A mesma linha estava escrita duas vezes, e a Prospecção, que lê
+  // os mesmos leads, não era revalidada nunca.
   revalidatePath("/interno/comercial/funil");
   revalidatePath("/interno/comercial/prospeccao");
   revalidatePath("/interno/comercial/encerrados");
@@ -174,7 +174,7 @@ export async function moverEtapaAction(
     return {
       ok: false,
       error:
-        "Para encerrar, use Registrar ganho ou Registrar perda — o fechamento pede mais dados.",
+        "Para encerrar, use Registrar contrato ou Encerrar sem contrato. O fechamento pede mais dados.",
     };
   }
 
@@ -182,7 +182,7 @@ export async function moverEtapaAction(
 
   /* Mover de etapa remarca o próximo contato pela regra da etapa.
      É o que faz a fila de trabalho existir: sem isso, a pessoa move
-     o cartão e o compromisso some. "Reunião marcada" é a exceção —
+     o cartão e o compromisso some. "Reunião marcada" é a exceção,
      ali a data é a da reunião, e sobrescrevê-la apagaria o
      compromisso de verdade por um prazo genérico. */
   const sugerido = proximoContatoSugerido(etapa, hojeISO());
@@ -298,7 +298,7 @@ export async function criarPropostaAction(
   }
 
   // Enviar uma proposta move a oportunidade para a etapa correspondente,
-  // se ela ainda estiver atrás — assim o quadro não fica desatualizado.
+  // se ela ainda estiver atrás, assim o quadro não fica desatualizado.
   if (parsed.data.status === "Apresentada") {
     const { data: lead } = await supabase
       .from("commercial_leads")
@@ -361,7 +361,7 @@ export async function excluirPropostaAction(id: string): Promise<ActionResult> {
 }
 
 // -------------------------------------------------------------
-// Fechar o negócio — o ponto em que comercial vira financeiro
+// Fechar o negócio, o ponto em que comercial vira financeiro
 // -------------------------------------------------------------
 
 export interface FechamentoResult extends ActionResult {
@@ -382,7 +382,7 @@ export interface FechamentoResult extends ActionResult {
  * fim da vigência vira o alerta de renovação no Início.
  *
  * Se o cliente já existir com o mesmo nome, reaproveita em vez de
- * duplicar — é comum ganhar de volta um cliente que tinha saído.
+ * duplicar, é comum ganhar de volta um cliente que tinha saído.
  */
 export async function fecharNegocioAction(
   leadId: string,
@@ -425,7 +425,7 @@ export async function fecharNegocioAction(
     },
   );
 
-  // 1. Cliente — reaproveita se já existir com o mesmo nome.
+  // 1. Cliente, reaproveita se já existir com o mesmo nome.
   const { data: existente } = await supabase
     .from("clients")
     .select("id")
@@ -464,7 +464,7 @@ export async function fecharNegocioAction(
     };
   }
 
-  // 3. A mensalidade recorrente — o "contrato".
+  // 3. A mensalidade recorrente, o "contrato".
   const { error: erroRecorrencia } = await supabase
     .from("financial_recurrences")
     .insert({

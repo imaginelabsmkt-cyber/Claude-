@@ -42,7 +42,7 @@ export async function obterPremissas(): Promise<{
   const supabase = createClient();
   /* `as never` nos nomes de tabela: os tipos do Supabase são gerados
      a partir do schema e ainda não conhecem estas tabelas. Enquanto o
-     ATUALIZAR.sql não rodar, elas de fato não existem — e é por isso
+     ATUALIZAR.sql não rodar, elas de fato não existem, e é por isso
      que o erro aqui devolve os padrões em vez de quebrar a tela. */
   const { data, error } = await supabase
     .from("growth_assumptions" as never)
@@ -136,7 +136,7 @@ export async function listarContasFixasDaProjecao(): Promise<
  *
  * Existe para o Dashboard e a tela de Metas montarem a MESMA conta.
  * Com duas montagens, bastava uma mudar para as duas telas darem
- * números diferentes do mesmo mês — e aí não dá para confiar em
+ * números diferentes do mesmo mês, e aí não dá para confiar em
  * nenhuma das duas.
  */
 export async function obterProjecao() {

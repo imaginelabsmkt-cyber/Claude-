@@ -1,5 +1,5 @@
 -- =============================================================
--- Contratos de cliente — a entidade que faltava
+-- Contratos de cliente, a entidade que faltava
 --
 -- O ERRO QUE ISTO CORRIGE
 --

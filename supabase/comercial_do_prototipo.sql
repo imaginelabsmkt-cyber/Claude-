@@ -15,11 +15,11 @@
 -- 1. TEMPERATURA ---------------------------------------------------
 --
 --    Direto das definições que ela escreveu:
---      Quente — veio pedindo ajuda: indicação, procurou a FAVIE,
+--      Quente, veio pedindo ajuda: indicação, procurou a FAVIE,
 --               pediu valores ou respondeu rápido querendo reunião.
---      Morno  — tem interesse, conversa, mas ainda não tem urgência
+--      Morno, tem interesse, conversa, mas ainda não tem urgência
 --               ou está comparando.
---      Frio   — a FAVIE foi atrás: social selling, lista, evento sem
+--      Frio , a FAVIE foi atrás: social selling, lista, evento sem
 --               conversa longa. Ainda não demonstrou interesse.
 --
 --    É a informação que diz ONDE GASTAR A PRÓXIMA HORA, e o sistema
@@ -42,7 +42,7 @@ comment on column public.commercial_leads.temperature is
 --
 --    O protótipo tem nove; o nosso tinha seis. Instagram orgânico,
 --    grupos de WhatsApp e visita presencial são três jeitos de
---    chegar cliente que ficavam todos em "Outro" — e "Outro" não
+--    chegar cliente que ficavam todos em "Outro", e "Outro" não
 --    responde em que canal vale gastar a próxima hora.
 alter type lead_channel add value if not exists 'Instagram orgânico' after 'Tráfego pago';
 alter type lead_channel add value if not exists 'Grupos e WhatsApp'  after 'Evento';
@@ -54,7 +54,7 @@ alter type lead_channel add value if not exists 'Visita presencial'  after 'Parc
 --    cinco. A diferença que importa é o começo: "Novo lead" (chegou e
 --    ninguém falou com ele), "Primeiro contato" (mensagem enviada,
 --    esperando resposta) e "Em conversa" (respondeu, mas ainda não
---    marcou reunião) eram tudo uma coisa só aqui — e são três
+--    marcou reunião) eram tudo uma coisa só aqui, e são três
 --    situações com ações completamente diferentes.
 --
 --    MAS NÃO É CÓPIA. Copiar ao pé da letra desfaria duas correções
@@ -119,7 +119,7 @@ $$;
 --    É o motor da tela "Hoje" do protótipo: toda etapa aberta tem uma
 --    data de próximo contato, e quem passou da data aparece em
 --    vermelho. O nosso tinha só o "parado há N dias", que é alarme
---    DEPOIS do fato — não existia o compromisso marcado.
+--    DEPOIS do fato, não existia o compromisso marcado.
 alter table public.commercial_leads
   add column if not exists next_contact_on date;
 
@@ -153,15 +153,15 @@ update public.commercial_leads
 --     ERROR: unsafe use of new value "Novo lead" of enum type
 --
 -- O SQL Editor do Supabase roda o arquivo inteiro numa transação só,
--- então o arquivo quebraria na cara dela — foi o que aconteceu no meu
+-- então o arquivo quebraria na cara dela, foi o que aconteceu no meu
 -- teste, e é o mesmo erro que já quebrou uma vez. O padrão só vale
 -- para quem insere direto no banco; o sistema sempre manda a etapa, e
 -- a instalação do zero já nasce com o padrão certo.
 
 -- 5. MOTIVO DA PERDA EM LISTA --------------------------------------
 --
---    Era texto livre, e eu normalizava na hora de somar — tirando
---    acento, ponto final e maiúscula — para "Achou caro", "achou
+--    Era texto livre, e eu normalizava na hora de somar, tirando
+--    acento, ponto final e maiúscula, para "Achou caro", "achou
 --    caro" e "achou caro." virarem o mesmo motivo. Funciona até
 --    alguém escrever "preço alto", e aí a conta mente.
 --
@@ -190,7 +190,7 @@ comment on column public.commercial_leads.lost_reason_kind is
 
 -- O que já estava escrito à mão entra na lista onde dá para ter
 -- certeza. O que não casar fica sem categoria e com o texto
--- preservado — chutar a categoria de uma perda é pior do que não ter.
+-- preservado, chutar a categoria de uma perda é pior do que não ter.
 update public.commercial_leads
    set lost_reason_kind = case
          when lost_reason ilike '%sem resposta%'  then 'Sem resposta'
@@ -211,7 +211,7 @@ update public.commercial_leads
 --    A maior falta do nosso Painel de canais: ele dizia quantos
 --    fecharam por canal, e NÃO quanto cada canal custou. Sem o custo,
 --    "indicação converte 50%" e "tráfego converte 8%" parecem a
---    mesma informação — quando um é de graça e o outro consome
+--    mesma informação, quando um é de graça e o outro consome
 --    R$ 500 por mês.
 --
 --    O protótipo da Vitória lança o gasto por mês e por origem, e

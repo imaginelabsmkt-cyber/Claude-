@@ -39,7 +39,7 @@ export default async function EstimativaPage({ searchParams }: PageProps) {
 
   /* A Fran: "QUERO QUE SEJA DE ACORDO COM O QUE ESTAMOS PROSPECTANDO
      NO COMERCIAL." Então as oportunidades vêm do funil, as de
-     verdade, com nome, etapa e valor estimado — não de um botão que
+     verdade, com nome, etapa e valor estimado, não de um botão que
      inventa cliente do nada. */
   const [carteira, leads] = await Promise.all([
     obterCarteira(mes),

@@ -3,7 +3,7 @@ import type { FinancialEntryWithRelations } from "@/types";
 
 /**
  * Lista os lançamentos de uma área no mês. Como a tela inteira já está
- * tingida pela área, aqui a cor não se repete linha a linha — só o
+ * tingida pela área, aqui a cor não se repete linha a linha, só o
  * vermelho do que está em aberto aparece.
  */
 export function RecorteLista({

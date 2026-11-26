@@ -19,7 +19,7 @@ export interface MesDoCaixa {
  * Vive num componente porque a prévia visual tinha uma CÓPIA deste
  * markup, e cópia envelhece: a prévia me mostrou a tabela com os
  * nomes antigos das colunas enquanto a página já estava com os novos.
- * É a mesma regra do cartão do mês — a prévia desenha o componente de
+ * É a mesma regra do cartão do mês, a prévia desenha o componente de
  * verdade, não uma imitação dele.
  */
 export function TabelaDoCaixa({
@@ -44,7 +44,7 @@ export function TabelaDoCaixa({
                   desktop ... + Saldo inicial
 
                 Com as seis em 390px a tabela passava de 640px e a
-                coluna do saldo final — que é o ponto desta tela —
+                coluna do saldo final, que é o ponto desta tela,
                 ficava cortada pela metade. Receitas e despesas do mês
                 estão inteiras na tela do Mês; o saldo inicial é o
                 saldo final da linha de cima. */}

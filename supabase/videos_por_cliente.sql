@@ -14,7 +14,7 @@
 -- dimensionar editor nem videomaker, que é para o que ele existe.
 --
 -- Fica em branco onde o contrato não diz. Em branco quer dizer "não
--- sei", e a tela escreve isso — diferente de zero, que quer dizer
+-- sei", e a tela escreve isso, diferente de zero, que quer dizer
 -- "nenhum".
 -- =============================================================
 

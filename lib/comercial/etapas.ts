@@ -3,7 +3,7 @@
  *
  * Fonte única. Antes isso estava espalhado: a ordem num arquivo, o
  * prazo de "parado" noutro, a lista de abertas num terceiro, e o que
- * cada etapa significa em lugar nenhum — a pessoa tinha que adivinhar
+ * cada etapa significa em lugar nenhum, a pessoa tinha que adivinhar
  * a diferença entre uma e outra.
  *
  * O desenho vem do protótipo que a Vitória montou, com DUAS
@@ -127,7 +127,7 @@ export function proximoContatoSugerido(
 /**
  * Como a etapa aparece NA TELA.
  *
- * O banco guarda "Perdido" — é um valor de enum, e trocar valor de
+ * O banco guarda "Perdido", é um valor de enum, e trocar valor de
  * enum é migração. Mas a Fran: "ganhamos, perdemos, essas coisas
  * assim, num sistema de uma empresa institucional ninguém faz isso".
  * Então o nome guardado continua "Perdido" e o nome escrito é "Não

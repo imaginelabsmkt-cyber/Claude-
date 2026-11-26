@@ -74,7 +74,7 @@ function Bloco({
  * Relatório do mês: uma página que fecha o mês.
  *
  * Junta o que está espalhado pelas cinco áreas e pode ser impressa
- * (Ctrl+P) — o menu e os botões somem na impressão.
+ * (Ctrl+P), o menu e os botões somem na impressão.
  */
 export default async function RelatorioPage({ searchParams }: PageProps) {
   const mes =

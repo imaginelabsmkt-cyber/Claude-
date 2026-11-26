@@ -11,7 +11,7 @@ interface StatProps {
    * Sem isso, usa a cor da área da tela.
    */
   origem?: AreaId;
-  /** Pinta o valor de vermelho — use só quando é uma pendência real. */
+  /** Pinta o valor de vermelho, use só quando é uma pendência real. */
   alerta?: boolean;
 }
 

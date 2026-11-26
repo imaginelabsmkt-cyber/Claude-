@@ -20,12 +20,12 @@
 -- (Contrato_FAVIE_Studio_Bambu_2026, Cláusula 5): R$ 1.300,00 com
 -- "vencimento todo dia 25 de cada mês". ATENÇÃO: a mesma cláusula
 -- diz "mensalmente, de forma ANTECIPADA". Aqui ele entrou como os
--- outros — a mensalidade de um mês vence no dia 25 do mês seguinte.
+-- outros, a mensalidade de um mês vence no dia 25 do mês seguinte.
 -- Se na prática ele paga adiantado, me diz que eu inverto só esse.
 --
 -- NÃO estão aqui:
---   · Salte — não falamos o dia.
---   · Dra. Hemilayne — ela disse que já está paga (adiantou o
+--   · Salte, não falamos o dia.
+--   · Dra. Hemilayne, ela disse que já está paga (adiantou o
 --     parcelamento). Isso se resolve marcando a caixinha na tela,
 --     sem SQL.
 --

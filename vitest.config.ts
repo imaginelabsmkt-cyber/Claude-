@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
  * usamos o ambiente "node". O alias "@" espelha o tsconfig.
  *
  * Os `.test.tsx` entram junto. São poucos e todos do mesmo tipo:
- * renderizam um componente para texto e conferem o que ESTÁ ESCRITO —
+ * renderizam um componente para texto e conferem o que ESTÁ ESCRITO, 
  * não layout, não cor. Existem porque a mesma regra de escrita já
  * voltou a ser quebrada mais de uma vez ("Mensalidade" repetida em
  * toda linha), e regra que só vive na minha cabeça não resiste a uma

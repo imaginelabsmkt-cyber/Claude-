@@ -104,7 +104,7 @@ function comoCompromissos(lancamentos: FinancialEntryWithRelations[]): Compromis
         id: l.id,
         origem: areaDoAssunto(assuntoDaCategoria(l.category?.name)),
         titulo: l.description,
-        descricao: l.client?.name ?? l.category?.name ?? "—",
+        descricao: l.client?.name ?? l.category?.name ?? "-",
         valor: Number(l.amount),
         prazo: textoPrazo(dias),
         atrasado: dias !== null && dias <= 3,
@@ -230,7 +230,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
   );
 
   // As obrigações com prazo próprio entram na mesma lista das pendências
-  // financeiras — no Início, tudo que tem prazo aparece junto, cada linha
+  // financeiras, no Início, tudo que tem prazo aparece junto, cada linha
   // com a cor da sua área.
   const daObrigacao: Compromisso[] = obrigacoes
     .filter((o) => o.aberto !== null)
@@ -248,7 +248,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
 
   // Contrato chegando ao fim é aviso do comercial: a mensalidade continua
   // sendo gerada, mas sem vigência que a sustente. Sai do `end_month` da
-  // recorrência — não existe tabela de contratos.
+  // recorrência, não existe tabela de contratos.
   const contratos: ContratoVigente[] = vigentes
     .filter((r) => r.kind === "Receita")
     .map((r) => ({
@@ -263,7 +263,7 @@ export async function obterPainelInterno(mes: string): Promise<PainelInterno> {
   const daRenovacao: Compromisso[] = renovacoesProximas(contratos).map((r) => ({
     id: `renovacao-${r.id}`,
     origem: "comercial" as const,
-    titulo: r.description.replace(/^Mensalidade /, "Renovar contrato — "),
+    titulo: r.description.replace(/^Mensalidade /, "Renovar contrato: "),
     descricao: `contrato vai até ${r.endMonth}`,
     valor: r.amount,
     prazo: textoRenovacao(r),
@@ -376,7 +376,7 @@ export interface RecorteArea {
 }
 
 /**
- * Monta o recorte de uma área sobre o financeiro — é o que faz Pessoas,
+ * Monta o recorte de uma área sobre o financeiro, é o que faz Pessoas,
  * Contábil e Administrativo existirem sem tabela própria.
  */
 export async function obterRecorteArea(

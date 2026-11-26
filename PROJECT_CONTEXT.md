@@ -716,7 +716,7 @@ a mensalidade aqui deixaria o financeiro cobrando o valor velho, calado.
 
 Misturar as duas é o erro fácil: contrato de vigência indeterminada
 nunca renova, mas reajusta todo ano. Por isso `contratosQuePedemConversa`
-trata cada uma, e omite o reajuste de quem já vai renovar — na conversa
+trata cada uma, e omite o reajuste de quem já vai renovar, na conversa
 de renovação o valor é negociado junto, e cobrar as duas coisas faria a
 mesma ligação aparecer duas vezes na lista.
 
@@ -1571,7 +1571,7 @@ Agora existe `hojeISO()` e `mesAtual()` usa o fuso de Boa Vista, com
 
 ### Nada de travessão
 
-A Fran olhou o sistema e apontou: **"é esse traço"**. O travessão (`—`)
+A Fran olhou o sistema e apontou: **"é esse traço"**. O travessão (`, `)
 não entra em nada que ela leia, nem na tela, nem nos guias, nem nos
 textos que o Claude escreve pra ela.
 

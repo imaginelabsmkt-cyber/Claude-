@@ -9,7 +9,7 @@
  *   2. Servidor e navegador escrevem a MESMA frase. Quando isto
  *      dependia do relógio de quem olha, o HTML do servidor (que roda
  *      em UTC) dizia uma coisa e o do navegador outra, e a única saída
- *      era esconder a coluna até a tela montar — o que deixava a
+ *      era esconder a coluna até a tela montar, o que deixava a
  *      informação mais útil da lista aparecendo um quadro depois.
  *
  * Boa Vista é UTC-4 o ano inteiro: Roraima não tem horário de verão.
@@ -72,7 +72,7 @@ function partes(d: Date): Partes {
   };
 }
 
-/** O dia, como número de dias desde a época — para subtrair. */
+/** O dia, como número de dias desde a época, para subtrair. */
 function diaSerial(p: Partes): number {
   return Date.UTC(p.ano, p.mes - 1, p.dia) / 86_400_000;
 }
@@ -115,7 +115,7 @@ export function quandoEhAReuniao(iso: string, agora: Date): string {
   return `${p.dia}/${MES_CURTO[p.mes - 1]}`;
 }
 
-/** "28/out" — a data miúda, no fuso da agência. */
+/** "28/out", a data miúda, no fuso da agência. */
 export function dataCurta(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -148,7 +148,7 @@ export function paraCampoDeReuniao(iso: string | null): string {
  * O caminho de volta: o que o campo devolve vira instante.
  *
  * "2026-11-12T16:05" não tem fuso nenhum. Quem o lê sem dizer nada
- * assume o relógio da máquina — e a máquina que grava é o servidor,
+ * assume o relógio da máquina, e a máquina que grava é o servidor,
  * em UTC, o que transformaria as 16h de Boa Vista em 12h. Aqui o fuso
  * é dito, e dito uma vez só.
  */
@@ -157,7 +157,7 @@ export function instanteDaReuniao(local: string | null | undefined): string | nu
   if (!t) return null;
   /* O formato é conferido ANTES de montar a data. `new Date()` é
      leniente de um jeito perigoso: "ontem de tarde:00-04:00" não dá
-     erro, dá 1º de janeiro de 2000 — uma reunião marcada para 26 anos
+     erro, dá 1º de janeiro de 2000, uma reunião marcada para 26 anos
      atrás, gravada sem ninguém notar. */
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(t)) return null;
   const d = new Date(`${t}:00${OFFSET}`);

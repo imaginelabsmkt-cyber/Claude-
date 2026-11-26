@@ -3,7 +3,7 @@
 #
 # POR QUE EXISTE
 #
-# Eu testava só a instalação do zero — schema de hoje, seed, e aí o
+# Eu testava só a instalação do zero, schema de hoje, seed, e aí o
 # ATUALIZAR. Passava sempre, porque o schema de hoje já traz as
 # colunas novas. No banco da Fran, que foi criado meses atrás, o
 # arquivo quebrou na cara dela:

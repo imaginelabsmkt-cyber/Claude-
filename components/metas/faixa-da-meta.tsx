@@ -7,7 +7,7 @@ import { rotuloMesCurto } from "@/lib/financeiro/meses";
  *
  * A Fran: "a gente tem que estar vendo aquilo ali todo dia."
  *
- * Virar área no menu resolve metade disso — resolve ONDE ir. A outra
+ * Virar área no menu resolve metade disso, resolve ONDE ir. A outra
  * metade é não precisar ir: o que se vê todo dia é a primeira tela,
  * não um item de menu que ainda pede um clique. Então a meta abre o
  * Dashboard, em uma faixa de três números, e o resto mora na área.

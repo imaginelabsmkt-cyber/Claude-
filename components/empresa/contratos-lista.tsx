@@ -13,7 +13,7 @@ import type { ContratoCliente } from "@/lib/data/empresa";
  * (`client_files` marcado como "Contrato"), e o valor e a vigência são
  * a recorrência no financeiro. Esta lista só junta o que está espalhado.
  *
- * Para ANEXAR um contrato, vá à ficha do cliente — é lá que o arquivo
+ * Para ANEXAR um contrato, vá à ficha do cliente, é lá que o arquivo
  * pertence, e marcar o tipo como "Contrato" o faz aparecer aqui.
  */
 export function ContratosLista({ contratos }: { contratos: ContratoCliente[] }) {

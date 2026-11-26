@@ -14,8 +14,8 @@ export const metadata = { title: "Configuração" };
  * calculadora.
  *
  * A calculadora veio da barra de ações do mês, onde ficava ao lado de
- * "Lançar" com o mesmo peso. Ela é útil — "preciso somar o pró-labore
- * da Vitória, a mentoria e o iCloud dela" —, mas é útil uma vez por
+ * "Lançar" com o mesmo peso. Ela é útil, "preciso somar o pró-labore
+ * da Vitória, a mentoria e o iCloud dela", mas é útil uma vez por
  * semana, não o dia inteiro. Aqui ela está a um clique e não disputa
  * atenção com o que se faz todo dia.
  */

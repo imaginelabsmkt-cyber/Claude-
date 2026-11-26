@@ -17,14 +17,14 @@ interface PageProps {
 }
 
 /**
- * Meus gastos — a única tela do sistema interno que NÃO é compartilhada.
+ * Meus gastos, a única tela do sistema interno que NÃO é compartilhada.
  *
  * Cada sócia vê só os próprios lançamentos. Isso não é um filtro desta
  * página: é a policy `user_id = auth.uid()` no Postgres. Se esta tela
  * tentasse buscar os gastos da outra pessoa, o banco devolveria zero
  * linhas.
  *
- * A pergunta que a tela responde é "como está o MEU mês" — entrou,
+ * A pergunta que a tela responde é "como está o MEU mês", entrou,
  * saiu, sobrou, e para onde foi. Sem encadear saldo entre meses, que é
  * coisa do caixa da empresa, não de controle pessoal.
  */

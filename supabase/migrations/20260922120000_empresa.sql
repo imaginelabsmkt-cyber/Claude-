@@ -1,10 +1,10 @@
 -- =============================================================
--- Empresa — documentos e obrigações com prazo
+-- Empresa, documentos e obrigações com prazo
 --
 -- Duas lacunas do sistema interno:
 --
 --   1. DOCUMENTOS. Contrato assinado, cartão CNPJ, alvará, nota fiscal.
---      Documento de CLIENTE já tem lugar (`client_files`) — aqui só se
+--      Documento de CLIENTE já tem lugar (`client_files`), aqui só se
 --      acrescenta o TIPO, para dar para achar "os contratos". Documento
 --      da EMPRESA (que não é de nenhum cliente) ganha `company_files`.
 --

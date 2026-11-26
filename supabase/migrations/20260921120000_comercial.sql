@@ -1,8 +1,8 @@
 -- =============================================================
--- Comercial — funil de oportunidades e propostas
+-- Comercial, funil de oportunidades e propostas
 --
 -- Fecha o ciclo que faltava: um lead entra pelo funil, recebe uma
--- proposta e, quando é ganho, VIRA CLIENTE E MENSALIDADE de uma vez —
+-- proposta e, quando é ganho, VIRA CLIENTE E MENSALIDADE de uma vez,
 -- sem ninguém redigitar nada no financeiro.
 --
 -- O que NÃO existe aqui, de propósito:
@@ -75,7 +75,7 @@ create table if not exists public.commercial_leads (
   client_id          uuid references public.clients(id) on delete set null,
   -- Preenchido quando é perdido.
   lost_reason        text,
-  -- Quando entrou na etapa atual — alimenta o "X dias parado".
+  -- Quando entrou na etapa atual, alimenta o "X dias parado".
   stage_changed_at   timestamptz not null default now(),
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
@@ -94,7 +94,7 @@ create table if not exists public.commercial_proposals (
   setup_amount   numeric(12, 2) not null default 0 check (setup_amount >= 0),
   -- O que está incluso (ex.: "8 conteúdos/mês, 1 gravação").
   scope          text,
-  -- Quantidade de conteúdos por mês — vira a meta do cliente.
+  -- Quantidade de conteúdos por mês, vira a meta do cliente.
   monthly_goal   integer check (monthly_goal is null or monthly_goal >= 0),
   sent_at        date,
   valid_until    date,
@@ -124,7 +124,7 @@ create trigger trg_proposals_updated_at
   before update on public.commercial_proposals
   for each row execute function public.set_updated_at();
 
--- 4.1 Carimba a data quando a etapa muda — é o relógio do "parado há
+-- 4.1 Carimba a data quando a etapa muda, é o relógio do "parado há
 --     N dias". Fica no banco para valer mesmo se a etapa for mudada
 --     fora da tela do funil.
 create or replace function public.marcar_mudanca_etapa()

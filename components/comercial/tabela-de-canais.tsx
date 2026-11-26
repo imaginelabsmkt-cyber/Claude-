@@ -4,15 +4,15 @@ import { totaisDosCanais } from "@/lib/comercial/canais";
 
 /** Por cento, ou um traço quando não há base para calcular. */
 const pct = (v: number | null) =>
-  v === null ? "—" : `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+  v === null ? "-" : `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 /** Dinheiro, ou um traço. */
-const dinheiro = (v: number | null) => (v === null ? "—" : formatarMoeda(v));
+const dinheiro = (v: number | null) => (v === null ? "-" : formatarMoeda(v));
 
 /** "16,0x", ou um traço. */
 const vezes = (v: number | null) =>
   v === null
-    ? "—"
+    ? "-"
     : `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}x`;
 
 /**
@@ -21,7 +21,7 @@ const vezes = (v: number | null) =>
  * As colunas do protótipo da Vitória. O traço em vez de zero é
  * proposital: custo por cliente sem cliente fechado não é "R$ 0", é
  * uma conta que não dá para fazer, e um zero ali diria que o canal é
- * de graça — exatamente o contrário do que aconteceu.
+ * de graça, exatamente o contrário do que aconteceu.
  */
 export function TabelaDeCanais({ linhas }: { linhas: ResultadoDoCanal[] }) {
   if (linhas.length === 0) {
@@ -96,13 +96,13 @@ export function TabelaDeCanais({ linhas }: { linhas: ResultadoDoCanal[] }) {
                 {pct(l.conversao)}
               </td>
               <td className="whitespace-nowrap px-2 py-2.5 text-right tabular-nums text-gray-700 sm:px-4">
-                {l.investido > 0 ? formatarMoeda(l.investido) : "—"}
+                {l.investido > 0 ? formatarMoeda(l.investido) : "-"}
               </td>
               <td className="whitespace-nowrap px-2 py-2.5 text-right tabular-nums text-gray-900 sm:px-4">
                 {dinheiro(l.custoPorCliente)}
               </td>
               <td className="hidden whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-gray-700 md:table-cell">
-                {l.receitaMensal > 0 ? formatarMoeda(l.receitaMensal) : "—"}
+                {l.receitaMensal > 0 ? formatarMoeda(l.receitaMensal) : "-"}
               </td>
               <td className="hidden whitespace-nowrap px-4 py-2.5 text-right font-semibold tabular-nums text-gray-900 md:table-cell">
                 {vezes(l.retorno12Meses)}
@@ -125,13 +125,13 @@ export function TabelaDeCanais({ linhas }: { linhas: ResultadoDoCanal[] }) {
               {pct(t.conversao)}
             </td>
             <td className="whitespace-nowrap px-2 py-2.5 text-right tabular-nums sm:px-4">
-              {t.investido > 0 ? formatarMoeda(t.investido) : "—"}
+              {t.investido > 0 ? formatarMoeda(t.investido) : "-"}
             </td>
             <td className="whitespace-nowrap px-2 py-2.5 text-right tabular-nums sm:px-4">
               {dinheiro(t.custoPorCliente)}
             </td>
             <td className="hidden whitespace-nowrap px-4 py-2.5 text-right tabular-nums md:table-cell">
-              {t.receitaMensal > 0 ? formatarMoeda(t.receitaMensal) : "—"}
+              {t.receitaMensal > 0 ? formatarMoeda(t.receitaMensal) : "-"}
             </td>
             <td className="hidden whitespace-nowrap px-4 py-2.5 text-right tabular-nums md:table-cell">
               {vezes(t.retorno12Meses)}

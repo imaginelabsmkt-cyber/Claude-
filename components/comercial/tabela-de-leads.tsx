@@ -58,7 +58,7 @@ export function TabelaDeLeads({ linhas }: { linhas: DaBase[] }) {
                   </Link>
                 </th>
                 <td className="whitespace-nowrap px-3 py-2.5 text-gray-600">
-                  {l.channel ?? "—"}
+                  {l.channel ?? "-"}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2.5">
                   {l.temperature ? (
@@ -66,7 +66,7 @@ export function TabelaDeLeads({ linhas }: { linhas: DaBase[] }) {
                       {l.temperature}
                     </Badge>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-gray-400">-</span>
                   )}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2.5 text-gray-700">
@@ -75,7 +75,7 @@ export function TabelaDeLeads({ linhas }: { linhas: DaBase[] }) {
                 <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-gray-600">
                   {emJogo && l.next_contact_on
                     ? dataCurta(l.next_contact_on)
-                    : "—"}
+                    : "-"}
                 </td>
                 <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold tabular-nums text-gray-900">
                   {formatarMoeda(l.estimated_monthly)}

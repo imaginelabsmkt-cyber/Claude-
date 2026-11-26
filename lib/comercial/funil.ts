@@ -3,7 +3,7 @@
  *
  * Funções PURAS (sem banco, sem React), cobertas por testes. A mais
  * importante é `dadosDoFechamento`: ela decide o que nasce quando uma
- * oportunidade é ganha — o cliente e a mensalidade — para que a server
+ * oportunidade é ganha, o cliente e a mensalidade, para que a server
  * action apenas grave o que esta função devolve.
  */
 
@@ -60,7 +60,7 @@ export function estaParado(
 
 /**
  * Valor do funil: quanto entraria por mês se tudo que está aberto
- * fechasse. Não aplica peso por etapa — numa carteira de poucos
+ * fechasse. Não aplica peso por etapa, numa carteira de poucos
  * clientes, um número ponderado engana mais do que ajuda.
  */
 export function valorDoFunil(
@@ -138,7 +138,7 @@ export interface OpcoesFechamento {
  * Traduz "ganhei este negócio" em cliente + mensalidade + setup.
  *
  * É aqui que o ciclo se fecha: o valor da proposta vira a mensalidade
- * do financeiro sem ninguém redigitar, e a duração vira a vigência —
+ * do financeiro sem ninguém redigitar, e a duração vira a vigência,
  * que é o que faz o alerta de renovação aparecer no Início.
  *
  * Sem proposta, cai no valor estimado do lead.
@@ -224,7 +224,7 @@ export function ultimoDiaDoMes(mes: string): string | null {
 
 /**
  * Contratos que vencem dentro do horizonte (ou que já venceram e ainda
- * estão ativos — o caso que mais dói, porque a mensalidade segue sendo
+ * estão ativos, o caso que mais dói, porque a mensalidade segue sendo
  * gerada sem contrato que a sustente).
  *
  * Contrato sem `end_month` não renova: não tem prazo para acabar.

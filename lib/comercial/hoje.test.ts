@@ -78,7 +78,7 @@ describe("as três caixas", () => {
   });
 
   it("em aberto sem data não é atraso", () => {
-    // É cadastro incompleto, e isso se resolve na ficha — não aqui,
+    // É cadastro incompleto, e isso se resolve na ficha, não aqui,
     // gritando em vermelho.
     const c = caixasDoDia([l({ next_contact_on: null })], HOJE);
     expect(c.atrasados).toEqual([]);

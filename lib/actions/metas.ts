@@ -8,7 +8,7 @@ import { paraNumero } from "@/lib/financeiro/valores";
  * O que a tela de Metas grava.
  *
  * Só palpite: premissas, contratações e o ritmo de entrada. A
- * carteira, o faturamento e as contas fixas não se editam aqui —
+ * carteira, o faturamento e as contas fixas não se editam aqui,
  * cada um tem a tela dele, e dois lugares para o mesmo número é
  * como se perde a conta.
  */

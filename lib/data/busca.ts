@@ -5,7 +5,7 @@ import type { AreaId } from "@/lib/interno/areas";
 /** Um resultado de busca, já sabendo para onde levar e de que área é. */
 export interface ResultadoBusca {
   id: string;
-  /** Área de origem — dá a cor da linha. */
+  /** Área de origem, dá a cor da linha. */
   origem: AreaId;
   /** O que é ("Cliente", "Lançamento", "Oportunidade"...). */
   tipo: string;
@@ -21,7 +21,7 @@ const POR_TIPO = 5;
  * Busca em tudo que o sistema interno conhece.
  *
  * Roda seis consultas em paralelo e devolve agrupado. Não é busca
- * textual sofisticada — é `ilike` em nome/descrição, que é o suficiente
+ * textual sofisticada, é `ilike` em nome/descrição, que é o suficiente
  * para uma base do tamanho da agência e não exige índice especial.
  */
 export async function buscarTudo(termo: string): Promise<ResultadoBusca[]> {

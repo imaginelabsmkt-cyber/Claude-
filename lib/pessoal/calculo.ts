@@ -2,16 +2,16 @@
  * =============================================================
  * CÁLCULO DOS GASTOS PESSOAIS
  * =============================================================
- * Regras puras da aba pessoal — nada de banco aqui, para poder ser
+ * Regras puras da aba pessoal, nada de banco aqui, para poder ser
  * testado de verdade.
  *
  * A diferença conceitual em relação ao financeiro da empresa:
  *
- *   EMPRESA: o que importa é COMPETÊNCIA e SALDO encadeado — o saldo
+ *   EMPRESA: o que importa é COMPETÊNCIA e SALDO encadeado, o saldo
  *   final de um mês é o inicial do seguinte, porque é uma série
  *   contínua que tem que fechar com o extrato.
  *
- *   PESSOAL: o que importa é o MÊS FECHADO EM SI — "entrou X, saiu Y,
+ *   PESSOAL: o que importa é o MÊS FECHADO EM SI, "entrou X, saiu Y,
  *   sobrou Z". Ninguém controla gasto pessoal encadeando saldo de
  *   janeiro até dezembro; a pergunta é sempre "como foi este mês".
  *
@@ -39,7 +39,7 @@ export interface FixoPessoal {
 }
 
 /**
- * Sugestões de categoria. NÃO é uma lista fechada — o campo é texto
+ * Sugestões de categoria. NÃO é uma lista fechada, o campo é texto
  * livre, e cada uma escreve o que quiser. Isto só alimenta o
  * autocompletar, para não ter que digitar "Alimentação" com acento
  * toda vez (e para "mercado" e "Mercado" não virarem duas linhas no
@@ -122,7 +122,7 @@ export interface CategoriaPessoal {
  *
  * A comparação é por nome normalizado (sem espaços nas pontas, sem
  * diferença de maiúscula), mas o nome exibido é o da primeira
- * aparição — assim "mercado" e "Mercado" somam na mesma linha em vez
+ * aparição, assim "mercado" e "Mercado" somam na mesma linha em vez
  * de virarem duas.
  */
 export function agruparPorCategoriaPessoal(
@@ -176,7 +176,7 @@ export function fixosVigentes<T extends FixoPessoal>(
 /**
  * Quais fixos vigentes ainda NÃO viraram lançamento neste mês.
  *
- * O banco já impede duplicata — `unique (recurrence_id,
+ * O banco já impede duplicata, `unique (recurrence_id,
  * reference_month)`. Esta função existe para o botão saber quantos
  * itens tem para criar (e para não mandar um insert que vai falhar).
  */

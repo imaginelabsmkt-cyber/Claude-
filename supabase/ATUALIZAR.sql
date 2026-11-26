@@ -1,45 +1,45 @@
 -- =============================================================
--- ATUALIZAR O SISTEMA — rode este arquivo, só ele
+-- ATUALIZAR O SISTEMA, rode este arquivo, só ele
 --
 -- GERADO por scripts/montar-atualizar.sh. Não editar à mão: mexa
 -- nos arquivos de origem e rode o script de novo.
 --
 -- Junta, na ordem certa, tudo que ainda falta aplicar no banco:
 --
---   0. 00_colunas_novas — as colunas que o sistema passou a precisar.
+--   0. 00_colunas_novas, as colunas que o sistema passou a precisar.
 --      Vem primeiro porque os blocos seguintes usam elas.
---   1. ajustar_planilha_novembro — tira o Captions e a
+--   1. ajustar_planilha_novembro, tira o Captions e a
 --      Contabilidade / MEI, põe o Canva em R$ 35,00, entra a Salte,
 --      e acerta o dia do pró-labore (10) e do cartão (20).
---   2. vencimentos_por_cliente — o dia de cada cliente.
---   3. meta_de_faturamento — cria o campo da meta do ano.
---   4. detalhar_historico — abre os meses passados item por item,
+--   2. vencimentos_por_cliente, o dia de cada cliente.
+--   3. meta_de_faturamento, cria o campo da meta do ano.
+--   4. detalhar_historico, abre os meses passados item por item,
 --      no lugar das linhas-bloco e do "A CLASSIFICAR".
---   5. antecipado_e_fatura_outubro — o Studio Bambu paga adiantado,
+--   5. antecipado_e_fatura_outubro, o Studio Bambu paga adiantado,
 --      a Salte fica sem dia até fechar o contrato, e a fatura do
 --      cartão de outubro entra com o que faltava.
---   6. destravar_fixos — as recorrências passam a valer desde o
+--   6. destravar_fixos, as recorrências passam a valer desde o
 --      começo da série, cada lançamento passado se liga à sua
 --      recorrência (é o que faz aparecer a caixinha de pago nos
 --      meses anteriores), o Softbox duplicado sai e a "segunda
 --      cobrança do Adobe" vira "Adobe Premiere".
---   7. vencimento_das_receitas — receita vence no próprio mês, menos
+--   7. vencimento_das_receitas, receita vence no próprio mês, menos
 --      a Malukies, que vence no seguinte.
---   8. funil_da_reuniao — o funil ganha "Reunião marcada", a proposta
+--   8. funil_da_reuniao, o funil ganha "Reunião marcada", a proposta
 --      passa a ser APRESENTADA (não enviada) e entra o canal
 --      "Tráfego pago".
---   9. comercial_historico_e_atividades — o comercial passa a guardar
+--   9. comercial_historico_e_atividades, o comercial passa a guardar
 --      cada mudança de etapa (com data) e ganha as atividades:
 --      tarefa, reunião, ligação e WhatsApp presas ao cliente.
---  10. salte_e_clientes_repetidos — apaga a cópia órfã de cliente
+--  10. salte_e_clientes_repetidos, apaga a cópia órfã de cliente
 --      repetido por nome e registra a Salte no funil como ganha.
--- 11. comercial_do_prototipo — temperatura do lead e as origens que
+-- 11. comercial_do_prototipo, temperatura do lead e as origens que
 --      faltavam, vindas do protótipo que a Vitória montou.
---  12. juntar_salte — a "Salte" e o "Studio Salte" são o mesmo
+--  12. juntar_salte, a "Salte" e o "Studio Salte" são o mesmo
 --      estúdio. Passa tudo para um e apaga a duplicata.
---  13. metas — as premissas, as contratações e o ritmo de entrada
+--  13. metas, as premissas, as contratações e o ritmo de entrada
 --      da projeção. O videomaker já entra em março/27.
---  14. videos_por_cliente — quantos vídeos cada contrato tem por
+--  14. videos_por_cliente, quantos vídeos cada contrato tem por
 --      mês, que é o que dimensiona editor e videomaker.
 --
 -- COMO RODAR
@@ -148,7 +148,7 @@ begin
   -- Procura pelos DOIS nomes. A Fran: "o cliente Salte está
   -- duplicado com o Studio Salte (é o mesmo estúdio)". Este bloco
   -- procurava só por "Salte" e, depois que a duplicata foi apagada,
-  -- criava ela de novo na rodada seguinte — a duplicata voltava
+  -- criava ela de novo na rodada seguinte, a duplicata voltava
   -- sozinha, toda vez que o arquivo rodasse.
   --
   -- Se não existir nenhum dos dois, nasce com o nome certo.
@@ -328,7 +328,7 @@ comment on column public.financial_settings.annual_revenue_goal is
 delete from public.financial_entries
  where reference_month in ('2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10')
    and kind = 'Despesa'
-   and description in ('Pró-labore (sócias)', 'Assinaturas e ferramentas digitais', 'Equipamentos', 'Outros custos operacionais', 'Transporte / deslocamento', 'Tráfego pago (gestão)', 'Contabilidade / MEI', 'DAS - Simples Nacional', 'Telefone / internet', 'Freelancers / colaboradores', 'A CLASSIFICAR — diferença da planilha', 'Projetos avulsos', 'Projeto avulso');
+   and description in ('Pró-labore (sócias)', 'Assinaturas e ferramentas digitais', 'Equipamentos', 'Outros custos operacionais', 'Transporte / deslocamento', 'Tráfego pago (gestão)', 'Contabilidade / MEI', 'DAS - Simples Nacional', 'Telefone / internet', 'Freelancers / colaboradores', 'A CLASSIFICAR, diferença da planilha', 'Projetos avulsos', 'Projeto avulso');
 
 -- 2. Uma linha por item.
 insert into public.financial_entries
@@ -1462,7 +1462,7 @@ delete from public.financial_entries
 -- 2. Linha repetida no mesmo mês
 --
 -- Mesmo mês, mesmo nome, mesmo valor: fica uma só. Some apenas o
--- que está EM ABERTO — o que já foi pago nunca é apagado.
+-- que está EM ABERTO, o que já foi pago nunca é apagado.
 --
 -- Isto limpa o estrago de rodadas anteriores (o Softbox apareceu
 -- duas vezes, e o Premiere também). Se um dia houver duas cobranças
@@ -1496,7 +1496,7 @@ update public.financial_recurrences r
 -- 4. Ligar cada lançamento à recorrência que o representa
 --
 -- Pelo nome e pelo tipo, e só onde aquele mês ainda não tem
--- nenhum lançamento ligado àquela recorrência — o par
+-- nenhum lançamento ligado àquela recorrência, o par
 -- (recorrência, mês) é único no banco.
 -- -------------------------------------------------------------
 with alvo as (
@@ -1832,7 +1832,7 @@ comment on column public.commercial_leads.temperature is
 --
 --    O protótipo tem nove; o nosso tinha seis. Instagram orgânico,
 --    grupos de WhatsApp e visita presencial são três jeitos de
---    chegar cliente que ficavam todos em "Outro" — e "Outro" não
+--    chegar cliente que ficavam todos em "Outro", e "Outro" não
 --    responde em que canal vale gastar a próxima hora.
 alter type lead_channel add value if not exists 'Instagram orgânico' after 'Tráfego pago';
 alter type lead_channel add value if not exists 'Grupos e WhatsApp'  after 'Evento';
@@ -1844,7 +1844,7 @@ alter type lead_channel add value if not exists 'Visita presencial'  after 'Parc
 --    cinco. A diferença que importa é o começo: "Novo lead" (chegou e
 --    ninguém falou com ele), "Primeiro contato" (mensagem enviada,
 --    esperando resposta) e "Em conversa" (respondeu, mas ainda não
---    marcou reunião) eram tudo uma coisa só aqui — e são três
+--    marcou reunião) eram tudo uma coisa só aqui, e são três
 --    situações com ações completamente diferentes.
 --
 --    MAS NÃO É CÓPIA. Copiar ao pé da letra desfaria duas correções
@@ -1909,7 +1909,7 @@ $$;
 --    É o motor da tela "Hoje" do protótipo: toda etapa aberta tem uma
 --    data de próximo contato, e quem passou da data aparece em
 --    vermelho. O nosso tinha só o "parado há N dias", que é alarme
---    DEPOIS do fato — não existia o compromisso marcado.
+--    DEPOIS do fato, não existia o compromisso marcado.
 alter table public.commercial_leads
   add column if not exists next_contact_on date;
 
@@ -1943,15 +1943,15 @@ update public.commercial_leads
 --     ERROR: unsafe use of new value "Novo lead" of enum type
 --
 -- O SQL Editor do Supabase roda o arquivo inteiro numa transação só,
--- então o arquivo quebraria na cara dela — foi o que aconteceu no meu
+-- então o arquivo quebraria na cara dela, foi o que aconteceu no meu
 -- teste, e é o mesmo erro que já quebrou uma vez. O padrão só vale
 -- para quem insere direto no banco; o sistema sempre manda a etapa, e
 -- a instalação do zero já nasce com o padrão certo.
 
 -- 5. MOTIVO DA PERDA EM LISTA --------------------------------------
 --
---    Era texto livre, e eu normalizava na hora de somar — tirando
---    acento, ponto final e maiúscula — para "Achou caro", "achou
+--    Era texto livre, e eu normalizava na hora de somar, tirando
+--    acento, ponto final e maiúscula, para "Achou caro", "achou
 --    caro" e "achou caro." virarem o mesmo motivo. Funciona até
 --    alguém escrever "preço alto", e aí a conta mente.
 --
@@ -1980,7 +1980,7 @@ comment on column public.commercial_leads.lost_reason_kind is
 
 -- O que já estava escrito à mão entra na lista onde dá para ter
 -- certeza. O que não casar fica sem categoria e com o texto
--- preservado — chutar a categoria de uma perda é pior do que não ter.
+-- preservado, chutar a categoria de uma perda é pior do que não ter.
 update public.commercial_leads
    set lost_reason_kind = case
          when lost_reason ilike '%sem resposta%'  then 'Sem resposta'
@@ -2001,7 +2001,7 @@ update public.commercial_leads
 --    A maior falta do nosso Painel de canais: ele dizia quantos
 --    fecharam por canal, e NÃO quanto cada canal custou. Sem o custo,
 --    "indicação converte 50%" e "tráfego converte 8%" parecem a
---    mesma informação — quando um é de graça e o outro consome
+--    mesma informação, quando um é de graça e o outro consome
 --    R$ 500 por mês.
 --
 --    O protótipo da Vitória lança o gasto por mês e por origem, e
@@ -2071,7 +2071,7 @@ begin
    limit 1;
 
   -- Se o "Studio Salte" não existir, não dá para transferir para
-  -- lugar nenhum — e apagar perderia o histórico. Então a duplicata
+  -- lugar nenhum, e apagar perderia o histórico. Então a duplicata
   -- só muda de nome, e o resultado é o mesmo: um cliente só, com o
   -- nome certo.
   if v_destino is null then
@@ -2136,7 +2136,7 @@ begin
   -- 5. A duplicata.
   --
   -- A esta altura não sobrou nada pendurado nela, menos as linhas
-  -- que colidiam — e essas o destino já tinha.
+  -- que colidiam, e essas o destino já tinha.
   -- ---------------------------------------------------------
   delete from public.clients where id = v_origem;
 
@@ -2148,29 +2148,23 @@ end $$;
 -- =============================================================
 create table if not exists public.growth_assumptions (
   id boolean primary key default true check (id),
-
   -- Quanto vale um cliente novo, e quanto trabalho ele dá.
   ticket_novo        numeric(14, 2) not null default 2000,
   videos_por_cliente numeric(6, 2)  not null default 4,
-
   -- O editor é pago por vídeo, não por mês: tem teto de produção.
   videos_do_editor   integer        not null default 50,
   preco_por_video    numeric(14, 2) not null default 50,
-
   -- Imposto. `imposto_fixo` é o palpite de vocês; `imposto_percentual`
   -- é a 1ª faixa do Anexo III do Simples, para comparar.
   imposto_fixo       numeric(14, 2) not null default 600,
   contador_mensal    numeric(14, 2) not null default 0,
   das_do_mei         numeric(14, 2) not null default 86.05,
   imposto_percentual numeric(6, 4)  not null default 0.06,
-
   -- A saída do MEI custa uma vez e muda o imposto daí para a frente.
   custo_saida_do_mei numeric(14, 2) not null default 2000,
   mes_saida_do_mei   text           not null default '2027-01',
-
   -- Encargos sobre salário CLT: 13º, férias com 1/3, FGTS. Em PJ, 0.
   encargos_clt       numeric(6, 4)  not null default 0.40,
-
   -- A meta.
   guardar_por_mes    numeric(14, 2) not null default 8500,
   meta_guardada      numeric(14, 2) not null default 50000,
@@ -2203,17 +2197,13 @@ create table if not exists public.growth_hires (
   id         uuid primary key default gen_random_uuid(),
   role       text not null,
   pay_kind   hire_pay_kind not null default 'mensal',
-
   -- Para 'mensal': o salário. Para 'por_video': fica em branco e a
   -- conta usa o preço por vídeo das premissas.
   monthly_cost numeric(14, 2),
-
   -- 'YYYY-MM' do primeiro mês em que a pessoa custa dinheiro.
   start_month text not null,
-
   -- Entra na conta? Desmarcar simula adiar a contratação sem apagar.
   active     boolean not null default true,
-
   -- Encargos CLT por cima do salário. PJ: false.
   clt        boolean not null default true,
 

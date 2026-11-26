@@ -7,7 +7,7 @@
  * marcados como exemplo. Quem olhar a imagem tem que saber na hora.
  *
  * Os três blocos renderizam os COMPONENTES DE VERDADE
- * (CaixaDoDia, TabelaDeLeads, a página de Como funciona inteira) —
+ * (CaixaDoDia, TabelaDeLeads, a página de Como funciona inteira),
  * nunca uma cópia do markup, que envelhece e mente.
  */
 import { describe, it, vi } from "vitest";
@@ -82,7 +82,7 @@ const BASE: DaBase[] = [
 function Aviso() {
   return (
     <p className="mb-3 rounded-lg bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-900">
-      PRÉVIA — os nomes são inventados. O desenho é o de verdade.
+      PRÉVIA, os nomes são inventados. O desenho é o de verdade.
     </p>
   );
 }

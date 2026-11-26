@@ -6,7 +6,7 @@
 -- dois motivos que eu criei:
 --
 -- 1. TODA recorrência nasceu com start_month = 2026-11. Em outubro
---    o sistema dizia, em cinza claro, "começa em Nov/26" — e sem
+--    o sistema dizia, em cinza claro, "começa em Nov/26", e sem
 --    caixinha de marcar. Mas o Claude, o Canva e o pró-labore
 --    existem desde abril. O começo certo é o começo da série.
 --
@@ -42,7 +42,7 @@ delete from public.financial_entries
 -- 2. Linha repetida no mesmo mês
 --
 -- Mesmo mês, mesmo nome, mesmo valor: fica uma só. Some apenas o
--- que está EM ABERTO — o que já foi pago nunca é apagado.
+-- que está EM ABERTO, o que já foi pago nunca é apagado.
 --
 -- Isto limpa o estrago de rodadas anteriores (o Softbox apareceu
 -- duas vezes, e o Premiere também). Se um dia houver duas cobranças
@@ -76,7 +76,7 @@ update public.financial_recurrences r
 -- 4. Ligar cada lançamento à recorrência que o representa
 --
 -- Pelo nome e pelo tipo, e só onde aquele mês ainda não tem
--- nenhum lançamento ligado àquela recorrência — o par
+-- nenhum lançamento ligado àquela recorrência, o par
 -- (recorrência, mês) é único no banco.
 -- -------------------------------------------------------------
 with alvo as (

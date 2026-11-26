@@ -14,7 +14,7 @@
 --
 -- Isso tudo o sistema já sabe, e a planilha tinha que digitar à mão.
 -- É o "se integre" do pedido: a projeção lê o que já existe e guarda
--- só o que é PALPITE — quanto vai custar um editor, quando entra a
+-- só o que é PALPITE, quanto vai custar um editor, quando entra a
 -- CS, quanto se quer guardar por mês.
 --
 -- Pode rodar quantas vezes quiser.
@@ -25,29 +25,23 @@
 -- -------------------------------------------------------------
 create table if not exists public.growth_assumptions (
   id boolean primary key default true check (id),
-
   -- Quanto vale um cliente novo, e quanto trabalho ele dá.
   ticket_novo        numeric(14, 2) not null default 2000,
   videos_por_cliente numeric(6, 2)  not null default 4,
-
   -- O editor é pago por vídeo, não por mês: tem teto de produção.
   videos_do_editor   integer        not null default 50,
   preco_por_video    numeric(14, 2) not null default 50,
-
   -- Imposto. `imposto_fixo` é o palpite de vocês; `imposto_percentual`
   -- é a 1ª faixa do Anexo III do Simples, para comparar.
   imposto_fixo       numeric(14, 2) not null default 600,
   contador_mensal    numeric(14, 2) not null default 0,
   das_do_mei         numeric(14, 2) not null default 86.05,
   imposto_percentual numeric(6, 4)  not null default 0.06,
-
   -- A saída do MEI custa uma vez e muda o imposto daí para a frente.
   custo_saida_do_mei numeric(14, 2) not null default 2000,
   mes_saida_do_mei   text           not null default '2027-01',
-
   -- Encargos sobre salário CLT: 13º, férias com 1/3, FGTS. Em PJ, 0.
   encargos_clt       numeric(6, 4)  not null default 0.40,
-
   -- A meta.
   guardar_por_mes    numeric(14, 2) not null default 8500,
   meta_guardada      numeric(14, 2) not null default 50000,
@@ -80,17 +74,13 @@ create table if not exists public.growth_hires (
   id         uuid primary key default gen_random_uuid(),
   role       text not null,
   pay_kind   hire_pay_kind not null default 'mensal',
-
   -- Para 'mensal': o salário. Para 'por_video': fica em branco e a
   -- conta usa o preço por vídeo das premissas.
   monthly_cost numeric(14, 2),
-
   -- 'YYYY-MM' do primeiro mês em que a pessoa custa dinheiro.
   start_month text not null,
-
   -- Entra na conta? Desmarcar simula adiar a contratação sem apagar.
   active     boolean not null default true,
-
   -- Encargos CLT por cima do salário. PJ: false.
   clt        boolean not null default true,
 

@@ -15,11 +15,11 @@ export const metadata = { title: "Como funciona" };
 /**
  * As regras do comercial, escritas.
  *
- * Do protótipo da Vitória — é a aba "Como funciona", e ela existe
+ * Do protótipo da Vitória, é a aba "Como funciona", e ela existe
  * para as duas usarem o sistema igual.
  *
  * A diferença para o protótipo: lá o texto é fixo, digitado à mão.
- * Aqui ele é LIDO do próprio sistema — as etapas saem de
+ * Aqui ele é LIDO do próprio sistema, as etapas saem de
  * `lib/comercial/etapas.ts`, as origens e os motivos saem de
  * `types`. Então esta página não tem como ficar desatualizada: se eu
  * mudar uma etapa e esquecer de avisar, ela muda aqui sozinha.

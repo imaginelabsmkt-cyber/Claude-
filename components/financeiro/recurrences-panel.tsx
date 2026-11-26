@@ -60,7 +60,7 @@ interface RecurrencesPanelProps {
  * Fran disse duas vezes que "o que está em Mês está repetido em Fixos
  * e ferramentas": duas telas com o mesmo desenho parecem a mesma
  * tela, mesmo respondendo coisas diferentes. Tabela com cabeçalho é a
- * forma de um cadastro — o que vale, em que dia, até quando. A folha
+ * forma de um cadastro, o que vale, em que dia, até quando. A folha
  * do mês é a forma de uma conferência.
  */
 export function RecurrencesPanel({
@@ -216,7 +216,7 @@ export function RecurrencesPanel({
         </td>
 
         <td className="whitespace-nowrap px-3 py-2 text-right text-sm tabular-nums text-gray-600">
-          {item.due_day ? `dia ${item.due_day}` : "—"}
+          {item.due_day ? `dia ${item.due_day}` : "-"}
         </td>
 
         <td className="hidden whitespace-nowrap px-3 py-2 text-right text-xs text-gray-500 sm:table-cell">
@@ -240,8 +240,8 @@ export function RecurrencesPanel({
   /**
    * A lista do que se repete, em TABELA.
    *
-   * Era o mesmo desenho da folha do mês — cartão por categoria,
-   * linhas com barrinha —, e a Fran disse duas vezes: "o que está em
+   * Era o mesmo desenho da folha do mês, cartão por categoria,
+   * linhas com barrinha, e a Fran disse duas vezes: "o que está em
    * Mês está repetido em Fixos e ferramentas". Duas telas com o mesmo
    * formato parecem a mesma tela, mesmo quando respondem coisas
    * diferentes.
@@ -314,7 +314,7 @@ export function RecurrencesPanel({
           Estava embaixo dos três cartões e a Fran não achou: "as
           ferramentas de novembro eu não sei onde eu adiciono". É aqui
           que se põe uma ferramenta nova, e é aqui que se põe o que
-          dura alguns meses — a Mentoria até fevereiro — pelos campos
+          dura alguns meses, a Mentoria até fevereiro, pelos campos
           "Começa em" e "Termina em". */}
       {/* Duas portas, lado a lado, porque a pergunta dela foi exata:
           "e se for uma conta nova que NÃO se repete, como que eu

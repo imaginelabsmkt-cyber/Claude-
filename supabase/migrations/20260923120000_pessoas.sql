@@ -1,5 +1,5 @@
 -- =============================================================
--- Pessoas — quem trabalha na agência e quanto custa
+-- Pessoas, quem trabalha na agência e quanto custa
 --
 -- Até aqui a área "Pessoas" era só um recorte do financeiro: mostrava
 -- o total de pró-labore, mas não sabia QUEM. Esta migration cria o
@@ -7,7 +7,7 @@
 --
 -- Por que uma tabela nova, se já existe `profiles`?
 --   `profiles` é quem faz LOGIN no sistema (hoje, Fran e Vitória).
---   `team_members` é quem RECEBE dinheiro da agência — o que inclui
+--   `team_members` é quem RECEBE dinheiro da agência, o que inclui
 --   freelancers que nunca vão ter login. São coisas diferentes, e a
 --   ligação opcional `profile_id` junta as duas quando é a mesma pessoa.
 --
@@ -45,7 +45,7 @@ create table if not exists public.team_members (
   default_rate numeric(12, 2) check (default_rate is null or default_rate >= 0),
   contact      text,
   -- Chave PIX ou dado de pagamento. Não é segredo de sistema, é dado
-  -- de cadastro — mas fica atrás do login como todo o resto.
+  -- de cadastro, mas fica atrás do login como todo o resto.
   payment_info text,
   notes        text,
   active       boolean not null default true,

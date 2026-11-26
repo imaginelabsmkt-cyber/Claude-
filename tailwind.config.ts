@@ -38,7 +38,7 @@ const config: Config = {
           800: "#332c2e",
           900: "#231d20",
         },
-        // Favie — vinho da marca (#6A2336) como cor principal, sobre fundo
+        // Favie, vinho da marca (#6A2336) como cor principal, sobre fundo
         // claro. Tons do mais claro (fundos/badges) ao mais escuro (hover).
         brand: {
           50: "#faf1f3",
@@ -62,7 +62,7 @@ const config: Config = {
           DEFAULT: "var(--area)",
           soft: "var(--area-soft)",
         },
-        // Alerta do sistema interno — nunca é cor de área. Significa
+        // Alerta do sistema interno, nunca é cor de área. Significa
         // sempre "venceu ou está vencendo".
         alerta: {
           DEFAULT: "var(--alerta)",
@@ -113,7 +113,7 @@ const config: Config = {
           100: "#fce2cd",
           700: "#99500f",
         },
-        // Creme da marca — acento quente para destaques pontuais.
+        // Creme da marca, acento quente para destaques pontuais.
         creme: {
           100: "#fff1c7",
           200: "#ffe8a6",

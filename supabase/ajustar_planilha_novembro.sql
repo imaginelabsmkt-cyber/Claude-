@@ -117,7 +117,7 @@ begin
   -- Procura pelos DOIS nomes. A Fran: "o cliente Salte está
   -- duplicado com o Studio Salte (é o mesmo estúdio)". Este bloco
   -- procurava só por "Salte" e, depois que a duplicata foi apagada,
-  -- criava ela de novo na rodada seguinte — a duplicata voltava
+  -- criava ela de novo na rodada seguinte, a duplicata voltava
   -- sozinha, toda vez que o arquivo rodasse.
   --
   -- Se não existir nenhum dos dois, nasce com o nome certo.

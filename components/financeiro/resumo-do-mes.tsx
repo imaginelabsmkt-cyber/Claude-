@@ -6,7 +6,7 @@ import type { ParteDaFolha } from "@/lib/financeiro/folha";
  * O cabeçalho do mês: saldo de verdade e previsão, separados.
  *
  * Do documento da Favie: "o topo mistura o que já aconteceu com o que
- * ainda vai acontecer". Misturava mesmo — o "saldo final" somava a
+ * ainda vai acontecer". Misturava mesmo, o "saldo final" somava a
  * mensalidade que ninguém pagou e o pró-labore que só sai dia 10 do
  * mês que vem, e saía com cara de extrato.
  *

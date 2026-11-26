@@ -1,5 +1,5 @@
 -- =============================================================
--- Módulo Financeiro — fluxo de caixa da agência
+-- Módulo Financeiro, fluxo de caixa da agência
 --
 -- Espelha a planilha "Fluxo de Caixa Imagine Labs 2026":
 --   * cada mês tem um saldo inicial (= saldo final do mês anterior);

@@ -2,7 +2,7 @@
 -- Diagnóstico do cliente
 --
 -- O diagnóstico é a análise profunda (Instagram, concorrência, plano) feita
--- no início/pontualmente — diferente do relatório recorrente. É guardado
+-- no início/pontualmente, diferente do relatório recorrente. É guardado
 -- como HTML (documento visual, auto-contido) e renderizado dentro da ficha
 -- do cliente para nunca se perder.
 --
@@ -19,7 +19,7 @@ create table if not exists public.client_diagnostics (
 );
 
 comment on table public.client_diagnostics is
-  'Diagnósticos (HTML visual) por cliente — análise profunda, distinta do relatório.';
+  'Diagnósticos (HTML visual) por cliente, análise profunda, distinta do relatório.';
 
 create index if not exists idx_client_diagnostics_client_id
   on public.client_diagnostics (client_id);

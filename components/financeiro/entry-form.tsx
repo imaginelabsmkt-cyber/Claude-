@@ -32,7 +32,7 @@ interface EntryFormProps {
   mes: string;
   categorias: FinancialCategory[];
   clientes: Pick<Client, "id" | "name" | "active">[];
-  /** Equipe ativa — o campo só aparece em categoria de pessoas. */
+  /** Equipe ativa, o campo só aparece em categoria de pessoas. */
   pessoas?: Pick<TeamMember, "id" | "name" | "kind">[];
   /** Quando informado, o formulário está em modo de edição. */
   lancamento?: FinancialEntry;

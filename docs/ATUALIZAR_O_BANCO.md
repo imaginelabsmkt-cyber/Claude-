@@ -2,8 +2,8 @@
 
 O sistema tem duas metades: o **site** (que sobe sozinho quando eu
 mando o código) e o **banco** (que só muda quando você manda). Quando
-eu crio uma tela que guarda coisa nova — temperatura do lead, motivo
-da perda, investimento por canal —, a tela sobe, mas o lugar de
+eu crio uma tela que guarda coisa nova (temperatura do lead, motivo
+da perda, investimento por canal), a tela sobe, mas o lugar de
 guardar não existe ainda. Aí parece que nada mudou.
 
 É isso que este arquivo resolve.
@@ -35,7 +35,7 @@ linha e eu acho na hora.
 Pode. O arquivo é feito para isso: ele confere cada coisa antes de
 criar, e o que já existe ele deixa quieto. Rodei três vezes seguidas
 num banco de teste antes de te entregar, do zero e por cima de um
-banco antigo. Se você estiver na dúvida se já rodou, rode de novo —
+banco antigo. Se você estiver na dúvida se já rodou, rode de novo:
 não quebra nada.
 
 ## Antes, se você quiser

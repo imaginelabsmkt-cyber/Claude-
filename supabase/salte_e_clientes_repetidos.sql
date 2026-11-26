@@ -8,15 +8,15 @@
 -- DUAS COISAS, nessa ordem.
 --
 -- 1. CLIENTE REPETIDO. A relação de clientes mostra uma linha por
---    registro. Se o mesmo nome entrou duas vezes — e entrou, porque a
+--    registro. Se o mesmo nome entrou duas vezes, e entrou, porque a
 --    Salte foi inserida direto da planilha de novembro, por nome, em
---    mais de uma passada — a relação mostra o nome duas vezes, e não
+--    mais de uma passada, a relação mostra o nome duas vezes, e não
 --    há tela que resolva isso: é dado duplicado.
 --
 --    A limpeza é CONSERVADORA de propósito: só apaga a cópia que não
 --    tem NADA apontando para ela, em nenhuma das onze tabelas que
 --    referenciam cliente. Uma cópia com lançamento, conteúdo ou
---    contrato atrás não é lixo, é fusão de cadastro — e fusão a gente
+--    contrato atrás não é lixo, é fusão de cadastro, e fusão a gente
 --    não faz calado.
 --
 -- 2. A SALTE NO FUNIL. Ela virou cliente sem passar pelo comercial,

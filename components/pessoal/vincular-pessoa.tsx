@@ -9,7 +9,7 @@ import { toast } from "@/lib/ui/toast";
 import type { TeamMember } from "@/types";
 
 /**
- * "Qual pessoa da equipe sou eu?" — pergunta uma vez, nunca mais.
+ * "Qual pessoa da equipe sou eu?", pergunta uma vez, nunca mais.
  *
  * Com o vínculo feito, a aba pessoal mostra o pró-labore que a agência
  * pagou no mês, lendo o financeiro da empresa. Sem ele, dá para usar a

@@ -11,7 +11,7 @@ import { ETAPAS_ABERTAS } from "@/lib/comercial/etapas";
  *
  * Tudo trabalha com data em texto ("2026-11-22") e compara texto com
  * texto. Data em texto no formato ISO compara certo em ordem
- * alfabética, e assim nenhuma conta passa por `new Date()` — que, no
+ * alfabética, e assim nenhuma conta passa por `new Date()`, que, no
  * servidor em UTC e no navegador em Boa Vista, dá dias diferentes
  * perto da meia-noite.
  */
@@ -57,7 +57,7 @@ const VALIDA = /^\d{4}-\d{2}-\d{2}$/;
  *
  * Só entra quem está EM ABERTO e tem data combinada. Quem fechou ou
  * não fechou não tem próximo contato, e quem está em aberto sem data
- * não é atraso — é cadastro incompleto, e isso se resolve na ficha,
+ * não é atraso, é cadastro incompleto, e isso se resolve na ficha,
  * não aqui gritando em vermelho.
  */
 export function caixasDoDia<T extends ParaHoje>(
@@ -122,7 +122,7 @@ export const ESPERA_NAO_FECHOU = 90;
  * Quem já pode ser procurado de novo.
  *
  * Do protótipo: quem não fechou volta à fila 90 dias depois. Não é
- * insistência — é que "não é o momento" tem prazo de validade, e sem
+ * insistência, é que "não é o momento" tem prazo de validade, e sem
  * isso essa gente some para sempre numa lista que ninguém abre.
  */
 export function paraRetomar<T extends ParaRetomar>(

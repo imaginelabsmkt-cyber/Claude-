@@ -18,7 +18,7 @@ interface ExcluirLancamentoProps {
 /**
  * Excluir um lançamento, a partir da tela de edição.
  *
- * "Quero excluir, como faz?" — não fazia. Excluir existia só na lista
+ * "Quero excluir, como faz?", não fazia. Excluir existia só na lista
  * de Lançamentos, que deixou de ser aba; na folha do mês, que é a tela
  * que ela usa, dava para marcar, corrigir o valor e editar, mas o que
  * tinha sido lançado errado ficava lá para sempre.

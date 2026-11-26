@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
  * a conta mudar. Um botão por campo seria um clique entre a pergunta
  * e a resposta, vinte vezes seguidas.
  *
- * Se o valor não mudou, não grava nada — senão qualquer passagem de
+ * Se o valor não mudou, não grava nada, senão qualquer passagem de
  * foco viraria uma escrita no banco e um recarregamento da página.
  */
 export function CampoSalvo({

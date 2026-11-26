@@ -14,7 +14,7 @@
 -- O sistema guardava só `stage_changed_at`: QUANDO entrou na etapa de
 -- agora. Tudo antes disso era jogado fora a cada movimento, então não
 -- havia como responder "quanto tempo leva do primeiro contato ao
--- sim?" — que é a conta que diz se o comercial está melhorando.
+-- sim?", que é a conta que diz se o comercial está melhorando.
 -- -------------------------------------------------------------
 
 -- 1. HISTÓRICO DE ETAPAS -------------------------------------------

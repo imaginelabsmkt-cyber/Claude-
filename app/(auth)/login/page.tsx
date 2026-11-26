@@ -22,7 +22,7 @@ function traduzirErro(mensagem: string): string {
 }
 
 /**
- * Tela de Login — autenticação por e-mail e senha (Supabase Auth).
+ * Tela de Login, autenticação por e-mail e senha (Supabase Auth).
  * Trata estados de carregamento e erro.
  */
 export default function LoginPage() {

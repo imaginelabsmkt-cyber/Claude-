@@ -21,7 +21,7 @@ import type { Premissas } from "@/lib/metas/projecao";
  * O que se mexe na tela de Metas.
  *
  * A Fran: "para a gente conseguir ficar sempre analisando essas
- * projeções". Analisar é mexer num número e ver o resto mudar — por
+ * projeções". Analisar é mexer num número e ver o resto mudar, por
  * isso tudo salva ao sair do campo, sem botão no meio do caminho.
  *
  * O que NÃO se mexe aqui: carteira, faturamento e contas fixas. Cada

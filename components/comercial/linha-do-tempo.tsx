@@ -6,7 +6,7 @@ import type { PassoDaEtapa } from "@/lib/data/comercial";
  *
  * Do raio-X do Zoho: "a aba Linha do tempo mostra o histórico do
  * registro em ordem de data", e, nas lições do fim, "datas gravadas
- * desde o primeiro dia — é o que permite calcular tempo de ciclo e
+ * desde o primeiro dia, é o que permite calcular tempo de ciclo e
  * conversão depois".
  *
  * O sistema guardava só a data da etapa ATUAL e jogava o resto fora a

@@ -36,7 +36,7 @@ function tamanho(bytes: number | null): string {
  * por link assinado de curta duração, então o arquivo nunca fica
  * público.
  *
- * Documento de CLIENTE não entra aqui — ele vive na ficha do cliente.
+ * Documento de CLIENTE não entra aqui, ele vive na ficha do cliente.
  */
 export function DocumentosPanel({ documentos }: { documentos: CompanyFile[] }) {
   const router = useRouter();

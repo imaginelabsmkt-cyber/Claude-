@@ -11,7 +11,7 @@ import type { ResultadoBusca } from "@/lib/data/busca";
  * Busca global do sistema interno (⌘K / Ctrl+K).
  *
  * Acha cliente, lançamento, oportunidade, pessoa, obrigação e documento
- * de qualquer tela. Cada resultado carrega a cor da área de onde veio —
+ * de qualquer tela. Cada resultado carrega a cor da área de onde veio,
  * o mesmo código de cor do resto do sistema.
  *
  * A busca roda no servidor: o navegador nunca recebe o que o RLS não

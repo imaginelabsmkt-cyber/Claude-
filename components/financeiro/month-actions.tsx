@@ -24,7 +24,7 @@ interface MonthActionsProps {
  * A barra de ações do mês. UM botão de destaque e um campo de busca.
  *
  * Era uma fila de quatro: "Novo lançamento", "Gerar do plano fixo",
- * "Procurar um lançamento" e "Calculadora" — quatro coisas com o
+ * "Procurar um lançamento" e "Calculadora", quatro coisas com o
  * mesmo peso visual, das quais uma se usa o dia inteiro, uma se usa
  * uma vez por mês e duas quase nunca.
  *
@@ -35,7 +35,7 @@ interface MonthActionsProps {
  *                   digitar o nome, não chegar numa tela de busca.
  *   CALCULADORA     foi para a engrenagem.
  *   CONTAS FIXAS    deixou de ser botão. Virou o aviso amarelo
- *                   embaixo, que só aparece quando falta lançar — e
+ *                   embaixo, que só aparece quando falta lançar, e
  *                   some sozinho quando não falta. Botão fixo para
  *                   uma tarefa de uma vez por mês pede atenção 30
  *                   dias para ser útil em 1.
@@ -47,7 +47,7 @@ export function MonthActions({ mes, recorrenciasPendentes }: MonthActionsProps) 
   const [busca, setBusca] = useState("");
 
   /* "Preparar o mês" NÃO lança nada: abre a conferência. Do documento
-     da Favie — "antes de criar os lançamentos, mostrar a lista para
+     da Favie, "antes de criar os lançamentos, mostrar a lista para
      vocês conferirem". */
   function abrirConferencia() {
     iniciar(async () => {

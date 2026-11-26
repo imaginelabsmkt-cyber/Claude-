@@ -15,7 +15,7 @@ import {
  *
  * Não inventei a forma: fui ver como os outros fazem, que é o que a
  * Fran vinha pedindo. Conta Azul, Nibo, Granatum, QuickBooks e Xero
- * divergem em quase tudo e concordam em três lugares — um PAINEL de
+ * divergem em quase tudo e concordam em três lugares, um PAINEL de
  * abertura, uma tela de MOVIMENTO e uma estante de RELATÓRIOS. E o
  * QuickBooks tem duas versões do mesmo menu: a "Accountant view",
  * com Sales e Expenses separados, e a "Business view", para quem não
@@ -40,7 +40,7 @@ import {
  * "a gente tem o mensal, mas se eu quiser ver o anual eu não consigo,
  * aí tá no caixa, mas o caixa é caixa anual". E é isso mesmo: a
  * palavra "ano" não aparecia em lugar nenhum da barra, e o ano
- * inteiro — que na planilha dela é a aba Resumo Anual — ficava
+ * inteiro, que na planilha dela é a aba Resumo Anual, ficava
  * escondido atrás de uma palavra que não é o nome dele.
  *
  * Nos produtos que pesquisei o ano mora dentro de "Relatórios". Aqui
@@ -56,7 +56,7 @@ import {
  *
  * A tela tinha QUATRO lugares com navegação: estas abas, a fila de
  * botões, uma fila de links no pé e o "Configuração" no canto. "Tá
- * muito bagunçado e nada intuitivo" — e estava mesmo. Agora é um
+ * muito bagunçado e nada intuitivo", e estava mesmo. Agora é um
  * lugar só: aqui em cima para ONDE IR, e a fila de botões do Mês
  * para O QUE FAZER.
  */
@@ -64,7 +64,7 @@ import {
 
 
 /**
- * Navegação interna do financeiro. Cada aba é uma responsabilidade só —
+ * Navegação interna do financeiro. Cada aba é uma responsabilidade só,
  * e o mês em foco (?mes=) viaja junto para não se perder na troca de tela.
  */
 export function FinanceTabs() {

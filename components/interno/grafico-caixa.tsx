@@ -214,7 +214,7 @@ function Desenho({
  * "caixa": quanto sobrou no fim de cada mês, encadeado.
  * "faturamento": quanto a agência faturou em cada mês, bruto.
  *
- * Muda só as palavras da leitura e do resumo — o desenho é o mesmo.
+ * Muda só as palavras da leitura e do resumo, o desenho é o mesmo.
  */
 type ModoDaLinha = "caixa" | "faturamento";
 

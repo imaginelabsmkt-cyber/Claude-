@@ -2,7 +2,7 @@
  * Prévia visual da ficha da oportunidade: barra de etapas, atividades
  * e linha do tempo.
  *
- * NOMES INVENTADOS, e marcados como tal na própria imagem — o funil da
+ * NOMES INVENTADOS, e marcados como tal na própria imagem, o funil da
  * Favie não está no seed, então não há dado real para copiar. Fingir
  * que há foi o erro que eu já cometi uma vez.
  */
@@ -87,7 +87,7 @@ describe("prévia: a ficha da oportunidade", () => {
       <div data-area="comercial" className="min-h-screen bg-papel p-6">
         <div className="mx-auto max-w-3xl">
           <p className="mb-3 rounded-lg bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-900">
-            PRÉVIA — nomes inventados. O desenho é o de verdade.
+            PRÉVIA, nomes inventados. O desenho é o de verdade.
           </p>
 
           <div className="mb-5">

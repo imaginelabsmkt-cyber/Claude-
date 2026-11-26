@@ -11,7 +11,7 @@ import { formatarMoeda } from "@/lib/utils";
  * Preciso somar o que eu preciso mandar pra Vitória: o pró-labore
  * dela, a mentoria e o iCloud dela. Quanto dá no total?".
  *
- * Não é uma calculadora com teclas — é uma folha onde se joga os
+ * Não é uma calculadora com teclas, é uma folha onde se joga os
  * números, um por linha, e o total aparece embaixo. É o que ela faz
  * hoje no papel, do lado do computador.
  *

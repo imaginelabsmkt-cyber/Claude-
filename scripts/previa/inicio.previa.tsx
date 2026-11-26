@@ -10,7 +10,7 @@
  *    (Fluxo_Caixa_Imagine_Labs_2026, aba Resumo Anual), mês a mês. A
  *    versão anterior tinha números inventados, eu mandei a imagem para
  *    a Fran como se fosse o sistema dela, e ela viu um ano que não é o
- *    dela — "teve mês que a gente faturou 20.000 e você não levou em
+ *    dela, "teve mês que a gente faturou 20.000 e você não levou em
  *    consideração". Era maio: R$ 20.958,00. Estava certo no sistema e
  *    errado só aqui.
  *
@@ -33,7 +33,7 @@ const MES = "2026-11";
 
 /**
  * A planilha, linha por linha. `receitas` e `despesas` são o TOTAL de
- * cada aba mensal — tudo que foi lançado, caído ou não, que é como a
+ * cada aba mensal, tudo que foi lançado, caído ou não, que é como a
  * planilha soma. `recebido` e `pago` são a marcação: o que já caiu.
  *
  * Em outubro a Malukies (R$ 2.600,00) está "Pendente": entra no total

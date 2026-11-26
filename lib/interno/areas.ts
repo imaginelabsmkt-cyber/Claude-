@@ -39,7 +39,7 @@
  * Pela régua abaixo, ela tem razão: a pergunta "onde a gente quer
  * chegar, e quando" não é respondida por nenhuma das outras três. O
  * Comercial responde de onde vem o próximo cliente; o Financeiro,
- * quanto entrou e saiu — ambos olham para trás ou para hoje. Metas é
+ * quanto entrou e saiu, ambos olham para trás ou para hoje. Metas é
  * a única que olha para a frente, e ela ATRAVESSA as três: lê a
  * carteira do Administrativo, o funil do Comercial e as contas fixas
  * do Financeiro.
@@ -173,7 +173,7 @@ export const AREAS: Area[] = [
  *
  * A régua lá em cima diz que etapa nova precisa responder uma
  * pergunta que nenhuma outra responde. A fila responde "o que eu faço
- * AGORA?", que nenhuma das três etapas responde — mas ela também não
+ * AGORA?", que nenhuma das três etapas responde, mas ela também não
  * é etapa da empresa: ela junta as três, como o Dashboard.
  *
  * Veio do raio-X do Zoho que a Vitória fez: "a Fila de trabalho é a

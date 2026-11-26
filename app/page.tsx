@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  * de conteúdo e demandas é um sistema à parte, com a própria base e os
  * próprios dados.
  *
- * Então não há o que escolher — entrou, está no Interno.
+ * Então não há o que escolher, entrou, está no Interno.
  */
 export default async function RaizPage() {
   const ctx = await getAuthContext();

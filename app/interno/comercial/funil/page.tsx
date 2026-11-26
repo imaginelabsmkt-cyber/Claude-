@@ -128,8 +128,7 @@ export default async function FunilPage({ searchParams }: PageProps) {
           }
         />
         {/* A ponte com as Metas. O funil já responde "quanto está em
-            jogo"; esta responde "e isso chega onde a gente quer?" —
-            que é a pergunta seguinte e morava em outra tela. */}
+            jogo"; esta responde "e isso chega onde a gente quer?", que é a pergunta seguinte e morava em outra tela. */}
         {metas.faltamClientes != null ? (
           <Stat
             rotulo="Para a meta"

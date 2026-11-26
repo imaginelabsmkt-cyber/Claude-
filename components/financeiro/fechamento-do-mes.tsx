@@ -17,11 +17,11 @@ interface FechamentoDoMesProps {
  * O FIM do mês.
  *
  * A Fran: "não existe o momento em que eu digo que acabei". E não
- * existia mesmo — a tela terminava numa lista, e lista não tem fim.
+ * existia mesmo, a tela terminava numa lista, e lista não tem fim.
  *
  * Não inventei estado novo no banco para isso. Um mês está fechado
  * quando TODO lançamento dele tem baixa: ou caiu, ou saiu. É uma
- * conta, não uma marcação — então não tem como ficar mentindo, como
+ * conta, não uma marcação, então não tem como ficar mentindo, como
  * ficaria um campo "fechado" marcado à mão enquanto sobram três
  * contas sem pagar.
  *

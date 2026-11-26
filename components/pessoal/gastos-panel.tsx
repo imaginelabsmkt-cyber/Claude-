@@ -36,8 +36,8 @@ interface GastosPanelProps {
  * Os lançamentos do mês.
  *
  * O formulário de lançar fica SEMPRE aberto no topo, em uma linha. É a
- * ação que mais se repete — gasto pessoal se anota na hora, de pé na
- * fila do mercado — e abrir modal para isso mata o hábito. Os campos
+ * ação que mais se repete, gasto pessoal se anota na hora, de pé na
+ * fila do mercado, e abrir modal para isso mata o hábito. Os campos
  * menos usados (data, anotação, "ainda não paguei") ficam atrás de
  * "mais opções".
  */

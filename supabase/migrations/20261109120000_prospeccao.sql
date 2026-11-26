@@ -1,9 +1,9 @@
 -- =============================================================
--- Prospecção — de onde vem cada oportunidade
+-- Prospecção, de onde vem cada oportunidade
 --
 -- A Vitória trabalha a captação por CANAL (social selling,
 -- indicação, eventos, parcerias). Até aqui o funil sabia em que
--- etapa cada oportunidade está, mas não de onde ela veio — então
+-- etapa cada oportunidade está, mas não de onde ela veio, então
 -- não dava para responder a única pergunta que decide onde investir
 -- tempo: "qual canal realmente vira cliente?".
 --
@@ -51,7 +51,7 @@ create index if not exists idx_commercial_leads_channel
 -- anda para a frente, nunca para trás.
 --
 -- 'Fechado' e 'Perdido' não são "mais avançados" que 'Negociação'
--- para este fim — são as saídas. Fechado avança (é o fim bom do
+-- para este fim, são as saídas. Fechado avança (é o fim bom do
 -- funil); Perdido não mexe, preservando o último degrau real.
 -- -------------------------------------------------------------
 alter table public.commercial_leads
@@ -128,7 +128,7 @@ update public.commercial_leads
 -- Antes desta migration o único registro de origem era `source`, um
 -- texto escolhido numa lista ("Indicação", "Instagram", "Evento"...).
 -- Em vez de jogar fora, mapeia para o canal e deixa o texto original
--- no lugar — ele passa a ser o detalhe ("quem indicou", "qual
+-- no lugar, ele passa a ser o detalhe ("quem indicou", "qual
 -- evento"), que o canal não guarda.
 -- -------------------------------------------------------------
 update public.commercial_leads

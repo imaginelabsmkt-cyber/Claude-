@@ -1,5 +1,5 @@
 -- =============================================================
--- Migration inicial — Sistema de Gestão de Produção de Conteúdo
+-- Migration inicial, Sistema de Gestão de Produção de Conteúdo
 -- Agência de social media
 --
 -- Ordem de criação (evita erros de dependência):
@@ -71,7 +71,7 @@ $$;
 -- 3. Tabelas
 -- -------------------------------------------------------------
 
--- 3.1 profiles — perfil do usuário (1:1 com auth.users)
+-- 3.1 profiles, perfil do usuário (1:1 com auth.users)
 create table if not exists public.profiles (
   id          uuid primary key references auth.users (id) on delete cascade,
   name        text not null,
@@ -84,7 +84,7 @@ create table if not exists public.profiles (
 
 comment on table public.profiles is 'Perfis de usuário; id espelha auth.users.';
 
--- 3.2 clients — clientes atendidos pela agência
+-- 3.2 clients, clientes atendidos pela agência
 create table if not exists public.clients (
   id            uuid primary key default gen_random_uuid(),
   name          text not null,
@@ -99,7 +99,7 @@ create table if not exists public.clients (
 
 comment on table public.clients is 'Clientes da agência.';
 
--- 3.3 contents — entidade central (pauta/roteiro + pipeline)
+-- 3.3 contents, entidade central (pauta/roteiro + pipeline)
 create table if not exists public.contents (
   id                     uuid primary key default gen_random_uuid(),
   client_id              uuid not null references public.clients (id) on delete restrict,
@@ -163,7 +163,7 @@ create table if not exists public.contents (
 
 comment on table public.contents is 'Conteúdos: entidade central do pipeline de produção.';
 
--- 3.4 content_history — histórico de mudanças de campos do conteúdo
+-- 3.4 content_history, histórico de mudanças de campos do conteúdo
 create table if not exists public.content_history (
   id            uuid primary key default gen_random_uuid(),
   content_id    uuid not null references public.contents (id) on delete cascade,
@@ -176,7 +176,7 @@ create table if not exists public.content_history (
 
 comment on table public.content_history is 'Auditoria de alterações em campos de contents.';
 
--- 3.5 comments — comentários em um conteúdo
+-- 3.5 comments, comentários em um conteúdo
 create table if not exists public.comments (
   id         uuid primary key default gen_random_uuid(),
   content_id uuid not null references public.contents (id) on delete cascade,

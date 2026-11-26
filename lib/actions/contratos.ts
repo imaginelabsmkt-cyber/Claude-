@@ -189,8 +189,8 @@ export async function registrarReajusteAction(
  * código da próxima vez."
  *
  * Inativar é diferente de excluir, e é de propósito: o histórico do
- * cliente — o que ele pagou, o que a gente produziu, por onde ele
- * chegou — continua inteiro. Ele só sai da carteira de hoje e passa
+ * cliente, o que ele pagou, o que a gente produziu, por onde ele
+ * chegou, continua inteiro. Ele só sai da carteira de hoje e passa
  * para "Clientes inativos". A conta do ano não muda.
  *
  * Só vale para quem NÃO tem contrato ativo. Inativar alguém com
@@ -270,7 +270,7 @@ export async function reativarClienteAction(
  * Quantos vídeos o contrato do cliente tem por mês.
  *
  * É o número que dimensiona editor e videomaker na projeção. Em
- * branco quer dizer "o contrato não diz" — diferente de zero, que
+ * branco quer dizer "o contrato não diz", diferente de zero, que
  * quer dizer "nenhum". A tela de Metas conta quantos estão em branco
  * e avisa que a conta está por baixo.
  */

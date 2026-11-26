@@ -7,7 +7,7 @@
  * da tabela "porque é componente de cliente", e a cópia mentiu: ela me
  * mostrou uma tabela de três colunas espremida em 390px, quando a
  * tela real já tinha a lista de celular. Componente de cliente
- * renderiza estático igual — só precisa do roteador fingido.
+ * renderiza estático igual, só precisa do roteador fingido.
  */
 import { describe, it, vi } from "vitest";
 

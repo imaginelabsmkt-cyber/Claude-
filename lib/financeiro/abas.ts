@@ -6,7 +6,7 @@
  * gente vai pra outra aba e aí não tem, essa aba não existe, eu acho
  * bem confuso o financeiro". Era isto: o formulário de um lançamento
  * não casava com nenhuma chave do mapa, nenhuma aba acendia, e a
- * barra inteira ficava apagada — como se ela tivesse saído do
+ * barra inteira ficava apagada, como se ela tivesse saído do
  * financeiro sem ter ido a lugar nenhum.
  */
 
@@ -14,8 +14,8 @@
  * As abas, na ordem em que aparecem.
  *
  * Eram quatro. "Ano" e "Relatórios" viraram uma só, "Resumo": as
- * duas respondiam a mesma pergunta em dois lugares — o ano inteiro e
- * os recortes do ano — e Relatórios era só uma lista de quatro links.
+ * duas respondiam a mesma pergunta em dois lugares, o ano inteiro e
+ * os recortes do ano, e Relatórios era só uma lista de quatro links.
  *
  * "Fixos e ferramentas" virou "Contas fixas". O nome velho dizia o
  * que tem dentro; o novo diz o que é.
@@ -23,7 +23,7 @@
  * "Estimativa" entrou depois, a pedido da Fran: é a única aqui que
  * não mostra o que aconteceu, e sim o que aconteceria se um cliente
  * do funil fechasse. Fica entre as contas fixas e o resumo porque é
- * a ponte entre as duas — o que sai todo mês de um lado, quanto
+ * a ponte entre as duas, o que sai todo mês de um lado, quanto
  * precisa entrar do outro.
  *
  * "Metas" chegou a ser aba aqui e saiu: virou área própria, porque

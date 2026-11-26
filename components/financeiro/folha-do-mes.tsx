@@ -172,7 +172,7 @@ function Coluna({ titulo, mes, hoje, grupos, vazio }: ColunaProps) {
       )}
 
       {/* O total no FIM da lista, como a linha "TOTAL RECEITAS" da
-          planilha — só quando a coluna tem MAIS DE UMA categoria.
+          planilha, só quando a coluna tem MAIS DE UMA categoria.
           Com uma só, o total do grupo e o total da coluna são o mesmo
           número em duas linhas coladas, e a Fran lia duas vezes
           procurando a diferença entre eles. */}

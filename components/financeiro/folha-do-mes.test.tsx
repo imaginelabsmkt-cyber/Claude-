@@ -1,7 +1,7 @@
 /**
  * O que a folha do mês ESCREVE.
  *
- * Não julga layout nem cor — isso é olho, e para isso existem as
+ * Não julga layout nem cor, isso é olho, e para isso existem as
  * prévias. Aqui ficam as regras de escrita que a Fran pediu e que já
  * voltaram a ser quebradas por refatoração minha:
  *
@@ -12,7 +12,7 @@
  * na tela o nome deixava de encurtar, e "Mensalidade" voltou nas oito
  * linhas.
  *
- * Hoje o cabeçalho da categoria aparece em TODO grupo — era o outro
+ * Hoje o cabeçalho da categoria aparece em TODO grupo, era o outro
  * pedido: "o item parece fazer parte da categoria de cima". Como o
  * grupo está sempre escrito, o corte também vale sempre, e as duas
  * regras pararam de brigar.
@@ -114,7 +114,7 @@ describe("folha do mês: o que está escrito", () => {
     // O pedido: "o título da categoria não aparece quando ela tem só
     // um lançamento, e o item parece fazer parte da categoria de
     // cima". Aqui o DAS é o grupo de uma linha, depois de um grupo
-    // maior — e tem que ter cabeçalho próprio.
+    // maior, e tem que ter cabeçalho próprio.
     const html = desenhar([
       despesa("Canva", 35, FERRAMENTAS),
       despesa("Claude Max", 572, FERRAMENTAS),

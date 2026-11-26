@@ -109,7 +109,7 @@ describe("cliente imaginado", () => {
 describe("numeração dos clientes imaginados", () => {
   it("o id não repete quando se tira um do meio", () => {
     /* Foi um bug meu: eu numerava pela QUANTIDADE. Com três na lista,
-       tirar o 2 e adicionar outro gerava um segundo "novo-3" — dois
+       tirar o 2 e adicionar outro gerava um segundo "novo-3", dois
        campos de texto com a mesma chave brigando por quem manda. O
        número tem que sair do maior já usado. */
     const tres = [1, 2, 3].map((n) => clienteImaginado(1800, n));

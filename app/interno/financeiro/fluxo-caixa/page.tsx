@@ -62,7 +62,7 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
       <FinanceTabs />
 
       {/* Era "Para onde o caixa está indo", e na troca de linguagem eu
-          renomeei para "Composição das despesas" — que está errado: o
+          renomeei para "Composição das despesas", que está errado: o
           gráfico aqui é o SALDO encadeado mês a mês, não a divisão
           das despesas. Nome errado é pior que nome coloquial. */}
       <Secao titulo="Saldo acumulado">

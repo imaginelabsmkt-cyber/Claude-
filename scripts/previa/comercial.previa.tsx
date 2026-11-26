@@ -73,7 +73,7 @@ function op(
   } as LeadWithRelations;
 }
 
-/** EXEMPLO — não são clientes da Favie. */
+/** EXEMPLO, não são clientes da Favie. */
 const EXEMPLO: LeadWithRelations[] = [
   op("Exemplo 1 (clínica)", "Negociação", "Indicação", 2400, {
     stage_changed_at: atras(9),
@@ -110,7 +110,7 @@ describe("prévia: o funil em lista", () => {
       <div className="min-h-screen bg-papel p-6">
         <div className="mx-auto max-w-5xl">
           <p className="mb-3 rounded-lg bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-900">
-            PRÉVIA — os nomes são inventados. O desenho é o de verdade.
+            PRÉVIA, os nomes são inventados. O desenho é o de verdade.
           </p>
           <BarraDoFunil quantos={EXEMPLO.length} />
           <ListaOportunidades leads={EXEMPLO} agora={HOJE} />

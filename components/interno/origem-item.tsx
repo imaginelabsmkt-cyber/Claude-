@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { area, type AreaId } from "@/lib/interno/areas";
 
 interface OrigemItemProps {
-  /** A área de onde este item veio — define a tarja e a etiqueta. */
+  /** A área de onde este item veio, define a tarja e a etiqueta. */
   origem: AreaId;
   titulo: string;
   descricao?: string;
@@ -46,7 +46,7 @@ export function OrigemItem({
 
       {/* `basis-40` é o que faz o conjunto da direita QUEBRAR para a
           linha de baixo no celular em vez de se espremer. Sem isso, o
-          valor — que não encolhe — era desenhado POR CIMA do título:
+          valor, que não encolhe, era desenhado POR CIMA do título:
           a coluna do texto sobrava com uns sessenta pixels, o nome
           quebrava em três linhas e o número passava por cima. */}
       <span className="min-w-0 flex-1 basis-40">

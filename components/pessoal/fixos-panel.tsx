@@ -36,7 +36,7 @@ interface FixosPanelProps {
 /**
  * O plano fixo pessoal: aluguel, academia, assinaturas.
  *
- * Mesmo mecanismo do financeiro da empresa — cadastra uma vez, e o
+ * Mesmo mecanismo do financeiro da empresa, cadastra uma vez, e o
  * botão cria os lançamentos do mês. Clicar duas vezes não duplica:
  * o banco tem `unique (recurrence_id, reference_month)`.
  *

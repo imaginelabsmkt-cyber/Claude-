@@ -33,7 +33,7 @@ export const metadata = { title: "Fila de trabalho" };
  *
  * A ordem é a da urgência, não a da área: o que venceu primeiro, o
  * que é hoje depois, e o que está apodrecendo em silêncio por último.
- * Dinheiro, comercial e atividade entram na mesma fila — quem abre
+ * Dinheiro, comercial e atividade entram na mesma fila, quem abre
  * esta tela de manhã não quer escolher área, quer saber o que fazer.
  */
 export default async function FilaPage() {
@@ -51,7 +51,7 @@ export default async function FilaPage() {
   const agora_pedem = pedemAtencao(fila);
 
   /* Reuniões marcadas que ainda não aconteceram, mais as que já
-     passaram e ninguém mexeu — essas são as que mais doem. */
+     passaram e ninguém mexeu, essas são as que mais doem. */
   const reunioes = leads
     .filter((l) => l.meeting_at)
     .sort((a, b) => (a.meeting_at ?? "").localeCompare(b.meeting_at ?? ""));
@@ -60,7 +60,7 @@ export default async function FilaPage() {
   );
 
   /* O COMPROMISSO MARCADO: com quem falar hoje, e quem já venceu.
-     É o motor da tela "Hoje" do protótipo da Vitória — antes esta
+     É o motor da tela "Hoje" do protótipo da Vitória, antes esta
      fila só sabia do alarme ("parado há N dias"), que é o que o
      sistema deduz quando ninguém marcou nada. */
   const comContato = leads

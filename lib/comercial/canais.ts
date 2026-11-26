@@ -2,7 +2,7 @@
  * O que cada canal trouxe, e quanto cada canal custou.
  *
  * Esta é a conta que faltava. A tela de Prospecção já dizia quantos
- * leads cada canal trouxe e quantos viraram cliente — e NÃO dizia
+ * leads cada canal trouxe e quantos viraram cliente, e NÃO dizia
  * quanto cada um custou. Sem o custo, "indicação converte 50%" e
  * "tráfego converte 8%" parecem a mesma informação, quando um é de
  * graça e o outro consome R$ 500 por mês.
@@ -43,7 +43,7 @@ export interface ResultadoDoCanal {
   /** Mensalidade somada do que fechou. */
   receitaMensal: number;
   /**
-   * Investido ÷ fechados. `null` quando não fechou nada — dividir por
+   * Investido ÷ fechados. `null` quando não fechou nada, dividir por
    * zero aqui daria "infinito", e infinito numa tabela é pior do que
    * um traço: parece um número.
    */

@@ -6,8 +6,8 @@
  * gente vai tentar entender essa métrica depois."
  *
  * A métrica morava no banco e não tinha tela: o motivo da perda era
- * gravado e nunca lido. Estas funções são PURAS — sem banco, sem
- * React — e é por isso que dá para testá-las.
+ * gravado e nunca lido. Estas funções são PURAS, sem banco, sem
+ * React, e é por isso que dá para testá-las.
  */
 
 import { arredondar, somar } from "@/lib/financeiro/calculo";
@@ -40,7 +40,7 @@ export const SEM_MOTIVO = "Sem motivo anotado";
  * texto livre: tira espaço sobrando, ponto final e a diferença entre
  * maiúscula e minúscula, de modo que "Achou caro", "achou caro" e
  * "achou caro." sejam o mesmo motivo. Era remendo, e remendo em cima
- * de texto livre só vai até certo ponto — "preço alto" nunca ia
+ * de texto livre só vai até certo ponto, "preço alto" nunca ia
  * encontrar "achou caro". Por isso a lista.
  */
 export function motivosDaPerda(encerradas: Encerrada[]): MotivoDaPerda[] {
@@ -78,7 +78,7 @@ export interface PlacarDoAno {
   perdido: number;
   /**
    * Quantas de cada dez viraram cliente, em por cento. `null` quando
-   * nada encerrou ainda — dividir por zero não vira 0%, vira nada.
+   * nada encerrou ainda, dividir por zero não vira 0%, vira nada.
    */
   aproveitamento: number | null;
 }

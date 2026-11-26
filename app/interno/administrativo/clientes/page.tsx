@@ -50,7 +50,7 @@ export default async function ClientesPage() {
   const contratado = receitaContratada(contratos);
   /* Quem não tem contrato NENHUM, e não "nenhum ativo": com a segunda
      regra, um cliente cujo contrato acabou aparecia duas vezes na
-     mesma tela — uma na lista de contratos e outra aqui embaixo, com
+     mesma tela, uma na lista de contratos e outra aqui embaixo, com
      a etiqueta de "sem contrato". Nome repetido na mesma tela foi
      exatamente a reclamação. */
   const semContrato = carteira.ativos
@@ -60,7 +60,7 @@ export default async function ClientesPage() {
   const naRelacao = carteira.ativos.length;
 
   // Quem paga a conta. A relação de clientes diz QUEM é cliente; esta
-  // barra diz quanto cada um pesa — que é o que faz decidir renovar,
+  // barra diz quanto cada um pesa, que é o que faz decidir renovar,
   // reajustar ou ir atrás de outro.
   const porCliente = [...carteira.ativos, ...carteira.inativos].map((c) => ({
     rotulo: c.nome,
@@ -80,7 +80,7 @@ export default async function ClientesPage() {
       <AdministrativoTabs />
 
       {/* A ponte com as Metas. A carteira responde "quem são"; esta
-          linha responde "e quantos a gente quer ser" — que é o que
+          linha responde "e quantos a gente quer ser", que é o que
           transforma a relação numa meta de crescimento. */}
       <Link
         href="/interno/metas"

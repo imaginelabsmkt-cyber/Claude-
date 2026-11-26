@@ -32,7 +32,7 @@ import type { AtividadeComDono } from "@/lib/data/comercial";
  * reunião, ligação, WhatsApp) já resolve. O que não pode faltar é o
  * vínculo com o cliente e o alerta de atraso."
  *
- * O formulário tem DOIS campos à vista — o que fazer e quando — e o
+ * O formulário tem DOIS campos à vista, o que fazer e quando, e o
  * tipo numa caixinha do lado. Anotar "ligar quinta" não pode custar
  * mais do que anotar no papel, senão não se anota.
  */

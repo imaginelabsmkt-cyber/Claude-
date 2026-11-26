@@ -53,7 +53,7 @@ export function momentoDaAtividade(
  * NEUTRO de propósito: quem chama é que sabe se aquilo venceu ou se
  * foi feito, e põe a palavra na frente ("venceu ontem", "feita há 2
  * dias"). A função dizia "atrasada há 2 dias" sempre, e aí uma
- * atividade CONCLUÍDA aparecia como atrasada — alarme por uma coisa
+ * atividade CONCLUÍDA aparecia como atrasada, alarme por uma coisa
  * que já tinha acontecido.
  */
 const MES_CURTO = [
@@ -96,7 +96,7 @@ export interface FilaDeTrabalho<T> {
 
 /**
  * Separa as atividades abertas em atrasadas, de hoje, próximas e sem
- * prazo — nessa ordem, que é a ordem em que elas pedem atenção.
+ * prazo, nessa ordem, que é a ordem em que elas pedem atenção.
  *
  * Dentro de cada grupo, a mais antiga primeiro: o que venceu há mais
  * tempo é o que está apodrecendo há mais tempo.

@@ -66,7 +66,7 @@ function revalidarFinanceiro() {
 /**
  * Monta a linha do banco a partir do formulário.
  * Regra: um lançamento "Pago" sem data de pagamento assume o vencimento
- * (ou nada, se também não houver) — evita registro pago sem data.
+ * (ou nada, se também não houver), evita registro pago sem data.
  */
 function normalizarLancamento(values: LancamentoFormValues): FinancialEntryInsert {
   const vencimento = limpar(values.due_date);
@@ -327,7 +327,7 @@ export async function excluirRecorrenciaAction(id: string): Promise<ActionResult
  * A lista de conferência do plano fixo.
  *
  * Do documento da Favie: "antes de criar os lançamentos, mostrar a
- * lista para vocês conferirem". Esta função só LÊ — quem grava é a
+ * lista para vocês conferirem". Esta função só LÊ, quem grava é a
  * `gerarLancamentosDoMesAction`, com o que a pessoa deixou marcado.
  */
 export async function previaDasContasFixasAction(mes: string): Promise<
@@ -398,7 +398,7 @@ export async function previaDasContasFixasAction(mes: string): Promise<
  *
  * Mesmo com a conferência na tela, a trava do banco continua: uma
  * recorrência gera no máximo um lançamento por mês. Se a pessoa
- * marcar um item que já gerou, o banco recusa — e é isso que a gente
+ * marcar um item que já gerou, o banco recusa, e é isso que a gente
  * quer, porque a tela pode estar velha se as duas mexerem juntas.
  */
 export async function gerarLancamentosDoMesAction(

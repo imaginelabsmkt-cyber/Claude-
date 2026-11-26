@@ -19,11 +19,11 @@ interface InternoShellProps {
  * Estrutura do sistema interno: menu + barra superior + conteúdo.
  *
  * Mesma casca do sistema de demandas da Favie (topo translúcido de 4rem,
- * avatar à direita, menu em gaveta no celular) — é a mesma empresa, e
+ * avatar à direita, menu em gaveta no celular), é a mesma empresa, e
  * trocar de sistema não devia parecer trocar de produto.
  *
  * O `data-area` no wrapper é o que faz a tela inteira assumir a cor da
- * área aberta — todo componente que usa as classes `area`/`area-soft`
+ * área aberta, todo componente que usa as classes `area`/`area-soft`
  * acompanha sem precisar receber a cor por props.
  */
 export function InternoShell({

@@ -1,5 +1,5 @@
 -- =============================================================
--- FAVIE — SCHEMA COMPLETO (arquivo único)
+-- FAVIE, SCHEMA COMPLETO (arquivo único)
 --
 -- Junta as 24 migrations na ordem correta, para você colar UMA VEZ
 -- no SQL Editor do Supabase em vez de rodar uma a uma.
@@ -7,7 +7,7 @@
 -- É seguro rodar mais de uma vez: todas as partes são idempotentes.
 -- Se parar no meio por algum motivo, pode rodar tudo de novo.
 --
--- Gerado a partir de supabase/migrations/ — não edite este arquivo à
+-- Gerado a partir de supabase/migrations/, não edite este arquivo à
 -- mão: mexa na migration correspondente e rode
 -- `node scripts/gerar-schema.mjs`.
 -- =============================================================
@@ -18,7 +18,7 @@
 -- =============================================================
 
 -- =============================================================
--- Migration inicial — Sistema de Gestão de Produção de Conteúdo
+-- Migration inicial, Sistema de Gestão de Produção de Conteúdo
 -- Agência de social media
 --
 -- Ordem de criação (evita erros de dependência):
@@ -90,7 +90,7 @@ $$;
 -- 3. Tabelas
 -- -------------------------------------------------------------
 
--- 3.1 profiles — perfil do usuário (1:1 com auth.users)
+-- 3.1 profiles, perfil do usuário (1:1 com auth.users)
 create table if not exists public.profiles (
   id          uuid primary key references auth.users (id) on delete cascade,
   name        text not null,
@@ -103,7 +103,7 @@ create table if not exists public.profiles (
 
 comment on table public.profiles is 'Perfis de usuário; id espelha auth.users.';
 
--- 3.2 clients — clientes atendidos pela agência
+-- 3.2 clients, clientes atendidos pela agência
 create table if not exists public.clients (
   id            uuid primary key default gen_random_uuid(),
   name          text not null,
@@ -118,11 +118,10 @@ create table if not exists public.clients (
 
 comment on table public.clients is 'Clientes da agência.';
 
--- 3.3 contents — entidade central (pauta/roteiro + pipeline)
+-- 3.3 contents, entidade central (pauta/roteiro + pipeline)
 create table if not exists public.contents (
   id                     uuid primary key default gen_random_uuid(),
   client_id              uuid not null references public.clients (id) on delete restrict,
-
   -- Identificação / planejamento
   title                  text not null,
   description            text,
@@ -131,7 +130,6 @@ create table if not exists public.contents (
   objective              text,          -- objetivo da postagem
   status                 content_status not null default 'Planejamento',
   priority               content_priority not null default 'Média',
-
   -- Datas de planejamento
   reference_month        text,          -- mês de referência, ex.: "2026-07"
   planned_week           integer,       -- semana planejada (1-5)
@@ -146,18 +144,15 @@ create table if not exists public.contents (
   participants           text[] not null default '{}',
   outfit                 text,          -- figurino/vestuário
   required_materials     text[] not null default '{}',
-
   -- Responsáveis (referenciam profiles)
   planner_id             uuid references public.profiles (id) on delete set null,
   recorder_id            uuid references public.profiles (id) on delete set null,
   editor_id              uuid references public.profiles (id) on delete set null,
   publisher_id           uuid references public.profiles (id) on delete set null,
-
   -- Prazos
   script_deadline        date,
   recording_deadline     date,
   editing_deadline       date,
-
   -- Conteúdo rico (vindo do planejamento)
   script                 text,          -- roteiro completo
   caption                text,          -- legenda do post
@@ -168,7 +163,6 @@ create table if not exists public.contents (
   raw_files_url          text,
   edited_file_url        text,
   published_url          text,
-
   -- Controle
   notes                  text,
   revision_count         integer not null default 0,
@@ -182,7 +176,7 @@ create table if not exists public.contents (
 
 comment on table public.contents is 'Conteúdos: entidade central do pipeline de produção.';
 
--- 3.4 content_history — histórico de mudanças de campos do conteúdo
+-- 3.4 content_history, histórico de mudanças de campos do conteúdo
 create table if not exists public.content_history (
   id            uuid primary key default gen_random_uuid(),
   content_id    uuid not null references public.contents (id) on delete cascade,
@@ -195,7 +189,7 @@ create table if not exists public.content_history (
 
 comment on table public.content_history is 'Auditoria de alterações em campos de contents.';
 
--- 3.5 comments — comentários em um conteúdo
+-- 3.5 comments, comentários em um conteúdo
 create table if not exists public.comments (
   id         uuid primary key default gen_random_uuid(),
   content_id uuid not null references public.contents (id) on delete cascade,
@@ -718,7 +712,7 @@ create index if not exists idx_contents_cover_source
 -- (bucket privado "client-files"); esta tabela guarda os metadados
 -- (nome original, caminho, tamanho, quem enviou).
 --
--- Idempotente — pode rodar novamente sem erro.
+-- Idempotente, pode rodar novamente sem erro.
 -- =============================================================
 
 -- -------------------------------------------------------------
@@ -877,7 +871,7 @@ on conflict (id) do nothing;
 -- Diagnóstico do cliente
 --
 -- O diagnóstico é a análise profunda (Instagram, concorrência, plano) feita
--- no início/pontualmente — diferente do relatório recorrente. É guardado
+-- no início/pontualmente, diferente do relatório recorrente. É guardado
 -- como HTML (documento visual, auto-contido) e renderizado dentro da ficha
 -- do cliente para nunca se perder.
 --
@@ -894,7 +888,7 @@ create table if not exists public.client_diagnostics (
 );
 
 comment on table public.client_diagnostics is
-  'Diagnósticos (HTML visual) por cliente — análise profunda, distinta do relatório.';
+  'Diagnósticos (HTML visual) por cliente, análise profunda, distinta do relatório.';
 
 create index if not exists idx_client_diagnostics_client_id
   on public.client_diagnostics (client_id);
@@ -929,7 +923,7 @@ alter table public.client_reports
 -- =============================================================
 
 -- =============================================================
--- Módulo Financeiro — fluxo de caixa da agência
+-- Módulo Financeiro, fluxo de caixa da agência
 --
 -- Espelha a planilha "Fluxo de Caixa Imagine Labs 2026":
 --   * cada mês tem um saldo inicial (= saldo final do mês anterior);
@@ -1139,10 +1133,10 @@ on conflict (kind, name) do nothing;
 -- =============================================================
 
 -- =============================================================
--- Comercial — funil de oportunidades e propostas
+-- Comercial, funil de oportunidades e propostas
 --
 -- Fecha o ciclo que faltava: um lead entra pelo funil, recebe uma
--- proposta e, quando é ganho, VIRA CLIENTE E MENSALIDADE de uma vez —
+-- proposta e, quando é ganho, VIRA CLIENTE E MENSALIDADE de uma vez,
 -- sem ninguém redigitar nada no financeiro.
 --
 -- O que NÃO existe aqui, de propósito:
@@ -1244,7 +1238,7 @@ create table if not exists public.commercial_leads (
   temperature        lead_temperature,
   -- Quando falar com este lead de novo. Sugerido pela etapa ao mover.
   next_contact_on    date,
-  -- Quando entrou na etapa atual — alimenta o "X dias parado".
+  -- Quando entrou na etapa atual, alimenta o "X dias parado".
   stage_changed_at   timestamptz not null default now(),
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
@@ -1263,7 +1257,7 @@ create table if not exists public.commercial_proposals (
   setup_amount   numeric(12, 2) not null default 0 check (setup_amount >= 0),
   -- O que está incluso (ex.: "8 conteúdos/mês, 1 gravação").
   scope          text,
-  -- Quantidade de conteúdos por mês — vira a meta do cliente.
+  -- Quantidade de conteúdos por mês, vira a meta do cliente.
   monthly_goal   integer check (monthly_goal is null or monthly_goal >= 0),
   sent_at        date,
   valid_until    date,
@@ -1293,7 +1287,7 @@ create trigger trg_proposals_updated_at
   before update on public.commercial_proposals
   for each row execute function public.set_updated_at();
 
--- 4.1 Carimba a data quando a etapa muda — é o relógio do "parado há
+-- 4.1 Carimba a data quando a etapa muda, é o relógio do "parado há
 --     N dias". Fica no banco para valer mesmo se a etapa for mudada
 --     fora da tela do funil.
 -- 2.3 Histórico de etapas: cada mudança, com data.
@@ -1419,12 +1413,12 @@ create policy "atividades_all_authenticated"
 -- =============================================================
 
 -- =============================================================
--- Empresa — documentos e obrigações com prazo
+-- Empresa, documentos e obrigações com prazo
 --
 -- Duas lacunas do sistema interno:
 --
 --   1. DOCUMENTOS. Contrato assinado, cartão CNPJ, alvará, nota fiscal.
---      Documento de CLIENTE já tem lugar (`client_files`) — aqui só se
+--      Documento de CLIENTE já tem lugar (`client_files`), aqui só se
 --      acrescenta o TIPO, para dar para achar "os contratos". Documento
 --      da EMPRESA (que não é de nenhum cliente) ganha `company_files`.
 --
@@ -1624,7 +1618,7 @@ where not exists (select 1 from public.company_obligations);
 -- =============================================================
 
 -- =============================================================
--- Pessoas — quem trabalha na agência e quanto custa
+-- Pessoas, quem trabalha na agência e quanto custa
 --
 -- Até aqui a área "Pessoas" era só um recorte do financeiro: mostrava
 -- o total de pró-labore, mas não sabia QUEM. Esta migration cria o
@@ -1632,7 +1626,7 @@ where not exists (select 1 from public.company_obligations);
 --
 -- Por que uma tabela nova, se já existe `profiles`?
 --   `profiles` é quem faz LOGIN no sistema (hoje, Fran e Vitória).
---   `team_members` é quem RECEBE dinheiro da agência — o que inclui
+--   `team_members` é quem RECEBE dinheiro da agência, o que inclui
 --   freelancers que nunca vão ter login. São coisas diferentes, e a
 --   ligação opcional `profile_id` junta as duas quando é a mesma pessoa.
 --
@@ -1670,7 +1664,7 @@ create table if not exists public.team_members (
   default_rate numeric(12, 2) check (default_rate is null or default_rate >= 0),
   contact      text,
   -- Chave PIX ou dado de pagamento. Não é segredo de sistema, é dado
-  -- de cadastro — mas fica atrás do login como todo o resto.
+  -- de cadastro, mas fica atrás do login como todo o resto.
   payment_info text,
   notes        text,
   active       boolean not null default true,
@@ -1749,7 +1743,7 @@ update public.financial_recurrences r
 -- =============================================================
 
 -- =============================================================
--- Segurança — só conta LIBERADA enxerga o sistema
+-- Segurança, só conta LIBERADA enxerga o sistema
 --
 -- O PROBLEMA QUE ISTO RESOLVE
 --
@@ -1760,7 +1754,7 @@ update public.financial_recurrences r
 --
 -- E o que acontecia depois: o trigger `handle_new_user` criava um
 -- profile para o novo usuário, e as 23 policies com `using (true)`
--- liberavam TUDO para qualquer autenticado — fluxo de caixa, carteira
+-- liberavam TUDO para qualquer autenticado, fluxo de caixa, carteira
 -- de clientes, contratos, chaves PIX, documentos da empresa.
 --
 -- Ou seja: um estranho que criasse conta lia (e escrevia) a empresa
@@ -1771,7 +1765,7 @@ update public.financial_recurrences r
 -- Uma conta passa a valer só depois de LIBERADA por quem já está
 -- dentro. `profiles.approved` começa em `false`, e todas as policies
 -- passam a exigir que o usuário esteja liberado. Quem se cadastrar
--- sozinho continua criando um profile — mas não enxerga nada.
+-- sozinho continua criando um profile, mas não enxerga nada.
 --
 -- Isso é defesa em profundidade: mesmo que o cadastro fique aberto nas
 -- configurações do Supabase, a conta nasce inerte.
@@ -1823,7 +1817,7 @@ grant execute on function public.usuario_aprovado() to authenticated;
 --
 --    O Supabase concede UPDATE na tabela inteira para `authenticated`.
 --    Revogar coluna a coluna não adianta enquanto o grant de tabela
---    existir — então revoga-se a tabela e devolve-se só o que o app
+--    existir, então revoga-se a tabela e devolve-se só o que o app
 --    realmente edita (o nome do perfil, em /configuracoes).
 --
 --    Sem isto, um usuário bloqueado se marcaria `approved = true`, ou
@@ -1839,12 +1833,12 @@ revoke insert, delete on public.profiles from authenticated, anon;
 -- 4. Policies: tudo passa a exigir conta liberada
 -- -------------------------------------------------------------
 
--- 4.1 profiles — você sempre lê a si mesmo (senão nem a tela de
+-- 4.1 profiles, você sempre lê a si mesmo (senão nem a tela de
 --     "conta não liberada" saberia seu nome); ver os colegas exige
 --     estar liberado.
 drop policy if exists "profiles_select_authenticated" on public.profiles;
 -- Também o nome novo: sem este drop, rodar a migration duas vezes
--- falha com "policy already exists" — e o guia de deploy manda rodar
+-- falha com "policy already exists", e o guia de deploy manda rodar
 -- de novo se algo parar no meio.
 drop policy if exists "profiles_select_liberado" on public.profiles;
 create policy "profiles_select_liberado"
@@ -1916,7 +1910,7 @@ create policy "content_history_insert_liberado"
   to authenticated
   with check (public.usuario_aprovado());
 
--- 4.4 Integrações do Google continuam sendo de cada um — e agora
+-- 4.4 Integrações do Google continuam sendo de cada um, e agora
 --     também exigem conta liberada.
 drop policy if exists "google_accounts_own" on public.google_accounts;
 create policy "google_accounts_own"
@@ -1997,7 +1991,7 @@ drop policy if exists "company_files_objects_delete" on storage.objects;
 -- =============================================================
 
 -- =============================================================
--- Gastos pessoais — uma aba por pessoa, privada de verdade
+-- Gastos pessoais, uma aba por pessoa, privada de verdade
 --
 -- O PEDIDO
 --
@@ -2009,20 +2003,20 @@ drop policy if exists "company_files_objects_delete" on storage.objects;
 --
 -- Todas as outras tabelas do sistema interno têm a mesma policy:
 -- `using (public.usuario_aprovado())`. Isso é correto para a EMPRESA
--- — as duas sócias precisam ver o mesmo caixa, a mesma carteira, os
+--, as duas sócias precisam ver o mesmo caixa, a mesma carteira, os
 -- mesmos contratos. Mas é exatamente o que NÃO pode valer aqui.
 --
 -- Então estas duas tabelas seguem o padrão das `google_*`:
 -- `user_id = auth.uid()`. Cada linha pertence a um login, e o banco
--- — não a tela — é quem garante que a outra pessoa não a vê. Mesmo
+--, não a tela, é quem garante que a outra pessoa não a vê. Mesmo
 -- que alguém chame a API do Supabase direto, por fora do sistema,
 -- com a chave anon que é pública: o Postgres devolve zero linhas.
 --
 -- Três camadas, todas no banco:
---   1. `default auth.uid()` — a linha nasce sua, sem o app precisar
+--   1. `default auth.uid()`, a linha nasce sua, sem o app precisar
 --      informar nada;
---   2. `using (user_id = auth.uid())` — você só LÊ o que é seu;
---   3. `with check (user_id = auth.uid())` — você não consegue
+--   2. `using (user_id = auth.uid())`, você só LÊ o que é seu;
+--   3. `with check (user_id = auth.uid())`, você não consegue
 --      GRAVAR uma linha no nome de outra pessoa, nem transferir uma
 --      linha sua para ela.
 --
@@ -2033,7 +2027,7 @@ drop policy if exists "company_files_objects_delete" on storage.objects;
 --
 -- Ela vale para quem entra pelo sistema, com login. Quem tem acesso
 -- ao PAINEL do Supabase (ou à chave `service_role`) passa por cima
--- de qualquer RLS — é o dono do banco. Como as duas sócias dividem
+-- de qualquer RLS, é o dono do banco. Como as duas sócias dividem
 -- o mesmo projeto Supabase, as duas são donas do banco. Privacidade
 -- aqui é entre as telas, não contra o administrador.
 --
@@ -2089,12 +2083,12 @@ create table if not exists public.personal_entries (
 );
 
 comment on table public.personal_entries is
-  'Gastos e receitas pessoais. PRIVADO por user_id — nunca compartilhado.';
+  'Gastos e receitas pessoais. PRIVADO por user_id, nunca compartilhado.';
 comment on table public.personal_recurrences is
-  'Plano fixo pessoal. PRIVADO por user_id — nunca compartilhado.';
+  'Plano fixo pessoal. PRIVADO por user_id, nunca compartilhado.';
 
 -- -------------------------------------------------------------
--- 3. Índices — a consulta sempre parte de (quem, qual mês)
+-- 3. Índices, a consulta sempre parte de (quem, qual mês)
 -- -------------------------------------------------------------
 create index if not exists idx_personal_entries_user_month
   on public.personal_entries (user_id, reference_month);
@@ -2115,7 +2109,7 @@ create trigger trg_personal_recurrences_updated_at
   for each row execute function public.set_updated_at();
 
 -- -------------------------------------------------------------
--- 5. RLS — o coração deste arquivo
+-- 5. RLS, o coração deste arquivo
 -- -------------------------------------------------------------
 alter table public.personal_entries enable row level security;
 alter table public.personal_recurrences enable row level security;
@@ -2146,7 +2140,7 @@ revoke all on public.personal_recurrences from anon;
 --    "você recebeu X de pró-labore neste mês" lendo o financeiro da
 --    empresa, em vez de a pessoa redigitar o próprio salário.
 --
---    A função deixa alguém se identificar — só a si mesma, e só numa
+--    A função deixa alguém se identificar, só a si mesma, e só numa
 --    pessoa que ainda não tem dono. Reivindicar a pessoa da outra
 --    sócia é bloqueado.
 -- -------------------------------------------------------------
@@ -2191,11 +2185,11 @@ grant execute on function public.vincular_me_a_pessoa(uuid) to authenticated;
 -- =============================================================
 
 -- =============================================================
--- Prospecção — de onde vem cada oportunidade
+-- Prospecção, de onde vem cada oportunidade
 --
 -- A Vitória trabalha a captação por CANAL (social selling,
 -- indicação, eventos, parcerias). Até aqui o funil sabia em que
--- etapa cada oportunidade está, mas não de onde ela veio — então
+-- etapa cada oportunidade está, mas não de onde ela veio, então
 -- não dava para responder a única pergunta que decide onde investir
 -- tempo: "qual canal realmente vira cliente?".
 --
@@ -2229,7 +2223,7 @@ alter table public.commercial_leads
 -- Investimento por canal: quanto cada origem custou, por mês. Fica
 -- AQUI, e não lá em cima com as outras tabelas do comercial, porque
 -- depende do enum `lead_channel`, que só nasce nesta altura do
--- arquivo — posta antes, a instalação do zero quebra com
+-- arquivo, posta antes, a instalação do zero quebra com
 -- "type lead_channel does not exist".
 create table if not exists public.commercial_investments (
   id          uuid primary key default gen_random_uuid(),
@@ -2277,7 +2271,7 @@ create index if not exists idx_commercial_leads_channel
 -- anda para a frente, nunca para trás.
 --
 -- 'Fechado' e 'Perdido' não são "mais avançados" que 'Negociação'
--- para este fim — são as saídas. Fechado avança (é o fim bom do
+-- para este fim, são as saídas. Fechado avança (é o fim bom do
 -- funil); Perdido não mexe, preservando o último degrau real.
 -- -------------------------------------------------------------
 alter table public.commercial_leads
@@ -2357,7 +2351,7 @@ update public.commercial_leads
 -- Antes desta migration o único registro de origem era `source`, um
 -- texto escolhido numa lista ("Indicação", "Instagram", "Evento"...).
 -- Em vez de jogar fora, mapeia para o canal e deixa o texto original
--- no lugar — ele passa a ser o detalhe ("quem indicou", "qual
+-- no lugar, ele passa a ser o detalhe ("quem indicou", "qual
 -- evento"), que o canal não guarda.
 -- -------------------------------------------------------------
 update public.commercial_leads
@@ -2378,7 +2372,7 @@ update public.commercial_leads
 -- =============================================================
 
 -- =============================================================
--- Contratos de cliente — a entidade que faltava
+-- Contratos de cliente, a entidade que faltava
 --
 -- O ERRO QUE ISTO CORRIGE
 --

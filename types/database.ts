@@ -87,7 +87,7 @@ export type Client = {
   updated_at: ISODateString;
 }
 
-/** contents — entidade central */
+/** contents, entidade central */
 export type Content = {
   id: UUID;
   client_id: UUID;
@@ -127,7 +127,7 @@ export type Content = {
   recording_deadline: DateString | null;
   editing_deadline: DateString | null;
 
-  // Sessão de edição (quando a Fran vai editar — vira bloco no Google Agenda)
+  // Sessão de edição (quando a Fran vai editar, vira bloco no Google Agenda)
   editing_date: DateString | null;
   editing_time: string | null;
 
@@ -175,13 +175,13 @@ export type Comment = {
   created_at: ISODateString;
 }
 
-/** client_files — arquivos centralizados por cliente (metadados). */
+/** client_files, arquivos centralizados por cliente (metadados). */
 export type ClientFile = {
   id: UUID;
   client_id: UUID;
   name: string;
   path: string;
-  /** Tipo do documento — permite achar "os contratos". */
+  /** Tipo do documento, permite achar "os contratos". */
   kind: ClientFileKind;
   size_bytes: number | null;
   mime_type: string | null;
@@ -193,7 +193,7 @@ export type ClientFileInsert = Omit<ClientFile, "id" | "created_at" | "kind"> & 
   kind?: ClientFileKind;
 };
 
-/** client_onboarding — DNA/onboarding do cliente (JSONB flexível). */
+/** client_onboarding, DNA/onboarding do cliente (JSONB flexível). */
 export type ClientOnboarding = {
   client_id: UUID;
   data: Record<string, string>;
@@ -205,7 +205,7 @@ export type ClientOnboardingInsert = {
   data?: Record<string, string>;
 };
 
-/** client_reports — relatórios mensais/quinzenais do cliente. */
+/** client_reports, relatórios mensais/quinzenais do cliente. */
 export type ClientReport = {
   id: UUID;
   client_id: UUID;
@@ -229,7 +229,7 @@ export type ClientReportInsert = Omit<
   analysis?: string | null;
 };
 
-/** client_diagnostics — diagnóstico visual (HTML) do cliente. */
+/** client_diagnostics, diagnóstico visual (HTML) do cliente. */
 export type ClientDiagnostic = {
   id: UUID;
   client_id: UUID;
@@ -245,7 +245,7 @@ export type ClientDiagnosticInsert = Omit<
   id?: UUID;
 };
 
-/** plannings — gestão da criação do planejamento mensal por cliente */
+/** plannings, gestão da criação do planejamento mensal por cliente */
 export type Planning = {
   id: UUID;
   client_id: UUID;
@@ -273,7 +273,7 @@ export type PlanningInsert = {
   updated_at?: ISODateString;
 };
 
-/** planning_google_sync — mapeia planejamento -> evento/tarefa no Google */
+/** planning_google_sync, mapeia planejamento -> evento/tarefa no Google */
 export type PlanningGoogleSync = {
   id: UUID;
   planning_id: UUID;
@@ -287,7 +287,7 @@ export type PlanningGoogleSyncInsert = Omit<
   "id" | "updated_at"
 > & { id?: UUID; updated_at?: ISODateString };
 
-/** google_accounts — conexão do usuário com o Google */
+/** google_accounts, conexão do usuário com o Google */
 export type GoogleAccount = {
   user_id: UUID;
   email: string | null;
@@ -310,7 +310,7 @@ export type GoogleAccountInsert = Omit<
   updated_at?: ISODateString;
 };
 
-/** google_sync — mapeia conteúdo -> evento/tarefa no Google, por usuário */
+/** google_sync, mapeia conteúdo -> evento/tarefa no Google, por usuário */
 export type GoogleSync = {
   id: UUID;
   content_id: UUID;
@@ -337,7 +337,7 @@ export type FinancialStatus = "Pago" | "Pendente";
 /** Mês de competência no formato "YYYY-MM". */
 export type MonthString = string;
 
-/** financial_settings — linha única com o saldo inicial da série. */
+/** financial_settings, linha única com o saldo inicial da série. */
 export type FinancialSettings = {
   id: true;
   opening_balance: number;
@@ -347,7 +347,7 @@ export type FinancialSettings = {
   updated_at: ISODateString;
 }
 
-/** financial_categories — linhas de agrupamento do resumo anual. */
+/** financial_categories, linhas de agrupamento do resumo anual. */
 export type FinancialCategory = {
   id: UUID;
   name: string;
@@ -358,7 +358,7 @@ export type FinancialCategory = {
   updated_at: ISODateString;
 }
 
-/** financial_recurrences — mensalidades e custos fixos que se repetem. */
+/** financial_recurrences, mensalidades e custos fixos que se repetem. */
 export type FinancialRecurrence = {
   id: UUID;
   description: string;
@@ -386,7 +386,7 @@ export type FinancialRecurrence = {
   updated_at: ISODateString;
 }
 
-/** financial_entries — os lançamentos das abas mensais. */
+/** financial_entries, os lançamentos das abas mensais. */
 export type FinancialEntry = {
   id: UUID;
   reference_month: MonthString;
@@ -496,7 +496,7 @@ export type LeadStage =
 /**
  * Canal de prospecção. Estruturado de propósito: é com ele que a tela
  * de Prospecção responde "qual canal vira cliente?". O campo `source`
- * continua existindo ao lado, em texto livre, para o detalhe — quem
+ * continua existindo ao lado, em texto livre, para o detalhe, quem
  * indicou, qual evento, qual parceiro.
  */
 /** O motivo da perda, da lista fechada. */
@@ -524,7 +524,7 @@ export type LeadChannel =
 
 export type ProposalStatus = "Rascunho" | "Apresentada" | "Aceita" | "Recusada";
 
-/** commercial_leads — uma oportunidade no funil. */
+/** commercial_leads, uma oportunidade no funil. */
 export type Lead = {
   id: UUID;
   name: string;
@@ -551,7 +551,7 @@ export type Lead = {
   temperature: LeadTemperature | null;
   /** Quando falar com este lead de novo ("YYYY-MM-DD"). */
   next_contact_on: string | null;
-  /** Quando entrou na etapa atual — alimenta o "parado há N dias". */
+  /** Quando entrou na etapa atual, alimenta o "parado há N dias". */
   stage_changed_at: ISODateString;
   created_at: ISODateString;
   updated_at: ISODateString;
@@ -561,7 +561,7 @@ export type Lead = {
 export type ContractStatus = "Ativo" | "Pausado" | "Encerrado";
 
 /**
- * client_contracts — o contrato do cliente.
+ * client_contracts, o contrato do cliente.
  *
  * Entidade própria, e não um apelido para a recorrência financeira:
  * vigência, escopo e reajuste não cabiam lá. `recurrence_id` liga o
@@ -613,7 +613,7 @@ export type ClientContractInsert = Omit<
   recurrence_id?: UUID | null;
 };
 
-/** commercial_proposals — uma proposta apresentada a uma oportunidade. */
+/** commercial_proposals, uma proposta apresentada a uma oportunidade. */
 export type Proposal = {
   id: UUID;
   lead_id: UUID;
@@ -621,7 +621,7 @@ export type Proposal = {
   monthly_amount: number;
   setup_amount: number;
   scope: string | null;
-  /** Conteúdos por mês — vira a meta do cliente quando aceita. */
+  /** Conteúdos por mês, vira a meta do cliente quando aceita. */
   monthly_goal: number | null;
   sent_at: DateString | null;
   valid_until: DateString | null;
@@ -684,7 +684,7 @@ export type StageHistory = {
 /** O que se faz com um cliente. */
 export type ActivityKind = "Tarefa" | "Reunião" | "Ligação" | "WhatsApp";
 
-/** commercial_activities — presa a uma oportunidade OU a um cliente. */
+/** commercial_activities, presa a uma oportunidade OU a um cliente. */
 export type Activity = {
   id: UUID;
   kind: ActivityKind;
@@ -716,7 +716,7 @@ export type ActivityInsert = Omit<
   notes?: string | null;
 };
 
-/** commercial_investments — o que foi gasto em cada canal, por mês. */
+/** commercial_investments, o que foi gasto em cada canal, por mês. */
 export type Investment = {
   id: UUID;
   /** Competência "YYYY-MM". */
@@ -757,7 +757,7 @@ export type ProposalInsert = Omit<
 };
 
 // -------------------------------------------------------------
-// Empresa — documentos e obrigações (20260922120000_empresa.sql)
+// Empresa, documentos e obrigações (20260922120000_empresa.sql)
 // -------------------------------------------------------------
 
 /** Periodicidade de uma obrigação com prazo. */
@@ -784,7 +784,7 @@ export type CompanyFileKind =
   | "Seguro"
   | "Outro";
 
-/** company_files — documento da empresa (binário no bucket company-files). */
+/** company_files, documento da empresa (binário no bucket company-files). */
 export type CompanyFile = {
   id: UUID;
   name: string;
@@ -797,7 +797,7 @@ export type CompanyFile = {
   created_at: ISODateString;
 }
 
-/** company_obligations — prazo que não é despesa. */
+/** company_obligations, prazo que não é despesa. */
 export type Obligation = {
   id: UUID;
   title: string;
@@ -815,7 +815,7 @@ export type Obligation = {
   updated_at: ISODateString;
 }
 
-/** obligation_completions — um período cumprido. */
+/** obligation_completions, um período cumprido. */
 export type ObligationCompletion = {
   id: UUID;
   obligation_id: UUID;
@@ -880,12 +880,12 @@ export type ObligationCompletionInsert = Omit<
 export type TeamKind = "Sócia" | "Freelancer" | "Prestador";
 
 /**
- * personal_entries — gastos e receitas PESSOAIS.
+ * personal_entries, gastos e receitas PESSOAIS.
  *
  * Única família de tabelas do sistema interno que NÃO é compartilhada
  * entre as sócias: cada linha pertence a um login (`user_id`) e o RLS
  * do Postgres garante que a outra pessoa não a enxerga. Por isso não
- * existe `user_id` nos tipos de Insert — o banco preenche com
+ * existe `user_id` nos tipos de Insert, o banco preenche com
  * `auth.uid()`, e o app nunca escolhe de quem é a linha.
  */
 export type PersonalEntry = {
@@ -893,7 +893,7 @@ export type PersonalEntry = {
   user_id: UUID;
   reference_month: MonthString;
   kind: FinancialKind;
-  /** Categoria em texto livre — pessoal não precisa de cadastro. */
+  /** Categoria em texto livre, pessoal não precisa de cadastro. */
   category: string;
   description: string;
   amount: number;
@@ -926,7 +926,7 @@ export type PersonalEntryInsert = Omit<
   recurrence_id?: UUID | null;
 };
 
-/** personal_recurrences — o plano fixo pessoal (aluguel, assinaturas). */
+/** personal_recurrences, o plano fixo pessoal (aluguel, assinaturas). */
 export type PersonalRecurrence = {
   id: UUID;
   user_id: UUID;
@@ -961,7 +961,7 @@ export type PersonalRecurrenceInsert = Omit<
 };
 
 /**
- * team_members — quem RECEBE dinheiro da agência.
+ * team_members, quem RECEBE dinheiro da agência.
  * Diferente de `Profile`, que é quem FAZ LOGIN; `profile_id` liga as
  * duas quando é a mesma pessoa.
  */

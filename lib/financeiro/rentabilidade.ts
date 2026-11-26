@@ -4,17 +4,17 @@
  * Responde "esse cliente se paga?" separando duas coisas que costumam
  * ser confundidas:
  *
- *   CUSTO DIRETO  — despesa lançada COM aquele cliente: o freela que
+ *   CUSTO DIRETO, despesa lançada COM aquele cliente: o freela que
  *                   editou os vídeos dele, o tráfego pago da campanha
  *                   dele. Sai direto de `financial_entries.client_id`.
  *
- *   CUSTO INDIRETO — o que a agência gasta para existir: pró-labore,
+ *   CUSTO INDIRETO, o que a agência gasta para existir: pró-labore,
  *                   ferramentas, contador. Não é de ninguém em
  *                   particular.
  *
  * A margem direta é fato. O resultado com rateio é uma ESTIMATIVA: ele
  * divide o custo indireto entre os clientes na proporção da receita de
- * cada um — quem fatura mais absorve mais. É a forma mais comum de
+ * cada um, quem fatura mais absorve mais. É a forma mais comum de
  * ratear, e a única honesta sem apontar horas trabalhadas.
  *
  * Funções puras, cobertas por testes.
@@ -54,7 +54,7 @@ export interface Rentabilidade {
 /**
  * Calcula a rentabilidade a partir dos lançamentos de um período.
  *
- * Considera apenas o que foi PAGO — receita prometida não paga cliente
+ * Considera apenas o que foi PAGO, receita prometida não paga cliente
  * nenhum, e despesa não paga ainda não saiu do caixa.
  */
 export function calcularRentabilidade(
@@ -118,7 +118,7 @@ export function calcularRentabilidade(
 
 /**
  * Receita que não tem cliente apontado (projeto avulso lançado solto).
- * Ela entra no total mas não aparece em cliente nenhum — vale avisar,
+ * Ela entra no total mas não aparece em cliente nenhum, vale avisar,
  * porque distorce o rateio.
  */
 export function receitaSemCliente(lancamentos: FinancialEntry[]): number {

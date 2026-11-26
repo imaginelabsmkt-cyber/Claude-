@@ -62,8 +62,8 @@ export interface DoSistema {
    * O custo fixo DE CADA MÊS, por "YYYY-MM".
    *
    * Não é um número só, e essa é a parte que a planilha não
-   * conseguia fazer. Lá havia duas linhas digitadas à mão — "custo
-   * fixo até fev/27" e "a partir de mar/27" — porque a mentoria
+   * conseguia fazer. Lá havia duas linhas digitadas à mão, "custo
+   * fixo até fev/27" e "a partir de mar/27", porque a mentoria
    * Ultralize acaba em fevereiro, e uma fórmula tinha que saber
    * disso: IF(mês < março, 16.222,02, 14.055,32).
    *
@@ -104,7 +104,7 @@ export interface MesDaProjecao {
    * O imposto se fosse 6% do faturamento, em vez do valor fixo.
    *
    * A Fran estimou R$ 600 por mês. No Simples (Anexo III) a 1ª faixa
-   * é 6% do faturamento, e com 20 clientes isso passa de R$ 2.300 —
+   * é 6% do faturamento, e com 20 clientes isso passa de R$ 2.300,
    * quatro vezes o palpite. É diferença que decide se a meta é
    * atingida ou não, então as duas contas ficam lado a lado em vez
    * de uma só, escolhida por mim.
@@ -149,7 +149,7 @@ export function mesesEntre(de: string, ate: string): number {
 /**
  * Quanto uma contratação custa num mês.
  *
- * Antes do mês de início, zero. Sem valor definido, zero também — e
+ * Antes do mês de início, zero. Sem valor definido, zero também, e
  * é por isso que `semValor` existe na projeção: a tela precisa dizer
  * que a conta está otimista, em vez de somar um palpite meu.
  */
@@ -178,7 +178,7 @@ export function custoDaPessoa(
  *
  * `ritmo` é quantos clientes novos entram em cada mês, por "YYYY-MM".
  * Os meses saem de `primeiroMes` até `mesDaMeta`, mesmo os que o
- * ritmo não menciona — um mês sem cliente novo continua tendo custo,
+ * ritmo não menciona, um mês sem cliente novo continua tendo custo,
  * e sumir da tabela esconderia isso.
  */
 export function montarProjecao(
@@ -209,7 +209,7 @@ export function montarProjecao(
 
     /* O imposto muda quando a agência sai do MEI: no lugar do DAS,
        entra o imposto do Simples mais o contador. Antes disso, zero
-       aqui — o DAS já está dentro do custo fixo. */
+       aqui, o DAS já está dentro do custo fixo. */
     const foraDoMei = mesesEntre(premissas.mesSaidaDoMei, mes) >= 0;
     const impostoEContador = foraDoMei
       ? premissas.impostoFixo + premissas.contadorMensal - premissas.dasDoMei

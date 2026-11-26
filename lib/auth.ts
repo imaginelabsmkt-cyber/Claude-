@@ -9,7 +9,7 @@ export interface AuthContext {
   /**
    * A conta está liberada? Estar autenticado NÃO basta: a chave "anon"
    * do Supabase é pública, então qualquer pessoa consegue criar conta.
-   * Só conta liberada enxerga dado — o banco garante isso por RLS, e
+   * Só conta liberada enxerga dado, o banco garante isso por RLS, e
    * aqui a gente evita mostrar uma tela vazia e confusa.
    */
   approved: boolean;
@@ -17,7 +17,7 @@ export interface AuthContext {
 
 /**
  * Obtém, no servidor, o usuário autenticado e seu perfil (tabela profiles).
- * Usado pelo layout autenticado. Não redireciona — apenas lê o estado.
+ * Usado pelo layout autenticado. Não redireciona, apenas lê o estado.
  */
 export async function getAuthContext(): Promise<AuthContext> {
   const supabase = createClient();

@@ -3,7 +3,7 @@
  *
  * Funções PURAS, cobertas por testes. O problema que resolvem: dada uma
  * obrigação periódica e a lista de períodos já cumpridos, qual é o
- * vencimento que está ABERTO agora — e ele está atrasado?
+ * vencimento que está ABERTO agora, e ele está atrasado?
  *
  * Períodos são texto porque a chave muda com a periodicidade:
  *   Mensal/Trimestral -> "2026-09"
@@ -22,7 +22,7 @@ export interface PrazoObrigacao {
   alert_days: number;
   /**
    * Desde quando esta obrigação existe ("YYYY-MM-DD", normalmente o
-   * `created_at`). Períodos anteriores a isso NÃO contam como atraso —
+   * `created_at`). Períodos anteriores a isso NÃO contam como atraso,
    * sem esse corte, cadastrar hoje uma obrigação mensal faria o sistema
    * acusar seis meses de atraso que nunca existiram.
    */
@@ -123,7 +123,7 @@ export interface VencimentoAberto {
  * Qual vencimento está em aberto: o período mais antigo ainda não
  * cumprido cuja data já chegou ou está próxima.
  *
- * Períodos com vencimento anterior a `since` são ignorados — a
+ * Períodos com vencimento anterior a `since` são ignorados, a
  * obrigação não podia estar atrasada antes de existir.
  *
  * Devolve null quando tudo que já venceu está cumprido e o próximo
@@ -152,7 +152,7 @@ export function vencimentoAberto(
   const atrasada = candidatos.find((c) => c.dias < 0);
   if (atrasada) return { ...atrasada, situacao: "Atrasada" };
 
-  // Senão, o próximo a vencer — só se já entrou na janela de aviso.
+  // Senão, o próximo a vencer, só se já entrou na janela de aviso.
   const proxima = candidatos[0];
   if (!proxima) return null;
   if (proxima.dias > o.alert_days) {
@@ -170,7 +170,7 @@ export function textoPrazo(v: VencimentoAberto): string {
   return `em ${v.dias} dias`;
 }
 
-/** Rótulo do período, para exibir ("Set/2026", "2026", "—"). */
+/** Rótulo do período, para exibir ("Set/2026", "2026", ", "). */
 export function rotuloPeriodo(periodo: string): string {
   if (periodo === "unica") return "uma vez";
   if (/^\d{4}$/.test(periodo)) return periodo;

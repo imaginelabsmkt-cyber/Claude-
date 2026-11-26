@@ -7,7 +7,7 @@ import type { MesDaProjecao } from "@/lib/metas/projecao";
  *
  * É a aba "Meta 50 mil" da planilha da Vitória, com uma coluna por
  * pessoa contratada. As colunas entram por largura: no celular ficam
- * as três que respondem a pergunta — mês, sobra e acumulado —, e as
+ * as três que respondem a pergunta, mês, sobra e acumulado, e as
  * outras aparecem conforme a tela dá.
  */
 
@@ -80,7 +80,7 @@ export function TabelaDaProjecao({
                   {rotuloMesCurto(m.mes)}
                 </th>
                 <td className="hidden px-3 py-2 text-right tabular-nums text-gray-600 sm:table-cell">
-                  {m.novosClientes || "—"}
+                  {m.novosClientes || "-"}
                 </td>
                 <td className="hidden px-3 py-2 text-right tabular-nums text-gray-600 md:table-cell">
                   {m.clientesNoTotal}
@@ -98,7 +98,7 @@ export function TabelaDaProjecao({
                   >
                     {m.custoDasPessoas[p.id]
                       ? formatarMoeda(m.custoDasPessoas[p.id])
-                      : "—"}
+                      : "-"}
                   </td>
                 ))}
                 <td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-gray-700 lg:table-cell">

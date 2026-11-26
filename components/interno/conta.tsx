@@ -8,7 +8,7 @@ import { formatarMoeda } from "@/lib/utils";
  * gente não tem contexto nenhum para essa informação".
  *
  * Ela tem razão: número sozinho não quer dizer nada. Na planilha dela
- * eles se ligam — TOTAL RECEITAS, TOTAL DESPESAS, Resultado líquido,
+ * eles se ligam, TOTAL RECEITAS, TOTAL DESPESAS, Resultado líquido,
  * um debaixo do outro, e a conta é óbvia. Aqui é a mesma coisa, só
  * que deitada, e com o − e o = desenhados no meio.
  *

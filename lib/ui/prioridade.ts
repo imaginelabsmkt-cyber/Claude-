@@ -1,7 +1,7 @@
 import type { ContentPriority } from "@/types";
 
 /**
- * Cor da prioridade — usada como realce (ex.: borda esquerda) nos cards
+ * Cor da prioridade, usada como realce (ex.: borda esquerda) nos cards
  * operacionais, para dar a mesma "linguagem de cor" em todas as telas.
  */
 export const COR_PRIORIDADE: Record<ContentPriority, string> = {

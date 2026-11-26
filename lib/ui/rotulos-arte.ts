@@ -1,14 +1,14 @@
 /**
  * Rótulos em linguagem de ARTE (para conteúdos Carrossel / Post estático).
  * Os STATUS no banco são os mesmos do vídeo ("Fila de edição", "Em edição",
- * etc.), mas para arte a Vitória CRIA a arte — não "edita vídeo". Então só o
+ * etc.), mas para arte a Vitória CRIA a arte, não "edita vídeo". Então só o
  * texto exibido muda; o valor/estado continua o mesmo.
  */
 
 const STATUS_ARTE: Record<string, string> = {
-  // Em arte não há "roteiro" — o texto é a copy/legenda para o layout.
+  // Em arte não há "roteiro", o texto é a copy/legenda para o layout.
   "Roteiro pronto": "Copy pronta",
-  // Em carrossel/arte não é "gravação" de vídeo — é produção de fotos.
+  // Em carrossel/arte não é "gravação" de vídeo, é produção de fotos.
   "Aguardando gravação": "Aguardando produção de fotos",
   "Fila de edição": "Fila de criação",
   "Em edição": "Em criação",

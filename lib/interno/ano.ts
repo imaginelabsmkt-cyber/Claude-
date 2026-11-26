@@ -8,7 +8,7 @@ import { mesesDoAno } from "@/lib/financeiro/meses";
  */
 export interface MesFaturamento {
   mes: string;
-  /** Tudo que foi faturado no mês, caído ou não — como na planilha. */
+  /** Tudo que foi faturado no mês, caído ou não, como na planilha. */
   receitas: number;
   /** Tudo que foi lançado como despesa no mês. */
   despesas: number;

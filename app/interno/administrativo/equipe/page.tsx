@@ -22,7 +22,7 @@ interface PageProps {
  *
  * O cadastro é daqui (`team_members`); os valores vêm do financeiro,
  * das categorias de pró-labore e freelancers. Um número só para a
- * empresa — mudou lá, mudou aqui.
+ * empresa, mudou lá, mudou aqui.
  */
 export default async function PessoasPage({ searchParams }: PageProps) {
   const mes =

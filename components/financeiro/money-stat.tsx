@@ -19,7 +19,7 @@ interface MoneyStatProps {
   /** Linha de apoio (ex.: "3 lançamentos em aberto"). */
   detalhe?: string;
   /**
-   * Pinta o valor de verde/vermelho conforme o sinal — usado em resultado
+   * Pinta o valor de verde/vermelho conforme o sinal, usado em resultado
    * e saldo, onde o sinal é a informação mais importante.
    */
   colorirPeloSinal?: boolean;

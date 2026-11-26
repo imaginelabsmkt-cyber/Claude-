@@ -1,5 +1,5 @@
 -- =============================================================
--- SEED OPCIONAL — usuários de exemplo (Fran e Vitória)
+-- SEED OPCIONAL, usuários de exemplo (Fran e Vitória)
 --
 -- ATENÇÃO:
 -- - Uso apenas em ambiente de DESENVOLVIMENTO/local.

@@ -45,7 +45,7 @@ export interface DaBase {
  *
  * "Fechado" sozinho não basta: fechado com cliente ativo é cliente;
  * fechado com cliente desativado é ex-cliente, e ex-cliente é outra
- * conversa — volta a ser procurado depois, e some da carteira.
+ * conversa, volta a ser procurado depois, e some da carteira.
  */
 export function situacaoDe(l: DaBase): Situacao {
   if (l.stage === "Perdido") return "Não fechou";
@@ -82,7 +82,7 @@ function simples(t: string): string {
  *
  * Filtro vazio não filtra: a tela abre com todo mundo, e cada campo
  * que a pessoa preenche só tira gente da lista. Filtro que não
- * corresponde a nada devolve lista vazia, não a lista inteira — o
+ * corresponde a nada devolve lista vazia, não a lista inteira, o
  * contrário mente, dizendo que achou o que não achou.
  */
 export function filtrar<T extends DaBase>(base: T[], f: Filtro): T[] {
@@ -99,7 +99,7 @@ export function filtrar<T extends DaBase>(base: T[], f: Filtro): T[] {
 /**
  * A ordem da lista: quem pede atenção primeiro.
  *
- * Em negociação na frente — é o que ainda dá para mudar hoje. Depois
+ * Em negociação na frente, é o que ainda dá para mudar hoje. Depois
  * cliente, ex-cliente e quem não fechou, que são consulta. Dentro de
  * cada grupo, o maior valor em cima.
  */

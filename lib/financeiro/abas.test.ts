@@ -3,7 +3,7 @@ import { ABAS_FINANCEIRO, ABA_CONFIGURACAO, abaAtiva } from "./abas";
 
 /**
  * TODA tela do financeiro tem que acender alguma coisa na barra. Se
- * uma não acende, a pessoa abre e acha que saiu do financeiro — foi a
+ * uma não acende, a pessoa abre e acha que saiu do financeiro, foi a
  * reclamação: "a gente vai pra outra aba e aí essa aba não existe".
  */
 const TELAS = [

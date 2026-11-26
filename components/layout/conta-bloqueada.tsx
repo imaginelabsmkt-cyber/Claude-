@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 /**
  * O que a pessoa vê quando entrou, mas a conta ainda não foi liberada.
  *
- * Sem isto ela veria o sistema todo vazio — todas as listas em branco,
- * sem explicação — e pensaria que está quebrado. O banco já a impede de
+ * Sem isto ela veria o sistema todo vazio, todas as listas em branco,
+ * sem explicação, e pensaria que está quebrado. O banco já a impede de
  * ver qualquer dado; esta tela só diz por quê.
  */
 export function ContaBloqueada({ email }: { email: string | null }) {

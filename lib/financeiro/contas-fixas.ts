@@ -69,7 +69,7 @@ function mesmoValor(a: number, b: number): boolean {
  *   2. Existe um lançamento com a MESMA DESCRIÇÃO, do mesmo tipo.
  *      Cobre o caso de ter sido lançado à mão antes de clicar aqui.
  *   3. Existe um lançamento na MESMA CATEGORIA e com o MESMO VALOR.
- *      Cobre o lançado à mão com outro nome — "Claude" em vez de
+ *      Cobre o lançado à mão com outro nome, "Claude" em vez de
  *      "Claude Max".
  *
  * O item desmarcado NÃO some da lista: some seria decidir pela

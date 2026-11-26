@@ -23,8 +23,8 @@ interface InternoSidebarProps {
 /**
  * Menu do sistema interno.
  *
- * A estrutura é a mesma do sistema de demandas da Favie — logo na cor da
- * marca, ícone + rótulo, rodapé com avatar — porque é a mesma casa, e
+ * A estrutura é a mesma do sistema de demandas da Favie, logo na cor da
+ * marca, ícone + rótulo, rodapé com avatar, porque é a mesma casa, e
  * trocar de sistema não devia parecer trocar de empresa.
  *
  * O que é só daqui: a COR DA ÁREA. O ícone de cada item carrega a cor da

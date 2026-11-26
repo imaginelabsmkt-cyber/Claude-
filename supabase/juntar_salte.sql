@@ -5,7 +5,7 @@
 --  estúdio)."
 --
 -- Passa tudo que está pendurado na "Salte" para o "Studio Salte" e
--- apaga a duplicata — o cliente e a oportunidade do comercial.
+-- apaga a duplicata, o cliente e a oportunidade do comercial.
 --
 -- Roda quantas vezes quiser: na segunda não acha mais a duplicata e
 -- não faz nada.
@@ -20,7 +20,7 @@
 -- Em todas, se o destino já tiver a linha daquele mês, mandar a da
 -- duplicata por cima estoura a restrição e o arquivo inteiro para no
 -- meio. Então: transfere o que não colide, e o que colide fica para
--- trás e some junto com a duplicata — o destino já tem o dele.
+-- trás e some junto com a duplicata, o destino já tem o dele.
 -- =============================================================
 
 do $$
@@ -55,7 +55,7 @@ begin
    limit 1;
 
   -- Se o "Studio Salte" não existir, não dá para transferir para
-  -- lugar nenhum — e apagar perderia o histórico. Então a duplicata
+  -- lugar nenhum, e apagar perderia o histórico. Então a duplicata
   -- só muda de nome, e o resultado é o mesmo: um cliente só, com o
   -- nome certo.
   if v_destino is null then
@@ -120,7 +120,7 @@ begin
   -- 5. A duplicata.
   --
   -- A esta altura não sobrou nada pendurado nela, menos as linhas
-  -- que colidiam — e essas o destino já tinha.
+  -- que colidiam, e essas o destino já tinha.
   -- ---------------------------------------------------------
   delete from public.clients where id = v_origem;
 

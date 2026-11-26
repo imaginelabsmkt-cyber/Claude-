@@ -36,7 +36,7 @@ export const metadata = { title: "Painel de canais" };
  * de cada canal.
  *
  * As barras usam um tom só, não uma cor por canal. Cada linha já traz
- * o nome do canal do lado — pintar cada uma de uma cor seria decorar,
+ * o nome do canal do lado, pintar cada uma de uma cor seria decorar,
  * não informar, e cores que só decoram atrapalham quem enxerga cor de
  * um jeito diferente.
  */
@@ -49,7 +49,7 @@ export default async function ProspeccaoPage() {
 
   /* "Por que não fechou" vinha na tela de Encerradas, que deixou de
      existir. O lugar dele é aqui: é a mesma pergunta das outras
-     barras desta tela — o que o comercial está perdendo e onde. */
+     barras desta tela, o que o comercial está perdendo e onde. */
   const motivos = motivosDaPerda(encerradas);
 
   /* O comparativo que faltava: o que cada canal trouxe CONTRA o que
@@ -80,7 +80,7 @@ export default async function ProspeccaoPage() {
   return (
     <>
       {/* "Os clientes que estão em prospecção não aparecem, só aparece
-          tipo quantitativo." Esta tela é de NÚMEROS de propósito — a
+          tipo quantitativo." Esta tela é de NÚMEROS de propósito, a
           pergunta dela é "em qual canal vale gastar a próxima hora".
           Quem são fica no funil, e agora o caminho está escrito. */}
       <AreaHeader
@@ -255,7 +255,7 @@ export default async function ProspeccaoPage() {
       )}
 
       {/* FORA do "se houver oportunidade": o gasto costuma vir antes
-          do primeiro lead — paga-se a campanha e espera-se. Dentro do
+          do primeiro lead, paga-se a campanha e espera-se. Dentro do
           condicional, a tela nova não deixava lançar nada. */}
       <Secao titulo="Lançar investimento">
         <InvestimentosPanel investimentos={investimentos} mes={mesAtual()} />

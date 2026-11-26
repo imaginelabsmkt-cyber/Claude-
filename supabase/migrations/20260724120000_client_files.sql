@@ -6,7 +6,7 @@
 -- (bucket privado "client-files"); esta tabela guarda os metadados
 -- (nome original, caminho, tamanho, quem enviou).
 --
--- Idempotente — pode rodar novamente sem erro.
+-- Idempotente, pode rodar novamente sem erro.
 -- =============================================================
 
 -- -------------------------------------------------------------

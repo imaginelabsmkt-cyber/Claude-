@@ -72,7 +72,7 @@ export function situacaoDoContrato(
  *
  * A conta é simples de propósito: doze meses depois do último
  * reajuste, ou do início se nunca houve. O sistema não calcula o
- * índice — quem faz isso é o IBGE, e inventar um número aqui seria
+ * índice, quem faz isso é o IBGE, e inventar um número aqui seria
  * pior que não ter número nenhum. Ele só avisa que chegou a hora.
  */
 export function proximoReajuste(contrato: ContratoBase): string | null {

@@ -1,6 +1,6 @@
 /**
  * =============================================================
- * PROSPECÇÃO — de onde vêm os clientes
+ * PROSPECÇÃO, de onde vêm os clientes
  * =============================================================
  * Regras puras da tela de Prospecção. Sem banco aqui, para poder
  * ser testado.
@@ -8,7 +8,7 @@
  * A pergunta que esta tela responde é UMA: **em qual canal vale a
  * pena gastar a próxima hora?**
  *
- * Por isso o que importa não é quantos leads cada canal trouxe — é
+ * Por isso o que importa não é quantos leads cada canal trouxe, é
  * quantos viraram cliente e quanto isso virou por mês. Um canal que
  * traz 40 contatos e fecha zero é pior que um que traz 4 e fecha 2,
  * e qualquer leitura que só conte leads diria o contrário.
@@ -35,7 +35,7 @@ export const ETAPAS_DO_FUNIL: LeadStage[] = [
 export interface DegrauDoFunil {
   etapa: LeadStage;
   /**
-   * Quantas oportunidades CHEGARAM nesta etapa — inclui as que já
+   * Quantas oportunidades CHEGARAM nesta etapa, inclui as que já
    * seguiram adiante. Sem isso o funil mostraria só a foto de hoje
    * ("3 em negociação") em vez do caminho ("de 40 abordados, 3
    * chegaram à negociação"), que é o que ensina alguma coisa.
@@ -53,7 +53,7 @@ export interface DegrauDoFunil {
  * "Perdido" não é uma etapa do funil: é a saída. Uma oportunidade
  * perdida na negociação CHEGOU à negociação, e some do funil se a
  * gente olhar só a etapa atual. Por isso ela precisa carregar até
- * onde chegou — `stageMaxima` resolve isso.
+ * onde chegou, `stageMaxima` resolve isso.
  */
 export function montarFunil<T extends OportunidadeProspeccao>(
   oportunidades: T[],
@@ -85,7 +85,7 @@ export interface ResultadoDoCanal {
   fechadas: number;
   /** Não viraram. */
   perdidas: number;
-  /** fechadas / (fechadas + perdidas) — só conta o que já se decidiu. */
+  /** fechadas / (fechadas + perdidas), só conta o que já se decidiu. */
   conversao: number;
   /** Mensalidade somada do que este canal fechou. */
   receitaFechada: number;
@@ -143,7 +143,7 @@ export function resultadoPorCanal<T extends OportunidadeProspeccao>(
  *
  * É a conta que o guia da Vitória faz na mão ("100 abordados → 1
  * fecha"), só que com os números de verdade em vez de uma média de
- * mercado. Devolve null enquanto não houver fechamento nenhum — um
+ * mercado. Devolve null enquanto não houver fechamento nenhum, um
  * palpite aqui seria pior que silêncio.
  */
 export function contatosPorCliente(funil: DegrauDoFunil[]): number | null {

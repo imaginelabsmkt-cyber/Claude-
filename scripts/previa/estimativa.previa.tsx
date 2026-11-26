@@ -2,7 +2,7 @@
  * Prévia da Estimativa.
  *
  * Renderiza o COMPONENTE DE VERDADE com a carteira real de
- * novembro/2026 — os oito clientes e o custo fixo que estão no
+ * novembro/2026, os oito clientes e o custo fixo que estão no
  * sistema. Sem cópia de markup.
  *
  * O funil é exemplo, e está escrito na tela: as oportunidades da

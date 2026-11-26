@@ -3,7 +3,7 @@
 Lista viva. Cada linha é uma coisa que a Fran pediu, com data, o que
 foi feito e **onde conferir**. Quando ela pedir algo novo, entra aqui
 antes de virar código. Quando eu achar que terminei, a prova vai aqui
-do lado — arquivo e linha, não "foi feito".
+do lado, arquivo e linha, não "foi feito".
 
 O que está com **✗** não foi feito e não vou dizer que foi.
 
@@ -24,7 +24,7 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 | Pedido | Como está |
 |---|---|
 | Os números do sistema têm que ser os da planilha | ✓ `supabase/seed_financeiro.sql` sai da planilha do Drive. Conferido mês a mês contra a aba Resumo Anual: abr 15.271/11.548,03 · mai 20.958/16.224,11 · jun 20.418/14.767,16 · jul 18.747/15.567,02 · ago 15.500/15.900,22 · set 15.650/17.813,92 · out 14.150/16.950,16. Bate nos sete. |
-| Os meses passados detalhados, item por item | ✓ `supabase/detalhar_historico.sql`, gerado de `scripts/detalhar-historico.py`. O "A CLASSIFICAR — R$ 2.837,74" de outubro era Softbox parcela 3/4 (R$ 671,04) + Mentoria Ultralize (R$ 2.166,70). Total de cada mês idêntico ao da planilha, nos sete. |
+| Os meses passados detalhados, item por item | ✓ `supabase/detalhar_historico.sql`, gerado de `scripts/detalhar-historico.py`. O "A CLASSIFICAR, R$ 2.837,74" de outubro era Softbox parcela 3/4 (R$ 671,04) + Mentoria Ultralize (R$ 2.166,70). Total de cada mês idêntico ao da planilha, nos sete. |
 | "Teve mês que a gente faturou 20.000 e você não levou em consideração" | ✓ Era maio (R$ 20.958,00) e junho (R$ 20.418,00). **No sistema sempre esteve certo.** Quem estava errado era a PRÉVIA que eu mandei por imagem, que tinha números inventados. Corrigido em `scripts/previa/inicio.previa.tsx`: agora a prévia usa os valores da planilha. |
 | Datas de vencimento certas | ✓ Pró-labore dia 10, cartão das assinaturas dia 20, DAS dia 20. `supabase/ajustar_planilha_novembro.sql`. |
 | A conta de um mês vence no mês seguinte | ✓ `lib/financeiro/meses.ts`, `dataVencimento`. |
@@ -67,14 +67,14 @@ O que está com **✗** não foi feito e não vou dizer que foi.
 
 | "É o faturamento bruto, não faz sentido já tirar tudo" | ✓ O mês agora soma TUDO que está lançado, como a planilha: o TOTAL RECEITAS de outubro lá é R$ 14.150,00 e inclui a Malukies de R$ 2.600,00 marcada "Pendente". O status virou marcação (já caiu / ainda não), não a base do cálculo. Conferido contra o Resumo Anual: os sete meses e o Saldo Acumulado batem na vírgula. |
 
-| Cada cliente tem seu dia de vencimento | ✓ Kiku 10, Malukies 10, Laura 25, Natural Concept 25, pró-labore 10, cartão das ferramentas 20 — sempre no mês seguinte ao da competência. `supabase/vencimentos_por_cliente.sql`. Studio Bambu dia 25 (Cláusula 5 do contrato no Drive) e Izabela em duas parcelas de R$ 900,00, dia 10 e dia 25. A Salte fica **sem dia** até fechar o contrato. O **Studio Bambu paga ANTECIPADO** (novembro no dia 25 de outubro): a recorrência ganhou o campo `vencimento_meses` (+1 é o normal, −1 é adiantado). |
+| Cada cliente tem seu dia de vencimento | ✓ Kiku 10, Malukies 10, Laura 25, Natural Concept 25, pró-labore 10, cartão das ferramentas 20, sempre no mês seguinte ao da competência. `supabase/vencimentos_por_cliente.sql`. Studio Bambu dia 25 (Cláusula 5 do contrato no Drive) e Izabela em duas parcelas de R$ 900,00, dia 10 e dia 25. A Salte fica **sem dia** até fechar o contrato. O **Studio Bambu paga ANTECIPADO** (novembro no dia 25 de outubro): a recorrência ganhou o campo `vencimento_meses` (+1 é o normal, −1 é adiantado). |
 | Um arquivo só para atualizar o banco | ✓ `supabase/ATUALIZAR.sql`, montado por `scripts/montar-atualizar.sh`. Eram quatro arquivos em ordem; por isso outubro ficou agrupado e o Captions continuou em novembro. |
 
 ## O que os outros sistemas fazem (pesquisa, nov/2026)
 
 A Fran pediu isso mais de uma vez: "por isso que eu pedi para você
 buscar outros sistemas, por isso que eu te mostrei outros sistemas de
-como funcionam". Fui ver — Conta Azul, Nibo, Granatum, QuickBooks
+como funcionam". Fui ver, Conta Azul, Nibo, Granatum, QuickBooks
 Online e Xero.
 
 Eles divergem em quase tudo e **concordam em três lugares**:
@@ -83,7 +83,7 @@ Eles divergem em quase tudo e **concordam em três lugares**:
    receber, o que vence a pagar e o fluxo de caixa num gráfico. O Xero
    recomenda abrir essa tela toda semana só para ver se tem surpresa.
 2. **Uma tela de movimento**: o dinheiro entrando e saindo. O
-   QuickBooks tem DUAS versões do mesmo menu — a *Accountant view*,
+   QuickBooks tem DUAS versões do mesmo menu, a *Accountant view*,
    com "Sales" e "Expenses" separados, e a *Business view*, para quem
    não é contador, que junta os dois numa aba só. A planilha da Fran é
    a Business view: receitas e despesas na mesma aba do mês.
@@ -98,17 +98,17 @@ em lugar nenhum (resumo do ano, caixa mês a mês, por cliente,
 impostos, fechamento para imprimir) ganharam endereço dentro de
 Relatórios, cada uma com a pergunta que responde.
 
-Fontes: [Conta Azul — gestão financeira](https://contaazul.com/funcionalidades/gestao-financeira/),
+Fontes: [Conta Azul, gestão financeira](https://contaazul.com/funcionalidades/gestao-financeira/),
 [Nibo](https://www.idinheiro.com.br/negocios/nibo/),
 [Granatum](https://www.b2bstack.com.br/product/granatum),
-[QuickBooks Online — navigation menu](https://quickbooks.intuit.com/learn-support/en-uk/help-article/invoicing/understand-navigation-menu-quickbooks-online/L8cX8o5Ep_GB_en_GB),
-[Xero — key areas](https://help.1stformations.co.uk/accounting-service/navigating-xero-the-key-areas-to-know).
+[QuickBooks Online, navigation menu](https://quickbooks.intuit.com/learn-support/en-uk/help-article/invoicing/understand-navigation-menu-quickbooks-online/L8cX8o5Ep_GB_en_GB),
+[Xero, key areas](https://help.1stformations.co.uk/accounting-service/navigating-xero-the-key-areas-to-know).
 
 ## Ainda não feito
 
 | Pedido | Situação |
 |---|---|
 | "O administrativo tá super seco, desinteressante" | ✗ |
-| Mensal e anual não se conectam: "se eu quiser ver o anual eu não consigo" | ✓ A terceira aba virou **Relatórios**, e o resumo do ano é o primeiro item dentro dela — como em todos os sistemas que pesquisei. |
+| Mensal e anual não se conectam: "se eu quiser ver o anual eu não consigo" | ✓ A terceira aba virou **Relatórios**, e o resumo do ano é o primeiro item dentro dela, como em todos os sistemas que pesquisei. |
 | Propostas comerciais com revisão | ✗ |
 | Relatórios de DRE, inadimplência, receita recorrente | ✗ |

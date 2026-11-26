@@ -33,7 +33,7 @@ import { formatarMoeda, formatarPercentual } from "@/lib/utils";
  * um "Novo lead" frio e marcar uma "Negociação" quente não valem a
  * mesma coisa, e a tela não deve fingir que valem.
  *
- * Nada aqui toca o banco. É rascunho — responde "e se", não registra
+ * Nada aqui toca o banco. É rascunho, responde "e se", não registra
  * o que aconteceu. Fica guardado no navegador DELA.
  */
 

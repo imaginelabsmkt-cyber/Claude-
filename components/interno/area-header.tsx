@@ -21,7 +21,7 @@ interface AreaHeaderProps {
   titulo?: string;
   /** Linha de apoio: o período, ou o que a tela responde. */
   contexto?: string;
-  /** Canto direito do cabeçalho — normalmente o período ou uma ação. */
+  /** Canto direito do cabeçalho, normalmente o período ou uma ação. */
   acao?: ReactNode;
   /** Ícone da tela. Omitido, usa o da área aberta. */
   icone?: string;
@@ -32,7 +32,7 @@ interface AreaHeaderProps {
  *
  * Mesmo formato do sistema de demandas da Favie: chip arredondado com o
  * ícone, título grande, linha de apoio embaixo. A diferença é que o chip
- * não tem cor fixa — ele usa a cor da ÁREA aberta (`bg-area-soft` /
+ * não tem cor fixa, ele usa a cor da ÁREA aberta (`bg-area-soft` /
  * `text-area`), então o mesmo componente se tinge de vinho no Comercial,
  * verde no Financeiro e rosa em Meus gastos.
  *

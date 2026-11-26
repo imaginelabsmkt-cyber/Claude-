@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import type { LeadStage } from "@/types";
 
 /**
- * A barra de etapas, clicável — direto da ficha.
+ * A barra de etapas, clicável, direto da ficha.
  *
  * Do raio-X do Zoho: "a Visão geral traz uma barra clicável com as
  * situações do lead". Aqui, mudar de etapa só dava para fazer

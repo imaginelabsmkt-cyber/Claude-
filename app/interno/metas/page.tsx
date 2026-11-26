@@ -28,7 +28,7 @@ export const metadata = { title: "Metas" };
  * O último é o que mais muda a conta. Na planilha eram dois números
  * e uma data ("até fev", "a partir de mar"), porque a mentoria
  * acaba em fevereiro. Aqui cada mês soma as contas fixas que estão
- * valendo NELE — e quando uma assinatura for cancelada em abril, a
+ * valendo NELE, e quando uma assinatura for cancelada em abril, a
  * projeção muda sozinha.
  */
 export default async function MetasPage() {
@@ -67,7 +67,7 @@ export default async function MetasPage() {
             <strong>A projeção está otimista.</strong>{" "}
             {p.semValor.map((c) => c.cargo).join(", ")}{" "}
             {p.semValor.length === 1 ? "entra" : "entram"} na conta sem valor
-            definido — conta como R$ 0,00 até você preencher.
+            definido, e conta como R$ 0,00 até você preencher.
           </p>
         </div>
       ) : null}
@@ -90,7 +90,7 @@ export default async function MetasPage() {
         />
         <Stat
           rotulo="Bate a meta em"
-          valor={p.mesEmQueBate ? rotuloMesCurto(p.mesEmQueBate) : "—"}
+          valor={p.mesEmQueBate ? rotuloMesCurto(p.mesEmQueBate) : "-"}
           alerta={p.mesEmQueBate == null}
           detalhe={p.mesEmQueBate == null ? "não bate nesta janela" : undefined}
         />
@@ -226,7 +226,7 @@ export default async function MetasPage() {
               por mês nos contratos de hoje
               {carteira.clientesSemVideos > 0 ? (
                 <>
-                  {" — "}
+                  {". "}
                   <strong className="font-semibold text-alerta">
                     {carteira.clientesSemVideos}{" "}
                     {carteira.clientesSemVideos === 1
@@ -234,7 +234,7 @@ export default async function MetasPage() {
                       : "clientes estão"}{" "}
                     sem esse número
                   </strong>
-                  , então a conta de editor e videomaker está por baixo.
+                 , então a conta de editor e videomaker está por baixo.
                 </>
               ) : (
                 "."

@@ -12,7 +12,7 @@
  * QUE ESTAMOS PROSPECTANDO NO COMERCIAL."
  *
  * Isso muda a origem das linhas. Eu tinha posto um "+ Cliente novo"
- * que nascia do nada, com o ticket médio — um boneco. Mas a agência
+ * que nascia do nada, com o ticket médio, um boneco. Mas a agência
  * não prospecta bonecos: tem nome, etapa e valor estimado no funil,
  * tudo já cadastrado. Então as linhas que ela acrescenta são AS
  * OPORTUNIDADES DE VERDADE, e marcar uma quer dizer "supondo que
@@ -63,7 +63,7 @@ export interface Estimativa {
    * Quantos clientes A MAIS, no ticket médio, para cobrir o fixo.
    *
    * `0` quando já cobre. `null` quando não há ticket médio de onde
-   * tirar a conta — não dá para dividir por zero e dizer que faltam
+   * tirar a conta, não dá para dividir por zero e dizer que faltam
    * "infinitos clientes".
    */
   faltamClientes: number | null;

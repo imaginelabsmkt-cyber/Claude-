@@ -20,7 +20,7 @@ export default async function InternoLayout({
   if (!ctx.approved) return <ContaBloqueada email={ctx.user.email} />;
 
   // O quantitativo de clientes fica na barra do topo, que é a única
-  // coisa que está em TODA tela do interno — foi o pedido: "não sei se
+  // coisa que está em TODA tela do interno, foi o pedido: "não sei se
   // no administrativo, no financeiro, mas eu quero que sempre apareça".
   const clientesAtivos = await contarClientesAtivos();
 

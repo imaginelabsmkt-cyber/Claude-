@@ -11,7 +11,7 @@ import { formatarMoeda } from "@/lib/utils";
  *
  * Uma série só, uma cor só, e por isso sem legenda: o rótulo de cada
  * barra já diz o que ela é. A maior barra é a maior, e a largura de
- * cada uma é a fatia dela em relação à maior — não ao total, que é o
+ * cada uma é a fatia dela em relação à maior, não ao total, que é o
  * erro clássico de barra ranqueada, onde tudo encolhe quando a lista
  * cresce.
  */
@@ -37,7 +37,7 @@ interface BarrasRanqueadasProps {
    *
    * O FUNIL é a exceção: as etapas têm ordem própria (contato,
    * diagnóstico, proposta, negociação) e embaralhar por valor
-   * destrói a única coisa que um funil conta — o caminho. Ordenado
+   * destrói a única coisa que um funil conta, o caminho. Ordenado
    * por dinheiro, ele deixa de ser funil e vira ranking de etapa.
    */
   ordenar?: boolean;

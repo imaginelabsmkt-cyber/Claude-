@@ -46,7 +46,7 @@ export function ConferirContasFixas({
   const [marcados, setMarcados] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(itens.map((i) => [i.id, i.marcado])),
   );
-  /* O valor aparece como ela escreve na planilha — "6.500,00", não
+  /* O valor aparece como ela escreve na planilha, "6.500,00", não
      "6500". Entra por `paraNumero`, que já aceita "1.700,50",
      "1700,5", "R$ 250" e "250.75". */
   const [valores, setValores] = useState<Record<string, string>>(() =>

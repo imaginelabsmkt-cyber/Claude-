@@ -17,7 +17,7 @@ interface CartaoDoAnoProps {
  * Vive num componente só porque a prévia visual desenha ESTE arquivo.
  * Antes a prévia tinha uma cópia do markup da página, e cópia
  * envelhece: já aconteceu de eu mostrar à Fran uma tela que não existia
- * mais — e, pior, com números inventados. Agora não tem cópia.
+ * mais, e, pior, com números inventados. Agora não tem cópia.
  */
 export function CartaoDoAno({ ano, meta }: CartaoDoAnoProps) {
   const sobrou = ano.resultado >= 0;

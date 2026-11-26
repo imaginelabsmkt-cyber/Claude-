@@ -27,8 +27,8 @@ const ateOndeChegou =
  * O degrau da etapa, procurado pelo NOME.
  *
  * Estes testes eram escritos por índice (`f[2]`), e quando a Fran
- * contou que a proposta é apresentada na reunião — e o funil ganhou
- * "Reunião marcada" no meio — os três quebraram de uma vez sem que
+ * contou que a proposta é apresentada na reunião, e o funil ganhou
+ * "Reunião marcada" no meio, os três quebraram de uma vez sem que
  * nada de errado tivesse acontecido. Índice não é o que se quer
  * afirmar; a etapa é.
  */
@@ -104,7 +104,7 @@ describe("resultadoPorCanal", () => {
       receitaFechada: 2000,
       receitaEmJogo: 1800,
     });
-    // 1 de 2 decididas — a aberta não entra no denominador.
+    // 1 de 2 decididas, a aberta não entra no denominador.
     expect(r[0].conversao).toBeCloseTo(0.5, 10);
   });
 
@@ -164,7 +164,7 @@ describe("contatosPorCliente", () => {
     expect(contatosPorCliente(montarFunil(ops, ateOndeChegou(mapa)))).toBe(10);
   });
 
-  it("devolve null enquanto ninguém fechou — não inventa média", () => {
+  it("devolve null enquanto ninguém fechou, não inventa média", () => {
     const f = montarFunil([op("Evento", "Primeiro contato")], (o) => o.stage);
     expect(contatosPorCliente(f)).toBeNull();
   });

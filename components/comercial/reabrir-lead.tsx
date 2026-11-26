@@ -8,7 +8,7 @@ import { toast } from "@/lib/ui/toast";
 
 /**
  * Devolve uma oportunidade encerrada ao funil, na etapa de negociação.
- * O que já foi criado no financeiro não é desfeito — se o negócio caiu
+ * O que já foi criado no financeiro não é desfeito, se o negócio caiu
  * depois de fechado, o certo é pausar a mensalidade nas recorrências.
  */
 export function ReabrirLead({ id }: { id: string }) {

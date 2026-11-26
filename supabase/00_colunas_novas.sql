@@ -1,5 +1,5 @@
 -- =============================================================
--- AS COLUNAS NOVAS — isto roda ANTES de tudo
+-- AS COLUNAS NOVAS, isto roda ANTES de tudo
 --
 -- Por que existe este arquivo: o ATUALIZAR.sql quebrou na máquina da
 -- Fran com "column r.vencimento_meses does not exist". A coluna era

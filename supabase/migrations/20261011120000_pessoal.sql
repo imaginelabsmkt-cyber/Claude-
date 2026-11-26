@@ -1,5 +1,5 @@
 -- =============================================================
--- Gastos pessoais — uma aba por pessoa, privada de verdade
+-- Gastos pessoais, uma aba por pessoa, privada de verdade
 --
 -- O PEDIDO
 --
@@ -11,20 +11,20 @@
 --
 -- Todas as outras tabelas do sistema interno têm a mesma policy:
 -- `using (public.usuario_aprovado())`. Isso é correto para a EMPRESA
--- — as duas sócias precisam ver o mesmo caixa, a mesma carteira, os
+--, as duas sócias precisam ver o mesmo caixa, a mesma carteira, os
 -- mesmos contratos. Mas é exatamente o que NÃO pode valer aqui.
 --
 -- Então estas duas tabelas seguem o padrão das `google_*`:
 -- `user_id = auth.uid()`. Cada linha pertence a um login, e o banco
--- — não a tela — é quem garante que a outra pessoa não a vê. Mesmo
+--, não a tela, é quem garante que a outra pessoa não a vê. Mesmo
 -- que alguém chame a API do Supabase direto, por fora do sistema,
 -- com a chave anon que é pública: o Postgres devolve zero linhas.
 --
 -- Três camadas, todas no banco:
---   1. `default auth.uid()` — a linha nasce sua, sem o app precisar
+--   1. `default auth.uid()`, a linha nasce sua, sem o app precisar
 --      informar nada;
---   2. `using (user_id = auth.uid())` — você só LÊ o que é seu;
---   3. `with check (user_id = auth.uid())` — você não consegue
+--   2. `using (user_id = auth.uid())`, você só LÊ o que é seu;
+--   3. `with check (user_id = auth.uid())`, você não consegue
 --      GRAVAR uma linha no nome de outra pessoa, nem transferir uma
 --      linha sua para ela.
 --
@@ -35,7 +35,7 @@
 --
 -- Ela vale para quem entra pelo sistema, com login. Quem tem acesso
 -- ao PAINEL do Supabase (ou à chave `service_role`) passa por cima
--- de qualquer RLS — é o dono do banco. Como as duas sócias dividem
+-- de qualquer RLS, é o dono do banco. Como as duas sócias dividem
 -- o mesmo projeto Supabase, as duas são donas do banco. Privacidade
 -- aqui é entre as telas, não contra o administrador.
 --
@@ -91,12 +91,12 @@ create table if not exists public.personal_entries (
 );
 
 comment on table public.personal_entries is
-  'Gastos e receitas pessoais. PRIVADO por user_id — nunca compartilhado.';
+  'Gastos e receitas pessoais. PRIVADO por user_id, nunca compartilhado.';
 comment on table public.personal_recurrences is
-  'Plano fixo pessoal. PRIVADO por user_id — nunca compartilhado.';
+  'Plano fixo pessoal. PRIVADO por user_id, nunca compartilhado.';
 
 -- -------------------------------------------------------------
--- 3. Índices — a consulta sempre parte de (quem, qual mês)
+-- 3. Índices, a consulta sempre parte de (quem, qual mês)
 -- -------------------------------------------------------------
 create index if not exists idx_personal_entries_user_month
   on public.personal_entries (user_id, reference_month);
@@ -117,7 +117,7 @@ create trigger trg_personal_recurrences_updated_at
   for each row execute function public.set_updated_at();
 
 -- -------------------------------------------------------------
--- 5. RLS — o coração deste arquivo
+-- 5. RLS, o coração deste arquivo
 -- -------------------------------------------------------------
 alter table public.personal_entries enable row level security;
 alter table public.personal_recurrences enable row level security;
@@ -148,7 +148,7 @@ revoke all on public.personal_recurrences from anon;
 --    "você recebeu X de pró-labore neste mês" lendo o financeiro da
 --    empresa, em vez de a pessoa redigitar o próprio salário.
 --
---    A função deixa alguém se identificar — só a si mesma, e só numa
+--    A função deixa alguém se identificar, só a si mesma, e só numa
 --    pessoa que ainda não tem dono. Reivindicar a pessoa da outra
 --    sócia é bloqueado.
 -- -------------------------------------------------------------

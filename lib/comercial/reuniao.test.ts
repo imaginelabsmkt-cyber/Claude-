@@ -46,7 +46,7 @@ describe("quandoEhAReuniao", () => {
 
   it("NÃO depende do fuso de quem lê", () => {
     // Uma reunião às 22h de Boa Vista é 02h do dia SEGUINTE em UTC.
-    // Lido em UTC, isto viraria "amanhã 2h" — o erro que esta função
+    // Lido em UTC, isto viraria "amanhã 2h", o erro que esta função
     // existe para não cometer. Em Boa Vista é hoje, às 22h.
     expect(quandoEhAReuniao(em(10, 22), AGORA)).toBe("hoje 22h");
   });

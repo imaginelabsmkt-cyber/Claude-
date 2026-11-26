@@ -14,7 +14,7 @@ import { somarMeses, mesesEntre } from "@/lib/metas/projecao";
  *   =IF(mês < março, o primeiro, o segundo)
  *
  * Os dois existem porque a mentoria Ultralize acaba em fevereiro. E
- * os dois envelhecem na primeira conta fixa que entrar ou sair — aí
+ * os dois envelhecem na primeira conta fixa que entrar ou sair, aí
  * a projeção inteira mente, e ninguém percebe, porque o número tem
  * cara de certo.
  *
